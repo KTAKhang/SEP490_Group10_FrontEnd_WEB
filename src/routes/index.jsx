@@ -2,13 +2,17 @@ import LoginPage from "../pages/LoginPage";
 import ForgotPassword from "../pages/ForgotPassword";
 import NotFoundPage from "../pages/NotFoundPage";
 import Register from "../pages/Register";
-// import HomePage from "../pages/HomePage";
+import HomePage from "../pages/HomePage";
 
 export const routes = [
   // Trang chủ
 
   {
     path: "/",
+    element: <HomePage />,
+  },
+  {
+    path: "/login",
     element: <LoginPage />,
   },
 
