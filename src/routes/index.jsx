@@ -3,6 +3,9 @@ import ForgotPassword from "../pages/ForgotPassword";
 import NotFoundPage from "../pages/NotFoundPage";
 import Register from "../pages/Register";
 import HomePage from "../pages/HomePage";
+import ContactPage from "../pages/ContactManagement/ContactPage";
+import ContactHistoryPage from "../pages/ContactManagement/ContactHistoryPage";
+import AuthenticatedRoute from "../components/AuthenticatedRoute";
 
 export const routes = [
   // Trang chủ
@@ -138,6 +141,24 @@ export const routes = [
   {
     path: "/register",
     element: <Register />,
+  },
+
+  // Contact pages - require authentication
+  {
+    path: "/contact",
+    element: (
+     
+         <ContactPage />
+      
+     ),   
+  },
+  {
+    path: "/contact/history",
+    element: (
+      <AuthenticatedRoute>
+         <ContactHistoryPage />
+      </AuthenticatedRoute>
+    ),
   },
 
   // Trang 404
