@@ -1,293 +1,245 @@
+import React from 'react';
+import Header from '../components/Header/Header';
+import Footer from '../components/Footer/Footer';
+
+// Mock data
 const features = [
   {
-    icon: "ri-leaf-line",
-    title: "100% Hữu Cơ",
-    desc: "Không sử dụng hóa chất, thuốc trừ sâu. Được chứng nhận bởi tổ chức quốc tế về nông nghiệp hữu cơ.",
+    id: 1,
+    name: 'Rau Cải Xanh Hữu Cơ',
+    description: 'Tươi ngon, giàu dinh dưỡng',
+    price: 25000,
+    unit: 'kg',
+    category: 'RAU CỦ',
+    image: 'https://img.freepik.com/free-psd/close-up-delicious-apple_23-2151868338.jpg?semt=ais_hybrid&w=740&q=80',
+    isNew: true
   },
   {
-    icon: "ri-truck-line",
-    title: "Giao Hàng Nhanh",
-    desc: "Giao trong vòng 24h tại nội thành. Đảm bảo độ tươi ngon khi đến tay bạn.",
+    id: 2,
+    name: 'Cà Chua Bi Organic',
+    description: 'Ngọt tự nhiên, không thuốc trừ sâu',
+    price: 45000,
+    unit: 'kg',
+    category: 'RAU CỦ',
+    image: 'https://img.freepik.com/free-psd/close-up-delicious-apple_23-2151868338.jpg?semt=ais_hybrid&w=740&q=80',
+    isNew: false
   },
   {
-    icon: "ri-shield-check-line",
-    title: "Nguồn Gốc Rõ Ràng",
-    desc: "Truy xuất nguồn gốc từng sản phẩm, minh bạch từ trang trại.",
-  },
-];
-const testimonials = [
-  {
-    content:
-      "Rau củ rất tươi, giao hàng đúng hẹn. Gia đình tôi rất hài lòng với chất lượng sản phẩm. Đặc biệt là rau cải và cà chua bi, ngọt tự nhiên không cần nêm nhiều gia vị. Sẽ tiếp tục ủng hộ!",
-    author: "Chị Nguyễn Thị Mai, Hà Nội",
+    id: 3,
+    name: 'Xà Lách Sạch',
+    description: 'Giòn ngon, an toàn',
+    price: 30000,
+    unit: 'kg',
+    category: 'RAU CỦ',
+    image: 'https://img.freepik.com/free-psd/close-up-delicious-apple_23-2151868338.jpg?semt=ais_hybrid&w=740&q=80',
+    isNew: true
   },
   {
-    content:
-      "Mình đã thử nhiều nơi bán nông sản hữu cơ nhưng chỉ có ở đây là tươi và ngon nhất. Giá cả hợp lý, dịch vụ chăm sóc khách hàng tốt. Rất đáng tin cậy!",
-    author: "Anh Trần Văn Hùng, TP.HCM",
-  },
-];
-
-const aboutFeatures = [
-  { icon: "ri-leaf-line", label: "Hữu Cơ" },
-  { icon: "ri-truck-line", label: "Giao Nhanh" },
-  { icon: "ri-shield-check-line", label: "Chứng Nhận" },
-  { icon: "ri-heart-line", label: "Tận Tâm" },
-  { icon: "ri-star-line", label: "Chất Lượng" },
-];
-
-const products = [
-  {
-    name: "Rau Cải Xanh Hữu Cơ",
-    price: "25.000đ",
-    desc: "Rau cải xanh tươi ngon, không hóa chất",
-    img: "product1",
+    id: 4,
+    name: 'Dưa Leo Xanh',
+    description: 'Giòn ngọt, tươi mát',
+    price: 20000,
+    unit: 'kg',
+    category: 'RAU CỦ',
+    image: 'https://img.freepik.com/free-psd/close-up-delicious-apple_23-2151868338.jpg?semt=ais_hybrid&w=740&q=80',
+    isNew: false
   },
   {
-    name: "Cà Chua Bi Đà Lạt",
-    price: "45.000đ",
-    desc: "Cà chua bi ngọt tự nhiên từ Đà Lạt",
-    img: "product2",
+    id: 5,
+    name: 'Ớt Chuông Đỏ',
+    description: 'Ngọt, giàu vitamin C',
+    price: 55000,
+    unit: 'kg',
+    category: 'RAU CỦ',
+    image: 'https://img.freepik.com/free-psd/close-up-delicious-apple_23-2151868338.jpg?semt=ais_hybrid&w=740&q=80',
+    isNew: false
   },
   {
-    name: "Cà Rót Tím Organic",
-    price: "35.000đ",
-    desc: "Cà rót tím tươi, giàu dinh dưỡng",
-    img: "product3",
-  },
-  {
-    name: "Dưa Leo Xanh",
-    price: "20.000đ",
-    desc: "Dưa leo giòn ngọt, tươi mát",
-    img: "product4",
-  },
-  {
-    name: "Ớt Chuông Đỏ",
-    price: "55.000đ",
-    desc: "Ớt chuông đỏ ngọt, giàu vitamin C",
-    img: "product5",
-  },
-  {
-    name: "Bí Đỏ Hữu Cơ",
-    price: "30.000đ",
-    desc: "Bí đỏ ngọt bùi, giàu chất xơ",
-    img: "product6",
-  },
+    id: 6,
+    name: 'Bí Đỏ Hữu Cơ',
+    description: 'Ngọt bùi, giàu chất xơ',
+    price: 30000,
+    unit: 'kg',
+    category: 'RAU CỦ',
+    image: 'https://img.freepik.com/free-psd/close-up-delicious-apple_23-2151868338.jpg?semt=ais_hybrid&w=740&q=80',
+    isNew: false
+  }
 ];
 
 const HomePage = () => {
   return (
-    <>
-      {/* NAVBAR */}
-      <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            {/* Logo */}
-            <a
-              href="/preview/c1fbeee4-6d00-4542-8403-c2c8a5b3bb84/5328061"
-              className="flex items-center space-x-3"
-            >
-              <img
-                src="https://public.readdy.ai/ai/img_res/5bde7704-1cb0-4365-9e92-f123696b11d9.png"
-                alt="Nông Sản Sạch"
-                className="h-10 md:h-12"
-              />
-              <span className="text-xl font-bold text-gray-900">
-                Nông Sản Sạch
-              </span>
-            </a>
-
-            {/* Desktop Menu */}
-            <div className="hidden md:flex items-center space-x-8">
-              <a className="text-sm font-medium text-green-600 whitespace-nowrap" href="/">
-                Trang Chủ
-              </a>
-              <a className="text-sm font-medium text-gray-700 hover:text-green-600 whitespace-nowrap" href="/products">
-                Sản Phẩm
-              </a>
-              <a className="text-sm font-medium text-gray-700 hover:text-green-600 whitespace-nowrap" href="/categories">
-                Danh Mục
-              </a>
-              <a className="text-sm font-medium text-gray-700 hover:text-green-600 whitespace-nowrap" href="/about">
-                Về Chúng Tôi
-              </a>
-              <a className="text-sm font-medium text-gray-700 hover:text-green-600 whitespace-nowrap" href="/contact">
-                Liên Hệ
-              </a>
-              <a className="text-sm font-medium text-gray-700 hover:text-green-600 whitespace-nowrap" href="/faq">
-                FAQ
-              </a>
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center space-x-4">
-              <button
-                className="relative p-2 rounded-full hover:bg-gray-100 transition-colors"
-                aria-label="Giỏ hàng"
-              >
-                <i className="ri-shopping-cart-line text-xl text-gray-900"></i>
-                <span className="absolute -top-1 -right-1 bg-green-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                  0
-                </span>
-              </button>
-
-              {/* Mobile Menu Button */}
-              <button
-                className="md:hidden p-2 rounded-lg text-gray-900"
-                aria-label="Menu"
-              >
-                <i className="ri-menu-line text-2xl"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-white">
+      <Header />
 
       {/* HERO SECTION */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        {/* Background */}
+        {/* Background Image */}
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage:
-              'url("https://readdy.ai/api/search-image?query=Beautiful%20lush%20green%20organic%20farm%20field%20with%20fresh%20vegetables%20growing%20under%20bright%20natural%20sunlight&width=1920&height=1080&seq=hero1&orientation=landscape")',
+            backgroundImage: 'url(https://readdy.ai/api/search-image?query=Beautiful%20lush%20green%20organic%20farm%20field%20with%20fresh%20vegetables%20growing%20under%20bright%20natural%20sunlight%20wide%20landscape%20view%20peaceful%20countryside%20agricultural%20scene%20with%20vibrant%20green%20colors%20and%20natural%20lighting&width=1920&height=1080&seq=hero1&orientation=landscape)',
           }}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/40"></div>
         </div>
 
+        {/* Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className="flex flex-col items-start max-w-3xl">
-            {/* Customers */}
+            {/* Trust Badge */}
             <div className="flex items-center space-x-3 mb-8">
               <div className="flex -space-x-2">
-                {[1, 2, 3].map((_, index) => (
-                  <img
-                    key={index}
-                    src={`https://readdy.ai/api/search-image?query=Happy%20smiling%20asian%20customer%20portrait&width=100&height=100&seq=avatar${index}`}
-                    alt="Customer"
-                    className="w-10 h-10 rounded-full border-2 border-white object-cover"
-                  />
-                ))}
+                <img
+                  src="https://readdy.ai/api/search-image?query=Happy%20smiling%20asian%20woman%20customer%20portrait%20on%20clean%20white%20background%20professional%20photography&width=100&height=100&seq=avatar1&orientation=squarish"
+                  alt="Customer"
+                  className="w-10 h-10 rounded-full border-2 border-white object-cover"
+                />
+                <img
+                  src="https://readdy.ai/api/search-image?query=Happy%20smiling%20asian%20man%20customer%20portrait%20on%20clean%20white%20background%20professional%20photography&width=100&height=100&seq=avatar2&orientation=squarish"
+                  alt="Customer"
+                  className="w-10 h-10 rounded-full border-2 border-white object-cover"
+                />
+                <img
+                  src="https://readdy.ai/api/search-image?query=Happy%20smiling%20asian%20woman%20customer%20portrait%20on%20clean%20white%20background%20professional%20photography&width=100&height=100&seq=avatar3&orientation=squarish"
+                  alt="Customer"
+                  className="w-10 h-10 rounded-full border-2 border-white object-cover"
+                />
               </div>
-              <p className="text-white text-sm font-medium">
-                Hơn 5,000+ khách hàng tin dùng
-              </p>
+              <p className="text-white text-sm font-medium">More than 5,000+ customers trust us</p>
             </div>
 
-            {/* Headings */}
+            {/* Main Heading */}
             <h1 className="text-6xl md:text-7xl lg:text-8xl font-black text-white mb-6 leading-tight">
-              Nông Sản Sạch
+              Clean Agricultural Products
             </h1>
-
             <p className="text-4xl md:text-5xl lg:text-6xl font-light text-white/90 mb-12">
-              Từ Trang Trại Đến Bàn Ăn
+              From Farm To Table
             </p>
 
-            {/* CTA */}
+            {/* CTA Button */}
             <a
               href="/products"
-              className="inline-flex items-center space-x-3 bg-white text-gray-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transition-all transform hover:scale-105 shadow-xl whitespace-nowrap"
+              className="inline-flex items-center space-x-3 bg-white text-gray-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transition-all transform hover:scale-105 shadow-xl whitespace-nowrap cursor-pointer"
             >
-              <span>Khám Phá Ngay</span>
+              <span>Explore Now</span>
               <i className="ri-arrow-right-line text-xl"></i>
             </a>
           </div>
 
-          {/* Description */}
+          {/* Description - Bottom Right */}
           <div className="absolute bottom-20 right-8 max-w-md hidden lg:block">
             <p className="text-white/90 text-lg leading-relaxed">
-              Cam kết mang đến sản phẩm nông sản hữu cơ, an toàn và tươi ngon nhất.
-              Trực tiếp từ nông trại đến tay người tiêu dùng.
+              Committed to delivering the freshest, safest organic agricultural products.
+              Directly from the farm to your hands.
             </p>
           </div>
         </div>
       </section>
-       {/* ===== WHY CHOOSE US ===== */}
-      <section className="py-16 md:py-24 bg-gradient-to-b from-white to-gray-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="mb-12 md:mb-16">
+
+      {/* FEATURES SECTION */}
+      <section className="py-24 bg-gradient-to-b from-white to-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="mb-16">
             <p className="text-gray-500 text-sm font-medium uppercase tracking-wider mb-3">
-              TẠI SAO CHỌN CHÚNG TÔI
+              WHY CHOOSE US
             </p>
-            <h2 className="text-3xl sm:text-4xl md:text-6xl font-black text-gray-900 leading-tight">
-              Cam Kết Chất Lượng
-              <br />
-              Từ Nguồn Gốc
+            <h2 className="text-5xl md:text-6xl font-black text-gray-900 leading-tight">
+              Quality Commitment<br />
+              From the Source
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            {features.map((item, index) => (
-              <div
-                key={index}
-                className="bg-gray-50 rounded-3xl p-6 md:p-8 hover:shadow-xl transition"
-              >
-                <div className="w-14 h-14 flex items-center justify-center mb-6">
-                  <i className={`${item.icon} text-4xl text-gray-900`} />
-                </div>
-                <h3 className="text-xl md:text-2xl font-bold mb-4">
-                  {item.title}
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {item.desc}
-                </p>
+          {/* Feature Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Card 1 */}
+            <div className="bg-gray-50 rounded-3xl p-8 hover:shadow-xl transition-shadow">
+              <div className="w-14 h-14 flex items-center justify-center mb-6">
+                <i className="ri-leaf-line text-4xl text-gray-900"></i>
               </div>
-            ))}
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">100% Organic</h3>
+              <p className="text-gray-600 leading-relaxed">
+                No chemicals or pesticides used. Certified by international organic farming organizations.
+              </p>
+            </div>
+
+            {/* Card 2 */}
+            <div className="bg-gray-50 rounded-3xl p-8 hover:shadow-xl transition-shadow">
+              <div className="w-14 h-14 flex items-center justify-center mb-6">
+                <i className="ri-truck-line text-4xl text-gray-900"></i>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Fast Delivery</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Delivery within 24 hours in the inner city. Ensuring freshness and quality of products when they reach you.
+              </p>
+            </div>
+
+            {/* Card 3 */}
+            <div className="bg-gray-50 rounded-3xl p-8 hover:shadow-xl transition-shadow">
+              <div className="w-14 h-14 flex items-center justify-center mb-6">
+                <i className="ri-shield-check-line text-4xl text-gray-900"></i>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Clear Origin</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Traceability of each product. Transparency from the farm, ensuring absolute food safety.  
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ===== FEATURED PRODUCTS ===== */}
-      <section className="py-16 md:py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 md:mb-16">
-            <h2 className="text-3xl sm:text-4xl md:text-6xl font-black mb-4">
-              Sản Phẩm Nổi Bật
+      {/* FEATURED PRODUCTS SECTION */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16">
+            <h2 className="text-5xl md:text-6xl font-black text-gray-900 mb-4 md:mb-0">
+              Featured Products
             </h2>
-            <p className="text-gray-600 max-w-md text-sm md:text-base">
-              Những sản phẩm được yêu thích nhất, tươi ngon và đảm bảo chất lượng hữu cơ cao nhất.
+            <p className="text-gray-600 max-w-md">
+              The most popular products, fresh and guaranteed to have the highest organic quality.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {products.map((p, index) => (
+          {/* Products Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((product) => (
               <div
-                key={index}
-                className="group bg-white rounded-2xl overflow-hidden border hover:shadow-2xl transition"
+                key={product.id}
+                className="group bg-white rounded-2xl overflow-hidden border border-gray-200 hover:shadow-2xl transition-all duration-300 cursor-pointer"
               >
-                <div className="relative h-56 sm:h-64 md:h-72 bg-gray-100 overflow-hidden">
+                {/* Product Image */}
+                <div className="relative h-72 bg-gray-100 overflow-hidden">
                   <img
-                    src={`https://readdy.ai/api/search-image?query=Fresh%20organic%20vegetables&width=400&height=400&seq=${p.img}`}
-                    alt={p.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
-                  {index < 2 && (
-                    <span className="absolute top-4 left-4 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-                      <i className="ri-star-fill" />
-                      MỚI
-                    </span>
+                  {product.isNew && (
+                    <div className="absolute top-4 left-4 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1">
+                      <i className="ri-star-fill"></i>
+                      <span>MỚI</span>
+                    </div>
                   )}
                 </div>
 
-                <div className="p-5 md:p-6">
-                  <p className="text-xs text-gray-500 uppercase mb-2">Rau Củ</p>
-                  <h3 className="text-lg md:text-xl font-bold mb-2">
-                    {p.name}
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-4">
-                    {p.desc}
+                {/* Product Info */}
+                <div className="p-6">
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
+                    {product.category}
                   </p>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">{product.name}</h3>
+                  <p className="text-gray-600 text-sm mb-4">{product.description}</p>
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-xl md:text-2xl font-bold">
-                        {p.price}
+                      <span className="text-2xl font-bold text-gray-900">
+                        {product.price.toLocaleString('vi-VN')}đ
                       </span>
-                      <span className="text-gray-500 text-sm"> /kg</span>
+                      <span className="text-gray-500 text-sm">/{product.unit}</span>
                     </div>
-                    <button className="bg-gray-900 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-full text-sm font-semibold hover:bg-gray-800">
-                      Thêm Vào Giỏ
+                    <button className="bg-gray-900 text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-gray-800 transition-colors whitespace-nowrap cursor-pointer">
+                      Add to Cart
                     </button>
                   </div>
                 </div>
@@ -295,64 +247,73 @@ const HomePage = () => {
             ))}
           </div>
 
-          <div className="text-center mt-10 md:mt-12">
+          {/* View All Button */}
+          <div className="text-center mt-12">
             <a
               href="/products"
-              className="inline-flex items-center gap-2 font-semibold hover:text-green-600 transition"
+              className="inline-flex items-center space-x-2 text-gray-900 font-semibold hover:text-green-600 transition-colors cursor-pointer"
             >
-              Xem Tất Cả Sản Phẩm
-              <i className="ri-arrow-right-line" />
+              <span>View All Products</span>
+              <i className="ri-arrow-right-line"></i>
             </a>
           </div>
         </div>
       </section>
-      {/* ===== TESTIMONIAL ===== */}
-      <section className="py-16 md:py-24 bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 items-center">
-            {/* Image */}
+
+      {/* TESTIMONIAL SECTION */}
+      <section className="py-24 bg-gradient-to-b from-gray-50 to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
+            {/* Left - Image */}
             <div className="lg:col-span-2">
-              <div className="relative h-72 sm:h-96 lg:h-[500px] rounded-3xl overflow-hidden">
+              <div className="relative h-96 lg:h-[500px] rounded-3xl overflow-hidden">
                 <img
-                  src="https://readdy.ai/api/search-image?query=Happy%20smiling%20asian%20woman%20holding%20fresh%20organic%20vegetables%20in%20modern%20kitchen&width=600&height=800"
+                  src="https://readdy.ai/api/search-image?query=Happy%20smiling%20asian%20woman%20holding%20fresh%20organic%20vegetables%20in%20modern%20kitchen%20natural%20lighting%20lifestyle%20photography%20professional%20high%20quality&width=600&height=800&seq=testimonial1&orientation=portrait"
                   alt="Khách hàng hài lòng"
                   className="w-full h-full object-cover"
                 />
               </div>
             </div>
 
-            {/* Content */}
+            {/* Right - Content */}
             <div className="lg:col-span-3">
               <p className="text-gray-500 text-sm font-medium uppercase tracking-wider mb-4">
-                (KHÁCH HÀNG NÓI GÌ)
+                WHAT CUSTOMERS SAY
               </p>
 
-              <h2 className="text-3xl sm:text-4xl md:text-6xl font-black mb-6">
-                <span className="text-gray-900">Trải Nghiệm Tuyệt Vời</span>
+              <h2 className="text-5xl md:text-6xl font-black mb-4">
+                <span className="text-gray-900">Amazing Experience</span>
                 <br />
-                <span className="text-gray-400">Từ Khách Hàng</span>
+                <span className="text-gray-400">From Customers</span>
               </h2>
 
-              <div className="space-y-8 mt-8">
-                {testimonials.map((t, i) => (
-                  <div key={i}>
-                    <p className="text-gray-700 text-base md:text-lg leading-relaxed mb-4">
-                      “{t.content}”
-                    </p>
-                    <p className="font-bold text-gray-900">
-                      — {t.author}
-                    </p>
-                  </div>
-                ))}
+              <div className="mt-12 space-y-8">
+                {/* Testimonial 1 */}
+                <div>
+                  <p className="text-gray-700 text-lg leading-relaxed mb-4">
+                    "The vegetables are very fresh, delivered on time. My family is very satisfied with the product quality.
+                    Especially the mustard greens and cherry tomatoes, naturally sweet without needing much seasoning. Will continue to support!"
+                  </p>
+                  <p className="text-gray-900 font-bold">— Ms. Nguyen Thi Mai, Hanoi</p>
+                </div>
+
+                {/* Testimonial 2 */}
+                <div>
+                  <p className="text-gray-700 text-lg leading-relaxed mb-4">
+                    "I have tried many places selling organic agricultural products, but only here are the freshest and most delicious.
+                    Reasonable prices, good customer care service. Very reliable!"
+                  </p>
+                  <p className="text-gray-900 font-bold">— Mr. Tran Van Hung, Ho Chi Minh City</p>
+                </div>
               </div>
 
-              {/* Controls */}
-              <div className="flex items-center space-x-4 mt-10">
-                <button className="w-11 h-11 md:w-12 md:h-12 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
-                  <i className="ri-arrow-left-line text-xl" />
+              {/* Navigation Buttons */}
+              <div className="flex items-center space-x-4 mt-12">
+                <button className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors cursor-pointer" aria-label="Previous">
+                  <i className="ri-arrow-left-line text-xl"></i>
                 </button>
-                <button className="w-11 h-11 md:w-12 md:h-12 rounded-full bg-gray-900 hover:bg-gray-800 text-white flex items-center justify-center">
-                  <i className="ri-arrow-right-line text-xl" />
+                <button className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-900 text-white hover:bg-gray-800 transition-colors cursor-pointer" aria-label="Next">
+                  <i className="ri-arrow-right-line text-xl"></i>
                 </button>
               </div>
             </div>
@@ -360,263 +321,93 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* ===== ABOUT CTA ===== */}
-      <section className="py-20 md:py-32 bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 text-white">
-        <div className="max-w-5xl mx-auto px-4 text-center">
-          <p className="text-gray-400 text-sm uppercase tracking-wider mb-6">
-            VỀ CHÚNG TÔI
+      {/* ABOUT SECTION */}
+      <section className="py-32 bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 text-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-6">
+            ABOUT US
           </p>
 
-          <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-black leading-tight mb-8">
-            Nông Trại Xanh
-            <br />
-            Hơn 10 Năm Kinh Nghiệm
-            <br />
-            Mang Sức Khỏe Đến Mọi Nhà
+          <h2 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-8">
+            Green Farm<br />
+            Over 10 Years of Experience<br />
+            Bringing Health to Every Home
           </h2>
 
-          <div className="flex flex-col sm:flex-row justify-center gap-4 mt-10">
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 mt-12">
             <a
               href="/about"
-              className="bg-white text-gray-900 px-8 py-4 rounded-full font-semibold hover:bg-gray-100"
+              className="bg-white text-gray-900 px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition-colors whitespace-nowrap cursor-pointer"
             >
-              Tìm Hiểu Thêm
+              Learn More
             </a>
             <a
               href="/contact"
-              className="border-2 border-white px-8 py-4 rounded-full font-semibold hover:bg-white/10"
+              className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-full font-semibold hover:bg-white/10 transition-colors whitespace-nowrap cursor-pointer"
             >
-              Liên Hệ Ngay
+              Contact Us
             </a>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mt-16">
-            {aboutFeatures.map((f, i) => (
+          {/* Feature Tags */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-20">
+            {[
+              { icon: 'ri-leaf-line', text: 'Hữu Cơ' },
+              { icon: 'ri-truck-line', text: 'Giao Nhanh' },
+              { icon: 'ri-shield-check-line', text: 'Chứng Nhận' },
+              { icon: 'ri-heart-line', text: 'Tận Tâm' },
+              { icon: 'ri-star-line', text: 'Chất Lượng' },
+            ].map((item, index) => (
               <div
-                key={i}
-                className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 flex flex-col items-center gap-3 hover:bg-white/20 transition"
+                key={index}
+                className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 flex flex-col items-center space-y-3 hover:bg-white/20 transition-colors"
               >
-                <i className={`${f.icon} text-3xl`} />
-                <span className="font-medium">{f.label}</span>
+                <i className={`${item.icon} text-3xl text-white`}></i>
+                <span className="text-white font-medium">{item.text}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ===== FINAL CTA ===== */}
-      <section className="py-16 md:py-24 bg-gradient-to-b from-white to-gray-50">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <div className="mb-10">
-            <div className="relative h-64 sm:h-80 rounded-3xl overflow-hidden">
+      {/* CTA SECTION */}
+      <section className="py-24 bg-gradient-to-b from-white to-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          {/* Image */}
+          <div className="mb-12">
+            <div className="relative h-80 rounded-3xl overflow-hidden">
               <img
-                src="https://readdy.ai/api/search-image?query=Beautiful%20organic%20farm%20with%20fresh%20vegetables%20and%20fruits&width=1200&height=600"
+                src="https://readdy.ai/api/search-image?query=Beautiful%20organic%20farm%20with%20fresh%20vegetables%20and%20fruits%20harvest%20scene%20natural%20lighting%20peaceful%20countryside%20agricultural%20landscape%20with%20vibrant%20colors%20and%20natural%20textures&width=1200&height=600&seq=cta1&orientation=landscape"
                 alt="Đặt hàng ngay"
                 className="w-full h-full object-cover"
               />
             </div>
           </div>
 
-          <div className="space-y-2 mb-10">
-            <p className="text-2xl sm:text-3xl md:text-5xl text-gray-900">
-              Đặt Hàng Ngay Hôm Nay
+          {/* Text */}
+          <div className="space-y-2 mb-12">
+            <p className="text-4xl md:text-5xl font-normal text-gray-900">
+              Order Now
             </p>
-            <p className="text-2xl sm:text-3xl md:text-5xl italic text-gray-500">
-              Nhận Ưu Đãi
+            <p className="text-4xl md:text-5xl font-light italic text-gray-500">
+              Get Discounts
             </p>
-            <p className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900">
-              Lên Đến 20%
+            <p className="text-4xl md:text-5xl font-black text-gray-900">
+              Up To 20%
             </p>
           </div>
 
+          {/* Button */}
           <a
             href="/products"
-            className="inline-block bg-gray-900 text-white px-10 py-4 rounded-full text-lg font-semibold hover:bg-gray-800 hover:scale-105 transition"
+            className="inline-block bg-gray-900 text-white px-12 py-4 rounded-full text-lg font-semibold hover:bg-gray-800 transition-all transform hover:scale-105 shadow-xl whitespace-nowrap cursor-pointer"
           >
-            Mua Sắm Ngay
+            Shop Now
           </a>
         </div>
       </section>
-       
-    <footer className="bg-gradient-to-br from-green-800 to-green-900 text-white">
-      {/* Main content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-          
-          {/* Logo & description */}
-          <div>
-            <img
-              src="https://public.readdy.ai/ai/img_res/5bde7704-1cb0-4365-9e92-f123696b11d9.png"
-              alt="Nông Sản Sạch"
-              className="h-12 w-auto mb-4"
-            />
-            <p className="text-gray-300 text-sm leading-relaxed">
-              Cung cấp nông sản sạch, hữu cơ từ trang trại đến bàn ăn. 
-              Cam kết chất lượng và an toàn thực phẩm.
-            </p>
-
-            <div className="flex space-x-4 mt-6">
-              <a
-                href="https://facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors"
-                aria-label="Facebook"
-              >
-                <i className="ri-facebook-fill text-lg" />
-              </a>
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors"
-                aria-label="Instagram"
-              >
-                <i className="ri-instagram-line text-lg" />
-              </a>
-              <a
-                href="https://zalo.me"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors"
-                aria-label="Zalo"
-              >
-                <i className="ri-message-3-line text-lg" />
-              </a>
-            </div>
-          </div>
-
-          {/* Newsletter */}
-          <div>
-            <h3 className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
-              Đăng ký nhận tin
-            </h3>
-            <p className="text-gray-300 text-sm mb-4">
-              Nhận thông tin về sản phẩm mới và ưu đãi đặc biệt
-            </p>
-
-            <form className="space-y-3">
-              <div className="relative">
-                <input
-                  type="email"
-                  placeholder="Email của bạn"
-                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-white/40 transition-colors"
-                />
-                <button
-                  type="submit"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-white text-green-800 rounded-md hover:bg-gray-100 transition-colors"
-                  aria-label="Đăng ký"
-                >
-                  <i className="ri-arrow-right-line" />
-                </button>
-              </div>
-
-              <p className="text-xs text-gray-400">
-                Bằng cách đăng ký, bạn đồng ý với{" "}
-                <a href="#" className="text-green-300 hover:text-green-200 underline">
-                  Chính sách bảo mật
-                </a>
-              </p>
-            </form>
-          </div>
-
-          {/* Links */}
-          <div>
-            <h3 className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
-              Liên kết
-            </h3>
-            <ul className="space-y-3">
-              {["Sản Phẩm", "Danh Mục", "Về Chúng Tôi", "Liên Hệ", "FAQ"].map(
-                (item) => (
-                  <li key={item}>
-                    <a
-                      href="#"
-                      className="text-gray-300 hover:text-white text-sm transition-colors"
-                    >
-                      {item}
-                    </a>
-                  </li>
-                )
-              )}
-            </ul>
-          </div>
-
-          {/* Contact */}
-          <div>
-            <h3 className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
-              Liên hệ
-            </h3>
-            <ul className="space-y-3">
-              <li className="flex items-start space-x-3">
-                <i className="ri-map-pin-line text-green-300 mt-1" />
-                <span className="text-gray-300 text-sm">
-                  123 Đường Nông Nghiệp, Quận 1, TP.HCM
-                </span>
-              </li>
-              <li className="flex items-center space-x-3">
-                <i className="ri-phone-line text-green-300" />
-                <a href="tel:0123456789" className="text-gray-300 hover:text-white text-sm">
-                  0123 456 789
-                </a>
-              </li>
-              <li className="flex items-center space-x-3">
-                <i className="ri-mail-line text-green-300" />
-                <a
-                  href="mailto:info@nongsansach.vn"
-                  className="text-gray-300 hover:text-white text-sm"
-                >
-                  info@nongsansach.vn
-                </a>
-              </li>
-              <li className="flex items-start space-x-3">
-                <i className="ri-time-line text-green-300 mt-1" />
-                <span className="text-gray-300 text-sm">
-                  Thứ 2 - Chủ Nhật <br /> 8:00 - 20:00
-                </span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* Big text */}
-      <div className="bg-green-900/50 py-12">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-green-100/20 tracking-tight text-center">
-            NÔNG SẢN SẠCH
-          </h2>
-        </div>
-      </div>
-
-      {/* Bottom */}
-      <div className="border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <p className="text-gray-400 text-sm text-center md:text-left">
-              © 2026 Nông Sản Sạch. Tất cả quyền được bảo lưu.
-            </p>
-            <div className="flex flex-wrap justify-center gap-6">
-              <a href="#" className="text-gray-400 hover:text-white text-sm">
-                Chính sách bảo mật
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white text-sm">
-                Điều khoản sử dụng
-              </a>
-              <a
-                href="https://readdy.ai"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white text-sm"
-              >
-                Website Builder
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </footer>
-    </>
+      <Footer />
+    </div>
   );
-};
-
+}
 export default HomePage;
