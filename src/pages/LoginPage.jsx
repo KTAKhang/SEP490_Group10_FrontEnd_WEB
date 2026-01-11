@@ -1,255 +1,249 @@
-import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { User, Lock, Eye, EyeOff } from 'lucide-react';
-import { loginGoogleRequest } from '../redux/actions/authActions';
-import { loginRequest } from '../redux/actions/authActions';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { User, Lock, Eye, EyeOff } from "lucide-react";
+import { loginRequest, loginGoogleRequest } from "../redux/actions/authActions";
+import { useNavigate, Link } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
-import { ArrowLeft } from 'lucide-react';
+import Header from "../components/Header/Header";
 
 const LoginPage = () => {
-    const dispatch = useDispatch();
-    const { loading, error, isAuthenticated, role } = useSelector(state => state.auth);
-    const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { loading, error, isAuthenticated, role } = useSelector(
+    (state) => state.auth
+  );
 
-    const [formData, setFormData] = useState({
-        email: '',
-        password: '',
-        remember: false
-    });
-    const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [showPassword, setShowPassword] = useState(false);
 
-    // Redirect if already authenticated
-    useEffect(() => {
-        if (isAuthenticated) {
-            if (role === "admin") {
-                navigate("/admin", { replace: true });
-            }
-            if (role === "customer") {
-                navigate("/", { replace: true });
-            }
-            if (role === "repair-staff") {
-                navigate("/staff", { replace: true });
-            }
-            if (role === "sales-staff") {
-                navigate("/sale-staff", { replace: true });
-            }
-        }
-    }, [isAuthenticated, role, navigate]);
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (role === "admin") navigate("/admin", { replace: true });
+      if (role === "customer") navigate("/", { replace: true });
+      if (role === "repair-staff") navigate("/staff", { replace: true });
+      if (role === "sales-staff") navigate("/sale-staff", { replace: true });
+    }
+  }, [isAuthenticated, role, navigate]);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!formData.email || !formData.password) return;
 
-        if (!formData.email || !formData.password) {
-            return;
-        }
-
-        dispatch(loginRequest({
-            email: formData.email,
-            password: formData.password
-        }));
-    };
-
-    const handleInputChange = (field, value) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-    };
-
-    return (
-        <div className="min-h-screen flex items-center justify-center relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0D364C 0%, #13C2C2 100%)' }}>
-            {/* Animated Background Elements */}
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse" style={{ backgroundColor: '#13C2C2' }}></div>
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse animation-delay-2000" style={{ backgroundColor: '#0D364C' }}></div>
-                <div className="absolute top-40 left-40 w-60 h-60 rounded-full mix-blend-multiply filter blur-xl opacity-50 animate-pulse animation-delay-4000" style={{ backgroundColor: '#13C2C2' }}></div>
-            </div>
-
-            {/* Floating Particles */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {[...Array(20)].map((_, i) => (
-                    <div
-                        key={i}
-                        className="absolute w-2 h-2 bg-white rounded-full opacity-30 animate-float"
-                        style={{
-                            left: `${Math.random() * 100}%`,
-                            top: `${Math.random() * 100}%`,
-                            animationDelay: `${Math.random() * 10}s`,
-                            animationDuration: `${10 + Math.random() * 20}s`
-                        }}
-                    ></div>
-                ))}
-            </div>
-
-            {/* Login Card */}
-            <div className="relative z-10 w-full max-w-2xl p-8">
-                <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl transform hover:scale-105 transition-all duration-500">
-                    <Link to="/" className="inline-flex items-center text-white/80 hover:text-white mb-6">
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Quay lại trang chủ
-                    </Link>
-                    {/* Logo/Header */}
-                    <div className="text-center mb-8">
-                        <div className="w-20 h-20 rounded-2xl mx-auto mb-4 flex items-center justify-center transform rotate-12 hover:rotate-0 transition-transform duration-500" style={{ background: 'linear-gradient(135deg, #13C2C2 0%, #0D364C 100%)' }}>
-                            <User className="w-10 h-10 text-white" />
-                        </div>
-                        <h1 className="text-3xl font-bold text-white mb-2">Chào Mừng Trở Lại</h1>
-                        <p className="text-gray-300">Đăng nhập vào tài khoản của bạn</p>
-                    </div>
-
-                    {/* Error Message */}
-                    {error && (
-                        <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-2xl">
-                            <p className="text-red-300 text-sm text-center">{error}</p>
-                        </div>
-                    )}
-
-                    {/* Login Form */}
-                    <div className="space-y-6">
-                        {/* Email Field */}
-                        <div className="group">
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Email
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <User className="h-5 w-5 text-gray-400 transition-colors duration-200" />
-                                </div>
-                                <input
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={(e) => handleInputChange('email', e.target.value)}
-                                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-300 hover:bg-white/10"
-                                    style={{ '--tw-ring-color': '#13C2C2', '--tw-ring-opacity': '0.5' }}
-                                    placeholder="Nhập email của bạn"
-                                    required
-                                    disabled={loading}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Password Field */}
-                        <div className="group">
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Mật khẩu
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <Lock className="h-5 w-5 text-gray-400 transition-colors duration-200" />
-                                </div>
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    value={formData.password}
-                                    onChange={(e) => handleInputChange('password', e.target.value)}
-                                    className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-300 hover:bg-white/10"
-                                    style={{ '--tw-ring-color': '#13C2C2', '--tw-ring-opacity': '0.5' }}
-                                    placeholder="Nhập mật khẩu"
-                                    required
-                                    disabled={loading}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 transition-colors duration-200 hover:text-white"
-                                    disabled={loading}
-                                >
-                                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Remember Me & Forgot Password */}
-                        <div className="flex items-center justify-between">
-                            <Link to="/forgot-password" className="text-sm transition-colors duration-200" style={{ color: '#13C2C2' }}>
-                                Quên mật khẩu?
-                            </Link>
-                            <Link to="/register" className="text-sm transition-colors duration-200" style={{ color: '#13C2C2' }}>
-                                Đăng ký tài khoản
-                            </Link>
-                        </div>
-
-                        {/* Login Button */}
-                        <button
-                            type="submit"
-                            onClick={handleSubmit}
-                            disabled={loading || !formData.email || !formData.password}
-                            className="w-full relative overflow-hidden text-white font-bold py-4 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                            style={{
-                                background: `linear-gradient(135deg, #13C2C2 0%, #0D364C 100%)`,
-                                boxShadow: `0 0 20px rgba(19, 194, 194, 0.3)`,
-                                '--tw-ring-color': '#13C2C2',
-                                '--tw-ring-opacity': '0.5'
-                            }}
-                        >
-                            {loading ? (
-                                <div className="flex items-center justify-center">
-                                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                                    Đang đăng nhập...
-                                </div>
-                            ) : (
-                                <span className="relative z-10">Đăng nhập</span>
-                            )}
-                            <div className="absolute inset-0 opacity-0 transition-opacity duration-300 hover:opacity-100" style={{ background: `linear-gradient(135deg, #0D364C 0%, #13C2C2 100%)` }}></div>
-                        </button>
-                        {/* Google Login */}
-                        <div className="mt-6 flex flex-col items-center">
-                            <p className="text-gray-300 mb-3">Hoặc đăng nhập bằng</p>
-                            <GoogleLogin
-                                onSuccess={(credentialResponse) => {
-                                    if (credentialResponse.credential) {
-                                        const idToken = credentialResponse.credential;
-                                        const userInfo = jwtDecode(idToken);;
-                                        console.log("Google User Info:", userInfo);
-
-                                        dispatch(loginGoogleRequest({ idToken }));
-                                    }
-                                }}
-                                onError={() => {
-                                    console.log("Google Login Failed");
-                                }}
-                                useOneTap
-                            />
-                        </div>
-
-                    </div>
-
-                </div>
-            </div>
-
-            <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) translateX(0px); }
-          25% { transform: translateY(-20px) translateX(10px); }
-          50% { transform: translateY(-10px) translateX(-10px); }
-          75% { transform: translateY(-30px) translateX(5px); }
-        }
-        
-        .animate-float {
-          animation: float linear infinite;
-        }
-        
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-        
-        .group:focus-within .group-focus-within\\:text-purple-400 {
-          color: #13C2C2;
-        }
-        
-        input:focus + * svg,
-        input:focus ~ * svg {
-          color: #13C2C2;
-        }
-        
-        button:hover svg {
-          color: #13C2C2;
-        }
-      `}</style>
-        </div>
+    dispatch(
+      loginRequest({
+        email: formData.email,
+        password: formData.password,
+      })
     );
+  };
+
+  return (
+    <>
+      <Header />
+      <div className="min-h-screen flex items-center justify-center bg-[#F9FEFB] px-5 mt-5">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        
+
+          {/* Fruits */}
+          <img
+            src="/a1.png"
+            className="absolute w-24 opacity-20 animate-float hidden md:block"
+            style={{ top: "12%", left: "6%", animationDuration: "8s" }}
+          />
+
+          <img
+            src="/a2.png"
+            className="absolute w-28 opacity-15 animate-float hidden md:block"
+            style={{ bottom: "18%", right: "8%", animationDuration: "10s" }}
+          />
+
+          <img
+            src="/a1.png"
+            className="absolute w-32 opacity-10 animate-float hidden lg:block"
+            style={{ top: "55%", right: "30%", animationDuration: "12s" }}
+          />
+        </div>
+
+        <div className="w-full max-w-3xl bg-white rounded-2xl shadow-lg p-8">
+          {/* Header */}
+          <div className="text-center mb-6">
+            <div className="w-14 h-14 bg-green-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <User className="w-7 h-7 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900">Đăng Nhập</h1>
+            <p className="text-gray-500 mt-1">Chào mừng bạn quay trở lại!</p>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3">
+              <p className="text-sm text-red-600 text-center">{error}</p>
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email
+              </label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center">
+                  <User className="w-5 h-5 text-gray-400" />
+                </span>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  placeholder="example@email.com"
+                  disabled={loading}
+                  required
+                  className="
+                  w-full pl-10 pr-4 py-3
+                  border border-gray-200 rounded-lg
+                  text-gray-900 placeholder-gray-400
+                  focus:outline-none focus:ring-2 focus:ring-green-500
+                  focus:border-green-500
+                "
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Mật khẩu
+              </label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center">
+                  <Lock className="w-5 h-5 text-gray-400" />
+                </span>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  placeholder="••••••••"
+                  disabled={loading}
+                  required
+                  className="
+                  w-full pl-10 pr-10 py-3
+                  border border-gray-200 rounded-lg
+                  text-gray-900 placeholder-gray-400
+                  focus:outline-none focus:ring-2 focus:ring-green-500
+                  focus:border-green-500
+                "
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Forgot password */}
+            <div className="flex justify-end">
+              <Link
+                to="/forgot-password"
+                className="text-sm text-green-600 hover:text-green-700"
+              >
+                Quên mật khẩu?
+              </Link>
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="
+              w-full bg-green-500 hover:bg-green-600
+              text-white font-semibold
+              py-3 rounded-lg
+              transition
+              disabled:opacity-50
+            "
+            >
+              {loading ? "Đang đăng nhập..." : "Đăng Nhập"}
+            </button>
+          </form>
+
+          {/* Divider */}
+          <div className="my-6 flex items-center">
+            <div className="flex-grow border-t border-gray-200" />
+            <span className="mx-3 text-sm text-gray-400">
+              Hoặc đăng nhập với
+            </span>
+            <div className="flex-grow border-t border-gray-200" />
+          </div>
+
+          {/* Google Login */}
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={(res) => {
+                if (res.credential) {
+                  const idToken = res.credential;
+                  jwtDecode(idToken);
+                  dispatch(loginGoogleRequest({ idToken }));
+                }
+              }}
+              onError={() => console.log("Google Login Failed")}
+            />
+          </div>
+
+          {/* Register */}
+          <p className="mt-6 text-center text-sm text-gray-500">
+            Chưa có tài khoản?{" "}
+            <Link
+              to="/register"
+              className="text-green-600 hover:text-green-700 font-semibold"
+            >
+              Đăng ký ngay
+            </Link>
+          </p>
+        </div>
+        <style>{`
+@keyframes float {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(60px, -80px);
+  }
+  50% {
+    transform: translate(-50px, -40px);
+  }
+  75% {
+    transform: translate(40px, -90px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+.animate-float {
+  animation-name: float;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+`}</style>
+      </div>
+    </>
+  );
 };
 
 export default LoginPage;
