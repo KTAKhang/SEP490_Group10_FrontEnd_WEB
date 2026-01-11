@@ -112,13 +112,13 @@ export default function UpdatePassword() {
       left: 0;
       right: 0;
       height: 6px;
-      background: linear-gradient(90deg, #13C2C2, #0D364C, #13C2C2);
+      background: linear-gradient(90deg, #15803d, #166534, #15803d);
     }
     
     .form-header {
       text-align: center;
       padding: 2rem 0;
-      background: linear-gradient(135deg, rgba(19, 194, 194, 0.05), rgba(13, 54, 76, 0.08));
+      background: linear-gradient(135deg, rgba(21, 128, 61, 0.05), rgba(22, 101, 52, 0.08));
       margin: -1.5rem -1.5rem 2rem -1.5rem;
       position: relative;
     }
@@ -131,7 +131,7 @@ export default function UpdatePassword() {
       transform: translateX(-50%);
       width: 60px;
       height: 4px;
-      background: linear-gradient(90deg, #13C2C2, #0D364C);
+      background: linear-gradient(90deg, #15803d, #166534);
       border-radius: 2px;
     }
     
@@ -145,7 +145,7 @@ export default function UpdatePassword() {
       content: '';
       position: absolute;
       inset: -12px;
-      background: linear-gradient(90deg, #13C2C2, #0D364C, #13C2C2);
+      background: linear-gradient(90deg, #15803d, #166534, #15803d);
       border-radius: 50%;
       opacity: 0.2;
       animation: pulse 2s ease-in-out infinite;
@@ -155,7 +155,7 @@ export default function UpdatePassword() {
       content: '';
       position: absolute;
       inset: -8px;
-      background: linear-gradient(90deg, #13C2C2, #0D364C, #13C2C2);
+      background: linear-gradient(90deg, #15803d, #166534, #15803d);
       border-radius: 50%;
       opacity: 0.1;
       animation: pulse 2s ease-in-out infinite 0.5s;
@@ -170,7 +170,7 @@ export default function UpdatePassword() {
       width: 80px;
       height: 80px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #13C2C2, #0D364C);
+      background: linear-gradient(135deg, #15803d, #166534);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -178,7 +178,7 @@ export default function UpdatePassword() {
       font-size: 36px;
       position: relative;
       z-index: 1;
-      box-shadow: 0 10px 30px rgba(19, 194, 194, 0.4);
+      box-shadow: 0 10px 30px rgba(21, 128, 61, 0.4);
     }
     
     .form-item {
@@ -186,7 +186,7 @@ export default function UpdatePassword() {
     }
     
     .form-label {
-      color: #0D364C;
+      color: #166534;
       font-weight: 600;
       font-size: 14px;
       margin-bottom: 8px;
@@ -207,14 +207,14 @@ export default function UpdatePassword() {
     }
     
     .password-input:hover {
-      border-color: #13C2C2;
+      border-color: #15803d;
       background: rgba(255, 255, 255, 0.9);
     }
     
     .password-input:focus {
       outline: none;
-      border-color: #13C2C2;
-      box-shadow: 0 0 0 4px rgba(19, 194, 194, 0.1);
+      border-color: #15803d;
+      box-shadow: 0 0 0 4px rgba(21, 128, 61, 0.1);
       background: rgba(255, 255, 255, 1);
     }
     
@@ -229,7 +229,7 @@ export default function UpdatePassword() {
       transform: translateY(-50%);
       font-size: 18px;
       z-index: 2;
-      color: #13C2C2;
+      color: #15803d;
     }
     
     .error-message {
@@ -243,7 +243,7 @@ export default function UpdatePassword() {
       height: 56px;
       border-radius: 16px;
       border: none;
-      background: linear-gradient(135deg, #13C2C2 0%, #0D364C 50%, #13C2C2 100%);
+      background: linear-gradient(135deg, #15803d 0%, #166534 50%, #15803d 100%);
       color: white;
       font-weight: 600;
       font-size: 16px;
@@ -259,8 +259,8 @@ export default function UpdatePassword() {
     
     .modern-button:hover {
       transform: translateY(-2px);
-      box-shadow: 0 20px 40px rgba(19, 194, 194, 0.4);
-      background: linear-gradient(135deg, #0D364C 0%, #13C2C2 50%, #0D364C 100%);
+      box-shadow: 0 20px 40px rgba(21, 128, 61, 0.4);
+      background: linear-gradient(135deg, #166534 0%, #15803d 50%, #166534 100%);
     }
     
     .modern-button:disabled {
@@ -285,8 +285,8 @@ export default function UpdatePassword() {
     }
     
     .security-tips {
-      background: linear-gradient(135deg, rgba(19, 194, 194, 0.05) 0%, rgba(13, 54, 76, 0.08) 100%);
-      border: 1px solid rgba(19, 194, 194, 0.2);
+      background: linear-gradient(135deg, rgba(21, 128, 61, 0.05) 0%, rgba(22, 101, 52, 0.08) 100%);
+      border: 1px solid rgba(21, 128, 61, 0.2);
       border-radius: 16px;
       padding: 24px;
       position: relative;
@@ -300,7 +300,7 @@ export default function UpdatePassword() {
       left: 0;
       width: 100%;
       height: 2px;
-      background: linear-gradient(90deg, #13C2C2, #0D364C, #13C2C2);
+      background: linear-gradient(90deg, #15803d, #166534, #15803d);
     }
     
     .tips-grid {
@@ -315,32 +315,32 @@ export default function UpdatePassword() {
       padding: 12px;
       background: rgba(255, 255, 255, 0.6);
       border-radius: 12px;
-      border: 1px solid rgba(19, 194, 194, 0.15);
+      border: 1px solid rgba(21, 128, 61, 0.15);
       transition: all 0.3s ease;
     }
     
     .tip-item:hover {
       background: rgba(255, 255, 255, 0.8);
-      border-color: rgba(19, 194, 194, 0.3);
+      border-color: rgba(21, 128, 61, 0.3);
       transform: translateX(4px);
     }
     
     .tip-icon {
-      color: #13C2C2;
+      color: #15803d;
       margin-right: 12px;
       margin-top: 2px;
       font-size: 16px;
     }
 
     .custom-title {
-      background: linear-gradient(90deg, #13C2C2, #0D364C, #13C2C2);
+      background: linear-gradient(90deg, #15803d, #166534, #15803d);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
 
     .section-title {
-      color: #0D364C;
+      color: #166534;
       margin-bottom: 12px;
     }
   `;
@@ -361,7 +361,7 @@ export default function UpdatePassword() {
   return (
     <>
       <style>{customStyles}</style>
-      <div className="modern-container flex justify-center ">
+      <div className="modern-container flex justify-center mt-20">
         <div className="w-full max-w-4xl">
           <div className="flex flex-col md:flex-row gap-8">
             {/* Left: Đổi mật khẩu */}
