@@ -3,7 +3,10 @@ import ForgotPassword from "../pages/ForgotPassword";
 import NotFoundPage from "../pages/NotFoundPage";
 import Register from "../pages/Register";
 import HomePage from "../pages/HomePage";
-
+import CustomerLayout from "../layout/CustomerLayout";
+import ProfileManagement from "../pages/ProfileManagement/ProfileManagerment";
+import UpdatePassword from "../pages/ProfileManagement/UpdatePassword"; 
+import PrivateRoute from "../components/PrivateRouter/index"
 export const routes = [
   // Trang chủ
 
@@ -18,41 +21,18 @@ export const routes = [
 
 
   // Khu vực quản trị
-  // {
-  //   path: "/customer",
-  //   element: (
-  //     <PrivateRoute requiredRole="customer">
-  //       <CustomerLayout />
-  //     </PrivateRoute>
-  //   ),
-  //   children: [
-  //     { path: "repair", element: <RepairPage /> },
-  //     { path: "profile", element: <ProfileManagement /> },
-  //     { path: "change-password", element: <UpdatePassword /> },
-  //     {
-  //       path: "cart",
-  //       element: <CartPage />,
-  //     },
-  //     {
-  //       path: "orders",
-  //       element: <OrderHistory />,
-  //     },
-  //     {
-  //       path: "checkout",
-  //       element: <CheckoutPage />,
-  //     },
-  //     {
-  //       path: "payment-result",
-  //       element: <PaymentResultPage />,
-  //     },
-  //     {
-  //       path: "contact/history",
-  //       element: <ContactHistory />,
-  //     },
-  //     { path: "review/:id", element: <OrderReviewPage /> },
-  //     { path: "contact", element: <ContactPage /> },
-  //   ],
-  // },
+  {
+    path: "/customer",
+    element: (
+      <PrivateRoute requiredRole="customer">
+        <CustomerLayout />
+      </PrivateRoute>
+    ),
+    children: [
+      { path: "profile", element: <ProfileManagement /> },
+      { path: "change-password", element: <UpdatePassword /> },
+    ],
+  },
 
   // {
   //   path: "/sale-staff",
