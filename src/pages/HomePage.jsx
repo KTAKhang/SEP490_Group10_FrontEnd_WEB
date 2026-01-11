@@ -1,3 +1,4 @@
+import Header from "../components/Header/Header";
 const features = [
   {
     icon: "ri-leaf-line",
@@ -78,70 +79,7 @@ const products = [
 const HomePage = () => {
   return (
     <>
-      {/* NAVBAR */}
-      <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            {/* Logo */}
-            <a
-              href="/preview/c1fbeee4-6d00-4542-8403-c2c8a5b3bb84/5328061"
-              className="flex items-center space-x-3"
-            >
-              <img
-                src="https://public.readdy.ai/ai/img_res/5bde7704-1cb0-4365-9e92-f123696b11d9.png"
-                alt="Nông Sản Sạch"
-                className="h-10 md:h-12"
-              />
-              <span className="text-xl font-bold text-gray-900">
-                Nông Sản Sạch
-              </span>
-            </a>
-
-            {/* Desktop Menu */}
-            <div className="hidden md:flex items-center space-x-8">
-              <a className="text-sm font-medium text-green-600 whitespace-nowrap" href="/">
-                Trang Chủ
-              </a>
-              <a className="text-sm font-medium text-gray-700 hover:text-green-600 whitespace-nowrap" href="/products">
-                Sản Phẩm
-              </a>
-              <a className="text-sm font-medium text-gray-700 hover:text-green-600 whitespace-nowrap" href="/categories">
-                Danh Mục
-              </a>
-              <a className="text-sm font-medium text-gray-700 hover:text-green-600 whitespace-nowrap" href="/about">
-                Về Chúng Tôi
-              </a>
-              <a className="text-sm font-medium text-gray-700 hover:text-green-600 whitespace-nowrap" href="/contact">
-                Liên Hệ
-              </a>
-              <a className="text-sm font-medium text-gray-700 hover:text-green-600 whitespace-nowrap" href="/faq">
-                FAQ
-              </a>
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center space-x-4">
-              <button
-                className="relative p-2 rounded-full hover:bg-gray-100 transition-colors"
-                aria-label="Giỏ hàng"
-              >
-                <i className="ri-shopping-cart-line text-xl text-gray-900"></i>
-                <span className="absolute -top-1 -right-1 bg-green-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                  0
-                </span>
-              </button>
-
-              {/* Mobile Menu Button */}
-              <button
-                className="md:hidden p-2 rounded-lg text-gray-900"
-                aria-label="Menu"
-              >
-                <i className="ri-menu-line text-2xl"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Header/>
 
       {/* HERO SECTION */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
@@ -615,8 +553,9 @@ const HomePage = () => {
         </div>
       </div>
     </footer>
-    </>
-  );
+   
+ </> 
+);
 };
 
 export default HomePage;
