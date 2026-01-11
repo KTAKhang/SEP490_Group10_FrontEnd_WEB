@@ -3,7 +3,9 @@ import ForgotPassword from "../pages/ForgotPassword";
 import NotFoundPage from "../pages/NotFoundPage";
 import Register from "../pages/Register";
 import HomePage from "../pages/HomePage";
-
+import ProdcutPage from "../pages/ProductPage";
+import Categories from "../pages/CategoryPage";
+import ContactPage from "../pages/ContactPage";
 export const routes = [
   // Trang chủ
 
@@ -15,7 +17,18 @@ export const routes = [
     path: "/login",
     element: <LoginPage />,
   },
-
+  {
+    path: "/products",
+    element: <ProdcutPage />,
+  },
+  {
+    path: "/categories",
+    element: <Categories />,
+  },
+  {
+    path: "/contact",
+    element: <ContactPage />,
+  },
 
   // Khu vực quản trị
   // {
