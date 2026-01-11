@@ -2,11 +2,13 @@
 import { createStore, applyMiddleware, combineReducers } from "redux";
 import createSagaMiddleware from "redux-saga";
 import authReducer from "./reducers/authReducer";
+import contactReducer from "./reducers/contactReducer";
 import profileReducer from "./reducers/profileReducer";
 import rootSaga from "./sagas/rootSaga";
 
 const rootReducer = combineReducers({
   auth: authReducer,
+  contact: contactReducer,
   profile: profileReducer,
 });
 
