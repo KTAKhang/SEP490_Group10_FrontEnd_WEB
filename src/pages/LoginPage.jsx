@@ -43,7 +43,7 @@ const LoginPage = () => {
 
   return (
     <>
-      <Header />
+      {/* <Header /> */}
       <div className="min-h-screen flex items-center justify-center bg-[#F9FEFB] px-5 mt-5">
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         
