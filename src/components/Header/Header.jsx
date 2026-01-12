@@ -46,18 +46,18 @@ const Header = ({ searchTerm, setSearchTerm }) => {
               className="h-10 md:h-12"
             />
             <span className="text-xl font-bold text-green-700">
-              Nông Sản Sạch
+             Smart fruit shop
             </span>
           </Link>
 
           {/* DESKTOP MENU */}
           <div className="hidden md:flex items-center space-x-8">
             {[
-              { label: "Trang Chủ", path: "/" },
-              { label: "Sản Phẩm", path: "/products" },
-              { label: "Danh Mục", path: "/categories" },
-              { label: "Về Chúng Tôi", path: "/about" },
-              { label: "Liên Hệ", path: "/contact" },
+              { label: "Home", path: "/" },
+              { label: "Product", path: "/products" },
+              { label: "Categories", path: "/categories" },
+              { label: "About Us", path: "/about" },
+              { label: "Contact", path: "/contact" },
               { label: "FAQ", path: "/faq" },
             ].map((item) => (
               <Link
@@ -105,29 +105,29 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                     <div className="py-2">
                       <DropdownItem
                         icon={<User size={18} />}
-                        label="Trang cá nhân"
+                        label="Profile"
                         onClick={() => navigate("/customer/profile")}
                       />
                       <DropdownItem
                         icon={<Settings size={18} />}
-                        label="Đổi mật khẩu"
+                        label="Change Password"
                         onClick={() => navigate("/customer/change-password")}
                       />
                       <DropdownItem
                         icon={<Package size={18} />}
-                        label="Đơn hàng"
+                        label="Order History"
                         onClick={() => navigate("/customer/orders")}
                       />
-                      <DropdownItem
-                        icon={<Clock size={18} />}
-                        label="Lịch sử sửa chữa"
-                        onClick={() => navigate("/repair/history")}
-                      />
+//                       <DropdownItem
+//                         icon={<Clock size={18} />}
+//                         label="Lịch sử sửa chữa"
+//                         onClick={() => navigate("/repair/history")}
+//                       />
 
                       <div className="border-t mt-2 pt-2">
                         <DropdownItem
                           icon={<LogOut size={18} />}
-                          label="Đăng xuất"
+                          label="Logout"
                           danger
                           onClick={handleLogout}
                         />
@@ -167,11 +167,11 @@ const Header = ({ searchTerm, setSearchTerm }) => {
         {isMobileMenuOpen && (
           <div className="md:hidden pb-4 space-y-2">
             {[
-              { label: "Trang Chủ", path: "/" },
-              { label: "Sản Phẩm", path: "/products" },
-              { label: "Danh Mục", path: "/categories" },
-              { label: "Về Chúng Tôi", path: "/about" },
-              { label: "Liên Hệ", path: "/contact" },
+               { label: "Home", path: "/" },
+              { label: "Product", path: "/products" },
+              { label: "Categories", path: "/categories" },
+              { label: "About Us", path: "/about" },
+              { label: "Contact", path: "/contact" },
               { label: "FAQ", path: "/faq" },
             ].map((item) => (
               <Link
