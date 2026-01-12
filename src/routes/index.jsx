@@ -5,7 +5,7 @@ import Register from "../pages/Register";
 import HomePage from "../pages/HomePage";
 import ProdcutPage from "../pages/ProductPage";
 import Categories from "../pages/CategoryPage";
-import ContactPage from "../pages/ContactPage";
+// import ContactPage1 from "../pages/ContactPage";
 import ContactPage from "../pages/ContactManagement/ContactPage";
 import ContactHistoryPage from "../pages/ContactManagement/ContactHistoryPage";
 import AuthenticatedRoute from "../components/AuthenticatedRoute";
@@ -32,10 +32,10 @@ export const routes = [
     path: "/categories",
     element: <Categories />,
   },
-  {
-    path: "/contact",
-    element: <ContactPage />,
-  },
+  // {
+  //   path: "/contact",
+  //   element: <ContactPage1 />,
+  // },
 
   // Khu vực quản trị
   {
