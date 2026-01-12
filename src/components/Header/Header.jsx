@@ -57,7 +57,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
               { label: "Sản Phẩm", path: "/products" },
               { label: "Danh Mục", path: "/categories" },
               { label: "Về Chúng Tôi", path: "/about" },
-              { label: "Liên Hệ", path: "/contact" },
+              { label: "Liên Hệ", path: "/customer/contact" },
               { label: "FAQ", path: "/faq" },
             ].map((item) => (
               <Link
@@ -122,6 +122,11 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                         icon={<Clock size={18} />}
                         label="Lịch sử sửa chữa"
                         onClick={() => navigate("/repair/history")}
+                      />
+                       <DropdownItem
+                        icon={<Clock size={18} />}
+                        label="Lịch sử liên hệ"
+                        onClick={() => navigate("/customer/contact-history")}
                       />
 
                       <div className="border-t mt-2 pt-2">

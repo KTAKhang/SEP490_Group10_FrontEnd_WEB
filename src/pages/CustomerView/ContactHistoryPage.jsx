@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import { useAuth } from '../../contexts/AuthContext';
+// import { useAuth } from '../../contexts/AuthContext';
 import {
   getMyContactsRequest,
   getContactDetailRequest,
   sendReplyRequest,
   downloadAttachmentRequest,
+  clearContactMessages,
 } from '../../redux/actions/contactActions';
 import {
   MessageSquare,
@@ -27,7 +28,7 @@ import {
 const ContactHistoryPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { isAuthenticated } = useAuth();
+  // const { isAuthenticated } = useAuth();
   
   // Redux state
   const {
@@ -42,14 +43,6 @@ const ContactHistoryPage = () => {
   
   const [selectedContact, setSelectedContact] = useState(null);
   const [replyMessage, setReplyMessage] = useState('');
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      navigate('/login');
-      return;
-    }
-  }, [isAuthenticated, navigate]);
 
   // Fetch contacts using Redux
   useEffect(() => {
@@ -74,8 +67,10 @@ const ContactHistoryPage = () => {
       setReplyMessage('');
       const contactId = selectedContact._id || selectedContact.id;
       // Backend returns contact with replies in one call
+      // Note: saga already refreshes contacts list, so we only need to refresh detail
       dispatch(getContactDetailRequest(contactId));
-      dispatch(getMyContactsRequest()); // Refresh contacts list
+      // Clear success flag to prevent infinite loop
+      dispatch(clearContactMessages());
     }
   }, [sendReplySuccess, selectedContact, dispatch]);
 
@@ -87,17 +82,99 @@ const ContactHistoryPage = () => {
     dispatch(getContactDetailRequest(contactId));
   };
 
+  // Check if customer can reply (only 1 reply allowed after each admin reply)
+  // Customer must wait for admin to reply again before they can reply again
+  const canCustomerReply = (repliesList) => {
+    if (!repliesList || repliesList.length === 0) return true;
+    
+    // Find the last admin reply index
+    let lastAdminReplyIndex = -1;
+    for (let i = repliesList.length - 1; i >= 0; i--) {
+      if (repliesList[i].sender_type === 'ADMIN') {
+        lastAdminReplyIndex = i;
+        break;
+      }
+    }
+    
+    // If no admin reply yet, check if customer has already replied
+    // If customer has replied (even without admin reply), they must wait
+    if (lastAdminReplyIndex === -1) {
+      // Check if there are any user replies
+      const hasUserReply = repliesList.some(reply => reply.sender_type === 'USER');
+      // If customer has already replied, they must wait for admin to reply first
+      return !hasUserReply;
+    }
+    
+    // Count customer replies after the last admin reply
+    let customerReplyCount = 0;
+    for (let i = lastAdminReplyIndex + 1; i < repliesList.length; i++) {
+      if (repliesList[i].sender_type === 'USER') {
+        customerReplyCount++;
+      }
+    }
+    
+    // Customer can only reply 1 time after each admin reply
+    // If customer already replied, they must wait for admin to reply again
+    return customerReplyCount < 1;
+  };
+
+  // Get status-specific message when customer is waiting for admin reply
+  const getStatusWaitingMessage = (status) => {
+    const statusMessages = {
+      OPEN: {
+        icon: AlertCircle,
+        message: 'Waiting for administrator\'s reply. Please wait before continuing.',
+        bgColor: 'bg-yellow-50',
+        borderColor: 'border-yellow-200',
+        iconColor: 'text-yellow-600',
+        textColor: 'text-yellow-800',
+      },
+      IN_PROGRESS: {
+        icon: Clock,
+        message: 'Your contact is being processed. Please wait for administrator\'s reply.',
+        bgColor: 'bg-blue-50',
+        borderColor: 'border-blue-200',
+        iconColor: 'text-blue-600',
+        textColor: 'text-blue-800',
+      },
+      RESOLVED: {
+        icon: CheckCircle,
+        message: 'Your contact has been resolved. Thank you for contacting us!',
+        bgColor: 'bg-green-50',
+        borderColor: 'border-green-200',
+        iconColor: 'text-green-600',
+        textColor: 'text-green-800',
+      },
+      CLOSED: {
+        icon: XCircle,
+        message: 'This contact has been closed. Cannot send additional replies.',
+        bgColor: 'bg-gray-100',
+        borderColor: 'border-gray-200',
+        iconColor: 'text-gray-400',
+        textColor: 'text-gray-600',
+      },
+    };
+
+    return statusMessages[status] || statusMessages.OPEN;
+  };
+
   const handleSendReply = () => {
     if (!selectedContact) return;
 
     // BR-C-06: Cannot reply when status is CLOSED
     if (selectedContact.status === 'CLOSED') {
-      toast.error('Không thể gửi phản hồi cho liên hệ đã đóng');
+      toast.error('Cannot send reply to closed contact');
+      return;
+    }
+
+    // Check if customer can reply (limit: 1 reply after admin reply)
+    if (!canCustomerReply(replies)) {
+      toast.error('You have replied. Please wait for administrator\'s reply.');
       return;
     }
 
     if (!replyMessage.trim()) {
-      toast.error('Vui lòng nhập nội dung phản hồi');
+      toast.error('Please enter reply content');
       return;
     }
 
@@ -108,10 +185,10 @@ const ContactHistoryPage = () => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      OPEN: { label: 'Mở', color: 'bg-blue-100 text-blue-800', icon: AlertCircle },
-      IN_PROGRESS: { label: 'Đang xử lý', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-      RESOLVED: { label: 'Đã giải quyết', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-      CLOSED: { label: 'Đã đóng', color: 'bg-gray-100 text-gray-800', icon: XCircle },
+      OPEN: { label: 'Open', color: 'bg-blue-100 text-blue-800', icon: AlertCircle },
+      IN_PROGRESS: { label: 'In Progress', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
+      RESOLVED: { label: 'Resolved', color: 'bg-green-100 text-green-800', icon: CheckCircle },
+      CLOSED: { label: 'Closed', color: 'bg-gray-100 text-gray-800', icon: XCircle },
     };
 
     const config = statusConfig[status] || statusConfig.OPEN;
@@ -128,7 +205,7 @@ const ContactHistoryPage = () => {
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN', {
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -142,16 +219,16 @@ const ContactHistoryPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pt-28 pb-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-2">
-              Lịch Sử Liên Hệ
+              Contact History
             </h1>
             <p className="text-lg text-gray-600">
-              Xem và quản lý các liên hệ bạn đã gửi
+              View and manage your sent contacts
             </p>
           </div>
           <button
@@ -159,7 +236,7 @@ const ContactHistoryPage = () => {
             className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-all duration-200 shadow-lg hover:scale-105"
           >
             <Plus className="w-5 h-5" />
-            <span>Liên hệ mới</span>
+            <span>New Contact</span>
           </button>
         </div>
 
@@ -168,26 +245,26 @@ const ContactHistoryPage = () => {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
               <div className="p-4 border-b border-gray-200 bg-gray-50">
-                <h2 className="font-semibold text-gray-900">Danh sách liên hệ</h2>
+                <h2 className="font-semibold text-gray-900">Contact List</h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  {contacts.length} liên hệ
+                  {contacts.length} contacts
                 </p>
               </div>
               
               {contactsLoading ? (
                 <div className="p-8 text-center">
                   <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                  <p className="text-gray-500">Đang tải...</p>
+                  <p className="text-gray-500">Loading...</p>
                 </div>
               ) : contacts.length === 0 ? (
                 <div className="p-8 text-center">
                   <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 mb-4">Bạn chưa có liên hệ nào</p>
+                  <p className="text-gray-500 mb-4">You have no contacts yet</p>
                   <button
                     onClick={() => navigate('/customer/contact')}
                     className="text-green-600 hover:text-green-700 font-semibold"
                   >
-                    Tạo liên hệ mới
+                    Create New Contact
                   </button>
                 </div>
               ) : (
@@ -243,12 +320,12 @@ const ContactHistoryPage = () => {
                         {getStatusBadge(selectedContact.status)}
                         <div className="flex items-center gap-1 text-sm text-gray-500">
                           <Calendar className="w-4 h-4" />
-                          <span>Tạo: {formatDate(selectedContact.created_at || selectedContact.createdAt)}</span>
+                          <span>Created: {formatDate(selectedContact.created_at || selectedContact.createdAt)}</span>
                         </div>
                         {selectedContact.updated_at && (
                           <div className="flex items-center gap-1 text-sm text-gray-500">
                             <Clock className="w-4 h-4" />
-                            <span>Cập nhật: {formatDate(selectedContact.updated_at || selectedContact.updatedAt)}</span>
+                            <span>Updated: {formatDate(selectedContact.updated_at || selectedContact.updatedAt)}</span>
                           </div>
                         )}
                       </div>
@@ -256,12 +333,12 @@ const ContactHistoryPage = () => {
                   </div>
 
                   <div className="mb-6">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-2">Danh mục</h3>
+                    <h3 className="text-sm font-semibold text-gray-700 mb-2">Category</h3>
                     <p className="text-gray-900">{selectedContact.category || 'N/A'}</p>
                   </div>
 
                   <div className="mb-6">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-2">Nội dung</h3>
+                    <h3 className="text-sm font-semibold text-gray-700 mb-2">Content</h3>
                     <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                       <p className="text-gray-900 whitespace-pre-wrap">
                         {selectedContact.message}
@@ -272,7 +349,7 @@ const ContactHistoryPage = () => {
                   {/* Attachments */}
                   {selectedContact.attachments && selectedContact.attachments.length > 0 && (
                     <div className="mb-6">
-                      <h3 className="text-sm font-semibold text-gray-700 mb-3">Tệp đính kèm</h3>
+                      <h3 className="text-sm font-semibold text-gray-700 mb-3">Attachments</h3>
                       <div className="space-y-2">
                         {selectedContact.attachments.map((attachment, index) => (
                           <div
@@ -310,18 +387,18 @@ const ContactHistoryPage = () => {
 
                 {/* Replies Section */}
                 <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Phản hồi</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Replies</h3>
                   
                   {/* Replies List */}
                   <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
                     {repliesLoading ? (
                       <div className="text-center py-8">
                         <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                        <p className="text-gray-500">Đang tải phản hồi...</p>
+                        <p className="text-gray-500">Loading replies...</p>
                       </div>
                     ) : replies.length === 0 ? (
                       <p className="text-gray-500 text-center py-8">
-                        Chưa có phản hồi nào
+                        No replies yet
                       </p>
                     ) : (
                       replies.map((reply, index) => (
@@ -337,7 +414,7 @@ const ContactHistoryPage = () => {
                             <div className="flex items-center gap-2">
                               <User className="w-4 h-4 text-gray-600" />
                               <span className="font-semibold text-sm text-gray-900">
-                                {reply.sender_type === 'USER' ? 'Bạn' : 'Quản trị viên'}
+                                {reply.sender_type === 'USER' ? 'You' : 'Administrator'}
                               </span>
                             </div>
                             <span className="text-xs text-gray-500">
@@ -351,56 +428,86 @@ const ContactHistoryPage = () => {
                   </div>
 
                   {/* Reply Form */}
-                  {selectedContact.status !== 'CLOSED' ? (
-                    <div className="border-t border-gray-200 pt-4">
-                      <div className="mb-3">
-                        <textarea
-                          value={replyMessage}
-                          onChange={(e) => setReplyMessage(e.target.value)}
-                          placeholder="Nhập phản hồi của bạn..."
-                          rows={4}
-                          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-200 focus:outline-none resize-none"
-                          disabled={sendReplyLoading}
-                        />
-                      </div>
-                      <button
-                        onClick={handleSendReply}
-                        disabled={sendReplyLoading || !replyMessage.trim()}
-                        className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-all duration-200 ${
-                          sendReplyLoading || !replyMessage.trim()
-                            ? 'bg-gray-400 cursor-not-allowed'
-                            : 'bg-green-600 hover:bg-green-700 shadow-lg hover:scale-105'
-                        }`}
-                      >
-                        {sendReplyLoading ? (
-                          <>
-                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            <span>Đang gửi...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Send className="w-5 h-5" />
-                            <span>Gửi phản hồi</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="border-t border-gray-200 pt-4">
-                      <div className="bg-gray-100 rounded-xl p-4 text-center">
-                        <XCircle className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                        <p className="text-gray-600 font-medium">
-                          Liên hệ này đã được đóng. Không thể gửi thêm phản hồi.
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                  {(() => {
+                    const status = selectedContact.status;
+                    
+                    // Nếu status là RESOLVED hoặc CLOSED, luôn hiển thị thông báo status (không cho reply)
+                    if (status === 'RESOLVED' || status === 'CLOSED') {
+                      const statusMessage = getStatusWaitingMessage(status);
+                      const StatusIcon = statusMessage.icon;
+                      return (
+                        <div className="border-t border-gray-200 pt-4">
+                          <div className={`${statusMessage.bgColor} border ${statusMessage.borderColor} rounded-xl p-4 text-center`}>
+                            <StatusIcon className={`w-8 h-8 ${statusMessage.iconColor} mx-auto mb-2`} />
+                            <p className={`${statusMessage.textColor} font-medium`}>
+                              {statusMessage.message}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    }
+                    
+                    // Nếu status là OPEN hoặc IN_PROGRESS
+                    // Kiểm tra xem customer có thể reply không
+                    if (canCustomerReply(replies)) {
+                      // Customer có thể reply -> hiển thị reply form
+                      return (
+                        <div className="border-t border-gray-200 pt-4">
+                          <div className="mb-3">
+                            <textarea
+                              value={replyMessage}
+                              onChange={(e) => setReplyMessage(e.target.value)}
+                              placeholder="Enter your reply..."
+                              rows={4}
+                              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-200 focus:outline-none resize-none"
+                              disabled={sendReplyLoading}
+                            />
+                          </div>
+                          <button
+                            onClick={handleSendReply}
+                            disabled={sendReplyLoading || !replyMessage.trim()}
+                            className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-all duration-200 ${
+                              sendReplyLoading || !replyMessage.trim()
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-green-600 hover:bg-green-700 shadow-lg hover:scale-105'
+                            }`}
+                          >
+                            {sendReplyLoading ? (
+                              <>
+                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                <span>Sending...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Send className="w-5 h-5" />
+                                <span>Send Reply</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      );
+                    } else {
+                      // Customer không thể reply -> hiển thị thông báo đợi admin
+                      const statusMessage = getStatusWaitingMessage(status);
+                      const StatusIcon = statusMessage.icon;
+                      return (
+                        <div className="border-t border-gray-200 pt-4">
+                          <div className={`${statusMessage.bgColor} border ${statusMessage.borderColor} rounded-xl p-4 text-center`}>
+                            <StatusIcon className={`w-8 h-8 ${statusMessage.iconColor} mx-auto mb-2`} />
+                            <p className={`${statusMessage.textColor} font-medium`}>
+                              {statusMessage.message}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    }
+                  })()}
                 </div>
               </div>
             ) : (
               <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12 text-center">
                 <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">Chọn một liên hệ để xem chi tiết</p>
+                <p className="text-gray-500 text-lg">Select a contact to view details</p>
               </div>
             )}
           </div>
