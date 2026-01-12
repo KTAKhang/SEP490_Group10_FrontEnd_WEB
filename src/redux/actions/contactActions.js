@@ -29,6 +29,18 @@ export const DOWNLOAD_ATTACHMENT_FAILURE = "DOWNLOAD_ATTACHMENT_FAILURE";
 
 export const CLEAR_CONTACT_MESSAGES = "CLEAR_CONTACT_MESSAGES";
 
+export const UPDATE_CONTACT_REQUEST = "UPDATE_CONTACT_REQUEST";
+export const UPDATE_CONTACT_SUCCESS = "UPDATE_CONTACT_SUCCESS";
+export const UPDATE_CONTACT_FAILURE = "UPDATE_CONTACT_FAILURE";
+
+export const UPDATE_REPLY_REQUEST = "UPDATE_REPLY_REQUEST";
+export const UPDATE_REPLY_SUCCESS = "UPDATE_REPLY_SUCCESS";
+export const UPDATE_REPLY_FAILURE = "UPDATE_REPLY_FAILURE";
+
+export const DELETE_REPLY_REQUEST = "DELETE_REPLY_REQUEST";
+export const DELETE_REPLY_SUCCESS = "DELETE_REPLY_SUCCESS";
+export const DELETE_REPLY_FAILURE = "DELETE_REPLY_FAILURE";
+
 // Action Creators
 export const getCategoriesRequest = () => ({
   type: GET_CATEGORIES_REQUEST,
@@ -59,8 +71,9 @@ export const createContactFailure = (error) => ({
   payload: error,
 });
 
-export const getMyContactsRequest = () => ({
+export const getMyContactsRequest = (params) => ({
   type: GET_MY_CONTACTS_REQUEST,
+  payload: params,
 });
 
 export const getMyContactsSuccess = (contacts) => ({
@@ -134,4 +147,49 @@ export const downloadAttachmentFailure = (error) => ({
 
 export const clearContactMessages = () => ({
   type: CLEAR_CONTACT_MESSAGES,
+});
+
+export const updateContactRequest = (contactId, data) => ({
+  type: UPDATE_CONTACT_REQUEST,
+  payload: { contactId, data },
+});
+
+export const updateContactSuccess = (data) => ({
+  type: UPDATE_CONTACT_SUCCESS,
+  payload: data,
+});
+
+export const updateContactFailure = (error) => ({
+  type: UPDATE_CONTACT_FAILURE,
+  payload: error,
+});
+
+export const updateReplyRequest = (contactId, replyId, message) => ({
+  type: UPDATE_REPLY_REQUEST,
+  payload: { contactId, replyId, message },
+});
+
+export const updateReplySuccess = (data) => ({
+  type: UPDATE_REPLY_SUCCESS,
+  payload: data,
+});
+
+export const updateReplyFailure = (error) => ({
+  type: UPDATE_REPLY_FAILURE,
+  payload: error,
+});
+
+export const deleteReplyRequest = (contactId, replyId) => ({
+  type: DELETE_REPLY_REQUEST,
+  payload: { contactId, replyId },
+});
+
+export const deleteReplySuccess = (data) => ({
+  type: DELETE_REPLY_SUCCESS,
+  payload: data,
+});
+
+export const deleteReplyFailure = (error) => ({
+  type: DELETE_REPLY_FAILURE,
+  payload: error,
 });
