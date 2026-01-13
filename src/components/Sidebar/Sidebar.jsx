@@ -35,7 +35,11 @@ const Sidebar = () => {
       label: "Sản phẩm",
       path: "/admin/warehouse",
     },
-    
+    {
+      icon: Users,
+      label: "Staff Management",
+      path: "/admin/staff",
+    }
   ];
 
   const isActive = (path, exact = false) => {

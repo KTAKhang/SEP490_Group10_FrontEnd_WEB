@@ -3,6 +3,7 @@ import authSaga from "./authSaga";
 import contactSaga from "./contactSaga";
 import profileSaga from "./profileSaga";
 import warehouseSaga from "./warehouseSaga";
+import staffSaga from "./staffSage";
 
 
 export default function* rootSaga() {
@@ -12,6 +13,7 @@ export default function* rootSaga() {
       contactSaga(),
       profileSaga(),
       warehouseSaga(),
+      staffSaga(),
     ]);
   } catch (error) {
     console.error("🔴 rootSaga ERROR:", error);

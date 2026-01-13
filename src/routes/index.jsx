@@ -22,6 +22,7 @@ import PrivateRoute from "../components/PrivateRouter/index";
 import ContactListPage from "../pages/ContactManagement/ContactListPage";
 import ContactDetailPage from "../pages/ContactManagement/ContactDetailPage";
 import ContactEditPage from "../pages/ContactManagement/ContactEditPage";
+import StaffManagement from "../pages/StaffManagement/StaffManagement";
 export const routes = [
   // Trang chủ
 
@@ -77,6 +78,7 @@ export const routes = [
       { path: "contacts", element: <ContactListPage /> },
       { path: "contacts/:id", element: <ContactDetailPage /> },
       { path: "contacts/:id/edit", element: <ContactEditPage /> },
+      { path: "staff", element: <StaffManagement /> },
     ],
   },
 
