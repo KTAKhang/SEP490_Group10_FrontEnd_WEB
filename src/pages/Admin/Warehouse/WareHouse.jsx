@@ -13,19 +13,17 @@ import {
   Filter,
   Download,
   Upload,
-  Box,
   Eye,
-  X,
 } from "lucide-react";
 import {
   getProductsRequest,
   getCategoriesRequest,
   deleteProductRequest,
-  createReceiptRequest,
 } from "../../../redux/actions/warehouseActions";
 import CreateProduct from "./CreateProduct";
 import UpdateProduct from "./UpdateProduct";
-import ReadProduct from "./ReadProduct";
+import DetailProduct from "./DetailProduct";
+import Loading from "../../../components/Loading/Loading";
 
 // Simple Card component
 const Card = ({ children, className = "" }) => (
@@ -46,9 +44,18 @@ const CardContent = ({ children, className = "" }) => (
 
 const WareHouse = () => {
   const dispatch = useDispatch();
-  const { products, productsLoading, productsPagination, categories } = useSelector(
-    (state) => state.warehouse
-  );
+  const {
+    products,
+    productsLoading,
+    productsPagination,
+    categories,
+    createProductLoading,
+    updateProductLoading,
+    deleteProductLoading,
+    createProductError,
+    updateProductError,
+    deleteProductError,
+  } = useSelector((state) => state.warehouse);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStockStatus, setFilterStockStatus] = useState("all"); // all, IN_STOCK, OUT_OF_STOCK
@@ -58,17 +65,10 @@ const WareHouse = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showReadModal, setShowReadModal] = useState(false);
-  const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [selectedProductForReceipt, setSelectedProductForReceipt] = useState(null);
-
-  const [receiptData, setReceiptData] = useState({
-    productId: "",
-    quantity: 0,
-    expiryDate: "",
-    shelfLifeDays: "",
-    note: "",
-  });
+  const [prevCreateLoading, setPrevCreateLoading] = useState(false);
+  const [prevUpdateLoading, setPrevUpdateLoading] = useState(false);
+  const [prevDeleteLoading, setPrevDeleteLoading] = useState(false);
 
   // Fetch products and categories on mount
   useEffect(() => {
@@ -88,6 +88,57 @@ const WareHouse = () => {
     };
     dispatch(getProductsRequest(params));
   }, [dispatch, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory]);
+
+  // Auto refresh after successful create
+  useEffect(() => {
+    if (prevCreateLoading && !createProductLoading && !createProductError) {
+      // Create was just completed successfully
+      const params = {
+        page: currentPage,
+        limit: 10,
+        search: searchTerm || undefined,
+        stockStatus: filterStockStatus !== "all" ? filterStockStatus : undefined,
+        receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,
+        category: selectedCategory !== "all" ? selectedCategory : undefined,
+      };
+      dispatch(getProductsRequest(params));
+    }
+    setPrevCreateLoading(createProductLoading);
+  }, [dispatch, createProductLoading, createProductError, prevCreateLoading, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory]);
+
+  // Auto refresh after successful update
+  useEffect(() => {
+    if (prevUpdateLoading && !updateProductLoading && !updateProductError) {
+      // Update was just completed successfully
+      const params = {
+        page: currentPage,
+        limit: 10,
+        search: searchTerm || undefined,
+        stockStatus: filterStockStatus !== "all" ? filterStockStatus : undefined,
+        receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,
+        category: selectedCategory !== "all" ? selectedCategory : undefined,
+      };
+      dispatch(getProductsRequest(params));
+    }
+    setPrevUpdateLoading(updateProductLoading);
+  }, [dispatch, updateProductLoading, updateProductError, prevUpdateLoading, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory]);
+
+  // Auto refresh after successful delete
+  useEffect(() => {
+    if (prevDeleteLoading && !deleteProductLoading && !deleteProductError) {
+      // Delete was just completed successfully
+      const params = {
+        page: currentPage,
+        limit: 10,
+        search: searchTerm || undefined,
+        stockStatus: filterStockStatus !== "all" ? filterStockStatus : undefined,
+        receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,
+        category: selectedCategory !== "all" ? selectedCategory : undefined,
+      };
+      dispatch(getProductsRequest(params));
+    }
+    setPrevDeleteLoading(deleteProductLoading);
+  }, [dispatch, deleteProductLoading, deleteProductError, prevDeleteLoading, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory]);
 
   const getStockStatus = (product) => {
     if (product.stockStatus === "OUT_OF_STOCK" || product.onHandQuantity === 0) {
@@ -129,65 +180,6 @@ const WareHouse = () => {
   const handleDeleteProduct = (id) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) return;
     dispatch(deleteProductRequest(id));
-  };
-
-  const handleOpenReceiptModal = (product) => {
-    setSelectedProductForReceipt(product);
-    setReceiptData({
-      productId: product._id,
-      quantity: 0,
-      expiryDate: "",
-      shelfLifeDays: "",
-      note: "",
-    });
-    setShowReceiptModal(true);
-  };
-
-  const handleCreateReceipt = () => {
-    if (!receiptData.productId || receiptData.quantity <= 0) {
-      toast.error("Vui lòng nhập số lượng hợp lệ");
-      return;
-    }
-
-    // Validate expiryDate if provided (must be at least tomorrow)
-    if (receiptData.expiryDate) {
-      const selectedDate = new Date(receiptData.expiryDate);
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(0, 0, 0, 0);
-      selectedDate.setHours(0, 0, 0, 0);
-      
-      if (selectedDate < tomorrow) {
-        toast.error(`Hạn sử dụng phải tối thiểu từ ngày ${tomorrow.toISOString().split('T')[0]} (ngày mai)`);
-        return;
-      }
-    }
-
-    // Prepare receipt data (prioritize expiryDate over shelfLifeDays)
-    const receiptPayload = {
-      productId: receiptData.productId,
-      quantity: receiptData.quantity,
-      note: receiptData.note || "",
-    };
-    
-    // Ưu tiên expiryDate từ date picker
-    if (receiptData.expiryDate) {
-      receiptPayload.expiryDate = receiptData.expiryDate;
-    } 
-    // Backward compatible: nếu không có expiryDate, dùng shelfLifeDays
-    else if (receiptData.shelfLifeDays && receiptData.shelfLifeDays > 0) {
-      receiptPayload.shelfLifeDays = parseInt(receiptData.shelfLifeDays);
-    }
-
-    dispatch(createReceiptRequest(receiptPayload));
-    setShowReceiptModal(false);
-    setReceiptData({
-      productId: "",
-      quantity: 0,
-      expiryDate: "",
-      shelfLifeDays: "",
-      note: "",
-    });
   };
 
   // Calculate stats from products
@@ -347,11 +339,8 @@ const WareHouse = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          {productsLoading ? (
-            <div className="p-8 text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-              <p className="mt-2 text-gray-600">Đang tải...</p>
-            </div>
+          {productsLoading || createProductLoading || updateProductLoading || deleteProductLoading ? (
+            <Loading message="Đang tải dữ liệu..." />
           ) : products.length === 0 ? (
             <div className="p-8 text-center">
               <Package className="h-12 w-12 text-gray-400 mx-auto mb-2" />
@@ -377,9 +366,6 @@ const WareHouse = () => {
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Trạng thái
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Nhập kho
                       </th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Thao tác
@@ -454,26 +440,26 @@ const WareHouse = () => {
                               </span>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <button
-                              onClick={() => handleOpenReceiptModal(product)}
-                              className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
-                              title="Nhập kho"
-                            >
-                              <Box size={18} />
-                            </button>
-                          </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div className="flex items-center justify-end space-x-2">
                               <button
-                                onClick={() => handleEditProduct(product)}
+                                onClick={() => handleViewProduct(product)}
                                 className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
+                                title="Xem chi tiết"
+                              >
+                                <Eye size={18} />
+                              </button>
+                              <button
+                                onClick={() => handleEditProduct(product)}
+                                className="text-green-600 hover:text-green-900 p-1 hover:bg-green-50 rounded"
+                                title="Sửa sản phẩm"
                               >
                                 <Edit size={18} />
                               </button>
                               <button
                                 onClick={() => handleDeleteProduct(product._id)}
                                 className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded"
+                                title="Xóa sản phẩm"
                               >
                                 <Trash2 size={18} />
                               </button>
@@ -543,8 +529,8 @@ const WareHouse = () => {
         product={selectedProduct}
       />
 
-      {/* Read Product Modal */}
-      <ReadProduct
+      {/* Detail Product Modal */}
+      <DetailProduct
         isOpen={showReadModal}
         onClose={() => {
           setShowReadModal(false);
@@ -552,107 +538,6 @@ const WareHouse = () => {
         }}
         product={selectedProduct}
       />
-
-      {/* Receipt Modal */}
-      {showReceiptModal && selectedProductForReceipt && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-md w-full">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-xl font-bold text-gray-800">Nhập kho</h2>
-              <button
-                onClick={() => setShowReceiptModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Sản phẩm</p>
-                <p className="font-medium text-gray-900">{selectedProductForReceipt.name}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 mb-1">
-                  Kế hoạch: {selectedProductForReceipt.plannedQuantity} | Đã nhập:{" "}
-                  {selectedProductForReceipt.receivedQuantity} | Tồn:{" "}
-                  {selectedProductForReceipt.onHandQuantity}
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Số lượng nhập <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  value={receiptData.quantity}
-                  onChange={(e) =>
-                    setReceiptData({ ...receiptData, quantity: parseInt(e.target.value) || 0 })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  min="1"
-                  max={
-                    selectedProductForReceipt.plannedQuantity -
-                    selectedProductForReceipt.receivedQuantity
-                  }
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Còn có thể nhập tối đa:{" "}
-                  {selectedProductForReceipt.plannedQuantity -
-                    selectedProductForReceipt.receivedQuantity}
-                </p>
-              </div>
-              {/* Only show shelfLifeDays for first receipt (receivedQuantity = 0) */}
-              {selectedProductForReceipt.receivedQuantity === 0 && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Hạn sử dụng <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={receiptData.expiryDate}
-                    onChange={(e) => {
-                      setReceiptData({ ...receiptData, expiryDate: e.target.value, shelfLifeDays: "" });
-                    }}
-                    min={(() => {
-                      const tomorrow = new Date();
-                      tomorrow.setDate(tomorrow.getDate() + 1);
-                      return tomorrow.toISOString().split('T')[0];
-                    })()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Chọn ngày hết hạn (tối thiểu từ ngày mai)
-                  </p>
-                </div>
-              )}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
-                <textarea
-                  value={receiptData.note}
-                  onChange={(e) => setReceiptData({ ...receiptData, note: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  rows="3"
-                  placeholder="Nhập ghi chú (nếu có)"
-                />
-              </div>
-            </div>
-            <div className="flex items-center justify-end space-x-3 p-6 border-t">
-              <button
-                onClick={() => setShowReceiptModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleCreateReceipt}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-              >
-                Nhập kho
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

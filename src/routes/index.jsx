@@ -5,13 +5,9 @@ import Register from "../pages/Register";
 import HomePage from "../pages/HomePage";
 import ContactPage from "../pages/CustomerView/ContactPage";
 import ContactHistoryPage from "../pages/CustomerView/ContactHistoryPage";
-// import AuthenticatedRoute from "../components/AuthenticatedRoute";
+import AuthenticatedRoute from "../components/AuthenticatedRoute";
 import ProdcutPage from "../pages/ProductPage";
 import Categories from "../pages/CategoryPage";
-// import ContactPage1 from "../pages/ContactPage";
-import ContactPage from "../pages/ContactManagement/ContactPage";
-import ContactHistoryPage from "../pages/ContactManagement/ContactHistoryPage";
-import AuthenticatedRoute from "../components/AuthenticatedRoute";
 import CustomerLayout from "../layout/CustomerLayout";
 import AdminLayout from "../layout/AdminLayout";
 import AdminPage from "../pages/Admin/AdminPage/AdminPage";
@@ -22,9 +18,7 @@ import WarehouseStaffPage from "../pages/WarehouseStaff/WarehouseStaffPage";
 import WarehouseStaffWareHouse from "../pages/WarehouseStaff/Warehouse/WareHouse";
 import ProfileManagement from "../pages/ProfileManagement/ProfileManagerment";
 import UpdatePassword from "../pages/ProfileManagement/UpdatePassword"; 
-import PrivateRoute from "../components/PrivateRouter/index"
-import AdminLayout from "../layout/AdminLayout";
-// import AdminPage from "../pages/AdminPage";
+import PrivateRoute from "../components/PrivateRouter/index";
 import ContactListPage from "../pages/ContactManagement/ContactListPage";
 import ContactDetailPage from "../pages/ContactManagement/ContactDetailPage";
 import ContactEditPage from "../pages/ContactManagement/ContactEditPage";
@@ -80,6 +74,9 @@ export const routes = [
       { index: true, element: <AdminPage /> },
       { path: "warehouse", element: <WareHouse /> },
       { path: "category", element: <CategoryManagement /> },
+      { path: "contacts", element: <ContactListPage /> },
+      { path: "contacts/:id", element: <ContactDetailPage /> },
+      { path: "contacts/:id/edit", element: <ContactEditPage /> },
     ],
   },
 
@@ -119,22 +116,6 @@ export const routes = [
 
   //   ],
   // },
-
-  // // Khu vực quản trị
-  {
-    path: "/admin",
-    element: (
-      <PrivateRoute requiredRole="admin">
-        <AdminLayout />
-      </PrivateRoute>
-    ),
-    children: [
-      { index: true, element: <ContactListPage /> },
-      { path: "contacts", element: <ContactListPage /> },
-      { path: "contacts/:id", element: <ContactDetailPage /> },
-      { path: "contacts/:id/edit", element: <ContactEditPage /> },
-    ],
-  },
 
   // // Khu vực Repair Staff
   // {
