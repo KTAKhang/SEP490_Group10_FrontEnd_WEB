@@ -19,6 +19,7 @@ import {
 import CreateCategory from "./CreateCategory";
 import UpdateCategory from "./UpdateCategory";
 import ReadCategory from "./ReadCategory";
+import Loading from "../../../components/Loading/Loading";
 
 // Simple Card component
 const Card = ({ children, className = "" }) => (
@@ -39,9 +40,17 @@ const CardContent = ({ children, className = "" }) => (
 
 const CategoryManagement = () => {
   const dispatch = useDispatch();
-  const { categories, categoriesLoading, categoriesPagination } = useSelector(
-    (state) => state.warehouse
-  );
+  const {
+    categories,
+    categoriesLoading,
+    categoriesPagination,
+    createCategoryLoading,
+    updateCategoryLoading,
+    deleteCategoryLoading,
+    createCategoryError,
+    updateCategoryError,
+    deleteCategoryError,
+  } = useSelector((state) => state.warehouse);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all"); // all, true, false
@@ -50,6 +59,9 @@ const CategoryManagement = () => {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showReadModal, setShowReadModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [prevCreateLoading, setPrevCreateLoading] = useState(false);
+  const [prevUpdateLoading, setPrevUpdateLoading] = useState(false);
+  const [prevDeleteLoading, setPrevDeleteLoading] = useState(false);
 
   // Fetch categories on mount
   useEffect(() => {
@@ -66,6 +78,51 @@ const CategoryManagement = () => {
     };
     dispatch(getCategoriesRequest(params));
   }, [dispatch, currentPage, searchTerm, filterStatus]);
+
+  // Auto refresh after successful create
+  useEffect(() => {
+    if (prevCreateLoading && !createCategoryLoading && !createCategoryError) {
+      // Create was just completed successfully
+      const params = {
+        page: currentPage,
+        limit: 10,
+        search: searchTerm || undefined,
+        status: filterStatus !== "all" ? filterStatus : undefined,
+      };
+      dispatch(getCategoriesRequest(params));
+    }
+    setPrevCreateLoading(createCategoryLoading);
+  }, [dispatch, createCategoryLoading, createCategoryError, prevCreateLoading, currentPage, searchTerm, filterStatus]);
+
+  // Auto refresh after successful update
+  useEffect(() => {
+    if (prevUpdateLoading && !updateCategoryLoading && !updateCategoryError) {
+      // Update was just completed successfully
+      const params = {
+        page: currentPage,
+        limit: 10,
+        search: searchTerm || undefined,
+        status: filterStatus !== "all" ? filterStatus : undefined,
+      };
+      dispatch(getCategoriesRequest(params));
+    }
+    setPrevUpdateLoading(updateCategoryLoading);
+  }, [dispatch, updateCategoryLoading, updateCategoryError, prevUpdateLoading, currentPage, searchTerm, filterStatus]);
+
+  // Auto refresh after successful delete
+  useEffect(() => {
+    if (prevDeleteLoading && !deleteCategoryLoading && !deleteCategoryError) {
+      // Delete was just completed successfully
+      const params = {
+        page: currentPage,
+        limit: 10,
+        search: searchTerm || undefined,
+        status: filterStatus !== "all" ? filterStatus : undefined,
+      };
+      dispatch(getCategoriesRequest(params));
+    }
+    setPrevDeleteLoading(deleteCategoryLoading);
+  }, [dispatch, deleteCategoryLoading, deleteCategoryError, prevDeleteLoading, currentPage, searchTerm, filterStatus]);
 
   const handleAddCategory = () => {
     setShowCreateModal(true);
@@ -193,11 +250,8 @@ const CategoryManagement = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          {categoriesLoading ? (
-            <div className="p-8 text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-              <p className="mt-2 text-gray-600">Đang tải...</p>
-            </div>
+          {categoriesLoading || createCategoryLoading || updateCategoryLoading || deleteCategoryLoading ? (
+            <Loading message="Đang tải dữ liệu..." />
           ) : categories.length === 0 ? (
             <div className="p-8 text-center">
               <FolderTree className="h-12 w-12 text-gray-400 mx-auto mb-2" />

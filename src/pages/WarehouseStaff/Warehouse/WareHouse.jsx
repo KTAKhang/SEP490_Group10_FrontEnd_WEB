@@ -18,6 +18,7 @@ import {
 import ReadProduct from "./ReadProduct";
 import CreateReceipt from "./CreateReceipt";
 import UpdateExpiryDate from "./UpdateExpiryDate";
+import Loading from "../../../components/Loading/Loading";
 
 // Simple Card component
 const Card = ({ children, className = "" }) => (
@@ -38,9 +39,16 @@ const CardContent = ({ children, className = "" }) => (
 
 const WareHouse = () => {
   const dispatch = useDispatch();
-  const { products, productsLoading, productsPagination, categories } = useSelector(
-    (state) => state.warehouse
-  );
+  const {
+    products,
+    productsLoading,
+    productsPagination,
+    categories,
+    createReceiptLoading,
+    updateProductExpiryDateLoading,
+    createReceiptError,
+    updateProductExpiryDateError,
+  } = useSelector((state) => state.warehouse);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStockStatus, setFilterStockStatus] = useState("all"); // all, IN_STOCK, OUT_OF_STOCK
@@ -53,6 +61,8 @@ const WareHouse = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProductForReceipt, setSelectedProductForReceipt] = useState(null);
   const [selectedProductForUpdateExpiry, setSelectedProductForUpdateExpiry] = useState(null);
+  const [prevCreateReceiptLoading, setPrevCreateReceiptLoading] = useState(false);
+  const [prevUpdateExpiryLoading, setPrevUpdateExpiryLoading] = useState(false);
 
   // Fetch products and categories on mount
   useEffect(() => {
@@ -72,6 +82,40 @@ const WareHouse = () => {
     };
     dispatch(getProductsRequest(params));
   }, [dispatch, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory]);
+
+  // Auto refresh after successful create receipt
+  useEffect(() => {
+    if (prevCreateReceiptLoading && !createReceiptLoading && !createReceiptError) {
+      // Create receipt was just completed successfully
+      const params = {
+        page: currentPage,
+        limit: 10,
+        search: searchTerm || undefined,
+        stockStatus: filterStockStatus !== "all" ? filterStockStatus : undefined,
+        receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,
+        category: selectedCategory !== "all" ? selectedCategory : undefined,
+      };
+      dispatch(getProductsRequest(params));
+    }
+    setPrevCreateReceiptLoading(createReceiptLoading);
+  }, [dispatch, createReceiptLoading, createReceiptError, prevCreateReceiptLoading, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory]);
+
+  // Auto refresh after successful update expiry date
+  useEffect(() => {
+    if (prevUpdateExpiryLoading && !updateProductExpiryDateLoading && !updateProductExpiryDateError) {
+      // Update expiry date was just completed successfully
+      const params = {
+        page: currentPage,
+        limit: 10,
+        search: searchTerm || undefined,
+        stockStatus: filterStockStatus !== "all" ? filterStockStatus : undefined,
+        receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,
+        category: selectedCategory !== "all" ? selectedCategory : undefined,
+      };
+      dispatch(getProductsRequest(params));
+    }
+    setPrevUpdateExpiryLoading(updateProductExpiryDateLoading);
+  }, [dispatch, updateProductExpiryDateLoading, updateProductExpiryDateError, prevUpdateExpiryLoading, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory]);
 
   const getStockStatus = (product) => {
     if (product.stockStatus === "OUT_OF_STOCK" || product.onHandQuantity === 0) {
@@ -253,10 +297,8 @@ const WareHouse = () => {
           <CardTitle className="text-lg font-semibold">Danh sách sản phẩm</CardTitle>
         </CardHeader>
         <CardContent>
-          {productsLoading ? (
-            <div className="text-center py-8">
-              <p className="text-gray-500">Đang tải...</p>
-            </div>
+          {productsLoading || createReceiptLoading || updateProductExpiryDateLoading ? (
+            <Loading message="Đang tải dữ liệu..." />
           ) : (
             <>
               {products.length === 0 ? (
