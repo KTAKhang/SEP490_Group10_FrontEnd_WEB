@@ -10,6 +10,13 @@ import ContactPage from "../pages/ContactManagement/ContactPage";
 import ContactHistoryPage from "../pages/ContactManagement/ContactHistoryPage";
 import AuthenticatedRoute from "../components/AuthenticatedRoute";
 import CustomerLayout from "../layout/CustomerLayout";
+import AdminLayout from "../layout/AdminLayout";
+import AdminPage from "../pages/Admin/AdminPage/AdminPage";
+import WareHouse from "../pages/Admin/Warehouse/WareHouse";
+import CategoryManagement from "../pages/Admin/Category/CategoryManagement";
+import WarehouseStaffLayout from "../layout/WarehouseStaffLayout";
+import WarehouseStaffPage from "../pages/WarehouseStaff/WarehouseStaffPage";
+import WarehouseStaffWareHouse from "../pages/WarehouseStaff/Warehouse/WareHouse";
 import ProfileManagement from "../pages/ProfileManagement/ProfileManagerment";
 import UpdatePassword from "../pages/ProfileManagement/UpdatePassword"; 
 import PrivateRoute from "../components/PrivateRouter/index"
@@ -48,6 +55,35 @@ export const routes = [
     children: [
       { path: "profile", element: <ProfileManagement /> },
       { path: "change-password", element: <UpdatePassword /> },
+    ],
+  },
+
+  // Khu vực Admin
+  {
+    path: "/admin",
+    element: (
+      <PrivateRoute requiredRole="admin">
+        <AdminLayout />
+      </PrivateRoute>
+    ),
+    children: [
+      { index: true, element: <AdminPage /> },
+      { path: "warehouse", element: <WareHouse /> },
+      { path: "category", element: <CategoryManagement /> },
+    ],
+  },
+
+  // Khu vực Warehouse Staff
+  {
+    path: "/warehouse-staff",
+    element: (
+      <PrivateRoute requiredRole="warehouse_staff">
+        <WarehouseStaffLayout />
+      </PrivateRoute>
+    ),
+    children: [
+      { index: true, element: <WarehouseStaffPage /> },
+      { path: "warehouse", element: <WarehouseStaffWareHouse /> },
     ],
   },
 
