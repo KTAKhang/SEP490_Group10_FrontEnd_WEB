@@ -1,71 +1,181 @@
- 
+import React from 'react';
 
 const Footer = () => {
-    return (
-        <footer className="bg-gray-900 text-white mt-auto">
-            <div className="container mx-auto px-4 py-12">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    <div>
-                        <div className="flex items-center space-x-2 mb-6">
-                            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                                <span className="text-white text-xl">💻</span>
-                            </div>
-                            <span className="text-xl font-bold">TechStore</span>
-                        </div>
-                        <p className="text-gray-400 mb-4 leading-relaxed">
-                            Chuyên cung cấp laptop, máy tính bảng và dịch vụ sửa chữa chất lượng cao với giá cả hợp lý.
-                        </p>
-                        <div className="flex space-x-4">
-                            <a href="#" className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-blue-600 transition-colors">
-                                📘
-                            </a>
-                            <a href="#" className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-blue-600 transition-colors">
-                                📺
-                            </a>
-                            <a href="#" className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-blue-600 transition-colors">
-                                📷
-                            </a>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-lg mb-4">Sản phẩm</h3>
-                        <ul className="space-y-2">
-                            <li><a className="text-gray-400 hover:text-white transition-colors cursor-pointer">Laptop</a></li>
-                            <li><a className="text-gray-400 hover:text-white transition-colors cursor-pointer">Máy tính bảng</a></li>
-                            <li><a className="text-gray-400 hover:text-white transition-colors cursor-pointer">Phụ kiện</a></li>
-                            <li><a className="text-gray-400 hover:text-white transition-colors cursor-pointer">Sản phẩm giảm giá</a></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-lg mb-4">Dịch vụ</h3>
-                        <ul className="space-y-2">
-                            <li><a className="text-gray-400 hover:text-white transition-colors cursor-pointer">Sửa chữa laptop</a></li>
-                            <li><a className="text-gray-400 hover:text-white transition-colors cursor-pointer">Thay màn hình</a></li>
-                            <li><a className="text-gray-400 hover:text-white transition-colors cursor-pointer">Nâng cấp phần cứng</a></li>
-                            <li><a className="text-gray-400 hover:text-white transition-colors cursor-pointer">Bảo hành</a></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-lg mb-4">Liên hệ</h3>
-                        <ul className="space-y-3">
-                            <li className="flex items-center text-gray-400">
-                                <span className="mr-3 text-blue-400">📍</span>123 Đường ABC, Quận Ninh Kiều, TP.Cần Thơ
-                            </li>
-                            <li className="flex items-center text-gray-400">
-                                <span className="mr-3 text-blue-400">📞</span>0123.456.789
-                            </li>
-                            <li className="flex items-center text-gray-400">
-                                <span className="mr-3 text-blue-400">✉️</span>info@techstore.vn
-                            </li>
-                            <li className="flex items-center text-gray-400">
-                                <span className="mr-3 text-blue-400">⏰</span>8:00 - 22:00 hàng ngày
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+  return (
+    <footer className="bg-gradient-to-br from-green-800 to-green-900 text-white">
+      {/* Main content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+
+          {/* Logo & description */}
+          <div>
+            <img
+              src="https://public.readdy.ai/ai/img_res/5bde7704-1cb0-4365-9e92-f123696b11d9.png"
+              alt="Nông Sản Sạch"
+              className="h-12 w-auto mb-4"
+            />
+            <p className="text-gray-300 text-sm leading-relaxed mb-6">
+              Providing clean, organic agricultural products from farm to table.
+              Committed to quality and food safety.
+            </p>
+
+            <div className="flex space-x-4">
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+                aria-label="Facebook"
+              >
+                <i className="ri-facebook-fill text-lg" />
+              </a>
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+                aria-label="Instagram"
+              >
+                <i className="ri-instagram-line text-lg" />
+              </a>
+              <a
+                href="https://zalo.me"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+                aria-label="Zalo"
+              >
+                <i className="ri-message-3-line text-lg" />
+              </a>
             </div>
-        </footer>
-    );
+          </div>
+
+          {/* Newsletter */}
+          <div>
+            <h3 className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
+              Subscribe to Newsletter
+            </h3>
+            <p className="text-gray-300 text-sm mb-4">
+              Get information about new products and special offers
+            </p>
+
+            <form className="space-y-3">
+              <div className="relative">
+                <input
+                  type="email"
+                  placeholder="Email của bạn"
+                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-white/40 transition-colors"
+                />
+                <button
+                  type="submit"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-white text-green-800 rounded-md hover:bg-gray-100 transition-colors"
+                  aria-label="Đăng ký"
+                >
+                  <i className="ri-arrow-right-line" />
+                </button>
+              </div>
+              <p className="text-xs text-gray-400">
+                By subscribing, you agree to our{" "}
+                <a href="#" className="text-green-300 hover:text-green-200 underline">
+                  Privacy Policy
+                </a>
+              </p>
+            </form>
+          </div>
+
+          {/* Links */}
+          <div>
+            <h3 className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
+              Liên kết
+            </h3>
+            <ul className="space-y-3">
+              <li><a href="/products" className="text-gray-300 hover:text-white text-sm">Products</a></li>
+              <li><a href="/categories" className="text-gray-300 hover:text-white text-sm">Categories</a></li>
+              <li><a href="/about" className="text-gray-300 hover:text-white text-sm">About Us</a></li>
+              <li><a href="/contact" className="text-gray-300 hover:text-white text-sm">Contact Us</a></li>
+              <li><a href="/faq" className="text-gray-300 hover:text-white text-sm">FAQ</a></li>
+            </ul>
+          </div>
+
+          {/* Contact */}
+          <div>
+            <h3 className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
+              Contact
+            </h3>
+            <ul className="space-y-3">
+              <li className="flex items-start space-x-3">
+                <i className="ri-map-pin-line text-green-300 mt-1" />
+                <span className="text-gray-300 text-sm">
+                  123 Nong Nghiep Street, District 1, Ho Chi Minh City
+                </span>
+              </li>
+
+              <li className="flex items-center space-x-3">
+                <i className="ri-phone-line text-green-300" />
+                <a href="tel:0123456789" className="text-gray-300 hover:text-white text-sm">
+                  0123 456 789
+                </a>
+              </li>
+
+              <li className="flex items-center space-x-3">
+                <i className="ri-mail-line text-green-300" />
+                <a
+                  href="mailto:info@nongsansach.vn"
+                  className="text-gray-300 hover:text-white text-sm"
+                >
+                  info@nongsansach.vn
+                </a>
+              </li>
+
+              <li className="flex items-start space-x-3">
+                <i className="ri-time-line text-green-300 mt-1" />
+                <span className="text-gray-300 text-sm">
+                  Monday - Sunday <br /> 8:00 AM - 8:00 PM
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Big text */}
+      <div className="bg-green-900/50 py-12">
+        <div className="max-w-7xl mx-auto px-4">
+          <h2 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-green-100/20 tracking-tight text-center">
+            Smart fruit shop
+          </h2>
+        </div>
+      </div>
+
+      {/* Bottom */}
+      <div className="border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            <p className="text-gray-400 text-sm text-center md:text-left">
+              © 2026 Smart fruit shop. All rights reserved.
+            </p>
+
+            <div className="flex flex-wrap justify-center gap-6">
+              <a href="#" className="text-gray-400 hover:text-white text-sm">
+                Privacy Policy
+              </a>
+              <a href="#" className="text-gray-400 hover:text-white text-sm">
+                Terms of Use
+              </a>
+              <a
+                href="https://readdy.ai"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-white text-sm"
+              >
+                Website Builder G10_SEP490 FPU U
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
 };
 
 export default Footer;

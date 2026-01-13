@@ -1,11 +1,11 @@
 import { Outlet } from "react-router-dom";
-import Sidebar from "../components/Sidebar/Sidebar";
+import WarehouseStaffSidebar from "../components/WarehouseStaffSidebar/WarehouseStaffSidebar";
 import Navbar from "../components/Navbar/Navbar";
 
-const AdminLayout = () => {
+const WarehouseStaffLayout = () => {
   return (
     <div className="min-h-screen bg-gray-50">
-      <Sidebar />
+      <WarehouseStaffSidebar />
       <div className="lg:ml-64">
         <Navbar />
         <main className="pt-16 p-6">
@@ -16,4 +16,4 @@ const AdminLayout = () => {
   );
 };
 
-export default AdminLayout;
+export default WarehouseStaffLayout;
