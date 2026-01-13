@@ -106,24 +106,9 @@ const RegisterPage = () => {
   return (
     <>
       {/* <Header /> */}
-      <div className="min-h-screen flex items-center justify-center bg-[#F9FEFB] px-5 mt-20">
+      <div className="min-h-screen flex items-center justify-center bg-[#F9FEFB] px-5">
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-          {/* Particles */}
-          {/* {[...Array(14)].map((_, i) => (
-          <span
-            key={`particle-${i}`}
-            className="absolute rounded-full animate-float"
-            style={{
-              width: `${Math.random() * 6 + 4}px`,
-              height: `${Math.random() * 6 + 4}px`,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              backgroundColor: "rgba(34, 197, 94, 0.12)",
-              animationDuration: `${6 + Math.random() * 6}s`, // 👈 NGẮN HƠN
-              animationDelay: `${Math.random() * 3}s`,
-            }}
-          />
-        ))} */}
+
 
           {/* Fruits */}
           <img
@@ -151,7 +136,7 @@ const RegisterPage = () => {
             className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-5"
           >
             <ArrowLeft className="w-4 h-4 mr-1" />
-            Quay lại đăng nhập
+            Back to login
           </Link>
 
           {/* Header */}
@@ -164,10 +149,10 @@ const RegisterPage = () => {
               )}
             </div>
             <h1 className="text-2xl font-bold text-gray-900">
-              {step === 1 ? "Đăng Ký" : "Xác Nhận OTP"}
+              {step === 1 ? "Sign Up" : "OTP Verification"}
             </h1>
             <p className="text-gray-500 mt-1">
-              {step === 1 ? "Tạo tài khoản mới" : "Nhập mã OTP đã gửi về email"}
+              {step === 1 ? "Create a new account" : "Enter the OTP sent to your email"}
             </p>
           </div>
 
@@ -183,7 +168,7 @@ const RegisterPage = () => {
           {step === 1 && (
             <form onSubmit={handleSendOTP} className="space-y-4">
               <Input
-                label="Tên người dùng"
+                label="Username"
                 icon={<User />}
                 error={errors.user_name}
               >
@@ -203,7 +188,7 @@ const RegisterPage = () => {
                 />
               </Input>
 
-              <Input label="Mật khẩu" icon={<Lock />} error={errors.password}>
+              <Input label="Password" icon={<Lock />} error={errors.password}>
                 <input
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
@@ -220,7 +205,7 @@ const RegisterPage = () => {
               </Input>
 
               <Input
-                label="Số điện thoại"
+                label="Phone Number"
                 icon={<Phone />}
                 error={errors.phone}
               >
@@ -231,7 +216,7 @@ const RegisterPage = () => {
                 />
               </Input>
 
-              <Input label="Địa chỉ" icon={<Home />} error={errors.address}>
+              <Input label="Address" icon={<Home />} error={errors.address}>
                 <input
                   value={formData.address}
                   onChange={(e) => handleChange("address", e.target.value)}
@@ -241,8 +226,8 @@ const RegisterPage = () => {
 
               <Submit
                 loading={registerLoading}
-                text="Gửi mã OTP"
-                loadingText="Đang gửi..."
+                text="Send OTP"
+                loadingText="Sending..."
               />
             </form>
           )}
@@ -250,7 +235,7 @@ const RegisterPage = () => {
           {/* STEP 2 */}
           {step === 2 && (
             <form onSubmit={handleConfirmOTP} className="space-y-5">
-              <Input label="Mã OTP" icon={<Key />} error={errors.otp}>
+              <Input label="OTP Code" icon={<Key />} error={errors.otp}>
                 <input
                   value={formData.otp}
                   onChange={(e) =>
@@ -265,8 +250,8 @@ const RegisterPage = () => {
 
               <Submit
                 loading={confirmOtpLoading}
-                text="Xác nhận OTP"
-                loadingText="Đang xác nhận..."
+                text="Confirm OTP"
+                loadingText="Verifying..."
               />
 
               <button
@@ -274,7 +259,7 @@ const RegisterPage = () => {
                 onClick={() => setStep(1)}
                 className="w-full text-sm text-gray-500 hover:text-gray-700"
               >
-                Nhập lại thông tin
+                Go back and edit information
               </button>
             </form>
           )}
