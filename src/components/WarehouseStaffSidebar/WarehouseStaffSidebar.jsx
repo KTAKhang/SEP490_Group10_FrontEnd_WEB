@@ -2,19 +2,11 @@ import { Link, useLocation } from "react-router-dom";
 import { useSidebar } from "../../contexts/SidebarContext";
 import {
   LayoutDashboard,
-  Users,
   Package,
-  ShoppingCart,
-  Settings,
-  Menu,
   X,
-  MessageSquare,
-  FileText,
-  Store,
-  FolderTree,
 } from "lucide-react";
 
-const Sidebar = () => {
+const WarehouseStaffSidebar = () => {
   const { isOpen, toggleSidebar } = useSidebar();
   const location = useLocation();
 
@@ -22,20 +14,14 @@ const Sidebar = () => {
     {
       icon: LayoutDashboard,
       label: "Dashboard",
-      path: "/admin",
+      path: "/warehouse-staff",
       exact: true,
     },
     {
-      icon: FolderTree,
-      label: "Danh mục",
-      path: "/admin/category",
-    },
-    {
-      icon: Store,
+      icon: Package,
       label: "Sản phẩm",
-      path: "/admin/warehouse",
+      path: "/warehouse-staff/warehouse",
     },
-    
   ];
 
   const isActive = (path, exact = false) => {
@@ -64,13 +50,13 @@ const Sidebar = () => {
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
-            <Link to="/admin" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
+            <Link to="/warehouse-staff" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <LayoutDashboard className="text-white" size={20} />
               </div>
               {isOpen && (
                 <span className="text-lg font-bold text-gray-800">
-                  Admin Panel
+                  Nhân viên kho
                 </span>
               )}
             </Link>
@@ -94,7 +80,7 @@ const Sidebar = () => {
                       to={item.path}
                       className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                         active
-                          ? "bg-green-100 text-green-700 font-medium"
+                          ? "bg-blue-100 text-blue-700 font-medium"
                           : "text-gray-700 hover:bg-gray-100"
                       }`}
                     >
@@ -112,4 +98,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default WarehouseStaffSidebar;

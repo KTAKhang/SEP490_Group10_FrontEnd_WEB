@@ -24,8 +24,9 @@ const LoginPage = () => {
     if (isAuthenticated) {
       if (role === "admin") navigate("/admin", { replace: true });
       if (role === "customer") navigate("/", { replace: true });
-      if (role === "repair-staff") navigate("/staff", { replace: true });
-      if (role === "sales-staff") navigate("/sale-staff", { replace: true });
+      if (role === "repair-staff" || role === "repair_staff") navigate("/staff", { replace: true });
+      if (role === "sales-staff" || role === "sales_staff") navigate("/sale-staff", { replace: true });
+      if (role === "warehouse-staff" || role === "warehouse_staff") navigate("/warehouse-staff", { replace: true });
     }
   }, [isAuthenticated, role, navigate]);
 
@@ -43,7 +44,7 @@ const LoginPage = () => {
 
   return (
     <>
-      <Header />
+      {/* <Header /> */}
       <div className="min-h-screen flex items-center justify-center bg-[#F9FEFB] px-5 mt-5">
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         
