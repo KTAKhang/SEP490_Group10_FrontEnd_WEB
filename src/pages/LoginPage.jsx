@@ -47,8 +47,6 @@ const LoginPage = () => {
       {/* <Header /> */}
       <div className="min-h-screen flex items-center justify-center bg-[#F9FEFB] px-5 mt-5">
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        
-
           {/* Fruits */}
           <img
             src="/a1.png"
@@ -75,8 +73,8 @@ const LoginPage = () => {
             <div className="w-14 h-14 bg-green-500 rounded-xl flex items-center justify-center mx-auto mb-4">
               <User className="w-7 h-7 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Đăng Nhập</h1>
-            <p className="text-gray-500 mt-1">Chào mừng bạn quay trở lại!</p>
+            <h1 className="text-2xl font-bold text-gray-900">Login</h1>
+            <p className="text-gray-500 mt-1">Welcome back!</p>
           </div>
 
           {/* Error */}
@@ -120,7 +118,7 @@ const LoginPage = () => {
             {/* Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Mật khẩu
+                Password
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-3 flex items-center">
@@ -163,7 +161,7 @@ const LoginPage = () => {
                 to="/forgot-password"
                 className="text-sm text-green-600 hover:text-green-700"
               >
-                Quên mật khẩu?
+                Forgot your password?
               </Link>
             </div>
 
@@ -179,7 +177,7 @@ const LoginPage = () => {
               disabled:opacity-50
             "
             >
-              {loading ? "Đang đăng nhập..." : "Đăng Nhập"}
+              {loading ? "Loading..." : "Login"}
             </button>
           </form>
 
@@ -187,7 +185,7 @@ const LoginPage = () => {
           <div className="my-6 flex items-center">
             <div className="flex-grow border-t border-gray-200" />
             <span className="mx-3 text-sm text-gray-400">
-              Hoặc đăng nhập với
+             Log in with
             </span>
             <div className="flex-grow border-t border-gray-200" />
           </div>
@@ -208,12 +206,12 @@ const LoginPage = () => {
 
           {/* Register */}
           <p className="mt-6 text-center text-sm text-gray-500">
-            Chưa có tài khoản?{" "}
+            Don’t have an account?{" "}
             <Link
               to="/register"
               className="text-green-600 hover:text-green-700 font-semibold"
             >
-              Đăng ký ngay
+              Sign up now
             </Link>
           </p>
         </div>
