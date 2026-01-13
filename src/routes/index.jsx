@@ -3,6 +3,9 @@ import ForgotPassword from "../pages/ForgotPassword";
 import NotFoundPage from "../pages/NotFoundPage";
 import Register from "../pages/Register";
 import HomePage from "../pages/HomePage";
+import ContactPage from "../pages/CustomerView/ContactPage";
+import ContactHistoryPage from "../pages/CustomerView/ContactHistoryPage";
+// import AuthenticatedRoute from "../components/AuthenticatedRoute";
 import ProdcutPage from "../pages/ProductPage";
 import Categories from "../pages/CategoryPage";
 // import ContactPage1 from "../pages/ContactPage";
@@ -20,6 +23,11 @@ import WarehouseStaffWareHouse from "../pages/WarehouseStaff/Warehouse/WareHouse
 import ProfileManagement from "../pages/ProfileManagement/ProfileManagerment";
 import UpdatePassword from "../pages/ProfileManagement/UpdatePassword"; 
 import PrivateRoute from "../components/PrivateRouter/index"
+import AdminLayout from "../layout/AdminLayout";
+// import AdminPage from "../pages/AdminPage";
+import ContactListPage from "../pages/ContactManagement/ContactListPage";
+import ContactDetailPage from "../pages/ContactManagement/ContactDetailPage";
+import ContactEditPage from "../pages/ContactManagement/ContactEditPage";
 export const routes = [
   // Trang chủ
 
@@ -55,6 +63,8 @@ export const routes = [
     children: [
       { path: "profile", element: <ProfileManagement /> },
       { path: "change-password", element: <UpdatePassword /> },
+      { path: "contact", element: <ContactPage /> },
+      { path: "contact-history", element: <ContactHistoryPage /> },
     ],
   },
 
@@ -111,38 +121,20 @@ export const routes = [
   // },
 
   // // Khu vực quản trị
-  // {
-  //   path: "/admin",
-  //   element: (
-  //     <PrivateRoute requiredRole="admin">
-  //       <AdminLayout />
-  //     </PrivateRoute>
-  //   ),
-  //   children: [
-  //     { index: true, element: <AdminPage /> },
-  //     { path: "repair", element: <RepairAdminHub /> },
-  //     { path: "repair/requests", element: <RepairAdminRequests /> },
-  //     { path: "repair/requests/:id", element: <RepairAdminRequestDetail /> },
-  //     { path: "repair/services", element: <RepairAdminServices /> },
-  //     { path: "category", element: <CategoryManagement /> },
-  //     { path: "product", element: <ProductManagement /> },
-  //     { path: "customer", element: <CustomerManagement /> },
-  //     { path: "customer/:id", element: <CustomerDetail /> },
-  //     { path: "order", element: <OrderManagement /> },
-  //     { path: "profile", element: <ProfileManagement /> },
-  //     { path: "review", element: <ProductReviewManagement /> },
-  //     { path: "review/:id", element: <AdminProductReviewDetailPage /> },
-  //     { path: "change-password", element: <UpdatePassword /> },
-  //     { path: "staff", element: <StaffManagement /> },
-  //     { path: "news", element: <NewsManagement /> },
-  //     { path: "contact", element: <ContactManagement /> },
-  //     { path: "discounts", element: <AdminDiscountPage /> },
-  //     { path: "about-us", element: <AboutUsManagement /> },
-  //     { path: "about-us/create", element: <CreateAboutUs /> },
-  //     { path: "about-us/update", element: <UpdateAboutUs /> },
-  //     { path: "founders", element: <FoundersManagement /> },
-  //   ],
-  // },
+  {
+    path: "/admin",
+    element: (
+      <PrivateRoute requiredRole="admin">
+        <AdminLayout />
+      </PrivateRoute>
+    ),
+    children: [
+      { index: true, element: <ContactListPage /> },
+      { path: "contacts", element: <ContactListPage /> },
+      { path: "contacts/:id", element: <ContactDetailPage /> },
+      { path: "contacts/:id/edit", element: <ContactEditPage /> },
+    ],
+  },
 
   // // Khu vực Repair Staff
   // {
@@ -171,24 +163,6 @@ export const routes = [
   {
     path: "/register",
     element: <Register />,
-  },
-
-  // Contact pages - require authentication
-  {
-    path: "/contact",
-    element: (
-     
-         <ContactPage />
-      
-     ),   
-  },
-  {
-    path: "/contact/history",
-    element: (
-      <AuthenticatedRoute>
-         <ContactHistoryPage />
-      </AuthenticatedRoute>
-    ),
   },
 
   // Trang 404
