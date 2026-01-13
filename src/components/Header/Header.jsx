@@ -117,7 +117,14 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                         icon={<Package size={18} />}
                         label="Order History"
                         onClick={() => navigate("/customer/orders")}
-                      />                    
+/>
+                       <DropdownItem
+                        icon={<Clock size={18} />}
+                        label="Lịch sử liên hệ"
+                        onClick={() => navigate("/customer/contact-history")}
+                      />
+
+
                       <div className="border-t mt-2 pt-2">
                         <DropdownItem
                           icon={<LogOut size={18} />}

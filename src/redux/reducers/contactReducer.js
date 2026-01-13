@@ -21,6 +21,15 @@ import {
   DOWNLOAD_ATTACHMENT_SUCCESS,
   DOWNLOAD_ATTACHMENT_FAILURE,
   CLEAR_CONTACT_MESSAGES,
+  UPDATE_CONTACT_REQUEST,
+  UPDATE_CONTACT_SUCCESS,
+  UPDATE_CONTACT_FAILURE,
+  UPDATE_REPLY_REQUEST,
+  UPDATE_REPLY_SUCCESS,
+  UPDATE_REPLY_FAILURE,
+  DELETE_REPLY_REQUEST,
+  DELETE_REPLY_SUCCESS,
+  DELETE_REPLY_FAILURE,
 } from "../actions/contactActions";
 
 const initialState = {
@@ -58,6 +67,21 @@ const initialState = {
   // Download Attachment
   downloadAttachmentLoading: false,
   downloadAttachmentError: null,
+
+  // Update Contact
+  updateContactLoading: false,
+  updateContactSuccess: false,
+  updateContactError: null,
+
+  // Update Reply
+  updateReplyLoading: false,
+  updateReplySuccess: false,
+  updateReplyError: null,
+
+  // Delete Reply
+  deleteReplyLoading: false,
+  deleteReplySuccess: false,
+  deleteReplyError: null,
 };
 
 const contactReducer = (state = initialState, action) => {
@@ -215,6 +239,75 @@ const contactReducer = (state = initialState, action) => {
         downloadAttachmentError: action.payload,
       };
 
+    // ===== UPDATE CONTACT =====
+    case UPDATE_CONTACT_REQUEST:
+      return {
+        ...state,
+        updateContactLoading: true,
+        updateContactSuccess: false,
+        updateContactError: null,
+      };
+    case UPDATE_CONTACT_SUCCESS:
+      return {
+        ...state,
+        updateContactLoading: false,
+        updateContactSuccess: true,
+        updateContactError: null,
+      };
+    case UPDATE_CONTACT_FAILURE:
+      return {
+        ...state,
+        updateContactLoading: false,
+        updateContactSuccess: false,
+        updateContactError: action.payload,
+      };
+
+    // ===== UPDATE REPLY =====
+    case UPDATE_REPLY_REQUEST:
+      return {
+        ...state,
+        updateReplyLoading: true,
+        updateReplySuccess: false,
+        updateReplyError: null,
+      };
+    case UPDATE_REPLY_SUCCESS:
+      return {
+        ...state,
+        updateReplyLoading: false,
+        updateReplySuccess: true,
+        updateReplyError: null,
+      };
+    case UPDATE_REPLY_FAILURE:
+      return {
+        ...state,
+        updateReplyLoading: false,
+        updateReplySuccess: false,
+        updateReplyError: action.payload,
+      };
+
+    // ===== DELETE REPLY =====
+    case DELETE_REPLY_REQUEST:
+      return {
+        ...state,
+        deleteReplyLoading: true,
+        deleteReplySuccess: false,
+        deleteReplyError: null,
+      };
+    case DELETE_REPLY_SUCCESS:
+      return {
+        ...state,
+        deleteReplyLoading: false,
+        deleteReplySuccess: true,
+        deleteReplyError: null,
+      };
+    case DELETE_REPLY_FAILURE:
+      return {
+        ...state,
+        deleteReplyLoading: false,
+        deleteReplySuccess: false,
+        deleteReplyError: action.payload,
+      };
+
     // ===== CLEAR MESSAGES =====
     case CLEAR_CONTACT_MESSAGES:
       return {
@@ -224,6 +317,8 @@ const contactReducer = (state = initialState, action) => {
         createContactMessage: null,
         sendReplySuccess: false,
         sendReplyError: null,
+        updateContactSuccess: false,
+        updateContactError: null,
       };
 
     default:
