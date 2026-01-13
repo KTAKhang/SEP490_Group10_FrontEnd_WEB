@@ -1,0 +1,177 @@
+import {
+  Package,
+  PackageCheck,
+  AlertCircle,
+  TrendingUp,
+} from "lucide-react";
+
+// Simple Card components
+const Card = ({ children, className = "" }) => (
+  <div className={`bg-white rounded-lg border ${className}`}>{children}</div>
+);
+
+const CardHeader = ({ children, className = "" }) => (
+  <div className={`p-6 pb-4 ${className}`}>{children}</div>
+);
+
+const CardTitle = ({ children, className = "" }) => (
+  <h3 className={className}>{children}</h3>
+);
+
+const CardContent = ({ children, className = "" }) => (
+  <div className={`p-6 pt-0 ${className}`}>{children}</div>
+);
+
+const WarehouseStaffPage = () => {
+  // Mock data - sẽ được thay thế bằng data thực từ API
+  const stats = [
+    {
+      title: "Tổng sản phẩm",
+      value: "456",
+      change: "+8.2%",
+      trend: "up",
+      icon: Package,
+      color: "text-blue-600",
+      bgColor: "bg-blue-100",
+    },
+    {
+      title: "Đã nhập kho",
+      value: "389",
+      change: "+5.1%",
+      trend: "up",
+      icon: PackageCheck,
+      color: "text-green-600",
+      bgColor: "bg-green-100",
+    },
+    {
+      title: "Cần nhập kho",
+      value: "67",
+      change: "-2.3%",
+      trend: "down",
+      icon: AlertCircle,
+      color: "text-orange-600",
+      bgColor: "bg-orange-100",
+    },
+    {
+      title: "Sản phẩm sắp hết",
+      value: "12",
+      change: "+3.5%",
+      trend: "up",
+      icon: TrendingUp,
+      color: "text-red-600",
+      bgColor: "bg-red-100",
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
+        <p className="text-gray-600 mt-1">
+          Chào mừng trở lại, đây là tổng quan kho hàng
+        </p>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat, index) => {
+          const Icon = stat.icon;
+          const TrendIcon = stat.trend === "up" ? TrendingUp : AlertCircle;
+          return (
+            <Card key={index} className="shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">
+                  {stat.title}
+                </CardTitle>
+                <div className={`p-2 rounded-lg ${stat.bgColor}`}>
+                  <Icon className={`h-5 w-5 ${stat.color}`} />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-gray-800">
+                  {stat.value}
+                </div>
+                <div
+                  className={`flex items-center space-x-1 text-xs mt-2 ${
+                    stat.trend === "up" ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  <TrendIcon size={14} />
+                  <span>{stat.change}</span>
+                  <span className="text-gray-500">so với tháng trước</span>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Receipts */}
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold">
+              Phiếu nhập kho gần đây
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[1, 2, 3, 4, 5].map((item) => (
+                <div
+                  key={item}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium text-gray-800">
+                      Phiếu #{1000 + item}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Sản phẩm {item} - {item * 10} đơn vị
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-gray-800">
+                      {new Date().toLocaleDateString("vi-VN")}
+                    </p>
+                    <p className="text-xs text-green-600">Đã nhập</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions */}
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold">Thao tác nhanh</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <button className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition-colors">
+                <Package className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                <p className="text-sm font-medium text-gray-800">Nhập kho</p>
+              </button>
+              <button className="p-4 bg-green-50 hover:bg-green-100 rounded-lg text-center transition-colors">
+                <PackageCheck className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                <p className="text-sm font-medium text-gray-800">Xem sản phẩm</p>
+              </button>
+              <button className="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg text-center transition-colors">
+                <AlertCircle className="h-8 w-8 text-orange-600 mx-auto mb-2" />
+                <p className="text-sm font-medium text-gray-800">Cần nhập</p>
+              </button>
+              <button className="p-4 bg-red-50 hover:bg-red-100 rounded-lg text-center transition-colors">
+                <TrendingUp className="h-8 w-8 text-red-600 mx-auto mb-2" />
+                <p className="text-sm font-medium text-gray-800">Sắp hết</p>
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default WarehouseStaffPage;
