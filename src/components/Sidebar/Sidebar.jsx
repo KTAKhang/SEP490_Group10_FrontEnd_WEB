@@ -2,11 +2,6 @@ import { Link, useLocation } from "react-router-dom";
 import { useSidebar } from "../../contexts/SidebarContext";
 import {
   LayoutDashboard,
-  Users,
-  Package,
-  ShoppingCart,
-  Settings,
-  Menu,
   X,
   MessageSquare,
   FileText,
@@ -27,14 +22,24 @@ const Sidebar = () => {
     },
     {
       icon: FolderTree,
-      label: "Danh mục",
+      label: "Category",
       path: "/admin/category",
     },
     {
       icon: Store,
-      label: "Sản phẩm",
+      label: "Product",
       path: "/admin/warehouse",
     },
+    {
+      icon: MessageSquare,
+      label: "Contact",
+      path: "/admin/contacts",
+    },
+    {
+      icon: FileText,
+      label: "News",
+      path: "/admin/news",
+    }
     
   ];
 

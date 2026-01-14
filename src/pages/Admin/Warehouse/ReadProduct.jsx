@@ -26,9 +26,13 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
   // Close update modal after successful update
   useEffect(() => {
     if (!updateProductExpiryDateLoading && !updateProductExpiryDateError && showUpdateExpiryModal) {
-      // Update was successful, close modal
+      // Update was successful, show toast and close modal
+      toast.success("Expiry date updated successfully!");
       setShowUpdateExpiryModal(false);
       // The product will be updated in Redux state automatically
+    }
+    if (updateProductExpiryDateError) {
+      toast.error(updateProductExpiryDateError);
     }
   }, [updateProductExpiryDateLoading, updateProductExpiryDateError, showUpdateExpiryModal]);
 

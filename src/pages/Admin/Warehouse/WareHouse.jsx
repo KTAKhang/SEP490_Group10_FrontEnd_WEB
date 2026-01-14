@@ -46,9 +46,18 @@ const CardContent = ({ children, className = "" }) => (
 
 const WareHouse = () => {
   const dispatch = useDispatch();
-  const { products, productsLoading, productsPagination, categories } = useSelector(
-    (state) => state.warehouse
-  );
+  const { 
+    products, 
+    productsLoading, 
+    productsPagination, 
+    categories,
+    createProductLoading,
+    createProductError,
+    deleteProductLoading,
+    deleteProductError,
+    createReceiptLoading,
+    createReceiptError,
+  } = useSelector((state) => state.warehouse);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStockStatus, setFilterStockStatus] = useState("all"); // all, IN_STOCK, OUT_OF_STOCK
@@ -61,6 +70,8 @@ const WareHouse = () => {
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProductForReceipt, setSelectedProductForReceipt] = useState(null);
+  const [hasDeletedProduct, setHasDeletedProduct] = useState(false);
+  const [hasCreatedReceipt, setHasCreatedReceipt] = useState(false);
 
   const [receiptData, setReceiptData] = useState({
     productId: "",
@@ -88,6 +99,7 @@ const WareHouse = () => {
     };
     dispatch(getProductsRequest(params));
   }, [dispatch, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory]);
+
 
   const getStockStatus = (product) => {
     if (product.stockStatus === "OUT_OF_STOCK" || product.onHandQuantity === 0) {
@@ -128,8 +140,35 @@ const WareHouse = () => {
 
   const handleDeleteProduct = (id) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) return;
+    setHasDeletedProduct(true);
     dispatch(deleteProductRequest(id));
   };
+
+  // Show toast when product is deleted successfully
+  useEffect(() => {
+    if (hasDeletedProduct && !deleteProductLoading && !deleteProductError) {
+      // Product deletion completed successfully
+      toast.success("Product deleted successfully!");
+      setHasDeletedProduct(false);
+    }
+    if (hasDeletedProduct && deleteProductError) {
+      toast.error(deleteProductError);
+      setHasDeletedProduct(false);
+    }
+  }, [hasDeletedProduct, deleteProductLoading, deleteProductError]);
+
+  // Show toast when receipt is created successfully
+  useEffect(() => {
+    if (hasCreatedReceipt && !createReceiptLoading && !createReceiptError) {
+      // Receipt creation completed successfully
+      toast.success("Receipt created successfully!");
+      setHasCreatedReceipt(false);
+    }
+    if (hasCreatedReceipt && createReceiptError) {
+      toast.error(createReceiptError);
+      setHasCreatedReceipt(false);
+    }
+  }, [hasCreatedReceipt, createReceiptLoading, createReceiptError]);
 
   const handleOpenReceiptModal = (product) => {
     setSelectedProductForReceipt(product);
@@ -179,6 +218,7 @@ const WareHouse = () => {
       receiptPayload.shelfLifeDays = parseInt(receiptData.shelfLifeDays);
     }
 
+    setHasCreatedReceipt(true);
     dispatch(createReceiptRequest(receiptPayload));
     setShowReceiptModal(false);
     setReceiptData({

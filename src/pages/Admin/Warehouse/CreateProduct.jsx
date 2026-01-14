@@ -6,7 +6,7 @@ import { createProductRequest, getCategoriesRequest } from "../../../redux/actio
 
 const CreateProduct = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
-  const { categories, createProductLoading } = useSelector((state) => state.warehouse);
+  const { categories, createProductLoading, createProductError } = useSelector((state) => state.warehouse);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -27,6 +27,31 @@ const CreateProduct = ({ isOpen, onClose }) => {
       dispatch(getCategoriesRequest({ page: 1, limit: 100, status: true }));
     }
   }, [dispatch, isOpen]);
+
+  // Show success toast and close modal when product is created successfully
+  useEffect(() => {
+    if (!createProductLoading && !createProductError && isOpen) {
+      // Product creation completed successfully
+      toast.success("Product created successfully!");
+      onClose();
+      // Reset form
+      setFormData({
+        name: "",
+        short_desc: "",
+        price: 0,
+        plannedQuantity: 0,
+        category: "",
+        brand: "",
+        detail_desc: "",
+        status: true,
+      });
+      setImageFiles([]);
+      setImagePreviews([]);
+    }
+    if (createProductError) {
+      toast.error(createProductError);
+    }
+  }, [createProductLoading, createProductError, isOpen, onClose]);
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -81,20 +106,7 @@ const CreateProduct = ({ isOpen, onClose }) => {
     });
 
     dispatch(createProductRequest(formDataToSend));
-    onClose();
-    // Reset form
-    setFormData({
-      name: "",
-      short_desc: "",
-      price: 0,
-      plannedQuantity: 0,
-      category: "",
-      brand: "",
-      detail_desc: "",
-      status: true,
-    });
-    setImageFiles([]);
-    setImagePreviews([]);
+    // Modal will close automatically when product is created successfully (handled in useEffect)
   };
 
   const handleCancel = () => {

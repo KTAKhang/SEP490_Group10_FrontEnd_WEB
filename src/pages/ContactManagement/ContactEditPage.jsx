@@ -3,13 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import {
-  getContactDetailRequest,
-  updateContactRequest,
-  sendReplyRequest,
-  clearContactMessages,
-  downloadAttachmentRequest,
-  updateReplyRequest,
-  deleteReplyRequest,
+  contactGetContactDetailRequest,
+  contactUpdateContactRequest,
+  contactSendReplyRequest,
+  contactClearMessages,
+  contactDownloadAttachmentRequest,
+  contactUpdateReplyRequest,
+  contactDeleteReplyRequest,
 } from '../../redux/actions/contactActions';
 import {
   Clock,
@@ -60,7 +60,7 @@ const ContactEditPage = () => {
   // Fetch contact detail
   useEffect(() => {
     if (id) {
-      dispatch(getContactDetailRequest(id));
+      dispatch(contactGetContactDetailRequest(id));
     }
   }, [id, dispatch]);
 
@@ -76,7 +76,7 @@ const ContactEditPage = () => {
   // Handle successful update
   useEffect(() => {
     if (updateContactSuccess && id) {
-      dispatch(clearContactMessages());
+      dispatch(contactClearMessages());
       setTimeout(() => {
         navigate(`/admin/contacts/${id}`);
       }, 1500);
@@ -87,16 +87,16 @@ const ContactEditPage = () => {
   useEffect(() => {
     if (sendReplySuccess && id) {
       setReplyMessage('');
-      dispatch(getContactDetailRequest(id));
-      dispatch(clearContactMessages());
+      dispatch(contactGetContactDetailRequest(id));
+      dispatch(contactClearMessages());
     }
   }, [sendReplySuccess, id, dispatch]);
 
   // Refresh replies after successful update/delete
   useEffect(() => {
     if ((updateReplySuccess || deleteReplySuccess) && id) {
-      dispatch(getContactDetailRequest(id));
-      dispatch(clearContactMessages());
+      dispatch(contactGetContactDetailRequest(id));
+      dispatch(contactClearMessages());
       setEditingReplyId(null);
       setEditingReplyMessage('');
     }
@@ -151,20 +151,20 @@ const ContactEditPage = () => {
       window.open(fileUrl, '_blank');
     } else {
       // For documents, download
-      dispatch(downloadAttachmentRequest(fileUrl, fileName));
+      dispatch(contactDownloadAttachmentRequest(fileUrl, fileName));
     }
   };
 
   const handleDownloadAttachment = (fileUrl, fileName) => {
     // Always download (for both images and documents)
-    dispatch(downloadAttachmentRequest(fileUrl, fileName));
+    dispatch(contactDownloadAttachmentRequest(fileUrl, fileName));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!id) return;
 
-    dispatch(updateContactRequest(id, {
+    dispatch(contactUpdateContactRequest(id, {
       status: formData.status,
     }));
   };
@@ -182,7 +182,7 @@ const ContactEditPage = () => {
       return;
     }
 
-    dispatch(sendReplyRequest(id, replyMessage.trim()));
+    dispatch(contactSendReplyRequest(id, replyMessage.trim()));
   };
 
   const handleStartEditReply = (reply) => {
@@ -203,7 +203,7 @@ const ContactEditPage = () => {
       return;
     }
 
-    dispatch(updateReplyRequest(id, editingReplyId, editingReplyMessage.trim()));
+    dispatch(contactUpdateReplyRequest(id, editingReplyId, editingReplyMessage.trim()));
     setEditingReplyId(null);
     setEditingReplyMessage('');
   };
@@ -212,7 +212,7 @@ const ContactEditPage = () => {
     if (!id || !replyId) return;
     
     if (window.confirm('Are you sure you want to delete this reply?')) {
-      dispatch(deleteReplyRequest(id, replyId));
+      dispatch(contactDeleteReplyRequest(id, replyId));
     }
   };
 

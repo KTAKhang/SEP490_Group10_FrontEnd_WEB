@@ -20,15 +20,30 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
 
   // Track if we submitted the form
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [hasShownToast, setHasShownToast] = useState(false);
 
   // Close modal after successful update
   useEffect(() => {
-    if (hasSubmitted && !updateCategoryLoading && !updateCategoryError) {
-      // Update was successful, close modal
+    if (hasSubmitted && !updateCategoryLoading && !updateCategoryError && !hasShownToast) {
+      // Update was successful, show toast and close modal
+      toast.success("Category updated successfully!");
+      setHasShownToast(true);
       setHasSubmitted(false);
       onClose();
     }
-  }, [hasSubmitted, updateCategoryLoading, updateCategoryError, onClose]);
+    if (hasSubmitted && updateCategoryError && !hasShownToast) {
+      toast.error(updateCategoryError);
+      setHasShownToast(true);
+    }
+  }, [hasSubmitted, updateCategoryLoading, updateCategoryError, hasShownToast, onClose]);
+
+  // Reset toast flag when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setHasShownToast(false);
+      setHasSubmitted(false);
+    }
+  }, [isOpen]);
 
   // Load category data when category changes
   useEffect(() => {

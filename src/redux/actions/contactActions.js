@@ -1,195 +1,195 @@
 // Contact Actions
-export const GET_CATEGORIES_REQUEST = "GET_CATEGORIES_REQUEST";
-export const GET_CATEGORIES_SUCCESS = "GET_CATEGORIES_SUCCESS";
-export const GET_CATEGORIES_FAILURE = "GET_CATEGORIES_FAILURE";
+export const CONTACT_GET_CATEGORIES_REQUEST = "CONTACT_GET_CATEGORIES_REQUEST";
+export const CONTACT_GET_CATEGORIES_SUCCESS = "CONTACT_GET_CATEGORIES_SUCCESS";
+export const CONTACT_GET_CATEGORIES_FAILURE = "CONTACT_GET_CATEGORIES_FAILURE";
 
-export const CREATE_CONTACT_REQUEST = "CREATE_CONTACT_REQUEST";
-export const CREATE_CONTACT_SUCCESS = "CREATE_CONTACT_SUCCESS";
-export const CREATE_CONTACT_FAILURE = "CREATE_CONTACT_FAILURE";
+export const CONTACT_CREATE_CONTACT_REQUEST = "CONTACT_CREATE_CONTACT_REQUEST";
+export const CONTACT_CREATE_CONTACT_SUCCESS = "CONTACT_CREATE_CONTACT_SUCCESS";
+export const CONTACT_CREATE_CONTACT_FAILURE = "CONTACT_CREATE_CONTACT_FAILURE";
 
-export const GET_MY_CONTACTS_REQUEST = "GET_MY_CONTACTS_REQUEST";
-export const GET_MY_CONTACTS_SUCCESS = "GET_MY_CONTACTS_SUCCESS";
-export const GET_MY_CONTACTS_FAILURE = "GET_MY_CONTACTS_FAILURE";
+export const CONTACT_GET_MY_CONTACTS_REQUEST = "CONTACT_GET_MY_CONTACTS_REQUEST";
+export const CONTACT_GET_MY_CONTACTS_SUCCESS = "CONTACT_GET_MY_CONTACTS_SUCCESS";
+export const CONTACT_GET_MY_CONTACTS_FAILURE = "CONTACT_GET_MY_CONTACTS_FAILURE";
 
-export const GET_CONTACT_DETAIL_REQUEST = "GET_CONTACT_DETAIL_REQUEST";
-export const GET_CONTACT_DETAIL_SUCCESS = "GET_CONTACT_DETAIL_SUCCESS";
-export const GET_CONTACT_DETAIL_FAILURE = "GET_CONTACT_DETAIL_FAILURE";
+export const CONTACT_GET_CONTACT_DETAIL_REQUEST = "CONTACT_GET_CONTACT_DETAIL_REQUEST";
+export const CONTACT_GET_CONTACT_DETAIL_SUCCESS = "CONTACT_GET_CONTACT_DETAIL_SUCCESS";
+export const CONTACT_GET_CONTACT_DETAIL_FAILURE = "CONTACT_GET_CONTACT_DETAIL_FAILURE";
 
-export const GET_CONTACT_REPLIES_REQUEST = "GET_CONTACT_REPLIES_REQUEST";
-export const GET_CONTACT_REPLIES_SUCCESS = "GET_CONTACT_REPLIES_SUCCESS";
-export const GET_CONTACT_REPLIES_FAILURE = "GET_CONTACT_REPLIES_FAILURE";
+export const CONTACT_GET_CONTACT_REPLIES_REQUEST = "CONTACT_GET_CONTACT_REPLIES_REQUEST";
+export const CONTACT_GET_CONTACT_REPLIES_SUCCESS = "CONTACT_GET_CONTACT_REPLIES_SUCCESS";
+export const CONTACT_GET_CONTACT_REPLIES_FAILURE = "CONTACT_GET_CONTACT_REPLIES_FAILURE";
 
-export const SEND_REPLY_REQUEST = "SEND_REPLY_REQUEST";
-export const SEND_REPLY_SUCCESS = "SEND_REPLY_SUCCESS";
-export const SEND_REPLY_FAILURE = "SEND_REPLY_FAILURE";
+export const CONTACT_SEND_REPLY_REQUEST = "CONTACT_SEND_REPLY_REQUEST";
+export const CONTACT_SEND_REPLY_SUCCESS = "CONTACT_SEND_REPLY_SUCCESS";
+export const CONTACT_SEND_REPLY_FAILURE = "CONTACT_SEND_REPLY_FAILURE";
 
-export const DOWNLOAD_ATTACHMENT_REQUEST = "DOWNLOAD_ATTACHMENT_REQUEST";
-export const DOWNLOAD_ATTACHMENT_SUCCESS = "DOWNLOAD_ATTACHMENT_SUCCESS";
-export const DOWNLOAD_ATTACHMENT_FAILURE = "DOWNLOAD_ATTACHMENT_FAILURE";
+export const CONTACT_DOWNLOAD_ATTACHMENT_REQUEST = "CONTACT_DOWNLOAD_ATTACHMENT_REQUEST";
+export const CONTACT_DOWNLOAD_ATTACHMENT_SUCCESS = "CONTACT_DOWNLOAD_ATTACHMENT_SUCCESS";
+export const CONTACT_DOWNLOAD_ATTACHMENT_FAILURE = "CONTACT_DOWNLOAD_ATTACHMENT_FAILURE";
 
-export const CLEAR_CONTACT_MESSAGES = "CLEAR_CONTACT_MESSAGES";
+export const CONTACT_CLEAR_MESSAGES = "CONTACT_CLEAR_MESSAGES";
 
-export const UPDATE_CONTACT_REQUEST = "UPDATE_CONTACT_REQUEST";
-export const UPDATE_CONTACT_SUCCESS = "UPDATE_CONTACT_SUCCESS";
-export const UPDATE_CONTACT_FAILURE = "UPDATE_CONTACT_FAILURE";
+export const CONTACT_UPDATE_CONTACT_REQUEST = "CONTACT_UPDATE_CONTACT_REQUEST";
+export const CONTACT_UPDATE_CONTACT_SUCCESS = "CONTACT_UPDATE_CONTACT_SUCCESS";
+export const CONTACT_UPDATE_CONTACT_FAILURE = "CONTACT_UPDATE_CONTACT_FAILURE";
 
-export const UPDATE_REPLY_REQUEST = "UPDATE_REPLY_REQUEST";
-export const UPDATE_REPLY_SUCCESS = "UPDATE_REPLY_SUCCESS";
-export const UPDATE_REPLY_FAILURE = "UPDATE_REPLY_FAILURE";
+export const CONTACT_UPDATE_REPLY_REQUEST = "CONTACT_UPDATE_REPLY_REQUEST";
+export const CONTACT_UPDATE_REPLY_SUCCESS = "CONTACT_UPDATE_REPLY_SUCCESS";
+export const CONTACT_UPDATE_REPLY_FAILURE = "CONTACT_UPDATE_REPLY_FAILURE";
 
-export const DELETE_REPLY_REQUEST = "DELETE_REPLY_REQUEST";
-export const DELETE_REPLY_SUCCESS = "DELETE_REPLY_SUCCESS";
-export const DELETE_REPLY_FAILURE = "DELETE_REPLY_FAILURE";
+export const CONTACT_DELETE_REPLY_REQUEST = "CONTACT_DELETE_REPLY_REQUEST";
+export const CONTACT_DELETE_REPLY_SUCCESS = "CONTACT_DELETE_REPLY_SUCCESS";
+export const CONTACT_DELETE_REPLY_FAILURE = "CONTACT_DELETE_REPLY_FAILURE";
 
 // Action Creators
-export const getCategoriesRequest = () => ({
-  type: GET_CATEGORIES_REQUEST,
+export const contactGetCategoriesRequest = () => ({
+  type: CONTACT_GET_CATEGORIES_REQUEST,
 });
 
-export const getCategoriesSuccess = (categories) => ({
-  type: GET_CATEGORIES_SUCCESS,
+export const contactGetCategoriesSuccess = (categories) => ({
+  type: CONTACT_GET_CATEGORIES_SUCCESS,
   payload: categories,
 });
 
-export const getCategoriesFailure = (error) => ({
-  type: GET_CATEGORIES_FAILURE,
+export const contactGetCategoriesFailure = (error) => ({
+  type: CONTACT_GET_CATEGORIES_FAILURE,
   payload: error,
 });
 
-export const createContactRequest = (formData) => ({
-  type: CREATE_CONTACT_REQUEST,
+export const contactCreateContactRequest = (formData) => ({
+  type: CONTACT_CREATE_CONTACT_REQUEST,
   payload: formData,
 });
 
-export const createContactSuccess = (data) => ({
-  type: CREATE_CONTACT_SUCCESS,
+export const contactCreateContactSuccess = (data) => ({
+  type: CONTACT_CREATE_CONTACT_SUCCESS,
   payload: data,
 });
 
-export const createContactFailure = (error) => ({
-  type: CREATE_CONTACT_FAILURE,
+export const contactCreateContactFailure = (error) => ({
+  type: CONTACT_CREATE_CONTACT_FAILURE,
   payload: error,
 });
 
-export const getMyContactsRequest = (params) => ({
-  type: GET_MY_CONTACTS_REQUEST,
+export const contactGetMyContactsRequest = (params) => ({
+  type: CONTACT_GET_MY_CONTACTS_REQUEST,
   payload: params,
 });
 
-export const getMyContactsSuccess = (contacts) => ({
-  type: GET_MY_CONTACTS_SUCCESS,
+export const contactGetMyContactsSuccess = (contacts) => ({
+  type: CONTACT_GET_MY_CONTACTS_SUCCESS,
   payload: contacts,
 });
 
-export const getMyContactsFailure = (error) => ({
-  type: GET_MY_CONTACTS_FAILURE,
+export const contactGetMyContactsFailure = (error) => ({
+  type: CONTACT_GET_MY_CONTACTS_FAILURE,
   payload: error,
 });
 
-export const getContactDetailRequest = (contactId) => ({
-  type: GET_CONTACT_DETAIL_REQUEST,
+export const contactGetContactDetailRequest = (contactId) => ({
+  type: CONTACT_GET_CONTACT_DETAIL_REQUEST,
   payload: contactId,
 });
 
-export const getContactDetailSuccess = (contact) => ({
-  type: GET_CONTACT_DETAIL_SUCCESS,
+export const contactGetContactDetailSuccess = (contact) => ({
+  type: CONTACT_GET_CONTACT_DETAIL_SUCCESS,
   payload: contact,
 });
 
-export const getContactDetailFailure = (error) => ({
-  type: GET_CONTACT_DETAIL_FAILURE,
+export const contactGetContactDetailFailure = (error) => ({
+  type: CONTACT_GET_CONTACT_DETAIL_FAILURE,
   payload: error,
 });
 
-export const getContactRepliesRequest = (contactId) => ({
-  type: GET_CONTACT_REPLIES_REQUEST,
+export const contactGetContactRepliesRequest = (contactId) => ({
+  type: CONTACT_GET_CONTACT_REPLIES_REQUEST,
   payload: contactId,
 });
 
-export const getContactRepliesSuccess = (replies) => ({
-  type: GET_CONTACT_REPLIES_SUCCESS,
+export const contactGetContactRepliesSuccess = (replies) => ({
+  type: CONTACT_GET_CONTACT_REPLIES_SUCCESS,
   payload: replies,
 });
 
-export const getContactRepliesFailure = (error) => ({
-  type: GET_CONTACT_REPLIES_FAILURE,
+export const contactGetContactRepliesFailure = (error) => ({
+  type: CONTACT_GET_CONTACT_REPLIES_FAILURE,
   payload: error,
 });
 
-export const sendReplyRequest = (contactId, message) => ({
-  type: SEND_REPLY_REQUEST,
+export const contactSendReplyRequest = (contactId, message) => ({
+  type: CONTACT_SEND_REPLY_REQUEST,
   payload: { contactId, message },
 });
 
-export const sendReplySuccess = (data) => ({
-  type: SEND_REPLY_SUCCESS,
+export const contactSendReplySuccess = (data) => ({
+  type: CONTACT_SEND_REPLY_SUCCESS,
   payload: data,
 });
 
-export const sendReplyFailure = (error) => ({
-  type: SEND_REPLY_FAILURE,
+export const contactSendReplyFailure = (error) => ({
+  type: CONTACT_SEND_REPLY_FAILURE,
   payload: error,
 });
 
-export const downloadAttachmentRequest = (fileUrl, fileName) => ({
-  type: DOWNLOAD_ATTACHMENT_REQUEST,
+export const contactDownloadAttachmentRequest = (fileUrl, fileName) => ({
+  type: CONTACT_DOWNLOAD_ATTACHMENT_REQUEST,
   payload: { fileUrl, fileName },
 });
 
-export const downloadAttachmentSuccess = () => ({
-  type: DOWNLOAD_ATTACHMENT_SUCCESS,
+export const contactDownloadAttachmentSuccess = () => ({
+  type: CONTACT_DOWNLOAD_ATTACHMENT_SUCCESS,
 });
 
-export const downloadAttachmentFailure = (error) => ({
-  type: DOWNLOAD_ATTACHMENT_FAILURE,
+export const contactDownloadAttachmentFailure = (error) => ({
+  type: CONTACT_DOWNLOAD_ATTACHMENT_FAILURE,
   payload: error,
 });
 
-export const clearContactMessages = () => ({
-  type: CLEAR_CONTACT_MESSAGES,
+export const contactClearMessages = () => ({
+  type: CONTACT_CLEAR_MESSAGES,
 });
 
-export const updateContactRequest = (contactId, data) => ({
-  type: UPDATE_CONTACT_REQUEST,
+export const contactUpdateContactRequest = (contactId, data) => ({
+  type: CONTACT_UPDATE_CONTACT_REQUEST,
   payload: { contactId, data },
 });
 
-export const updateContactSuccess = (data) => ({
-  type: UPDATE_CONTACT_SUCCESS,
+export const contactUpdateContactSuccess = (data) => ({
+  type: CONTACT_UPDATE_CONTACT_SUCCESS,
   payload: data,
 });
 
-export const updateContactFailure = (error) => ({
-  type: UPDATE_CONTACT_FAILURE,
+export const contactUpdateContactFailure = (error) => ({
+  type: CONTACT_UPDATE_CONTACT_FAILURE,
   payload: error,
 });
 
-export const updateReplyRequest = (contactId, replyId, message) => ({
-  type: UPDATE_REPLY_REQUEST,
+export const contactUpdateReplyRequest = (contactId, replyId, message) => ({
+  type: CONTACT_UPDATE_REPLY_REQUEST,
   payload: { contactId, replyId, message },
 });
 
-export const updateReplySuccess = (data) => ({
-  type: UPDATE_REPLY_SUCCESS,
+export const contactUpdateReplySuccess = (data) => ({
+  type: CONTACT_UPDATE_REPLY_SUCCESS,
   payload: data,
 });
 
-export const updateReplyFailure = (error) => ({
-  type: UPDATE_REPLY_FAILURE,
+export const contactUpdateReplyFailure = (error) => ({
+  type: CONTACT_UPDATE_REPLY_FAILURE,
   payload: error,
 });
 
-export const deleteReplyRequest = (contactId, replyId) => ({
-  type: DELETE_REPLY_REQUEST,
+export const contactDeleteReplyRequest = (contactId, replyId) => ({
+  type: CONTACT_DELETE_REPLY_REQUEST,
   payload: { contactId, replyId },
 });
 
-export const deleteReplySuccess = (data) => ({
-  type: DELETE_REPLY_SUCCESS,
+export const contactDeleteReplySuccess = (data) => ({
+  type: CONTACT_DELETE_REPLY_SUCCESS,
   payload: data,
 });
 
-export const deleteReplyFailure = (error) => ({
-  type: DELETE_REPLY_FAILURE,
+export const contactDeleteReplyFailure = (error) => ({
+  type: CONTACT_DELETE_REPLY_FAILURE,
   payload: error,
 });

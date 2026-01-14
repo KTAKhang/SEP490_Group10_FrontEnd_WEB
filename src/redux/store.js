@@ -5,6 +5,7 @@ import authReducer from "./reducers/authReducer";
 import contactReducer from "./reducers/contactReducer";
 import profileReducer from "./reducers/profileReducer";
 import warehouseReducer from "./reducers/warehouseReducer";
+import newsReducer from "./reducers/newsReducer";
 import rootSaga from "./sagas/rootSaga";
 
 const rootReducer = combineReducers({
@@ -12,6 +13,7 @@ const rootReducer = combineReducers({
   contact: contactReducer,
   profile: profileReducer,
   warehouse: warehouseReducer,
+  news: newsReducer,
 });
 
 const sagaMiddleware = createSagaMiddleware();
