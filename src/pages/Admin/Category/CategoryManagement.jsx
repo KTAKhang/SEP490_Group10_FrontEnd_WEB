@@ -39,9 +39,13 @@ const CardContent = ({ children, className = "" }) => (
 
 const CategoryManagement = () => {
   const dispatch = useDispatch();
-  const { categories, categoriesLoading, categoriesPagination } = useSelector(
-    (state) => state.warehouse
-  );
+  const { 
+    categories, 
+    categoriesLoading, 
+    categoriesPagination,
+    deleteCategoryLoading,
+    deleteCategoryError,
+  } = useSelector((state) => state.warehouse);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all"); // all, true, false
@@ -50,6 +54,7 @@ const CategoryManagement = () => {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showReadModal, setShowReadModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [hasDeletedCategory, setHasDeletedCategory] = useState(false);
 
   // Fetch categories on mount
   useEffect(() => {
@@ -67,6 +72,19 @@ const CategoryManagement = () => {
     dispatch(getCategoriesRequest(params));
   }, [dispatch, currentPage, searchTerm, filterStatus]);
 
+  // Show toast when category is deleted successfully
+  useEffect(() => {
+    if (hasDeletedCategory && !deleteCategoryLoading && !deleteCategoryError) {
+      // Category deletion completed successfully
+      toast.success("Category deleted successfully!");
+      setHasDeletedCategory(false);
+    }
+    if (hasDeletedCategory && deleteCategoryError) {
+      toast.error(deleteCategoryError);
+      setHasDeletedCategory(false);
+    }
+  }, [hasDeletedCategory, deleteCategoryLoading, deleteCategoryError]);
+
   const handleAddCategory = () => {
     setShowCreateModal(true);
   };
@@ -83,6 +101,7 @@ const CategoryManagement = () => {
 
   const handleDeleteCategory = (id) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa danh mục này?")) return;
+    setHasDeletedCategory(true);
     dispatch(deleteCategoryRequest(id));
   };
 

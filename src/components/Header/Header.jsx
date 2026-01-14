@@ -57,7 +57,8 @@ const Header = ({ searchTerm, setSearchTerm }) => {
               { label: "Product", path: "/products" },
               { label: "Categories", path: "/categories" },
               { label: "About Us", path: "/about" },
-              { label: "Contact", path: "/contact" },
+              { label: "Contact", path: "/customer/contact" },
+              { label: "News", path: "/news" },
               { label: "FAQ", path: "/faq" },
             ].map((item) => (
               <Link
@@ -74,11 +75,11 @@ const Header = ({ searchTerm, setSearchTerm }) => {
           <div className="flex items-center space-x-3">
             {/* USER */}
             {storedUser ? (
-              <div className="relative">
+              <>
                 {/* CART */}
                 <Link
                   to="/customer/cart"
-                  className="relative p-2 rounded-full hover:bg-gray-100"
+                  className="relative p-2 rounded-full hover:bg-gray-100 flex items-center justify-center"
                 >
                   <span className="text-xl">🛒</span>
                   {cartItems > 0 && (
@@ -87,56 +88,59 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                     </span>
                   )}
                 </Link>
-                <button onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
-                  <img
-                    src={displayAvatar}
-                    alt="Avatar"
-                    className="w-10 h-10 rounded-full border object-cover"
-                  />
-                </button>
+                
+                {/* AVATAR */}
+                <div className="relative">
+                  <button onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
+                    <img
+                      src={displayAvatar}
+                      alt="Avatar"
+                      className="w-10 h-10 rounded-full border object-cover"
+                    />
+                  </button>
 
-                {isDropdownOpen && (
-                  <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl overflow-hidden">
-                    <div className="p-4 bg-green-600 text-white">
-                      <p className="font-semibold">{displayName}</p>
-                      <p className="text-sm opacity-80">{displayEmail}</p>
-                    </div>
+                  {isDropdownOpen && (
+                    <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl overflow-hidden">
+                      <div className="p-4 bg-green-600 text-white">
+                        <p className="font-semibold">{displayName}</p>
+                        <p className="text-sm opacity-80">{displayEmail}</p>
+                      </div>
 
-                    <div className="py-2">
-                      <DropdownItem
-                        icon={<User size={18} />}
-                        label="Profile"
-                        onClick={() => navigate("/customer/profile")}
-                      />
-                      <DropdownItem
-                        icon={<Settings size={18} />}
-                        label="Change Password"
-                        onClick={() => navigate("/customer/change-password")}
-                      />
-                      <DropdownItem
-                        icon={<Package size={18} />}
-                        label="Order History"
-                        onClick={() => navigate("/customer/orders")}
-/>
-                       <DropdownItem
-                        icon={<Clock size={18} />}
-                        label="Lịch sử liên hệ"
-                        onClick={() => navigate("/customer/contact-history")}
-                      />
-
-
-                      <div className="border-t mt-2 pt-2">
+                      <div className="py-2">
                         <DropdownItem
-                          icon={<LogOut size={18} />}
-                          label="Logout"
-                          danger
-                          onClick={handleLogout}
+                          icon={<User size={18} />}
+                          label="Profile"
+                          onClick={() => navigate("/customer/profile")}
                         />
+                        <DropdownItem
+                          icon={<Settings size={18} />}
+                          label="Change Password"
+                          onClick={() => navigate("/customer/change-password")}
+                        />
+                        <DropdownItem
+                          icon={<Package size={18} />}
+                          label="Order History"
+                          onClick={() => navigate("/customer/orders")}
+                        />
+                        <DropdownItem
+                          icon={<Clock size={18} />}
+                          label="Contact History"
+                          onClick={() => navigate("/customer/contact-history")}
+                        />
+
+                        <div className="border-t mt-2 pt-2">
+                          <DropdownItem
+                            icon={<LogOut size={18} />}
+                            label="Logout"
+                            danger
+                            onClick={handleLogout}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              </>
             ) : (
               <>
                 <Link
@@ -172,7 +176,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
               { label: "Product", path: "/products" },
               { label: "Categories", path: "/categories" },
               { label: "About Us", path: "/about" },
-              { label: "Contact", path: "/contact" },
+              { label: "Contact", path: "/customer/contact" },
               { label: "FAQ", path: "/faq" },
             ].map((item) => (
               <Link
@@ -202,6 +206,13 @@ const DropdownItem = ({ icon, label, onClick, danger }) => (
     <span>{label}</span>
   </button>
 );
+
+DropdownItem.propTypes = {
+  icon: PropTypes.node,
+  label: PropTypes.string.isRequired,
+  onClick: PropTypes.func,
+  danger: PropTypes.bool,
+};
 
 Header.propTypes = {
   searchTerm: PropTypes.string,

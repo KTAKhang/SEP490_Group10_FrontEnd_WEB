@@ -22,7 +22,8 @@ const CreateCategory = ({ isOpen, onClose }) => {
   // Close modal after successful create
   useEffect(() => {
     if (hasSubmitted && !createCategoryLoading && !createCategoryError) {
-      // Create was successful, close modal and reset form
+      // Create was successful, show toast and close modal
+      toast.success("Category created successfully!");
       setHasSubmitted(false);
       setFormData({
         name: "",
@@ -32,6 +33,9 @@ const CreateCategory = ({ isOpen, onClose }) => {
       setImageFile(null);
       setImagePreview(null);
       onClose();
+    }
+    if (createCategoryError) {
+      toast.error(createCategoryError);
     }
   }, [hasSubmitted, createCategoryLoading, createCategoryError, onClose]);
 
