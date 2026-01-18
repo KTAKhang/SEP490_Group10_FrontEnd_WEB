@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
-import { createReceiptRequest } from "../../../redux/actions/warehouseActions";
+import { createReceiptRequest } from "../../../redux/actions/inventoryActions";
 
 const CreateReceipt = ({ isOpen, onClose, product }) => {
   const dispatch = useDispatch();
-  const { createReceiptLoading } = useSelector((state) => state.warehouse);
+  const { createReceiptLoading } = useSelector((state) => state.inventory);
 
   const [receiptData, setReceiptData] = useState({
     productId: "",
@@ -50,8 +50,19 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
 
   const handleSubmit = () => {
     if (!receiptData.productId || receiptData.quantity <= 0) {
-      toast.error("Vui lòng nhập số lượng hợp lệ");
+      toast.error("Please enter a valid quantity");
       return;
+    }
+
+    // ✅ Check if this is the first receipt (no warehouseEntryDate)
+    const isFirstReceipt = !product.warehouseEntryDate && !product.warehouseEntryDateStr;
+
+    // ✅ Ràng buộc: Ở lần nhập kho đầu tiên, bắt buộc phải thiết lập hạn sử dụng
+    if (isFirstReceipt) {
+      if (!receiptData.expiryDate && (!receiptData.shelfLifeDays || receiptData.shelfLifeDays <= 0)) {
+        toast.error("Lần nhập kho đầu tiên bắt buộc phải thiết lập hạn sử dụng (expiryDate hoặc shelfLifeDays)");
+        return;
+      }
     }
 
     // Validate expiryDate if provided (must be at least tomorrow)
@@ -63,9 +74,15 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
       selectedDate.setHours(0, 0, 0, 0);
       
       if (selectedDate < tomorrow) {
-        toast.error(`Hạn sử dụng phải tối thiểu từ ngày ${tomorrow.toISOString().split('T')[0]} (ngày mai)`);
+        toast.error(`Expiry date must be at least ${tomorrow.toISOString().split('T')[0]} (tomorrow)`);
         return;
       }
+    }
+
+    // Validate shelfLifeDays if provided
+    if (receiptData.shelfLifeDays && receiptData.shelfLifeDays <= 0) {
+      toast.error("Shelf life days must be greater than 0");
+      return;
     }
 
     // Prepare receipt data (prioritize expiryDate over shelfLifeDays)
@@ -75,11 +92,11 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
       note: receiptData.note || "",
     };
     
-    // Ưu tiên expiryDate từ date picker
+    // Prefer expiryDate from the date picker
     if (receiptData.expiryDate) {
       receiptPayload.expiryDate = receiptData.expiryDate;
     } 
-    // Backward compatible: nếu không có expiryDate, dùng shelfLifeDays
+    // Backward compatible: if no expiryDate, use shelfLifeDays
     else if (receiptData.shelfLifeDays && receiptData.shelfLifeDays > 0) {
       receiptPayload.shelfLifeDays = parseInt(receiptData.shelfLifeDays);
     }
@@ -103,11 +120,15 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
 
   if (!isOpen || !product) return null;
 
+  // ✅ Check if this is the first receipt (no warehouseEntryDate)
+  const isFirstReceipt = !product.warehouseEntryDate && !product.warehouseEntryDateStr;
+  const hasNoExpiryDate = !product.expiryDate && !product.expiryDateStr;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg max-w-md w-full">
+      <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-bold text-gray-800">Nhập kho</h2>
+          <h2 className="text-xl font-bold text-gray-800">Receive stock</h2>
           <button
             onClick={handleCancel}
             className="text-gray-400 hover:text-gray-600"
@@ -116,9 +137,18 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
           </button>
         </div>
         <div className="p-6 space-y-4">
+          {/* First receipt warning */}
+          {isFirstReceipt && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="text-sm font-medium text-yellow-800">
+                ⚠️ Lần nhập kho đầu tiên - Bắt buộc phải thiết lập hạn sử dụng
+              </p>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Sản phẩm
+              Product
             </label>
             <input
               type="text"
@@ -129,7 +159,7 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Số lượng nhập <span className="text-red-500">*</span>
+              Receive quantity <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
@@ -139,42 +169,71 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
                 setReceiptData({ ...receiptData, quantity: parseInt(e.target.value) || 0 })
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Nhập số lượng"
+              placeholder="Enter quantity"
             />
           </div>
-          {product.receivedQuantity === 0 && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Hạn sử dụng <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                value={receiptData.expiryDate}
-                onChange={(e) => {
-                  setReceiptData({ ...receiptData, expiryDate: e.target.value, shelfLifeDays: "" });
-                }}
-                min={(() => {
-                  const tomorrow = new Date();
-                  tomorrow.setDate(tomorrow.getDate() + 1);
-                  return tomorrow.toISOString().split('T')[0];
-                })()}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Chọn ngày hết hạn (tối thiểu từ ngày mai)
-              </p>
-            </div>
+          {/* Only show expiry date/shelf life inputs if no expiry date has been set yet */}
+          {hasNoExpiryDate && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Expiry date {isFirstReceipt && <span className="text-red-500">*</span>}
+                </label>
+                <input
+                  type="date"
+                  value={receiptData.expiryDate}
+                  onChange={(e) => {
+                    setReceiptData({ ...receiptData, expiryDate: e.target.value, shelfLifeDays: "" });
+                  }}
+                  min={(() => {
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    return tomorrow.toISOString().split('T')[0];
+                  })()}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Select expiry date (at least tomorrow). This can only be set once.
+                </p>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-gray-300"></span>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-gray-500">Hoặc</span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Shelf life (days) {isFirstReceipt && <span className="text-red-500">*</span>}
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={receiptData.shelfLifeDays}
+                  onChange={(e) => {
+                    setReceiptData({ ...receiptData, shelfLifeDays: e.target.value, expiryDate: "" });
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter number of days"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter shelf life in days. Expiry date will be calculated automatically.
+                </p>
+              </div>
+            </>
           )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Ghi chú
+              Notes
             </label>
             <textarea
               value={receiptData.note}
               onChange={(e) => setReceiptData({ ...receiptData, note: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               rows="3"
-              placeholder="Ghi chú (tùy chọn)"
+              placeholder="Notes (optional)"
             />
           </div>
         </div>
@@ -183,14 +242,14 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
             onClick={handleCancel}
             className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
-            Hủy
+            Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={createReceiptLoading}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {createReceiptLoading ? "Đang nhập kho..." : "Xác nhận nhập kho"}
+            {createReceiptLoading ? "Receiving..." : "Confirm receipt"}
           </button>
         </div>
       </div>

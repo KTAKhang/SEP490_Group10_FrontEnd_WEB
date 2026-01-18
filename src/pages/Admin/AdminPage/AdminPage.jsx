@@ -25,10 +25,10 @@ const CardContent = ({ children, className = "" }) => (
 );
 
 const AdminPage = () => {
-  // Mock data - sẽ được thay thế bằng data thực từ API
+  // Mock data - will be replaced with real API data
   const stats = [
     {
-      title: "Tổng người dùng",
+      title: "Total users",
       value: "1,234",
       change: "+12.5%",
       trend: "up",
@@ -37,7 +37,7 @@ const AdminPage = () => {
       bgColor: "bg-blue-100",
     },
     {
-      title: "Sản phẩm",
+      title: "Products",
       value: "456",
       change: "+8.2%",
       trend: "up",
@@ -46,7 +46,7 @@ const AdminPage = () => {
       bgColor: "bg-green-100",
     },
     {
-      title: "Đơn hàng",
+      title: "Orders",
       value: "789",
       change: "-3.1%",
       trend: "down",
@@ -71,7 +71,7 @@ const AdminPage = () => {
       <div>
         <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
         <p className="text-gray-600 mt-1">
-          Chào mừng trở lại, đây là tổng quan hệ thống
+          Welcome back, here is the system overview
         </p>
       </div>
 
@@ -101,7 +101,7 @@ const AdminPage = () => {
                 >
                   <TrendIcon size={14} />
                   <span>{stat.change}</span>
-                  <span className="text-gray-500">so với tháng trước</span>
+                  <span className="text-gray-500">vs last month</span>
                 </div>
               </CardContent>
             </Card>
@@ -115,7 +115,7 @@ const AdminPage = () => {
         <Card className="shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-semibold">
-              Đơn hàng gần đây
+              Recent orders
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -127,13 +127,13 @@ const AdminPage = () => {
                 >
                   <div>
                     <p className="font-medium text-gray-800">
-                      Đơn hàng #{1000 + item}
+                      Order #{1000 + item}
                     </p>
-                    <p className="text-sm text-gray-500">Khách hàng {item}</p>
+                    <p className="text-sm text-gray-500">Customer {item}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-medium text-gray-800">₫250,000</p>
-                    <p className="text-xs text-green-600">Đã hoàn thành</p>
+                    <p className="text-xs text-green-600">Completed</p>
                   </div>
                 </div>
               ))}
@@ -144,25 +144,25 @@ const AdminPage = () => {
         {/* Quick Actions */}
         <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">Thao tác nhanh</CardTitle>
+            <CardTitle className="text-lg font-semibold">Quick actions</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <button className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition-colors">
                 <Package className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                <p className="text-sm font-medium text-gray-800">Thêm sản phẩm</p>
+                <p className="text-sm font-medium text-gray-800">Add product</p>
               </button>
               <button className="p-4 bg-green-50 hover:bg-green-100 rounded-lg text-center transition-colors">
                 <Users className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                <p className="text-sm font-medium text-gray-800">Quản lý user</p>
+                <p className="text-sm font-medium text-gray-800">Manage users</p>
               </button>
               <button className="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg text-center transition-colors">
                 <ShoppingCart className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                <p className="text-sm font-medium text-gray-800">Xem đơn hàng</p>
+                <p className="text-sm font-medium text-gray-800">View orders</p>
               </button>
               <button className="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg text-center transition-colors">
                 <DollarSign className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-                <p className="text-sm font-medium text-gray-800">Báo cáo</p>
+                <p className="text-sm font-medium text-gray-800">Reports</p>
               </button>
             </div>
           </CardContent>
