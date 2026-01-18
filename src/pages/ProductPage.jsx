@@ -6,7 +6,7 @@ import Footer from '../components/Footer/Footer';
 import Loading from '../components/Loading/Loading';
 import { getPublicProductsRequest } from '../redux/actions/publicProductActions';
 import { getPublicCategoriesRequest } from '../redux/actions/publicCategoryActions';
-import { addFavoriteRequest, removeFavoriteRequest, checkFavoriteRequest } from '../redux/actions/favoriteActions';
+import { addFavoriteRequest, removeFavoriteRequest, getFavoritesRequest } from '../redux/actions/favoriteActions';
 import { Search, Package, Heart } from 'lucide-react';
 
 export default function ProductPage() {
@@ -23,17 +23,16 @@ export default function ProductPage() {
     publicProductsPagination, 
     publicProductsLoading 
   } = useSelector((state) => state.publicProduct);
-  const { favoriteStatus } = useSelector((state) => state.favorite);
+  const { favoriteStatus, favoritesLoading } = useSelector((state) => state.favorite);
 
   // Check if user is logged in
   const storedUser = JSON.parse(localStorage.getItem("user") || "null");
 
-  // Track which products have been checked for favorite status
-  const checkedProductsRef = useRef(new Set());
-  // Track last checked product IDs to avoid re-checking when array reference changes
-  const lastCheckedIdsRef = useRef('');
   // Track previous URL params to avoid infinite loop
   const prevUrlParamsRef = useRef('');
+  // Track if favorites have been loaded for current user
+  const favoritesLoadedRef = useRef(false);
+  const prevUserRef = useRef(null);
 
   // State for filters and search
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
@@ -47,31 +46,36 @@ export default function ProductPage() {
     dispatch(getPublicCategoriesRequest({ page: 1, limit: 100 }));
   }, [dispatch]);
 
-  // Check favorite status for each product (only check once per product ID)
-  // Use product IDs string instead of the whole array to avoid re-triggering on reference changes
+  // Load favorites list when user logs in (to populate favoriteStatus)
   useEffect(() => {
-    if (publicProducts && publicProducts.length > 0 && storedUser) {
-      const productIds = publicProducts.map(p => p._id).sort().join(',');
-      
-      // Only check if the product IDs have actually changed (not just reference)
-      if (productIds !== lastCheckedIdsRef.current) {
-        lastCheckedIdsRef.current = productIds;
-        
-        // Use setTimeout to defer checks and avoid triggering during render
-        setTimeout(() => {
-          publicProducts.forEach((product) => {
-            const productId = product._id;
-            // Only check if we haven't checked this product ID yet
-            if (!checkedProductsRef.current.has(productId) && favoriteStatus[productId] === undefined) {
-              checkedProductsRef.current.add(productId);
-              dispatch(checkFavoriteRequest(productId));
-            }
-          });
-        }, 100);
+    const currentUserId = storedUser?._id || storedUser?.id || null;
+    const prevUserId = prevUserRef.current?._id || prevUserRef.current?.id || null;
+    
+    // User changed (logged in or logged out)
+    if (currentUserId !== prevUserId) {
+      if (currentUserId) {
+        // User logged in - load favorites list to populate favoriteStatus
+        // Use a reasonable limit (500) instead of 1000 to avoid server overload
+        favoritesLoadedRef.current = false;
+        dispatch(getFavoritesRequest({ page: 1, limit: 500 }));
+      } else {
+        // User logged out - reset
+        favoritesLoadedRef.current = false;
       }
+      prevUserRef.current = storedUser;
+    } else if (storedUser && !favoritesLoadedRef.current && !favoritesLoading) {
+      // User already logged in but favorites not loaded yet (only if not already loading)
+      dispatch(getFavoritesRequest({ page: 1, limit: 500 }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [publicProducts, dispatch, storedUser]);
+  }, [storedUser, dispatch]);
+  
+  // Mark favorites as loaded after successful fetch
+  useEffect(() => {
+    if (!favoritesLoading && storedUser) {
+      favoritesLoadedRef.current = true;
+    }
+  }, [favoritesLoading, storedUser]);
 
   // Update URL params separately to avoid loop
   useEffect(() => {
@@ -106,8 +110,6 @@ export default function ProductPage() {
     };
 
     dispatch(getPublicProductsRequest(params));
-    // Reset checked products when filters change (new products will be loaded)
-    checkedProductsRef.current.clear();
   }, [dispatch, currentPage, searchTerm, selectedCategory, sortBy, sortOrder]);
 
   // Handle search
