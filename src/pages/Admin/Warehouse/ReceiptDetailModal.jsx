@@ -240,12 +240,6 @@ const ReceiptDetailModal = ({ isOpen, onClose, receiptId }) => {
                       </p>
                     </div>
                   )}
-                  {receiptDetail.product?.shelfLifeDays && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Số ngày bảo quản</label>
-                      <p className="text-base text-gray-900">{receiptDetail.product.shelfLifeDays} ngày</p>
-                    </div>
-                  )}
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Số lượng kế hoạch</label>
                     <p className="text-base text-gray-900">{receiptDetail.product?.plannedQuantity || 0}</p>
