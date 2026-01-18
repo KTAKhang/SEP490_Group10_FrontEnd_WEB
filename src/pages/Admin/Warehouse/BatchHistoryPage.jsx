@@ -30,6 +30,9 @@ const BatchHistoryPage = () => {
   const [selectedProductId, setSelectedProductId] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [completionReason, setCompletionReason] = useState("");
+  const [sortBy, setSortBy] = useState("batchNumber");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
@@ -38,12 +41,20 @@ const BatchHistoryPage = () => {
     dispatch(getProductsRequest({ page: 1, limit: 1000, sortBy: "name", sortOrder: "asc" }));
   }, [dispatch]);
 
-  // Fetch batch history when product is selected
+  // Fetch batch history when product is selected or filters change
   useEffect(() => {
     if (selectedProductId) {
-      dispatch(getProductBatchHistoryRequest(selectedProductId, { page: currentPage, limit: 20 }));
+      const params = {
+        page: currentPage,
+        limit: 20,
+        ...(searchTerm && { search: searchTerm }),
+        ...(completionReason && { completionReason }),
+        sortBy,
+        sortOrder,
+      };
+      dispatch(getProductBatchHistoryRequest(selectedProductId, params));
     }
-  }, [dispatch, selectedProductId, currentPage]);
+  }, [dispatch, selectedProductId, currentPage, searchTerm, completionReason, sortBy, sortOrder]);
 
   // Filter products by search term
   const filteredProducts = products.filter((product) =>
@@ -143,14 +154,83 @@ const BatchHistoryPage = () => {
       {selectedProductId && (
         <div className="bg-white rounded-lg border shadow-sm">
           <div className="p-6 border-b">
-            <h2 className="text-lg font-semibold text-gray-800">
-              Batch History - {selectedProduct?.name || "Loading..."}
-            </h2>
-            {selectedProduct && (
-              <p className="text-sm text-gray-500 mt-1">
-                Brand: {selectedProduct.brand} • Current Batch: #{selectedProduct.batchNumber || 1}
-              </p>
-            )}
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-800">
+                  Batch History - {selectedProduct?.name || "Loading..."}
+                </h2>
+                {selectedProduct && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    Brand: {selectedProduct.brand} • Current Batch: #{selectedProduct.batchNumber || 1}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Filters for Batch History */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Search by batch number..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                />
+              </div>
+
+              {/* Completion Reason Filter */}
+              <div>
+                <select
+                  value={completionReason}
+                  onChange={(e) => {
+                    setCompletionReason(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                >
+                  <option value="">All reasons</option>
+                  <option value="SOLD_OUT">Sold out</option>
+                  <option value="EXPIRED">Expired</option>
+                </select>
+              </div>
+
+              {/* Sort */}
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Sort:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => {
+                    setSortBy(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                >
+                  <option value="batchNumber">Batch #</option>
+                  <option value="completedDate">Completed Date</option>
+                  <option value="createdAt">Created Date</option>
+                  <option value="plannedQuantity">Planned</option>
+                  <option value="receivedQuantity">Received</option>
+                  <option value="soldQuantity">Sold</option>
+                  <option value="discardedQuantity">Discarded</option>
+                </select>
+                <button
+                  onClick={() => {
+                    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                    setCurrentPage(1);
+                  }}
+                  className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm"
+                  title={sortOrder === "asc" ? "Ascending" : "Descending"}
+                >
+                  {sortOrder === "asc" ? "↑" : "↓"}
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="p-6">
@@ -170,20 +250,80 @@ const BatchHistoryPage = () => {
                   <table className="w-full">
                     <thead className="bg-gray-50 border-b">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Batch #
+                        <th 
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                          onClick={() => {
+                            setSortBy("batchNumber");
+                            setSortOrder(sortBy === "batchNumber" && sortOrder === "asc" ? "desc" : "asc");
+                            setCurrentPage(1);
+                          }}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Batch #</span>
+                            {sortBy === "batchNumber" && (
+                              <span className="text-green-600">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                            )}
+                          </div>
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Planned
+                        <th 
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                          onClick={() => {
+                            setSortBy("plannedQuantity");
+                            setSortOrder(sortBy === "plannedQuantity" && sortOrder === "asc" ? "desc" : "asc");
+                            setCurrentPage(1);
+                          }}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Planned</span>
+                            {sortBy === "plannedQuantity" && (
+                              <span className="text-green-600">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                            )}
+                          </div>
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Received
+                        <th 
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                          onClick={() => {
+                            setSortBy("receivedQuantity");
+                            setSortOrder(sortBy === "receivedQuantity" && sortOrder === "asc" ? "desc" : "asc");
+                            setCurrentPage(1);
+                          }}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Received</span>
+                            {sortBy === "receivedQuantity" && (
+                              <span className="text-green-600">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                            )}
+                          </div>
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Sold
+                        <th 
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                          onClick={() => {
+                            setSortBy("soldQuantity");
+                            setSortOrder(sortBy === "soldQuantity" && sortOrder === "asc" ? "desc" : "asc");
+                            setCurrentPage(1);
+                          }}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Sold</span>
+                            {sortBy === "soldQuantity" && (
+                              <span className="text-green-600">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                            )}
+                          </div>
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Discarded
+                        <th 
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                          onClick={() => {
+                            setSortBy("discardedQuantity");
+                            setSortOrder(sortBy === "discardedQuantity" && sortOrder === "asc" ? "desc" : "asc");
+                            setCurrentPage(1);
+                          }}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Discarded</span>
+                            {sortBy === "discardedQuantity" && (
+                              <span className="text-green-600">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                            )}
+                          </div>
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Entry Date
@@ -191,8 +331,20 @@ const BatchHistoryPage = () => {
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Expiry Date
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Completed Date
+                        <th 
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                          onClick={() => {
+                            setSortBy("completedDate");
+                            setSortOrder(sortBy === "completedDate" && sortOrder === "asc" ? "desc" : "asc");
+                            setCurrentPage(1);
+                          }}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Completed Date</span>
+                            {sortBy === "completedDate" && (
+                              <span className="text-green-600">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                            )}
+                          </div>
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Reason

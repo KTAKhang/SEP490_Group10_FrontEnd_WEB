@@ -25,6 +25,8 @@ const ReceiptHistoryPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReceiptId, setSelectedReceiptId] = useState(null);
@@ -43,15 +45,31 @@ const ReceiptHistoryPage = () => {
       ...(searchTerm && { search: searchTerm }),
       ...(startDate && { startDate }),
       ...(endDate && { endDate }),
+      sortBy,
+      sortOrder,
     };
     dispatch(getReceiptHistoryRequest(params));
-  }, [dispatch, currentPage, selectedProductId, searchTerm, startDate, endDate]);
+  }, [dispatch, currentPage, selectedProductId, searchTerm, startDate, endDate, sortBy, sortOrder]);
 
   const handleResetFilters = () => {
     setSelectedProductId("");
     setSearchTerm("");
     setStartDate("");
     setEndDate("");
+    setSortBy("createdAt");
+    setSortOrder("desc");
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (field) => {
+    if (sortBy === field) {
+      // Toggle sort order if same field
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      // Set new field with default desc order
+      setSortBy(field);
+      setSortOrder("desc");
+    }
     setCurrentPage(1);
   };
 
@@ -168,8 +186,37 @@ const ReceiptHistoryPage = () => {
           </div>
         </div>
 
+        {/* Sort Options */}
+        <div className="mt-4 flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-medium text-gray-700">Sort by:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => {
+                setSortBy(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+            >
+              <option value="createdAt">Date</option>
+              <option value="quantity">Quantity</option>
+              <option value="updatedAt">Updated Date</option>
+            </select>
+            <button
+              onClick={() => {
+                setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                setCurrentPage(1);
+              }}
+              className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm"
+              title={sortOrder === "asc" ? "Ascending" : "Descending"}
+            >
+              {sortOrder === "asc" ? "↑" : "↓"}
+            </button>
+          </div>
+        </div>
+
         {/* Reset Filters Button */}
-        {(selectedProductId || searchTerm || startDate || endDate) && (
+        {(selectedProductId || searchTerm || startDate || endDate || sortBy !== "createdAt" || sortOrder !== "desc") && (
           <div className="mt-4">
             <button
               onClick={handleResetFilters}
@@ -212,8 +259,16 @@ const ReceiptHistoryPage = () => {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Product
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Quantity
+                      <th 
+                        className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSortChange("quantity")}
+                      >
+                        <div className="flex items-center space-x-1">
+                          <span>Quantity</span>
+                          {sortBy === "quantity" && (
+                            <span className="text-green-600">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                          )}
+                        </div>
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Received By
@@ -221,8 +276,16 @@ const ReceiptHistoryPage = () => {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Note
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Date
+                      <th 
+                        className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSortChange("createdAt")}
+                      >
+                        <div className="flex items-center space-x-1">
+                          <span>Date</span>
+                          {sortBy === "createdAt" && (
+                            <span className="text-green-600">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                          )}
+                        </div>
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
