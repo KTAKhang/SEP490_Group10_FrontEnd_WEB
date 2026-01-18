@@ -23,10 +23,10 @@ const CardContent = ({ children, className = "" }) => (
 );
 
 const WarehouseStaffPage = () => {
-  // Mock data - sẽ được thay thế bằng data thực từ API
+  // Mock data - will be replaced with real API data
   const stats = [
     {
-      title: "Tổng sản phẩm",
+      title: "Total products",
       value: "456",
       change: "+8.2%",
       trend: "up",
@@ -35,7 +35,7 @@ const WarehouseStaffPage = () => {
       bgColor: "bg-blue-100",
     },
     {
-      title: "Đã nhập kho",
+      title: "Received",
       value: "389",
       change: "+5.1%",
       trend: "up",
@@ -44,7 +44,7 @@ const WarehouseStaffPage = () => {
       bgColor: "bg-green-100",
     },
     {
-      title: "Cần nhập kho",
+      title: "Pending receipt",
       value: "67",
       change: "-2.3%",
       trend: "down",
@@ -53,7 +53,7 @@ const WarehouseStaffPage = () => {
       bgColor: "bg-orange-100",
     },
     {
-      title: "Sản phẩm sắp hết",
+      title: "Low stock products",
       value: "12",
       change: "+3.5%",
       trend: "up",
@@ -69,7 +69,7 @@ const WarehouseStaffPage = () => {
       <div>
         <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
         <p className="text-gray-600 mt-1">
-          Chào mừng trở lại, đây là tổng quan kho hàng
+          Welcome back, here is the warehouse overview
         </p>
       </div>
 
@@ -99,7 +99,7 @@ const WarehouseStaffPage = () => {
                 >
                   <TrendIcon size={14} />
                   <span>{stat.change}</span>
-                  <span className="text-gray-500">so với tháng trước</span>
+                  <span className="text-gray-500">vs last month</span>
                 </div>
               </CardContent>
             </Card>
@@ -113,7 +113,7 @@ const WarehouseStaffPage = () => {
         <Card className="shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-semibold">
-              Phiếu nhập kho gần đây
+              Recent receipts
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -125,17 +125,17 @@ const WarehouseStaffPage = () => {
                 >
                   <div>
                     <p className="font-medium text-gray-800">
-                      Phiếu #{1000 + item}
+                      Receipt #{1000 + item}
                     </p>
                     <p className="text-sm text-gray-500">
-                      Sản phẩm {item} - {item * 10} đơn vị
+                      Product {item} - {item * 10} units
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="font-medium text-gray-800">
                       {new Date().toLocaleDateString("vi-VN")}
                     </p>
-                    <p className="text-xs text-green-600">Đã nhập</p>
+                    <p className="text-xs text-green-600">Received</p>
                   </div>
                 </div>
               ))}
@@ -146,25 +146,25 @@ const WarehouseStaffPage = () => {
         {/* Quick Actions */}
         <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">Thao tác nhanh</CardTitle>
+            <CardTitle className="text-lg font-semibold">Quick actions</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <button className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition-colors">
                 <Package className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                <p className="text-sm font-medium text-gray-800">Nhập kho</p>
+                <p className="text-sm font-medium text-gray-800">Receive stock</p>
               </button>
               <button className="p-4 bg-green-50 hover:bg-green-100 rounded-lg text-center transition-colors">
                 <PackageCheck className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                <p className="text-sm font-medium text-gray-800">Xem sản phẩm</p>
+                <p className="text-sm font-medium text-gray-800">View products</p>
               </button>
               <button className="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg text-center transition-colors">
                 <AlertCircle className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-                <p className="text-sm font-medium text-gray-800">Cần nhập</p>
+                <p className="text-sm font-medium text-gray-800">Pending receipt</p>
               </button>
               <button className="p-4 bg-red-50 hover:bg-red-100 rounded-lg text-center transition-colors">
                 <TrendingUp className="h-8 w-8 text-red-600 mx-auto mb-2" />
-                <p className="text-sm font-medium text-gray-800">Sắp hết</p>
+                <p className="text-sm font-medium text-gray-800">Low stock</p>
               </button>
             </div>
           </CardContent>

@@ -12,6 +12,8 @@ import {
   FileText,
   Store,
   FolderTree,
+  History,
+  ClipboardList,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -27,15 +29,24 @@ const Sidebar = () => {
     },
     {
       icon: FolderTree,
-      label: "Danh mục",
+      label: "Categories",
       path: "/admin/category",
     },
     {
       icon: Store,
-      label: "Sản phẩm",
+      label: "Products",
       path: "/admin/warehouse",
     },
-    
+    {
+      icon: History,
+      label: "Batch History",
+      path: "/admin/batch-history",
+    },
+    {
+      icon: ClipboardList,
+      label: "Receipt History",
+      path: "/admin/receipt-history",
+    },
   ];
 
   const isActive = (path, exact = false) => {
