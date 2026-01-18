@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
-import { createCategoryRequest } from "../../../redux/actions/warehouseActions";
+import { createCategoryRequest } from "../../../redux/actions/categoryActions";
 
 const CreateCategory = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
-  const { createCategoryLoading, createCategoryError } = useSelector((state) => state.warehouse);
+  const { createCategoryLoading, createCategoryError } = useSelector((state) => state.category);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -58,7 +58,7 @@ const CreateCategory = ({ isOpen, onClose }) => {
 
     // Validation
     if (!formData.name || !formData.name.trim()) {
-      toast.error("Vui lòng nhập tên danh mục");
+      toast.error("Please enter category name");
       return;
     }
 
@@ -94,7 +94,7 @@ const CreateCategory = ({ isOpen, onClose }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-bold text-gray-800">Thêm danh mục mới</h2>
+          <h2 className="text-xl font-bold text-gray-800">Add new category</h2>
           <button
             onClick={handleCancel}
             className="text-gray-400 hover:text-gray-600"
@@ -106,32 +106,32 @@ const CreateCategory = ({ isOpen, onClose }) => {
           <div className="p-6 space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tên danh mục <span className="text-red-500">*</span>
+                Category name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Nhập tên danh mục"
+                placeholder="Enter category name"
                 required
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Mô tả
+                Description
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 rows="4"
-                placeholder="Nhập mô tả danh mục"
+                placeholder="Enter category description"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Hình ảnh
+                Image
               </label>
               {imagePreview ? (
                 <div className="mt-2">
@@ -145,7 +145,7 @@ const CreateCategory = ({ isOpen, onClose }) => {
                     onClick={handleRemoveImage}
                     className="text-sm text-red-600 hover:text-red-800"
                   >
-                    Xóa ảnh
+                    Remove image
                   </button>
                 </div>
               ) : (
@@ -159,15 +159,15 @@ const CreateCategory = ({ isOpen, onClose }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Trạng thái
+                Status
               </label>
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value === "true" })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
-                <option value={true}>Hiển thị</option>
-                <option value={false}>Ẩn</option>
+                <option value={true}>Visible</option>
+                <option value={false}>Hidden</option>
               </select>
             </div>
           </div>
@@ -177,14 +177,14 @@ const CreateCategory = ({ isOpen, onClose }) => {
               onClick={handleCancel}
               className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
-              Hủy
+              Cancel
             </button>
             <button
               type="submit"
               disabled={createCategoryLoading}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {createCategoryLoading ? "Đang tạo..." : "Thêm mới"}
+              {createCategoryLoading ? "Creating..." : "Create"}
             </button>
           </div>
         </form>

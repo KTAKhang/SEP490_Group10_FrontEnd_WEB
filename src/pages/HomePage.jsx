@@ -1,72 +1,23 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header/Header';
 import Footer from '../components/Footer/Footer';
-
-// Mock data
-const features = [
-  {
-    id: 1,
-    name: 'Rau Cải Xanh Hữu Cơ',
-    description: 'Tươi ngon, giàu dinh dưỡng',
-    price: 25000,
-    unit: 'kg',
-    category: 'RAU CỦ',
-    image: 'https://img.freepik.com/free-psd/close-up-delicious-apple_23-2151868338.jpg?semt=ais_hybrid&w=740&q=80',
-    isNew: true
-  },
-  {
-    id: 2,
-    name: 'Cà Chua Bi Organic',
-    description: 'Ngọt tự nhiên, không thuốc trừ sâu',
-    price: 45000,
-    unit: 'kg',
-    category: 'RAU CỦ',
-    image: 'https://img.freepik.com/free-psd/close-up-delicious-apple_23-2151868338.jpg?semt=ais_hybrid&w=740&q=80',
-    isNew: false
-  },
-  {
-    id: 3,
-    name: 'Xà Lách Sạch',
-    description: 'Giòn ngon, an toàn',
-    price: 30000,
-    unit: 'kg',
-    category: 'RAU CỦ',
-    image: 'https://img.freepik.com/free-psd/close-up-delicious-apple_23-2151868338.jpg?semt=ais_hybrid&w=740&q=80',
-    isNew: true
-  },
-  {
-    id: 4,
-    name: 'Dưa Leo Xanh',
-    description: 'Giòn ngọt, tươi mát',
-    price: 20000,
-    unit: 'kg',
-    category: 'RAU CỦ',
-    image: 'https://img.freepik.com/free-psd/close-up-delicious-apple_23-2151868338.jpg?semt=ais_hybrid&w=740&q=80',
-    isNew: false
-  },
-  {
-    id: 5,
-    name: 'Ớt Chuông Đỏ',
-    description: 'Ngọt, giàu vitamin C',
-    price: 55000,
-    unit: 'kg',
-    category: 'RAU CỦ',
-    image: 'https://img.freepik.com/free-psd/close-up-delicious-apple_23-2151868338.jpg?semt=ais_hybrid&w=740&q=80',
-    isNew: false
-  },
-  {
-    id: 6,
-    name: 'Bí Đỏ Hữu Cơ',
-    description: 'Ngọt bùi, giàu chất xơ',
-    price: 30000,
-    unit: 'kg',
-    category: 'RAU CỦ',
-    image: 'https://img.freepik.com/free-psd/close-up-delicious-apple_23-2151868338.jpg?semt=ais_hybrid&w=740&q=80',
-    isNew: false
-  }
-];
+import Loading from '../components/Loading/Loading';
+import { getFeaturedProductsRequest } from '../redux/actions/publicProductActions';
 
 const HomePage = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { featuredProducts, featuredProductsLoading } = useSelector((state) => state.publicProduct);
+
+  useEffect(() => {
+    dispatch(getFeaturedProductsRequest());
+  }, [dispatch]);
+
+  const handleProductClick = (productId) => {
+    navigate(`/products/${productId}`);
+  };
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -117,13 +68,13 @@ const HomePage = () => {
             </p>
 
             {/* CTA Button */}
-            <a
-              href="/products"
+            <button
+              onClick={() => navigate('/products')}
               className="inline-flex items-center space-x-3 bg-white text-gray-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transition-all transform hover:scale-105 shadow-xl whitespace-nowrap cursor-pointer"
             >
               <span>Explore Now</span>
               <i className="ri-arrow-right-line text-xl"></i>
-            </a>
+            </button>
           </div>
 
           {/* Description - Bottom Right */}
@@ -202,60 +153,70 @@ const HomePage = () => {
           </div>
 
           {/* Products Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((product) => (
-              <div
-                key={product.id}
-                className="group bg-white rounded-2xl overflow-hidden border border-gray-200 hover:shadow-2xl transition-all duration-300 cursor-pointer"
-              >
-                {/* Product Image */}
-                <div className="relative h-72 bg-gray-100 overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  {product.isNew && (
-                    <div className="absolute top-4 left-4 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1">
-                      <i className="ri-star-fill"></i>
-                      <span>MỚI</span>
-                    </div>
-                  )}
-                </div>
+          {featuredProductsLoading ? (
+            <div className="flex justify-center py-12">
+              <Loading message="Loading featured products..." />
+            </div>
+          ) : featuredProducts.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600">No featured products available</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featuredProducts.map((product) => (
+                <div
+                  key={product._id}
+                  onClick={() => handleProductClick(product._id)}
+                  className="group bg-white rounded-2xl overflow-hidden border border-gray-200 hover:shadow-2xl transition-all duration-300 cursor-pointer"
+                >
+                  {/* Product Image */}
+                  <div className="relative h-72 bg-gray-100 overflow-hidden">
+                    <img
+                      src={product.featuredImage || 'https://via.placeholder.com/400x400?text=No+Image'}
+                      alt={product.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                  </div>
 
-                {/* Product Info */}
-                <div className="p-6">
-                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
-                    {product.category}
-                  </p>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{product.name}</h3>
-                  <p className="text-gray-600 text-sm mb-4">{product.description}</p>
+                  {/* Product Info */}
+                  <div className="p-6">
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
+                      {product.category?.name || 'N/A'}
+                    </p>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{product.name}</h3>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{product.description || ''}</p>
 
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-2xl font-bold text-gray-900">
-                        {product.price.toLocaleString('vi-VN')}đ
-                      </span>
-                      <span className="text-gray-500 text-sm">/{product.unit}</span>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-2xl font-bold text-gray-900">
+                          {product.price?.toLocaleString('vi-VN') || '0'}đ
+                        </span>
+                      </div>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Handle add to cart logic here
+                        }}
+                        className="bg-gray-900 text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-gray-800 transition-colors whitespace-nowrap cursor-pointer"
+                      >
+                        Add to Cart
+                      </button>
                     </div>
-                    <button className="bg-gray-900 text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-gray-800 transition-colors whitespace-nowrap cursor-pointer">
-                      Add to Cart
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
           {/* View All Button */}
           <div className="text-center mt-12">
-            <a
-              href="/products"
+            <button
+              onClick={() => navigate('/products')}
               className="inline-flex items-center space-x-2 text-gray-900 font-semibold hover:text-green-600 transition-colors cursor-pointer"
             >
               <span>View All Products</span>
               <i className="ri-arrow-right-line"></i>
-            </a>
+            </button>
           </div>
         </div>
       </section>
@@ -398,12 +359,12 @@ const HomePage = () => {
           </div>
 
           {/* Button */}
-          <a
-            href="/products"
+          <button
+            onClick={() => navigate('/products')}
             className="inline-block bg-gray-900 text-white px-12 py-4 rounded-full text-lg font-semibold hover:bg-gray-800 transition-all transform hover:scale-105 shadow-xl whitespace-nowrap cursor-pointer"
           >
             Shop Now
-          </a>
+          </button>
         </div>
       </section>
       <Footer />
