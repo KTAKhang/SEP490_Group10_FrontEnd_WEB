@@ -59,6 +59,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
               { label: "About Us", path: "/about" },
               { label: "Contact", path: "/contact" },
               { label: "FAQ", path: "/faq" },
+              ...(storedUser ? [{ label: "Wishlist", path: "/wishlist" }] : []),
             ].map((item) => (
               <Link
                 key={item.path}
@@ -174,6 +175,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
               { label: "About Us", path: "/about" },
               { label: "Contact", path: "/contact" },
               { label: "FAQ", path: "/faq" },
+              ...(storedUser ? [{ label: "Wishlist", path: "/wishlist" }] : []),
             ].map((item) => (
               <Link
                 key={item.path}

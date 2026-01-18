@@ -4,14 +4,26 @@ import createSagaMiddleware from "redux-saga";
 import authReducer from "./reducers/authReducer";
 import contactReducer from "./reducers/contactReducer";
 import profileReducer from "./reducers/profileReducer";
-import warehouseReducer from "./reducers/warehouseReducer";
+import categoryReducer from "./reducers/categoryReducer";
+import productReducer from "./reducers/productReducer";
+import inventoryReducer from "./reducers/inventoryReducer";
+import publicProductReducer from "./reducers/publicProductReducer";
+import publicCategoryReducer from "./reducers/publicCategoryReducer";
+import productBatchReducer from "./reducers/productBatchReducer";
+import favoriteReducer from "./reducers/favoriteReducer";
 import rootSaga from "./sagas/rootSaga";
 
 const rootReducer = combineReducers({
   auth: authReducer,
   contact: contactReducer,
   profile: profileReducer,
-  warehouse: warehouseReducer,
+  category: categoryReducer,
+  product: productReducer,
+  inventory: inventoryReducer,
+  publicProduct: publicProductReducer,
+  publicCategory: publicCategoryReducer,
+  productBatch: productBatchReducer,
+  favorite: favoriteReducer,
 });
 
 const sagaMiddleware = createSagaMiddleware();
