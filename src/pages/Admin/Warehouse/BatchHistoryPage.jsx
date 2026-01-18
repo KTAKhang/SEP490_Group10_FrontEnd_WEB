@@ -5,6 +5,16 @@ import {
   Package,
   Search,
   Filter,
+  X,
+  Eye,
+  Calendar,
+  Package2,
+  TrendingUp,
+  TrendingDown,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Tag,
 } from "lucide-react";
 import { getProductsRequest } from "../../../redux/actions/productActions";
 import { getProductBatchHistoryRequest } from "../../../redux/actions/productBatchActions";
@@ -20,6 +30,8 @@ const BatchHistoryPage = () => {
   const [selectedProductId, setSelectedProductId] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedBatch, setSelectedBatch] = useState(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   // Fetch all products on mount
   useEffect(() => {
@@ -185,6 +197,9 @@ const BatchHistoryPage = () => {
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Reason
                         </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -230,6 +245,18 @@ const BatchHistoryPage = () => {
                               >
                                 {reasonInfo.label}
                               </span>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
+                              <button
+                                onClick={() => {
+                                  setSelectedBatch(batch);
+                                  setIsDetailModalOpen(true);
+                                }}
+                                className="text-green-600 hover:text-green-900 flex items-center space-x-1"
+                              >
+                                <Eye size={16} />
+                                <span>Chi tiết</span>
+                              </button>
                             </td>
                           </tr>
                         );
@@ -296,6 +323,255 @@ const BatchHistoryPage = () => {
         <div className="bg-white rounded-lg border shadow-sm p-12 text-center">
           <History className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-600 text-lg">Please select a product to view batch history</p>
+        </div>
+      )}
+
+      {/* Batch Detail Modal */}
+      {isDetailModalOpen && selectedBatch && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 flex items-center space-x-2">
+                  <Package size={24} />
+                  <span>Batch #{selectedBatch.batchNumber} - {selectedProduct?.name || ""}</span>
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Chi tiết lô hàng đã hoàn thành
+                </p>
+              </div>
+              <button
+                onClick={() => setIsDetailModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-6">
+              {/* Product Info */}
+              {selectedProduct && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center space-x-2">
+                    <Package2 size={20} />
+                    <span>Thông tin sản phẩm</span>
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Tên sản phẩm</p>
+                      <p className="text-base font-medium text-gray-900">{selectedProduct.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Thương hiệu</p>
+                      <p className="text-base font-medium text-gray-900">{selectedProduct.brand || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Danh mục</p>
+                      <p className="text-base font-medium text-gray-900">{selectedProduct.category?.name || "N/A"}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Batch Info */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
+                  <Tag size={20} />
+                  <span>Thông tin lô hàng</span>
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {/* Planned Quantity */}
+                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Package2 size={18} className="text-blue-600" />
+                      <p className="text-sm text-blue-600 font-medium">Số lượng kế hoạch</p>
+                    </div>
+                    <p className="text-2xl font-bold text-blue-900">{selectedBatch.plannedQuantity || 0}</p>
+                  </div>
+
+                  {/* Received Quantity */}
+                  <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <TrendingUp size={18} className="text-purple-600" />
+                      <p className="text-sm text-purple-600 font-medium">Số lượng nhận</p>
+                    </div>
+                    <p className="text-2xl font-bold text-purple-900">{selectedBatch.receivedQuantity || 0}</p>
+                  </div>
+
+                  {/* Sold Quantity */}
+                  <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <CheckCircle size={18} className="text-green-600" />
+                      <p className="text-sm text-green-600 font-medium">Số lượng bán</p>
+                    </div>
+                    <p className="text-2xl font-bold text-green-900">{selectedBatch.soldQuantity || 0}</p>
+                  </div>
+
+                  {/* Discarded Quantity */}
+                  <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <XCircle size={18} className="text-red-600" />
+                      <p className="text-sm text-red-600 font-medium">Số lượng hủy</p>
+                    </div>
+                    <p className="text-2xl font-bold text-red-900">{selectedBatch.discardedQuantity || 0}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Dates */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
+                  <Calendar size={20} />
+                  <span>Thông tin ngày tháng</span>
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Warehouse Entry Date */}
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <p className="text-sm text-gray-500 mb-1">Ngày nhập kho</p>
+                    <p className="text-base font-medium text-gray-900 flex items-center space-x-2">
+                      <Clock size={16} className="text-gray-400" />
+                      <span>
+                        {selectedBatch.warehouseEntryDateStr
+                          ? selectedBatch.warehouseEntryDateStr.split("-").reverse().join("/")
+                          : selectedBatch.warehouseEntryDate
+                          ? new Date(selectedBatch.warehouseEntryDate).toLocaleDateString("vi-VN")
+                          : "N/A"}
+                      </span>
+                    </p>
+                  </div>
+
+                  {/* Expiry Date */}
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <p className="text-sm text-gray-500 mb-1">Ngày hết hạn</p>
+                    <p className="text-base font-medium text-gray-900 flex items-center space-x-2">
+                      <Clock size={16} className="text-gray-400" />
+                      <span>
+                        {selectedBatch.expiryDateStr
+                          ? selectedBatch.expiryDateStr.split("-").reverse().join("/")
+                          : selectedBatch.expiryDate
+                          ? new Date(selectedBatch.expiryDate).toLocaleDateString("vi-VN")
+                          : "N/A"}
+                      </span>
+                    </p>
+                  </div>
+
+                  {/* Completed Date */}
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <p className="text-sm text-gray-500 mb-1">Ngày hoàn thành</p>
+                    <p className="text-base font-medium text-gray-900 flex items-center space-x-2">
+                      <CheckCircle size={16} className="text-gray-400" />
+                      <span>
+                        {selectedBatch.completedDateStr
+                          ? selectedBatch.completedDateStr.split("-").reverse().join("/")
+                          : selectedBatch.completedDate
+                          ? new Date(selectedBatch.completedDate).toLocaleDateString("vi-VN")
+                          : "N/A"}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status and Reason */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
+                  <Tag size={20} />
+                  <span>Trạng thái</span>
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Completion Reason */}
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <p className="text-sm text-gray-500 mb-2">Lý do hoàn thành</p>
+                    {(() => {
+                      const reasonInfo = getCompletionReasonLabel(selectedBatch.completionReason);
+                      return (
+                        <span
+                          className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${reasonInfo.color}`}
+                        >
+                          {reasonInfo.label}
+                        </span>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Status */}
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <p className="text-sm text-gray-500 mb-2">Trạng thái</p>
+                    <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                      {selectedBatch.status || "COMPLETED"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Summary Statistics */}
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Thống kê tổng quan</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Tỷ lệ nhận so với kế hoạch:</span>
+                    <span className="font-semibold text-gray-900">
+                      {selectedBatch.plannedQuantity > 0
+                        ? ((selectedBatch.receivedQuantity / selectedBatch.plannedQuantity) * 100).toFixed(1)
+                        : 0}
+                      %
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Tỷ lệ bán so với nhận:</span>
+                    <span className="font-semibold text-gray-900">
+                      {selectedBatch.receivedQuantity > 0
+                        ? ((selectedBatch.soldQuantity / selectedBatch.receivedQuantity) * 100).toFixed(1)
+                        : 0}
+                      %
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Tỷ lệ hủy so với nhận:</span>
+                    <span className="font-semibold text-red-600">
+                      {selectedBatch.receivedQuantity > 0
+                        ? ((selectedBatch.discardedQuantity / selectedBatch.receivedQuantity) * 100).toFixed(1)
+                        : 0}
+                      %
+                    </span>
+                  </div>
+                  {(() => {
+                    const entryDateStr = selectedBatch.warehouseEntryDateStr || 
+                      (selectedBatch.warehouseEntry ? new Date(selectedBatch.warehouseEntryDate).toISOString().split('T')[0] : null);
+                    const completedDateStr = selectedBatch.completedDateStr || 
+                      (selectedBatch.completedDate ? new Date(selectedBatch.completedDate).toISOString().split('T')[0] : null);
+                    
+                    if (entryDateStr && completedDateStr) {
+                      const entryDate = new Date(entryDateStr);
+                      const completedDate = new Date(completedDateStr);
+                      const diffTime = Math.abs(completedDate - entryDate);
+                      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                      
+                      return (
+                        <div className="flex justify-between items-center pt-3 border-t border-gray-300">
+                          <span className="text-gray-600">Thời gian lưu kho:</span>
+                          <span className="font-semibold text-gray-900">{diffDays} ngày</span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end p-6 border-t bg-gray-50">
+              <button
+                onClick={() => setIsDetailModalOpen(false)}
+                className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

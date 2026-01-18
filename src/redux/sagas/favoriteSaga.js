@@ -117,9 +117,15 @@ function* getFavoritesSaga(action) {
     const errorMessage =
       error.response?.data?.message || error.message || "Không thể tải danh sách yêu thích";
     yield put(getFavoritesFailure(errorMessage));
-    // Không hiển thị toast error nếu lỗi do chưa đăng nhập
-    if (error.response?.status !== 401) {
-      toast.error(errorMessage);
+    // Không hiển thị toast error nếu:
+    // - Lỗi 401 (chưa đăng nhập) - normal case
+    // - Lỗi 500 (server error) - đã có toast trong axios interceptor
+    if (error.response?.status !== 401 && error.response?.status !== 500) {
+      console.error("Error loading favorites:", errorMessage);
+      // Only show toast for non-auth, non-server errors
+      if (error.response?.status && error.response.status < 500) {
+        toast.error(errorMessage);
+      }
     }
   }
 }

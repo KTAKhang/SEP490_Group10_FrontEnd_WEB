@@ -4,16 +4,16 @@ import { useDispatch, useSelector } from "react-redux";
 import { logoutRequest } from "../../redux/actions/authActions";
 import { LogOut, Settings, User, Clock, Package, Menu, X } from "lucide-react";
 import PropTypes from "prop-types";
-import { fetchCartRequest } from "../../redux/actions/cartActions";
+// import { fetchCartRequest } from "../../";
 const Header = ({ searchTerm, setSearchTerm }) => {
   void searchTerm;
   void setSearchTerm;
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  useEffect(() => {
-    dispatch(fetchCartRequest());
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(fetchCartRequest());
+  // }, [dispatch]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 

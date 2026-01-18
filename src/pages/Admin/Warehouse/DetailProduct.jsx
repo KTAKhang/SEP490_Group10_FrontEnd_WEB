@@ -159,7 +159,7 @@ const DetailProduct = ({ isOpen, onClose, product }) => {
             </div>
 
             {/* Expiry Date & Warehouse Entry Info */}
-            {(product.expiryDate || product.expiryDateStr || product.warehouseEntryDate || product.warehouseEntryDateStr || product.shelfLifeDays) && (
+            {(product.expiryDate || product.expiryDateStr || product.warehouseEntryDate || product.warehouseEntryDateStr) && (
               <div className="mt-4 grid grid-cols-3 gap-4">
                 {(product.warehouseEntryDateStr || product.warehouseEntryDate) && (
                   <div className="bg-indigo-50 p-4 rounded-lg">
@@ -246,14 +246,6 @@ const DetailProduct = ({ isOpen, onClose, product }) => {
                         return <p className="text-xs text-gray-500 mt-1">{diffDays} days left</p>;
                       }
                     })()}
-                  </div>
-                )}
-                {product.shelfLifeDays && (
-                  <div className="bg-cyan-50 p-4 rounded-lg">
-                    <p className="text-xs text-gray-600 mb-1">Shelf life</p>
-                    <p className="text-lg font-semibold text-cyan-600">
-                      {product.shelfLifeDays} days
-                    </p>
                   </div>
                 )}
               </div>
