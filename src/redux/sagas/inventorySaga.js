@@ -25,9 +25,12 @@ const apiGetReceiptHistory = async (params = {}) => {
   if (params.page) queryParams.append("page", params.page);
   if (params.limit) queryParams.append("limit", params.limit);
   if (params.productId) queryParams.append("productId", params.productId);
+  if (params.createdBy) queryParams.append("createdBy", params.createdBy);
   if (params.search) queryParams.append("search", params.search);
   if (params.startDate) queryParams.append("startDate", params.startDate);
   if (params.endDate) queryParams.append("endDate", params.endDate);
+  if (params.sortBy) queryParams.append("sortBy", params.sortBy);
+  if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
 
   const queryString = queryParams.toString();
   const url = `/inventory/receipts${queryString ? `?${queryString}` : ""}`;
