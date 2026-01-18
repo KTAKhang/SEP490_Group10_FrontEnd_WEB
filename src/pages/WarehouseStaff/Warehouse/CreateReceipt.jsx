@@ -12,7 +12,6 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
     productId: "",
     quantity: 0,
     expiryDate: "",
-    shelfLifeDays: "",
     note: "",
   });
 
@@ -28,7 +27,6 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
         productId: "",
         quantity: 0,
         expiryDate: "",
-        shelfLifeDays: "",
         note: "",
       });
       onClose();
@@ -42,7 +40,6 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
         productId: product._id,
         quantity: 0,
         expiryDate: "",
-        shelfLifeDays: "",
         note: "",
       });
     }
@@ -59,8 +56,8 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
 
     // ✅ Ràng buộc: Ở lần nhập kho đầu tiên, bắt buộc phải thiết lập hạn sử dụng
     if (isFirstReceipt) {
-      if (!receiptData.expiryDate && (!receiptData.shelfLifeDays || receiptData.shelfLifeDays <= 0)) {
-        toast.error("Lần nhập kho đầu tiên bắt buộc phải thiết lập hạn sử dụng (expiryDate hoặc shelfLifeDays)");
+      if (!receiptData.expiryDate) {
+        toast.error("Lần nhập kho đầu tiên bắt buộc phải thiết lập hạn sử dụng (expiryDate)");
         return;
       }
     }
@@ -79,26 +76,16 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
       }
     }
 
-    // Validate shelfLifeDays if provided
-    if (receiptData.shelfLifeDays && receiptData.shelfLifeDays <= 0) {
-      toast.error("Shelf life days must be greater than 0");
-      return;
-    }
-
-    // Prepare receipt data (prioritize expiryDate over shelfLifeDays)
+    // Prepare receipt data
     const receiptPayload = {
       productId: receiptData.productId,
       quantity: receiptData.quantity,
       note: receiptData.note || "",
     };
     
-    // Prefer expiryDate from the date picker
+    // Add expiryDate if provided
     if (receiptData.expiryDate) {
       receiptPayload.expiryDate = receiptData.expiryDate;
-    } 
-    // Backward compatible: if no expiryDate, use shelfLifeDays
-    else if (receiptData.shelfLifeDays && receiptData.shelfLifeDays > 0) {
-      receiptPayload.shelfLifeDays = parseInt(receiptData.shelfLifeDays);
     }
 
     // Don't close modal immediately - let it close after success
@@ -112,7 +99,6 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
       productId: "",
       quantity: 0,
       expiryDate: "",
-      shelfLifeDays: "",
       note: "",
     });
     onClose();
@@ -172,57 +158,29 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
               placeholder="Enter quantity"
             />
           </div>
-          {/* Only show expiry date/shelf life inputs if no expiry date has been set yet */}
+          {/* Only show expiry date input if no expiry date has been set yet */}
           {hasNoExpiryDate && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Expiry date {isFirstReceipt && <span className="text-red-500">*</span>}
-                </label>
-                <input
-                  type="date"
-                  value={receiptData.expiryDate}
-                  onChange={(e) => {
-                    setReceiptData({ ...receiptData, expiryDate: e.target.value, shelfLifeDays: "" });
-                  }}
-                  min={(() => {
-                    const tomorrow = new Date();
-                    tomorrow.setDate(tomorrow.getDate() + 1);
-                    return tomorrow.toISOString().split('T')[0];
-                  })()}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Select expiry date (at least tomorrow). This can only be set once.
-                </p>
-              </div>
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-gray-300"></span>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Hoặc</span>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Shelf life (days) {isFirstReceipt && <span className="text-red-500">*</span>}
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={receiptData.shelfLifeDays}
-                  onChange={(e) => {
-                    setReceiptData({ ...receiptData, shelfLifeDays: e.target.value, expiryDate: "" });
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter number of days"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Enter shelf life in days. Expiry date will be calculated automatically.
-                </p>
-              </div>
-            </>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Expiry date {isFirstReceipt && <span className="text-red-500">*</span>}
+              </label>
+              <input
+                type="date"
+                value={receiptData.expiryDate}
+                onChange={(e) => {
+                  setReceiptData({ ...receiptData, expiryDate: e.target.value });
+                }}
+                min={(() => {
+                  const tomorrow = new Date();
+                  tomorrow.setDate(tomorrow.getDate() + 1);
+                  return tomorrow.toISOString().split('T')[0];
+                })()}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Select expiry date (at least tomorrow). This can only be set once.
+              </p>
+            </div>
           )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

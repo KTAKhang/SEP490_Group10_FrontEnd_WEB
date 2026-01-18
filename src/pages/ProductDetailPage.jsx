@@ -5,7 +5,7 @@ import Header from '../components/Header/Header';
 import Footer from '../components/Footer/Footer';
 import Loading from '../components/Loading/Loading';
 import { getPublicProductByIdRequest } from '../redux/actions/publicProductActions';
-import { addFavoriteRequest, removeFavoriteRequest, checkFavoriteRequest } from '../redux/actions/favoriteActions';
+import { addFavoriteRequest, removeFavoriteRequest, getFavoritesRequest } from '../redux/actions/favoriteActions';
 import { ChevronLeft, ShoppingCart, Heart } from 'lucide-react';
 
 export default function ProductDetailPage() {
@@ -15,19 +15,19 @@ export default function ProductDetailPage() {
   const { publicProductDetail, publicProductDetailLoading, publicProductDetailError } = useSelector(
     (state) => state.publicProduct
   );
-  const { favoriteStatus } = useSelector((state) => state.favorite);
+  const { favoriteStatus, favoritesLoading } = useSelector((state) => state.favorite);
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   
-  // Track if we've already checked favorite status for this product
-  const hasCheckedFavoriteRef = useRef(false);
-
   // Check if user is logged in
   const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+  
+  // Track if favorites have been loaded for current user
+  const favoritesLoadedRef = useRef(false);
+  const prevUserRef = useRef(null);
 
   useEffect(() => {
     if (id) {
-      hasCheckedFavoriteRef.current = false; // Reset when ID changes
       dispatch(getPublicProductByIdRequest(id));
     }
   }, [dispatch, id]);
@@ -44,27 +44,40 @@ export default function ProductDetailPage() {
       if (currentProductIdRef.current !== productId) {
         currentProductIdRef.current = productId;
         setSelectedImageIndex(0);
-        hasCheckedFavoriteRef.current = false;
       }
     }
   }, [publicProductDetail?._id]);
 
-  // Check favorite status separately (only when product ID changes, not when favoriteStatus changes)
-  // Use setTimeout to defer check and avoid triggering during render
+  // Load favorites list when user logs in (to populate favoriteStatus)
   useEffect(() => {
-    const productId = publicProductDetail?._id;
-    if (productId && storedUser && currentProductIdRef.current === productId) {
-      // Only check if we haven't checked this product yet
-      if (!hasCheckedFavoriteRef.current && favoriteStatus[productId] === undefined) {
-        hasCheckedFavoriteRef.current = true;
-        // Defer check to avoid triggering during render cycle
-        setTimeout(() => {
-          dispatch(checkFavoriteRequest(productId));
-        }, 100);
+    const currentUserId = storedUser?._id || storedUser?.id || null;
+    const prevUserId = prevUserRef.current?._id || prevUserRef.current?.id || null;
+    
+    // User changed (logged in or logged out)
+    if (currentUserId !== prevUserId) {
+      if (currentUserId) {
+        // User logged in - load favorites list to populate favoriteStatus
+        // Use a reasonable limit (500) instead of 1000 to avoid server overload
+        favoritesLoadedRef.current = false;
+        dispatch(getFavoritesRequest({ page: 1, limit: 500 }));
+      } else {
+        // User logged out - reset
+        favoritesLoadedRef.current = false;
       }
+      prevUserRef.current = storedUser;
+    } else if (storedUser && !favoritesLoadedRef.current && !favoritesLoading) {
+      // User already logged in but favorites not loaded yet (only if not already loading)
+      dispatch(getFavoritesRequest({ page: 1, limit: 500 }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [publicProductDetail?._id, storedUser]);
+  }, [storedUser, dispatch]);
+  
+  // Mark favorites as loaded after successful fetch
+  useEffect(() => {
+    if (!favoritesLoading && storedUser) {
+      favoritesLoadedRef.current = true;
+    }
+  }, [favoritesLoading, storedUser]);
 
   if (publicProductDetailLoading) {
     return (
@@ -252,12 +265,6 @@ export default function ProductDetailPage() {
                     <span className="font-semibold text-gray-900">
                       {product.expiryDateStr.split('-').reverse().join('/')}
                     </span>
-                  </div>
-                )}
-                {product.shelfLifeDays && (
-                  <div className="flex items-center justify-between py-3 border-b border-gray-200">
-                    <span className="text-gray-600">Thời hạn bảo quản</span>
-                    <span className="font-semibold text-gray-900">{product.shelfLifeDays} ngày</span>
                   </div>
                 )}
                 {product.warehouseEntryDateStr && (
