@@ -16,12 +16,12 @@ import {
 import {
   getSuppliersRequest,
   getSupplierByIdRequest,
-} from "../../../../redux/actions/supplierActions";
+} from "../../../redux/actions/supplierActions";
 import CreateSupplier from "./CreateSupplier";
 import UpdateSupplier from "./UpdateSupplier";
 import ReadSupplier from "./ReadSupplier";
 import UpdateCooperationStatus from "./UpdateCooperationStatus";
-import Loading from "../../../../components/Loading/Loading";
+import Loading from "../../../components/Loading/Loading";
 
 const SupplierManagement = () => {
   const dispatch = useDispatch();
@@ -273,6 +273,8 @@ const SupplierManagement = () => {
               <option value="type">Type</option>
               <option value="cooperationStatus">Cooperation Status</option>
               <option value="performanceScore">Performance Score</option>
+              <option value="totalBatches">Total Batches</option>
+              <option value="totalProductsSupplied">Total Products Supplied</option>
             </select>
             <button
               onClick={() => {

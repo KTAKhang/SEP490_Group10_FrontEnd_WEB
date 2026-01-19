@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/Header/Header';
-import Footer from '../components/Footer/Footer';
-import Loading from '../components/Loading/Loading';
-import { getFeaturedProductsRequest } from '../redux/actions/publicProductActions';
+import Header from '../../components/Header/Header';
+import Footer from '../../components/Footer/Footer';
+import Loading from '../../components/Loading/Loading';
+import { getFeaturedProductsRequest } from '../../redux/actions/publicProductActions';
 
 const HomePage = () => {
   const dispatch = useDispatch();

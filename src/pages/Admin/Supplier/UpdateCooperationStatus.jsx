@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X, AlertCircle, CheckCircle, XCircle } from "lucide-react";
-import { updateCooperationStatusRequest } from "../../../../redux/actions/supplierActions";
+import { updateCooperationStatusRequest } from "../../../redux/actions/supplierActions";
 
 const UpdateCooperationStatus = ({ isOpen, onClose, supplierId, supplierName, currentStatus }) => {
   const dispatch = useDispatch();
