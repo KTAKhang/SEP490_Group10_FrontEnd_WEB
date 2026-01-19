@@ -7,8 +7,12 @@ import { getCategoriesRequest } from "../../../redux/actions/categoryActions";
 
 const CreateProduct = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
+<<<<<<< HEAD
+  const { categories, createProductLoading, createProductError } = useSelector((state) => state.warehouse);
+=======
   const { categories } = useSelector((state) => state.category);
   const { createProductLoading } = useSelector((state) => state.product);
+>>>>>>> 22a3f19a9774da34e8f3624342ffe7c2e62850f3
 
   const [formData, setFormData] = useState({
     name: "",
@@ -29,6 +33,31 @@ const CreateProduct = ({ isOpen, onClose }) => {
       dispatch(getCategoriesRequest({ page: 1, limit: 100, status: true }));
     }
   }, [dispatch, isOpen]);
+
+  // Show success toast and close modal when product is created successfully
+  useEffect(() => {
+    if (!createProductLoading && !createProductError && isOpen) {
+      // Product creation completed successfully
+      toast.success("Product created successfully!");
+      onClose();
+      // Reset form
+      setFormData({
+        name: "",
+        short_desc: "",
+        price: 0,
+        plannedQuantity: 0,
+        category: "",
+        brand: "",
+        detail_desc: "",
+        status: true,
+      });
+      setImageFiles([]);
+      setImagePreviews([]);
+    }
+    if (createProductError) {
+      toast.error(createProductError);
+    }
+  }, [createProductLoading, createProductError, isOpen, onClose]);
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -83,20 +112,7 @@ const CreateProduct = ({ isOpen, onClose }) => {
     });
 
     dispatch(createProductRequest(formDataToSend));
-    onClose();
-    // Reset form
-    setFormData({
-      name: "",
-      short_desc: "",
-      price: 0,
-      plannedQuantity: 0,
-      category: "",
-      brand: "",
-      detail_desc: "",
-      status: true,
-    });
-    setImageFiles([]);
-    setImagePreviews([]);
+    // Modal will close automatically when product is created successfully (handled in useEffect)
   };
 
   const handleCancel = () => {

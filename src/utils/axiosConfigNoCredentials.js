@@ -39,18 +39,31 @@ apiClientNoCredentials.interceptors.request.use(
   (config) => {
     // ✅ FIX: Public API không cần token, chỉ thêm token nếu URL yêu cầu
     // Các endpoint public như /about/about, /founder/founders không nên gửi token
-    const publicEndpoints = ['/about/about', '/founder/founders', '/product/products', '/news/news'];
-    const isPublicEndpoint = publicEndpoints.some(endpoint => config.url?.includes(endpoint));
+    // Endpoint /news/public/:id cần token (optional auth) để track view count
+    const publicEndpointsNoToken = ['/about/about', '/founder/founders', '/product/products', '/news/news'];
+    const isPublicEndpointNoToken = publicEndpointsNoToken.some(endpoint => config.url?.includes(endpoint));
     
-    if (!isPublicEndpoint) {
-      // Chỉ thêm token cho các endpoint không phải public
+    // Endpoints cần optional auth (gửi token nếu có)
+    const optionalAuthEndpoints = ['/news/public/'];
+    const isOptionalAuthEndpoint = optionalAuthEndpoints.some(endpoint => config.url?.includes(endpoint));
+    
+    if (!isPublicEndpointNoToken) {
+      // Thêm token cho các endpoint không phải public hoặc là optional auth endpoint
       const token = getToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
-        console.log('📤 Request sent with token:', token ? `${token.substring(0, 20)}...` : 'no token');
+        if (isOptionalAuthEndpoint) {
+          console.log('📤 Optional auth endpoint - sending token for view tracking:', token ? `${token.substring(0, 20)}...` : 'no token');
+        } else {
+          console.log('📤 Request sent with token:', token ? `${token.substring(0, 20)}...` : 'no token');
+        }
         console.log('📤 Authorization header:', config.headers.Authorization);
       } else {
-        console.log('⚠️ No token found in localStorage');
+        if (isOptionalAuthEndpoint) {
+          console.log('⚠️ Optional auth endpoint but no token found - view tracking may not work for logged-in users');
+        } else {
+          console.log('⚠️ No token found in localStorage');
+        }
       }
     } else {
       console.log('🌐 Public endpoint detected, not sending token');
@@ -89,9 +102,15 @@ apiClientNoCredentials.interceptors.response.use(
     
     const originalRequest = error.config;
     
-    // Kiểm tra nếu là public endpoint
-    const publicEndpoints = ['/about/about', '/founder/founders', '/product/products', '/news/news'];
-    const isPublicEndpoint = publicEndpoints.some(endpoint => originalRequest.url?.includes(endpoint));
+    // Kiểm tra nếu là public endpoint (không cần token)
+    const publicEndpointsNoToken = ['/about/about', '/founder/founders', '/product/products', '/news/news'];
+    const isPublicEndpointNoToken = publicEndpointsNoToken.some(endpoint => originalRequest.url?.includes(endpoint));
+    
+    // Endpoints cần optional auth (gửi token nếu có)
+    const optionalAuthEndpoints = ['/news/public/'];
+    const isOptionalAuthEndpoint = optionalAuthEndpoints.some(endpoint => originalRequest.url?.includes(endpoint));
+    
+    const isPublicEndpoint = isPublicEndpointNoToken && !isOptionalAuthEndpoint;
     
     // Nếu lỗi 401 và chưa retry VÀ KHÔNG PHẢI public endpoint
     if (error.response?.status === 401 && !originalRequest._retry && !isPublicEndpoint) {
