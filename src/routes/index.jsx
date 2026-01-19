@@ -26,6 +26,12 @@ import PrivateRoute from "../components/PrivateRouter/index";
 import ContactListPage from "../pages/ContactManagement/ContactListPage";
 import ContactDetailPage from "../pages/ContactManagement/ContactDetailPage";
 import ContactEditPage from "../pages/ContactManagement/ContactEditPage";
+import SupplierManagement from "../pages/QcStaff/Supplier/Supplier/SupplierManagement";
+import HarvestBatchManagement from "../pages/QcStaff/Supplier/HarvestBatch/HarvestBatchManagement";
+import QualityVerificationManagement from "../pages/QcStaff/Supplier/QualityVerification/QualityVerificationManagement";
+import PerformanceEvaluationManagement from "../pages/QcStaff/Supplier/Performance/PerformanceEvaluationManagement";
+import QcStaffLayout from "../layout/QcStaffLayout";
+import QcStaffPage from "../pages/QcStaff/QcStaffPage/QcStaffPage";
 export const routes = [
   // Trang chủ
 
@@ -95,6 +101,23 @@ export const routes = [
       { path: "contacts", element: <ContactListPage /> },
       { path: "contacts/:id", element: <ContactDetailPage /> },
       { path: "contacts/:id/edit", element: <ContactEditPage /> },
+    ],
+  },
+
+  // Khu vực QC Staff
+  {
+    path: "/qc-staff",
+    element: (
+      <PrivateRoute requiredRole="qc_staff">
+        <QcStaffLayout />
+      </PrivateRoute>
+    ),
+    children: [
+      { index: true, element: <QcStaffPage /> },
+      { path: "suppliers", element: <SupplierManagement /> },
+      { path: "harvest-batches", element: <HarvestBatchManagement /> },
+      { path: "quality-verifications", element: <QualityVerificationManagement /> },
+      { path: "performance-evaluations", element: <PerformanceEvaluationManagement /> },
     ],
   },
 

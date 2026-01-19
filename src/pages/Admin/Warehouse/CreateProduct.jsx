@@ -4,16 +4,19 @@ import { X } from "lucide-react";
 import { toast } from "react-toastify";
 import { createProductRequest } from "../../../redux/actions/productActions";
 import { getCategoriesRequest } from "../../../redux/actions/categoryActions";
+import { getSuppliersForBrandRequest } from "../../../redux/actions/supplierActions";
 
 const CreateProduct = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const { categories } = useSelector((state) => state.category);
+  const { suppliersForBrand, suppliersForBrandLoading } = useSelector((state) => state.supplier);
   const { createProductLoading } = useSelector((state) => state.product);
 
   const [formData, setFormData] = useState({
     name: "",
     short_desc: "",
     price: 0,
+    purchasePrice: 0,
     plannedQuantity: 0,
     category: "",
     brand: "",
@@ -23,10 +26,11 @@ const CreateProduct = ({ isOpen, onClose }) => {
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
 
-  // Fetch categories when modal opens if not loaded (only active categories)
+  // Fetch categories and suppliers when modal opens
   useEffect(() => {
     if (isOpen) {
       dispatch(getCategoriesRequest({ page: 1, limit: 100, status: true }));
+      dispatch(getSuppliersForBrandRequest());
     }
   }, [dispatch, isOpen]);
 
@@ -65,12 +69,20 @@ const CreateProduct = ({ isOpen, onClose }) => {
       toast.error("Please fill in all required fields (name, category, brand, price, planned quantity)");
       return;
     }
+    
+    if (formData.purchasePrice < 0) {
+      toast.error("Purchase price must be >= 0");
+      return;
+    }
 
     // Create FormData
     const formDataToSend = new FormData();
     formDataToSend.append("name", formData.name);
     formDataToSend.append("short_desc", formData.short_desc || "");
     formDataToSend.append("price", formData.price);
+    if (formData.purchasePrice > 0) {
+      formDataToSend.append("purchasePrice", formData.purchasePrice);
+    }
     formDataToSend.append("plannedQuantity", formData.plannedQuantity);
     formDataToSend.append("category", formData.category);
     formDataToSend.append("brand", formData.brand || "");
@@ -89,6 +101,7 @@ const CreateProduct = ({ isOpen, onClose }) => {
       name: "",
       short_desc: "",
       price: 0,
+      purchasePrice: 0,
       plannedQuantity: 0,
       category: "",
       brand: "",
@@ -104,6 +117,7 @@ const CreateProduct = ({ isOpen, onClose }) => {
       name: "",
       short_desc: "",
       price: 0,
+      purchasePrice: 0,
       plannedQuantity: 0,
       category: "",
       brand: "",
@@ -195,34 +209,60 @@ const CreateProduct = ({ isOpen, onClose }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Planned quantity <span className="text-red-500">*</span>
+                  Purchase Price (VND)
                 </label>
                 <input
                   type="number"
-                  value={formData.plannedQuantity}
-                  onChange={(e) =>
-                    setFormData({ ...formData, plannedQuantity: parseInt(e.target.value) || 0 })
-                  }
+                  value={formData.purchasePrice}
+                  onChange={(e) => setFormData({ ...formData, purchasePrice: parseFloat(e.target.value) || 0 })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   min="0"
-                  required
+                  step="1000"
+                  placeholder="Enter purchase price"
                 />
+                <p className="text-xs text-gray-500 mt-1">Giá nhập hàng từ supplier (có thể để trống)</p>
               </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Planned quantity <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                value={formData.plannedQuantity}
+                onChange={(e) =>
+                  setFormData({ ...formData, plannedQuantity: parseInt(e.target.value) || 0 })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                min="0"
+                required
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Brand <span className="text-red-500">*</span>
+                  Supplier (Brand) <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  value={formData.brand}
-                  onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Enter brand"
-                  required
-                />
-                <p className="text-xs text-gray-500 mt-1">Product name + brand must be unique</p>
+                {suppliersForBrandLoading ? (
+                  <div className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-500">
+                    Loading suppliers...
+                  </div>
+                ) : (
+                  <select
+                    value={formData.brand}
+                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    required
+                  >
+                    <option value="">Select supplier (brand)</option>
+                    {suppliersForBrand?.map((supplier) => (
+                      <option key={supplier._id} value={supplier.name}>
+                        {supplier.name} ({supplier.type === "FARM" ? "Farm" : "Cooperative"})
+                      </option>
+                    ))}
+                  </select>
+                )}
+                <p className="text-xs text-gray-500 mt-1">Select a supplier to assign as brand</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">

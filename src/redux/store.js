@@ -11,6 +11,7 @@ import publicProductReducer from "./reducers/publicProductReducer";
 import publicCategoryReducer from "./reducers/publicCategoryReducer";
 import productBatchReducer from "./reducers/productBatchReducer";
 import favoriteReducer from "./reducers/favoriteReducer";
+import supplierReducer from "./reducers/supplierReducer";
 import rootSaga from "./sagas/rootSaga";
 
 const rootReducer = combineReducers({
@@ -24,6 +25,7 @@ const rootReducer = combineReducers({
   publicCategory: publicCategoryReducer,
   productBatch: productBatchReducer,
   favorite: favoriteReducer,
+  supplier: supplierReducer,
 });
 
 const sagaMiddleware = createSagaMiddleware();

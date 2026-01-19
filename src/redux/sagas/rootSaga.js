@@ -9,6 +9,7 @@ import publicProductSaga from "./publicProductSaga";
 import publicCategorySaga from "./publicCategorySaga";
 import { productBatchSaga } from "./productBatchSaga";
 import favoriteSaga from "./favoriteSaga";
+import supplierSaga from "./supplierSaga";
 
 
 export default function* rootSaga() {
@@ -24,6 +25,7 @@ export default function* rootSaga() {
       publicCategorySaga(),
       productBatchSaga(),
       favoriteSaga(),
+      supplierSaga(),
     ]);
   } catch (error) {
     console.error("🔴 rootSaga ERROR:", error);
