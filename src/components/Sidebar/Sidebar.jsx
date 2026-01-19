@@ -8,14 +8,12 @@ import {
   Store,
   FolderTree,
   Building2,
+  Truck,
+  Package,
   Ticket,
   History,
   ClipboardList,
-Hieu/Add/Supplier
-  Building2,
-
   Users,
- main
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -38,6 +36,16 @@ const Sidebar = () => {
       icon: Store,
       label: "Product",
       path: "/admin/warehouse",
+    },
+    {
+      icon: Truck,
+      label: "Supplier",
+      path: "/admin/suppliers",
+    },
+    {
+      icon: Package,
+      label: "Harvest Batch",
+      path: "/admin/harvest-batches",
     },
     {
       icon: MessageSquare,
@@ -63,7 +71,8 @@ const Sidebar = () => {
       icon: Ticket,
       label: "Discount Management",
       path: "/admin/discounts",
-
+    },
+    {
       icon: History,
       label: "Batch History",
       path: "/admin/batch-history",

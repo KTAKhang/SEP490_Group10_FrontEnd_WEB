@@ -68,13 +68,14 @@ import {
 } from "../actions/supplierActions";
 
 // ===== SUPPLIER API CALLS =====
+// ✅ Tất cả endpoints đã được cập nhật sang /admin/suppliers (chỉ admin mới có quyền)
 const apiCreateSupplier = async (formData) => {
-  const response = await apiClient.post("/qc-staff/suppliers", formData);
+  const response = await apiClient.post("/admin/suppliers", formData);
   return response.data;
 };
 
 const apiUpdateSupplier = async (supplierId, formData) => {
-  const response = await apiClient.put(`/qc-staff/suppliers/${supplierId}`, formData);
+  const response = await apiClient.put(`/admin/suppliers/${supplierId}`, formData);
   return response.data;
 };
 
@@ -86,37 +87,52 @@ const apiGetSuppliers = async (params = {}) => {
   if (params.type) queryParams.append("type", params.type);
   if (params.cooperationStatus) queryParams.append("cooperationStatus", params.cooperationStatus);
   if (params.status !== undefined) queryParams.append("status", params.status);
+  // ✅ Hỗ trợ các filter mới từ backend
+  if (params.minPerformanceScore !== undefined) queryParams.append("minPerformanceScore", params.minPerformanceScore);
+  if (params.maxPerformanceScore !== undefined) queryParams.append("maxPerformanceScore", params.maxPerformanceScore);
+  if (params.minTotalBatches !== undefined) queryParams.append("minTotalBatches", params.minTotalBatches);
+  if (params.maxTotalBatches !== undefined) queryParams.append("maxTotalBatches", params.maxTotalBatches);
+  if (params.minTotalProductsSupplied !== undefined) queryParams.append("minTotalProductsSupplied", params.minTotalProductsSupplied);
+  if (params.maxTotalProductsSupplied !== undefined) queryParams.append("maxTotalProductsSupplied", params.maxTotalProductsSupplied);
+  if (params.createdFrom) queryParams.append("createdFrom", params.createdFrom);
+  if (params.createdTo) queryParams.append("createdTo", params.createdTo);
+  if (params.updatedFrom) queryParams.append("updatedFrom", params.updatedFrom);
+  if (params.updatedTo) queryParams.append("updatedTo", params.updatedTo);
+  if (params.hasEmail !== undefined) queryParams.append("hasEmail", params.hasEmail);
+  if (params.hasPhone !== undefined) queryParams.append("hasPhone", params.hasPhone);
+  if (params.productId) queryParams.append("productId", params.productId);
   if (params.sortBy) queryParams.append("sortBy", params.sortBy);
   if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
 
   const queryString = queryParams.toString();
-  const url = `/qc-staff/suppliers${queryString ? `?${queryString}` : ""}`;
+  const url = `/admin/suppliers${queryString ? `?${queryString}` : ""}`;
   const response = await apiClient.get(url);
   return response.data;
 };
 
 const apiGetSupplierById = async (supplierId) => {
-  const response = await apiClient.get(`/qc-staff/suppliers/${supplierId}`);
+  const response = await apiClient.get(`/admin/suppliers/${supplierId}`);
   return response.data;
 };
 
 const apiGetSuppliersForBrand = async () => {
-  const response = await apiClient.get("/qc-staff/suppliers/for-brand");
+  const response = await apiClient.get("/admin/suppliers/for-brand");
   return response.data;
 };
 
+// ✅ Harvest Batch endpoints đã được tách ra router riêng tại /admin/harvest-batch
 const apiCreateHarvestBatch = async (formData) => {
-  const response = await apiClient.post("/qc-staff/suppliers/harvest-batch", formData);
+  const response = await apiClient.post("/admin/harvest-batch", formData);
   return response.data;
 };
 
 const apiUpdateHarvestBatch = async (harvestBatchId, formData) => {
-  const response = await apiClient.put(`/qc-staff/suppliers/harvest-batch/${harvestBatchId}`, formData);
+  const response = await apiClient.put(`/admin/harvest-batch/${harvestBatchId}`, formData);
   return response.data;
 };
 
 const apiDeleteHarvestBatch = async (harvestBatchId) => {
-  const response = await apiClient.delete(`/qc-staff/suppliers/harvest-batch/${harvestBatchId}`);
+  const response = await apiClient.delete(`/admin/harvest-batch/${harvestBatchId}`);
   return response.data;
 };
 
@@ -128,32 +144,46 @@ const apiGetHarvestBatches = async (params = {}) => {
   if (params.supplierId) queryParams.append("supplierId", params.supplierId);
   if (params.productId) queryParams.append("productId", params.productId);
   if (params.status) queryParams.append("status", params.status);
+  // ✅ Hỗ trợ các filter mới từ backend
+  if (params.qualityGrade) queryParams.append("qualityGrade", params.qualityGrade);
+  if (params.minQuantity !== undefined) queryParams.append("minQuantity", params.minQuantity);
+  if (params.maxQuantity !== undefined) queryParams.append("maxQuantity", params.maxQuantity);
+  if (params.minReceivedQuantity !== undefined) queryParams.append("minReceivedQuantity", params.minReceivedQuantity);
+  if (params.maxReceivedQuantity !== undefined) queryParams.append("maxReceivedQuantity", params.maxReceivedQuantity);
+  if (params.harvestDateFrom) queryParams.append("harvestDateFrom", params.harvestDateFrom);
+  if (params.harvestDateTo) queryParams.append("harvestDateTo", params.harvestDateTo);
+  if (params.createdFrom) queryParams.append("createdFrom", params.createdFrom);
+  if (params.createdTo) queryParams.append("createdTo", params.createdTo);
+  if (params.updatedFrom) queryParams.append("updatedFrom", params.updatedFrom);
+  if (params.updatedTo) queryParams.append("updatedTo", params.updatedTo);
+  if (params.hasInventoryTransactions !== undefined) queryParams.append("hasInventoryTransactions", params.hasInventoryTransactions);
+  if (params.createdBy) queryParams.append("createdBy", params.createdBy);
   if (params.sortBy) queryParams.append("sortBy", params.sortBy);
   if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
 
   const queryString = queryParams.toString();
-  const url = `/qc-staff/suppliers/harvest-batch${queryString ? `?${queryString}` : ""}`;
+  const url = `/admin/harvest-batch${queryString ? `?${queryString}` : ""}`;
   const response = await apiClient.get(url);
   return response.data;
 };
 
 const apiGetHarvestBatchById = async (harvestBatchId) => {
-  const response = await apiClient.get(`/qc-staff/suppliers/harvest-batch/${harvestBatchId}`);
+  const response = await apiClient.get(`/admin/harvest-batch/${harvestBatchId}`);
   return response.data;
 };
 
 const apiVerifyQuality = async (formData) => {
-  const response = await apiClient.post("/qc-staff/suppliers/quality/verify", formData);
+  const response = await apiClient.post("/admin/suppliers/quality/verify", formData);
   return response.data;
 };
 
 const apiUpdateQualityVerification = async (verificationId, formData) => {
-  const response = await apiClient.put(`/qc-staff/suppliers/quality/verifications/${verificationId}`, formData);
+  const response = await apiClient.put(`/admin/suppliers/quality/verifications/${verificationId}`, formData);
   return response.data;
 };
 
 const apiDeleteQualityVerification = async (verificationId) => {
-  const response = await apiClient.delete(`/qc-staff/suppliers/quality/verifications/${verificationId}`);
+  const response = await apiClient.delete(`/admin/suppliers/quality/verifications/${verificationId}`);
   return response.data;
 };
 
@@ -169,23 +199,23 @@ const apiGetQualityVerifications = async (params = {}) => {
   if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
 
   const queryString = queryParams.toString();
-  const url = `/qc-staff/suppliers/quality/verifications${queryString ? `?${queryString}` : ""}`;
+  const url = `/admin/suppliers/quality/verifications${queryString ? `?${queryString}` : ""}`;
   const response = await apiClient.get(url);
   return response.data;
 };
 
 const apiGetQualityVerificationById = async (verificationId) => {
-  const response = await apiClient.get(`/qc-staff/suppliers/quality/verifications/${verificationId}`);
+  const response = await apiClient.get(`/admin/suppliers/quality/verifications/${verificationId}`);
   return response.data;
 };
 
 const apiUpdatePurchaseCost = async (supplierId, formData) => {
-  const response = await apiClient.put(`/qc-staff/suppliers/${supplierId}/purchase-cost`, formData);
+  const response = await apiClient.put(`/admin/suppliers/${supplierId}/purchase-cost`, formData);
   return response.data;
 };
 
 const apiEvaluatePerformance = async (formData) => {
-  const response = await apiClient.post("/qc-staff/suppliers/performance/evaluate", formData);
+  const response = await apiClient.post("/admin/suppliers/performance/evaluate", formData);
   return response.data;
 };
 
@@ -202,18 +232,18 @@ const apiGetPerformances = async (params = {}) => {
   if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
 
   const queryString = queryParams.toString();
-  const url = `/qc-staff/suppliers/performance${queryString ? `?${queryString}` : ""}`;
+  const url = `/admin/suppliers/performance${queryString ? `?${queryString}` : ""}`;
   const response = await apiClient.get(url);
   return response.data;
 };
 
 const apiGetPerformanceById = async (performanceId) => {
-  const response = await apiClient.get(`/qc-staff/suppliers/performance/${performanceId}`);
+  const response = await apiClient.get(`/admin/suppliers/performance/${performanceId}`);
   return response.data;
 };
 
 const apiUpdateCooperationStatus = async (supplierId, formData) => {
-  const response = await apiClient.put(`/qc-staff/suppliers/${supplierId}/cooperation-status`, formData);
+  const response = await apiClient.put(`/admin/suppliers/${supplierId}/cooperation-status`, formData);
   return response.data;
 };
 
@@ -226,7 +256,7 @@ const apiGetActivityLog = async (supplierId, params = {}) => {
   if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
 
   const queryString = queryParams.toString();
-  const url = `/qc-staff/suppliers/${supplierId}/activity-log${queryString ? `?${queryString}` : ""}`;
+  const url = `/admin/suppliers/${supplierId}/activity-log${queryString ? `?${queryString}` : ""}`;
   const response = await apiClient.get(url);
   return response.data;
 };
@@ -347,13 +377,8 @@ function* createHarvestBatchSaga(action) {
       toast.error(errorMessage);
     }
   } catch (error) {
-    console.error("❌ Create harvest batch error:", error);
-    console.error("❌ Error response:", error.response?.data);
     const errorMessage =
-      error.response?.data?.message || 
-      error.response?.data?.error ||
-      error.message || 
-      "Không thể tạo lô thu hoạch";
+      error.response?.data?.message || error.message || "Không thể tạo lô thu hoạch";
     yield put(createHarvestBatchFailure(errorMessage));
     toast.error(errorMessage);
   }

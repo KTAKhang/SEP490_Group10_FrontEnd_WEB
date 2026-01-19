@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/Header/Header';
-import Footer from '../components/Footer/Footer';
-import Loading from '../components/Loading/Loading';
-import { getPublicCategoriesRequest } from '../redux/actions/publicCategoryActions';
+import Header from '../../components/Header/Header';
+import Footer from '../../components/Footer/Footer';
+import Loading from '../../components/Loading/Loading';
+import { getPublicCategoriesRequest } from '../../redux/actions/publicCategoryActions';
 import { Search, Grid } from 'lucide-react';
 
 export default function Categories() {

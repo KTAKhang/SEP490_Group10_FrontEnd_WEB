@@ -17,10 +17,11 @@ import {
   getHarvestBatchesRequest,
   getHarvestBatchByIdRequest,
   deleteHarvestBatchRequest,
-} from "../../../../redux/actions/supplierActions";
+} from "../../../redux/actions/supplierActions";
 import CreateHarvestBatch from "./CreateHarvestBatch";
 import ReadHarvestBatch from "./ReadHarvestBatch";
-import Loading from "../../../../components/Loading/Loading";
+import UpdateHarvestBatch from "./UpdateHarvestBatch";
+import Loading from "../../../components/Loading/Loading";
 
 const HarvestBatchManagement = () => {
   const dispatch = useDispatch();
@@ -29,6 +30,7 @@ const HarvestBatchManagement = () => {
     harvestBatchesLoading,
     harvestBatchesPagination,
     deleteHarvestBatchLoading,
+    deleteHarvestBatchError,
   } = useSelector((state) => state.supplier);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -39,6 +41,7 @@ const HarvestBatchManagement = () => {
   const [sortOrder, setSortOrder] = useState("desc");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showReadModal, setShowReadModal] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedBatch, setSelectedBatch] = useState(null);
 
   // Fetch harvest batches when filters change
@@ -65,11 +68,39 @@ const HarvestBatchManagement = () => {
     dispatch(getHarvestBatchByIdRequest(batch._id));
   };
 
+  const handleEditBatch = (batch) => {
+    setSelectedBatch(batch);
+    setShowUpdateModal(true);
+  };
+
   const handleDeleteBatch = (batch) => {
     if (window.confirm(`Bạn có chắc muốn xóa lô thu hoạch "${batch.batchNumber}"?`)) {
       dispatch(deleteHarvestBatchRequest(batch._id));
     }
   };
+
+  // Refresh list after successful delete
+  useEffect(() => {
+    // Only refresh if delete was successful (no error and loading finished)
+    if (!deleteHarvestBatchLoading && !deleteHarvestBatchError) {
+      // This will run on mount and after successful operations
+      // We need to track if delete was actually called
+      const params = {
+        page: currentPage,
+        limit: 10,
+        search: searchTerm || undefined,
+        supplierId: filterSupplier !== "all" ? filterSupplier : undefined,
+        status: filterStatus !== "all" ? filterStatus : undefined,
+        sortBy,
+        sortOrder,
+      };
+      // Only dispatch if not already loading
+      if (!harvestBatchesLoading) {
+        dispatch(getHarvestBatchesRequest(params));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deleteHarvestBatchLoading, deleteHarvestBatchError]);
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -177,9 +208,14 @@ const HarvestBatchManagement = () => {
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
             >
               <option value="createdAt">Created Date</option>
+              <option value="updatedAt">Updated Date</option>
               <option value="harvestDate">Harvest Date</option>
               <option value="batchNumber">Batch Number</option>
+              <option value="batchCode">Batch Code</option>
               <option value="quantity">Quantity</option>
+              <option value="receivedQuantity">Received Quantity</option>
+              <option value="status">Status</option>
+              <option value="qualityGrade">Quality Grade</option>
             </select>
             <button
               onClick={() => {
@@ -292,6 +328,7 @@ const HarvestBatchManagement = () => {
                             {batch.receivedQuantity === 0 && (
                               <>
                                 <button
+                                  onClick={() => handleEditBatch(batch)}
                                   className="text-green-600 hover:text-green-900 flex items-center space-x-1"
                                   title="Edit"
                                 >
@@ -397,6 +434,28 @@ const HarvestBatchManagement = () => {
           onClose={() => {
             setShowReadModal(false);
             setSelectedBatch(null);
+          }}
+          harvestBatchId={selectedBatch._id}
+        />
+      )}
+
+      {showUpdateModal && selectedBatch && (
+        <UpdateHarvestBatch
+          isOpen={showUpdateModal}
+          onClose={() => {
+            setShowUpdateModal(false);
+            setSelectedBatch(null);
+            // Refresh list
+            const params = {
+              page: currentPage,
+              limit: 10,
+              search: searchTerm || undefined,
+              supplierId: filterSupplier !== "all" ? filterSupplier : undefined,
+              status: filterStatus !== "all" ? filterStatus : undefined,
+              sortBy,
+              sortOrder,
+            };
+            dispatch(getHarvestBatchesRequest(params));
           }}
           harvestBatchId={selectedBatch._id}
         />
