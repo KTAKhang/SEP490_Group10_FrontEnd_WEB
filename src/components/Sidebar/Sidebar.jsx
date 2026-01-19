@@ -8,6 +8,10 @@ import {
   Store,
   FolderTree,
   Building2,
+  Ticket,
+  History,
+  ClipboardList,
+  Users,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -23,7 +27,7 @@ const Sidebar = () => {
     },
     {
       icon: FolderTree,
-      label: "Category",
+      label: "Categories",
       path: "/admin/category",
     },
     {
@@ -46,6 +50,25 @@ const Sidebar = () => {
       label: "Shop Information",
       path: "/admin/shop",
     },
+    {
+      icon: Users,
+      label: "Staff Management",
+      path: "/admin/staff",
+    },
+    {
+      icon: Ticket,
+      label: "Discount Management",
+      path: "/admin/discounts",
+
+      icon: History,
+      label: "Batch History",
+      path: "/admin/batch-history",
+    },
+    {
+      icon: ClipboardList,
+      label: "Receipt History",
+      path: "/admin/receipt-history",
+    },
   ];
 
   const isActive = (path, exact = false) => {
@@ -67,9 +90,8 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full bg-white shadow-lg z-50 transition-all duration-300 ease-in-out ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 w-64`}
+        className={`fixed top-0 left-0 h-full bg-white shadow-lg z-50 transition-all duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"
+          } lg:translate-x-0 w-64`}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
@@ -102,11 +124,10 @@ const Sidebar = () => {
                   <li key={item.path}>
                     <Link
                       to={item.path}
-                      className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                        active
+                      className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${active
                           ? "bg-green-100 text-green-700 font-medium"
                           : "text-gray-700 hover:bg-gray-100"
-                      }`}
+                        }`}
                     >
                       <Icon size={20} />
                       <span>{item.label}</span>

@@ -2,11 +2,17 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
-import { createProductRequest, getCategoriesRequest } from "../../../redux/actions/warehouseActions";
+import { createProductRequest } from "../../../redux/actions/productActions";
+import { getCategoriesRequest } from "../../../redux/actions/categoryActions";
 
 const CreateProduct = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
+<<<<<<< HEAD
   const { categories, createProductLoading, createProductError } = useSelector((state) => state.warehouse);
+=======
+  const { categories } = useSelector((state) => state.category);
+  const { createProductLoading } = useSelector((state) => state.product);
+>>>>>>> 22a3f19a9774da34e8f3624342ffe7c2e62850f3
 
   const [formData, setFormData] = useState({
     name: "",
@@ -84,8 +90,8 @@ const CreateProduct = ({ isOpen, onClose }) => {
     e.preventDefault();
     
     // Validation
-    if (!formData.name || !formData.category || formData.price <= 0 || formData.plannedQuantity < 0) {
-      toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
+    if (!formData.name || !formData.category || !formData.brand || formData.price <= 0 || formData.plannedQuantity < 0) {
+      toast.error("Please fill in all required fields (name, category, brand, price, planned quantity)");
       return;
     }
 
@@ -131,7 +137,7 @@ const CreateProduct = ({ isOpen, onClose }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-bold text-gray-800">Thêm sản phẩm mới</h2>
+          <h2 className="text-xl font-bold text-gray-800">Add new product</h2>
           <button
             onClick={handleCancel}
             className="text-gray-400 hover:text-gray-600"
@@ -144,20 +150,20 @@ const CreateProduct = ({ isOpen, onClose }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tên sản phẩm <span className="text-red-500">*</span>
+                  Product name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Nhập tên sản phẩm"
+                  placeholder="Enter product name"
                   required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Danh mục <span className="text-red-500">*</span>
+                  Category <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={formData.category}
@@ -165,7 +171,7 @@ const CreateProduct = ({ isOpen, onClose }) => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   required
                 >
-                  <option value="">Chọn danh mục</option>
+                  <option value="">Select category</option>
                   {categories?.filter((cat) => cat.status === true).map((cat) => (
                     <option key={cat._id} value={cat._id}>
                       {cat.name}
@@ -176,14 +182,14 @@ const CreateProduct = ({ isOpen, onClose }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Mô tả ngắn
+                Short description
               </label>
               <textarea
                 value={formData.short_desc}
                 onChange={(e) => setFormData({ ...formData, short_desc: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 rows="2"
-                placeholder="Mô tả ngắn (tối đa 200 ký tự)"
+                placeholder="Short description (max 200 characters)"
                 maxLength={200}
               />
               <p className="text-xs text-gray-500 mt-1">{formData.short_desc.length}/200</p>
@@ -191,7 +197,7 @@ const CreateProduct = ({ isOpen, onClose }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Giá (VNĐ) <span className="text-red-500">*</span>
+                  Price (VND) <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -205,7 +211,7 @@ const CreateProduct = ({ isOpen, onClose }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Số lượng kế hoạch <span className="text-red-500">*</span>
+                  Planned quantity <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -222,47 +228,49 @@ const CreateProduct = ({ isOpen, onClose }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Thương hiệu
+                  Brand <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.brand}
                   onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Nhập thương hiệu"
+                  placeholder="Enter brand"
+                  required
                 />
+                <p className="text-xs text-gray-500 mt-1">Product name + brand must be unique</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Trạng thái
+                  Status
                 </label>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value === "true" })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 >
-                  <option value={true}>Hiển thị</option>
-                  <option value={false}>Ẩn</option>
+                  <option value={true}>Visible</option>
+                  <option value={false}>Hidden</option>
                 </select>
               </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Mô tả chi tiết
+                Detailed description
               </label>
               <textarea
                 value={formData.detail_desc}
                 onChange={(e) => setFormData({ ...formData, detail_desc: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 rows="4"
-                placeholder="Mô tả chi tiết (tối đa 1000 ký tự)"
+                placeholder="Detailed description (max 1000 characters)"
                 maxLength={1000}
               />
               <p className="text-xs text-gray-500 mt-1">{formData.detail_desc.length}/1000</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Hình ảnh sản phẩm
+                Product images
               </label>
               <input
                 type="file"
@@ -299,14 +307,14 @@ const CreateProduct = ({ isOpen, onClose }) => {
               onClick={handleCancel}
               className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
-              Hủy
+              Cancel
             </button>
             <button
               type="submit"
               disabled={createProductLoading}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {createProductLoading ? "Đang tạo..." : "Thêm mới"}
+              {createProductLoading ? "Creating..." : "Create"}
             </button>
           </div>
         </form>

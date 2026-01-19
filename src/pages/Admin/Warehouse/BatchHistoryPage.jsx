@@ -1,0 +1,733 @@
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  History,
+  Package,
+  Search,
+  Filter,
+  X,
+  Eye,
+  Calendar,
+  Package2,
+  TrendingUp,
+  TrendingDown,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Tag,
+} from "lucide-react";
+import { getProductsRequest } from "../../../redux/actions/productActions";
+import { getProductBatchHistoryRequest } from "../../../redux/actions/productBatchActions";
+import Loading from "../../../components/Loading/Loading";
+
+const BatchHistoryPage = () => {
+  const dispatch = useDispatch();
+  const { products, productsLoading } = useSelector((state) => state.product);
+  const { batchHistory, batchHistoryPagination, batchHistoryLoading } = useSelector(
+    (state) => state.productBatch
+  );
+
+  const [selectedProductId, setSelectedProductId] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [completionReason, setCompletionReason] = useState("");
+  const [sortBy, setSortBy] = useState("batchNumber");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [selectedBatch, setSelectedBatch] = useState(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  // Fetch all products on mount
+  useEffect(() => {
+    dispatch(getProductsRequest({ page: 1, limit: 1000, sortBy: "name", sortOrder: "asc" }));
+  }, [dispatch]);
+
+  // Fetch batch history when product is selected or filters change
+  useEffect(() => {
+    if (selectedProductId) {
+      const params = {
+        page: currentPage,
+        limit: 20,
+        ...(searchTerm && { search: searchTerm }),
+        ...(completionReason && { completionReason }),
+        sortBy,
+        sortOrder,
+      };
+      dispatch(getProductBatchHistoryRequest(selectedProductId, params));
+    }
+  }, [dispatch, selectedProductId, currentPage, searchTerm, completionReason, sortBy, sortOrder]);
+
+  // Filter products by search term
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (product.brand && product.brand.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  const selectedProduct = products.find((p) => p._id === selectedProductId);
+
+  const getCompletionReasonLabel = (reason) => {
+    switch (reason) {
+      case "SOLD_OUT":
+        return { label: "Sold out", color: "bg-green-100 text-green-800" };
+      case "EXPIRED":
+        return { label: "Expired", color: "bg-red-100 text-red-800" };
+      default:
+        return { label: "N/A", color: "bg-gray-100 text-gray-800" };
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800 flex items-center space-x-2">
+            <History size={32} />
+            <span>Batch History</span>
+          </h1>
+          <p className="text-gray-600 mt-1">View batch history for products</p>
+        </div>
+      </div>
+
+      {/* Product Selection Card */}
+      <div className="bg-white rounded-lg border shadow-sm p-6">
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2 mb-4">
+            <Filter className="text-gray-400" size={20} />
+            <h2 className="text-lg font-semibold text-gray-800">Select Product</h2>
+          </div>
+
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <input
+              type="text"
+              placeholder="Search products by name or brand..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Product Dropdown/List */}
+          {productsLoading ? (
+            <Loading message="Loading products..." />
+          ) : (
+            <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-lg">
+              {filteredProducts.length === 0 ? (
+                <div className="p-4 text-center text-gray-500">No products found</div>
+              ) : (
+                <div className="divide-y divide-gray-200">
+                  {filteredProducts.map((product) => (
+                    <button
+                      key={product._id}
+                      onClick={() => {
+                        setSelectedProductId(product._id);
+                        setCurrentPage(1);
+                      }}
+                      className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
+                        selectedProductId === product._id ? "bg-green-50 border-l-4 border-green-600" : ""
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">{product.name}</p>
+                          <p className="text-sm text-gray-500">
+                            {product.brand} • Batch #{product.batchNumber || 1}
+                          </p>
+                        </div>
+                        {selectedProductId === product._id && (
+                          <div className="ml-2">
+                            <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Batch History Table */}
+      {selectedProductId && (
+        <div className="bg-white rounded-lg border shadow-sm">
+          <div className="p-6 border-b">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-800">
+                  Batch History - {selectedProduct?.name || "Loading..."}
+                </h2>
+                {selectedProduct && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    Brand: {selectedProduct.brand} • Current Batch: #{selectedProduct.batchNumber || 1}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Filters for Batch History */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Search by batch number..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                />
+              </div>
+
+              {/* Completion Reason Filter */}
+              <div>
+                <select
+                  value={completionReason}
+                  onChange={(e) => {
+                    setCompletionReason(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                >
+                  <option value="">All reasons</option>
+                  <option value="SOLD_OUT">Sold out</option>
+                  <option value="EXPIRED">Expired</option>
+                </select>
+              </div>
+
+              {/* Sort */}
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Sort:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => {
+                    setSortBy(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                >
+                  <option value="batchNumber">Batch #</option>
+                  <option value="completedDate">Completed Date</option>
+                  <option value="createdAt">Created Date</option>
+                  <option value="plannedQuantity">Planned</option>
+                  <option value="receivedQuantity">Received</option>
+                  <option value="soldQuantity">Sold</option>
+                  <option value="discardedQuantity">Discarded</option>
+                </select>
+                <button
+                  onClick={() => {
+                    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                    setCurrentPage(1);
+                  }}
+                  className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm"
+                  title={sortOrder === "asc" ? "Ascending" : "Descending"}
+                >
+                  {sortOrder === "asc" ? "↑" : "↓"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6">
+            {batchHistoryLoading ? (
+              <Loading message="Loading batch history..." />
+            ) : batchHistory.length === 0 ? (
+              <div className="text-center py-12">
+                <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No batch history found</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Batch history will appear here after products are sold out or expired
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50 border-b">
+                      <tr>
+                        <th 
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                          onClick={() => {
+                            setSortBy("batchNumber");
+                            setSortOrder(sortBy === "batchNumber" && sortOrder === "asc" ? "desc" : "asc");
+                            setCurrentPage(1);
+                          }}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Batch #</span>
+                            {sortBy === "batchNumber" && (
+                              <span className="text-green-600">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                            )}
+                          </div>
+                        </th>
+                        <th 
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                          onClick={() => {
+                            setSortBy("plannedQuantity");
+                            setSortOrder(sortBy === "plannedQuantity" && sortOrder === "asc" ? "desc" : "asc");
+                            setCurrentPage(1);
+                          }}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Planned</span>
+                            {sortBy === "plannedQuantity" && (
+                              <span className="text-green-600">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                            )}
+                          </div>
+                        </th>
+                        <th 
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                          onClick={() => {
+                            setSortBy("receivedQuantity");
+                            setSortOrder(sortBy === "receivedQuantity" && sortOrder === "asc" ? "desc" : "asc");
+                            setCurrentPage(1);
+                          }}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Received</span>
+                            {sortBy === "receivedQuantity" && (
+                              <span className="text-green-600">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                            )}
+                          </div>
+                        </th>
+                        <th 
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                          onClick={() => {
+                            setSortBy("soldQuantity");
+                            setSortOrder(sortBy === "soldQuantity" && sortOrder === "asc" ? "desc" : "asc");
+                            setCurrentPage(1);
+                          }}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Sold</span>
+                            {sortBy === "soldQuantity" && (
+                              <span className="text-green-600">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                            )}
+                          </div>
+                        </th>
+                        <th 
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                          onClick={() => {
+                            setSortBy("discardedQuantity");
+                            setSortOrder(sortBy === "discardedQuantity" && sortOrder === "asc" ? "desc" : "asc");
+                            setCurrentPage(1);
+                          }}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Discarded</span>
+                            {sortBy === "discardedQuantity" && (
+                              <span className="text-green-600">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                            )}
+                          </div>
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Entry Date
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Expiry Date
+                        </th>
+                        <th 
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                          onClick={() => {
+                            setSortBy("completedDate");
+                            setSortOrder(sortBy === "completedDate" && sortOrder === "asc" ? "desc" : "asc");
+                            setCurrentPage(1);
+                          }}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Completed Date</span>
+                            {sortBy === "completedDate" && (
+                              <span className="text-green-600">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                            )}
+                          </div>
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Reason
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {batchHistory.map((batch) => {
+                        const reasonInfo = getCompletionReasonLabel(batch.completionReason);
+                        return (
+                          <tr key={batch._id} className="hover:bg-gray-50">
+                            <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                              #{batch.batchNumber}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                              {batch.plannedQuantity}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                              {batch.receivedQuantity}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-green-600 font-medium">
+                              {batch.soldQuantity}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-red-600 font-medium">
+                              {batch.discardedQuantity}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                              {batch.warehouseEntryDateStr
+                                ? batch.warehouseEntryDateStr.split("-").reverse().join("/")
+                                : new Date(batch.warehouseEntryDate).toLocaleDateString("vi-VN")}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                              {batch.expiryDateStr
+                                ? batch.expiryDateStr.split("-").reverse().join("/")
+                                : batch.expiryDate
+                                ? new Date(batch.expiryDate).toLocaleDateString("vi-VN")
+                                : "N/A"}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                              {batch.completedDateStr
+                                ? batch.completedDateStr.split("-").reverse().join("/")
+                                : new Date(batch.completedDate).toLocaleDateString("vi-VN")}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <span
+                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${reasonInfo.color}`}
+                              >
+                                {reasonInfo.label}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
+                              <button
+                                onClick={() => {
+                                  setSelectedBatch(batch);
+                                  setIsDetailModalOpen(true);
+                                }}
+                                className="text-green-600 hover:text-green-900 flex items-center space-x-1"
+                              >
+                                <Eye size={16} />
+                                <span>Chi tiết</span>
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                {batchHistoryPagination && batchHistoryPagination.totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                    <div className="text-sm text-gray-700">
+                      Showing{" "}
+                      {batchHistoryPagination.page * batchHistoryPagination.limit -
+                        batchHistoryPagination.limit +
+                        1}{" "}
+                      -{" "}
+                      {Math.min(
+                        batchHistoryPagination.page * batchHistoryPagination.limit,
+                        batchHistoryPagination.total
+                      )}{" "}
+                      of {batchHistoryPagination.total} batches
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      >
+                        Previous
+                      </button>
+                      {[...Array(batchHistoryPagination.totalPages)].map((_, index) => (
+                        <button
+                          key={index + 1}
+                          onClick={() => setCurrentPage(index + 1)}
+                          className={`px-3 py-1 border rounded-lg ${
+                            currentPage === index + 1
+                              ? "bg-green-600 text-white border-green-600"
+                              : "border-gray-300 hover:bg-gray-50"
+                          }`}
+                        >
+                          {index + 1}
+                        </button>
+                      ))}
+                      <button
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.min(batchHistoryPagination.totalPages, prev + 1))
+                        }
+                        disabled={currentPage === batchHistoryPagination.totalPages}
+                        className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {!selectedProductId && (
+        <div className="bg-white rounded-lg border shadow-sm p-12 text-center">
+          <History className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Please select a product to view batch history</p>
+        </div>
+      )}
+
+      {/* Batch Detail Modal */}
+      {isDetailModalOpen && selectedBatch && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 flex items-center space-x-2">
+                  <Package size={24} />
+                  <span>Batch #{selectedBatch.batchNumber} - {selectedProduct?.name || ""}</span>
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Chi tiết lô hàng đã hoàn thành
+                </p>
+              </div>
+              <button
+                onClick={() => setIsDetailModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-6">
+              {/* Product Info */}
+              {selectedProduct && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center space-x-2">
+                    <Package2 size={20} />
+                    <span>Thông tin sản phẩm</span>
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Tên sản phẩm</p>
+                      <p className="text-base font-medium text-gray-900">{selectedProduct.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Thương hiệu</p>
+                      <p className="text-base font-medium text-gray-900">{selectedProduct.brand || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Danh mục</p>
+                      <p className="text-base font-medium text-gray-900">{selectedProduct.category?.name || "N/A"}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Batch Info */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
+                  <Tag size={20} />
+                  <span>Thông tin lô hàng</span>
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {/* Planned Quantity */}
+                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Package2 size={18} className="text-blue-600" />
+                      <p className="text-sm text-blue-600 font-medium">Số lượng kế hoạch</p>
+                    </div>
+                    <p className="text-2xl font-bold text-blue-900">{selectedBatch.plannedQuantity || 0}</p>
+                  </div>
+
+                  {/* Received Quantity */}
+                  <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <TrendingUp size={18} className="text-purple-600" />
+                      <p className="text-sm text-purple-600 font-medium">Số lượng nhận</p>
+                    </div>
+                    <p className="text-2xl font-bold text-purple-900">{selectedBatch.receivedQuantity || 0}</p>
+                  </div>
+
+                  {/* Sold Quantity */}
+                  <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <CheckCircle size={18} className="text-green-600" />
+                      <p className="text-sm text-green-600 font-medium">Số lượng bán</p>
+                    </div>
+                    <p className="text-2xl font-bold text-green-900">{selectedBatch.soldQuantity || 0}</p>
+                  </div>
+
+                  {/* Discarded Quantity */}
+                  <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <XCircle size={18} className="text-red-600" />
+                      <p className="text-sm text-red-600 font-medium">Số lượng hủy</p>
+                    </div>
+                    <p className="text-2xl font-bold text-red-900">{selectedBatch.discardedQuantity || 0}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Dates */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
+                  <Calendar size={20} />
+                  <span>Thông tin ngày tháng</span>
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Warehouse Entry Date */}
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <p className="text-sm text-gray-500 mb-1">Ngày nhập kho</p>
+                    <p className="text-base font-medium text-gray-900 flex items-center space-x-2">
+                      <Clock size={16} className="text-gray-400" />
+                      <span>
+                        {selectedBatch.warehouseEntryDateStr
+                          ? selectedBatch.warehouseEntryDateStr.split("-").reverse().join("/")
+                          : selectedBatch.warehouseEntryDate
+                          ? new Date(selectedBatch.warehouseEntryDate).toLocaleDateString("vi-VN")
+                          : "N/A"}
+                      </span>
+                    </p>
+                  </div>
+
+                  {/* Expiry Date */}
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <p className="text-sm text-gray-500 mb-1">Ngày hết hạn</p>
+                    <p className="text-base font-medium text-gray-900 flex items-center space-x-2">
+                      <Clock size={16} className="text-gray-400" />
+                      <span>
+                        {selectedBatch.expiryDateStr
+                          ? selectedBatch.expiryDateStr.split("-").reverse().join("/")
+                          : selectedBatch.expiryDate
+                          ? new Date(selectedBatch.expiryDate).toLocaleDateString("vi-VN")
+                          : "N/A"}
+                      </span>
+                    </p>
+                  </div>
+
+                  {/* Completed Date */}
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <p className="text-sm text-gray-500 mb-1">Ngày hoàn thành</p>
+                    <p className="text-base font-medium text-gray-900 flex items-center space-x-2">
+                      <CheckCircle size={16} className="text-gray-400" />
+                      <span>
+                        {selectedBatch.completedDateStr
+                          ? selectedBatch.completedDateStr.split("-").reverse().join("/")
+                          : selectedBatch.completedDate
+                          ? new Date(selectedBatch.completedDate).toLocaleDateString("vi-VN")
+                          : "N/A"}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status and Reason */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
+                  <Tag size={20} />
+                  <span>Trạng thái</span>
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Completion Reason */}
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <p className="text-sm text-gray-500 mb-2">Lý do hoàn thành</p>
+                    {(() => {
+                      const reasonInfo = getCompletionReasonLabel(selectedBatch.completionReason);
+                      return (
+                        <span
+                          className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${reasonInfo.color}`}
+                        >
+                          {reasonInfo.label}
+                        </span>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Status */}
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <p className="text-sm text-gray-500 mb-2">Trạng thái</p>
+                    <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                      {selectedBatch.status || "COMPLETED"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Summary Statistics */}
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Thống kê tổng quan</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Tỷ lệ nhận so với kế hoạch:</span>
+                    <span className="font-semibold text-gray-900">
+                      {selectedBatch.plannedQuantity > 0
+                        ? ((selectedBatch.receivedQuantity / selectedBatch.plannedQuantity) * 100).toFixed(1)
+                        : 0}
+                      %
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Tỷ lệ bán so với nhận:</span>
+                    <span className="font-semibold text-gray-900">
+                      {selectedBatch.receivedQuantity > 0
+                        ? ((selectedBatch.soldQuantity / selectedBatch.receivedQuantity) * 100).toFixed(1)
+                        : 0}
+                      %
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Tỷ lệ hủy so với nhận:</span>
+                    <span className="font-semibold text-red-600">
+                      {selectedBatch.receivedQuantity > 0
+                        ? ((selectedBatch.discardedQuantity / selectedBatch.receivedQuantity) * 100).toFixed(1)
+                        : 0}
+                      %
+                    </span>
+                  </div>
+                  {(() => {
+                    const entryDateStr = selectedBatch.warehouseEntryDateStr || 
+                      (selectedBatch.warehouseEntry ? new Date(selectedBatch.warehouseEntryDate).toISOString().split('T')[0] : null);
+                    const completedDateStr = selectedBatch.completedDateStr || 
+                      (selectedBatch.completedDate ? new Date(selectedBatch.completedDate).toISOString().split('T')[0] : null);
+                    
+                    if (entryDateStr && completedDateStr) {
+                      const entryDate = new Date(entryDateStr);
+                      const completedDate = new Date(completedDateStr);
+                      const diffTime = Math.abs(completedDate - entryDate);
+                      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                      
+                      return (
+                        <div className="flex justify-between items-center pt-3 border-t border-gray-300">
+                          <span className="text-gray-600">Thời gian lưu kho:</span>
+                          <span className="font-semibold text-gray-900">{diffDays} ngày</span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end p-6 border-t bg-gray-50">
+              <button
+                onClick={() => setIsDetailModalOpen(false)}
+                className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default BatchHistoryPage;

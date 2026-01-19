@@ -13,19 +13,20 @@ import {
   Filter,
   Download,
   Upload,
-  Box,
   Eye,
-  X,
+  RefreshCw,
 } from "lucide-react";
 import {
   getProductsRequest,
-  getCategoriesRequest,
   deleteProductRequest,
-  createReceiptRequest,
-} from "../../../redux/actions/warehouseActions";
+  getProductStatsRequest,
+} from "../../../redux/actions/productActions";
+import { getCategoriesRequest } from "../../../redux/actions/categoryActions";
+import { confirmResetProductRequest } from "../../../redux/actions/productBatchActions";
 import CreateProduct from "./CreateProduct";
 import UpdateProduct from "./UpdateProduct";
-import ReadProduct from "./ReadProduct";
+import DetailProduct from "./DetailProduct";
+import Loading from "../../../components/Loading/Loading";
 
 // Simple Card component
 const Card = ({ children, className = "" }) => (
@@ -46,6 +47,7 @@ const CardContent = ({ children, className = "" }) => (
 
 const WareHouse = () => {
   const dispatch = useDispatch();
+<<<<<<< HEAD
   const { 
     products, 
     productsLoading, 
@@ -58,33 +60,52 @@ const WareHouse = () => {
     createReceiptLoading,
     createReceiptError,
   } = useSelector((state) => state.warehouse);
+=======
+  const {
+    products,
+    productsLoading,
+    productsPagination,
+    productStats,
+    createProductLoading,
+    updateProductLoading,
+    deleteProductLoading,
+    createProductError,
+    updateProductError,
+    deleteProductError,
+  } = useSelector((state) => state.product);
+  
+  const { categories } = useSelector((state) => state.category);
+>>>>>>> 22a3f19a9774da34e8f3624342ffe7c2e62850f3
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStockStatus, setFilterStockStatus] = useState("all"); // all, IN_STOCK, OUT_OF_STOCK
   const [filterReceivingStatus, setFilterReceivingStatus] = useState("all"); // all, NOT_RECEIVED, PARTIAL, RECEIVED
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showReadModal, setShowReadModal] = useState(false);
-  const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+<<<<<<< HEAD
   const [selectedProductForReceipt, setSelectedProductForReceipt] = useState(null);
   const [hasDeletedProduct, setHasDeletedProduct] = useState(false);
   const [hasCreatedReceipt, setHasCreatedReceipt] = useState(false);
+=======
+  const [prevCreateLoading, setPrevCreateLoading] = useState(false);
+  const [prevUpdateLoading, setPrevUpdateLoading] = useState(false);
+  const [prevDeleteLoading, setPrevDeleteLoading] = useState(false);
+  const [confirmingProductId, setConfirmingProductId] = useState(null);
+  
+  const { confirmResetLoading } = useSelector((state) => state.productBatch);
+>>>>>>> 22a3f19a9774da34e8f3624342ffe7c2e62850f3
 
-  const [receiptData, setReceiptData] = useState({
-    productId: "",
-    quantity: 0,
-    expiryDate: "",
-    shelfLifeDays: "",
-    note: "",
-  });
-
-  // Fetch products and categories on mount
+  // Fetch products, categories and stats on mount
   useEffect(() => {
-    dispatch(getProductsRequest({ page: currentPage, limit: 10 }));
+    dispatch(getProductsRequest({ page: currentPage, limit: 10, sortBy, sortOrder }));
     dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
+    dispatch(getProductStatsRequest());
   }, [dispatch]);
 
   // Fetch products when filters change
@@ -96,29 +117,91 @@ const WareHouse = () => {
       stockStatus: filterStockStatus !== "all" ? filterStockStatus : undefined,
       receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,
       category: selectedCategory !== "all" ? selectedCategory : undefined,
+      sortBy,
+      sortOrder,
     };
     dispatch(getProductsRequest(params));
-  }, [dispatch, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory]);
+  }, [dispatch, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory, sortBy, sortOrder]);
+
+  // Auto refresh after successful create
+  useEffect(() => {
+    if (prevCreateLoading && !createProductLoading && !createProductError) {
+      // Create was just completed successfully
+      const params = {
+        page: currentPage,
+        limit: 10,
+        search: searchTerm || undefined,
+        stockStatus: filterStockStatus !== "all" ? filterStockStatus : undefined,
+        receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,
+        category: selectedCategory !== "all" ? selectedCategory : undefined,
+        sortBy,
+        sortOrder,
+      };
+      dispatch(getProductsRequest(params));
+      dispatch(getProductStatsRequest());
+    }
+    setPrevCreateLoading(createProductLoading);
+  }, [dispatch, createProductLoading, createProductError, prevCreateLoading, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory, sortBy, sortOrder]);
+
+  // Auto refresh after successful update
+  useEffect(() => {
+    if (prevUpdateLoading && !updateProductLoading && !updateProductError) {
+      // Update was just completed successfully
+      const params = {
+        page: currentPage,
+        limit: 10,
+        search: searchTerm || undefined,
+        stockStatus: filterStockStatus !== "all" ? filterStockStatus : undefined,
+        receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,
+        category: selectedCategory !== "all" ? selectedCategory : undefined,
+        sortBy,
+        sortOrder,
+      };
+      dispatch(getProductsRequest(params));
+      dispatch(getProductStatsRequest());
+    }
+    setPrevUpdateLoading(updateProductLoading);
+  }, [dispatch, updateProductLoading, updateProductError, prevUpdateLoading, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory, sortBy, sortOrder]);
+
+  // Auto refresh after successful delete
+  useEffect(() => {
+    if (prevDeleteLoading && !deleteProductLoading && !deleteProductError) {
+      // Delete was just completed successfully
+      const params = {
+        page: currentPage,
+        limit: 10,
+        search: searchTerm || undefined,
+        stockStatus: filterStockStatus !== "all" ? filterStockStatus : undefined,
+        receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,
+        category: selectedCategory !== "all" ? selectedCategory : undefined,
+        sortBy,
+        sortOrder,
+      };
+      dispatch(getProductsRequest(params));
+      dispatch(getProductStatsRequest());
+    }
+    setPrevDeleteLoading(deleteProductLoading);
+  }, [dispatch, deleteProductLoading, deleteProductError, prevDeleteLoading, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory, sortBy, sortOrder]);
 
 
   const getStockStatus = (product) => {
     if (product.stockStatus === "OUT_OF_STOCK" || product.onHandQuantity === 0) {
-      return { label: "Hết hàng", color: "bg-red-100 text-red-800", icon: AlertCircle };
+      return { label: "Out of stock", color: "bg-red-100 text-red-800", icon: AlertCircle };
     }
     if (product.onHandQuantity <= 10) {
-      return { label: "Sắp hết", color: "bg-yellow-100 text-yellow-800", icon: TrendingDown };
+      return { label: "Low stock", color: "bg-yellow-100 text-yellow-800", icon: TrendingDown };
     }
-    return { label: "Còn hàng", color: "bg-green-100 text-green-800", icon: CheckCircle };
+    return { label: "In stock", color: "bg-green-100 text-green-800", icon: CheckCircle };
   };
 
   const getReceivingStatus = (product) => {
     switch (product.receivingStatus) {
       case "NOT_RECEIVED":
-        return { label: "Chưa nhập", color: "bg-gray-100 text-gray-800" };
+        return { label: "Not received", color: "bg-gray-100 text-gray-800" };
       case "PARTIAL":
-        return { label: "Chưa đủ", color: "bg-yellow-100 text-yellow-800" };
+        return { label: "Partial", color: "bg-yellow-100 text-yellow-800" };
       case "RECEIVED":
-        return { label: "Đã nhập đủ", color: "bg-green-100 text-green-800" };
+        return { label: "Fully received", color: "bg-green-100 text-green-800" };
       default:
         return { label: "N/A", color: "bg-gray-100 text-gray-800" };
     }
@@ -139,6 +222,7 @@ const WareHouse = () => {
   };
 
   const handleDeleteProduct = (id) => {
+<<<<<<< HEAD
     if (!window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) return;
     setHasDeletedProduct(true);
     dispatch(deleteProductRequest(id));
@@ -180,14 +264,40 @@ const WareHouse = () => {
       note: "",
     });
     setShowReceiptModal(true);
+=======
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    dispatch(deleteProductRequest(id));
   };
 
-  const handleCreateReceipt = () => {
-    if (!receiptData.productId || receiptData.quantity <= 0) {
-      toast.error("Vui lòng nhập số lượng hợp lệ");
-      return;
+  const handleConfirmReset = (productId) => {
+    if (window.confirm("Bạn có chắc chắn muốn xác nhận reset lô hàng này không? Hệ thống sẽ tạo batch history và reset sản phẩm về 0.")) {
+      setConfirmingProductId(productId);
+      dispatch(confirmResetProductRequest(productId));
     }
+>>>>>>> 22a3f19a9774da34e8f3624342ffe7c2e62850f3
+  };
 
+  // Reload products after successful confirmation
+  useEffect(() => {
+    if (!confirmResetLoading && confirmingProductId) {
+      setConfirmingProductId(null);
+      const params = {
+        page: currentPage,
+        limit: 10,
+        search: searchTerm || undefined,
+        stockStatus: filterStockStatus !== "all" ? filterStockStatus : undefined,
+        receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,
+        category: selectedCategory !== "all" ? selectedCategory : undefined,
+        sortBy,
+        sortOrder,
+      };
+      dispatch(getProductsRequest(params));
+      dispatch(getProductStatsRequest());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [confirmResetLoading]);
+
+<<<<<<< HEAD
     // Validate expiryDate if provided (must be at least tomorrow)
     if (receiptData.expiryDate) {
       const selectedDate = new Date(receiptData.expiryDate);
@@ -231,11 +341,14 @@ const WareHouse = () => {
   };
 
   // Calculate stats from products
+=======
+  // Use stats from API
+>>>>>>> 22a3f19a9774da34e8f3624342ffe7c2e62850f3
   const stats = {
-    total: productsPagination?.total || products.length,
-    inStock: products.filter((p) => p.stockStatus === "IN_STOCK").length,
-    outOfStock: products.filter((p) => p.stockStatus === "OUT_OF_STOCK").length,
-    lowStock: products.filter((p) => p.onHandQuantity > 0 && p.onHandQuantity <= 10).length,
+    total: productStats?.total || 0,
+    inStock: productStats?.inStock || 0,
+    outOfStock: productStats?.outOfStock || 0,
+    lowStock: productStats?.lowStock || 0,
   };
 
   return (
@@ -243,24 +356,24 @@ const WareHouse = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Quản lý kho hàng</h1>
-          <p className="text-gray-600 mt-1">Quản lý sản phẩm và tồn kho</p>
+          <h1 className="text-3xl font-bold text-gray-800">Warehouse management</h1>
+          <p className="text-gray-600 mt-1">Manage products and inventory</p>
         </div>
         <div className="flex items-center space-x-3">
           <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
             <Upload size={18} />
-            <span>Nhập Excel</span>
+            <span>Import Excel</span>
           </button>
           <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
             <Download size={18} />
-            <span>Xuất Excel</span>
+            <span>Export Excel</span>
           </button>
           <button
             onClick={handleAddProduct}
             className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
           >
             <Plus size={18} />
-            <span>Thêm sản phẩm</span>
+            <span>Add product</span>
           </button>
         </div>
       </div>
@@ -271,7 +384,7 @@ const WareHouse = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Tổng sản phẩm</p>
+                <p className="text-sm text-gray-600">Total products</p>
                 <p className="text-2xl font-bold text-gray-800">{stats.total}</p>
               </div>
               <Package className="h-10 w-10 text-blue-500" />
@@ -282,7 +395,7 @@ const WareHouse = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Còn hàng</p>
+                <p className="text-sm text-gray-600">In stock</p>
                 <p className="text-2xl font-bold text-green-600">{stats.inStock}</p>
               </div>
               <CheckCircle className="h-10 w-10 text-green-500" />
@@ -293,7 +406,7 @@ const WareHouse = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Sắp hết</p>
+                <p className="text-sm text-gray-600">Low stock</p>
                 <p className="text-2xl font-bold text-yellow-600">{stats.lowStock}</p>
               </div>
               <TrendingDown className="h-10 w-10 text-yellow-500" />
@@ -304,7 +417,7 @@ const WareHouse = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Hết hàng</p>
+                <p className="text-sm text-gray-600">Out of stock</p>
                 <p className="text-2xl font-bold text-red-600">{stats.outOfStock}</p>
               </div>
               <AlertCircle className="h-10 w-10 text-red-500" />
@@ -322,7 +435,7 @@ const WareHouse = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="text"
-                placeholder="Tìm kiếm theo tên sản phẩm..."
+                placeholder="Search by product name..."
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -342,9 +455,9 @@ const WareHouse = () => {
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
-                <option value="all">Tất cả trạng thái</option>
-                <option value="IN_STOCK">Còn hàng</option>
-                <option value="OUT_OF_STOCK">Hết hàng</option>
+                <option value="all">All statuses</option>
+                <option value="IN_STOCK">In stock</option>
+                <option value="OUT_OF_STOCK">Out of stock</option>
               </select>
               <select
                 value={filterReceivingStatus}
@@ -354,10 +467,10 @@ const WareHouse = () => {
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
-                <option value="all">Tất cả nhập kho</option>
-                <option value="NOT_RECEIVED">Chưa nhập</option>
-                <option value="PARTIAL">Chưa đủ</option>
-                <option value="RECEIVED">Đã nhập đủ</option>
+                <option value="all">All receipts</option>
+                <option value="NOT_RECEIVED">Not received</option>
+                <option value="PARTIAL">Partial</option>
+                <option value="RECEIVED">Fully received</option>
               </select>
               <select
                 value={selectedCategory}
@@ -367,12 +480,42 @@ const WareHouse = () => {
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
-                <option value="all">Tất cả danh mục</option>
+                <option value="all">All categories</option>
                 {categories?.map((cat) => (
                   <option key={cat._id} value={cat._id}>
                     {cat.name}
                   </option>
                 ))}
+              </select>
+            </div>
+            {/* Sort */}
+            <div className="flex items-center space-x-2">
+              <select
+                value={sortBy}
+                onChange={(e) => {
+                  setSortBy(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              >
+                <option value="createdAt">Created date</option>
+                <option value="name">Name</option>
+                <option value="price">Price</option>
+                <option value="onHandQuantity">Stock</option>
+                <option value="receivedQuantity">Received</option>
+                <option value="updatedAt">Updated date</option>
+                <option value="status">Status</option>
+              </select>
+              <select
+                value={sortOrder}
+                onChange={(e) => {
+                  setSortOrder(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              >
+                <option value="desc">Descending</option>
+                <option value="asc">Ascending</option>
               </select>
             </div>
           </div>
@@ -383,19 +526,16 @@ const WareHouse = () => {
       <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="text-lg font-semibold">
-            Danh sách sản phẩm ({productsPagination?.total || products.length})
+            Product list ({productsPagination?.total || products.length})
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          {productsLoading ? (
-            <div className="p-8 text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-              <p className="mt-2 text-gray-600">Đang tải...</p>
-            </div>
+          {productsLoading || createProductLoading || updateProductLoading || deleteProductLoading ? (
+            <Loading message="Loading data..." />
           ) : products.length === 0 ? (
             <div className="p-8 text-center">
               <Package className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-600">Không tìm thấy sản phẩm nào</p>
+              <p className="text-gray-600">No products found</p>
             </div>
           ) : (
             <>
@@ -404,25 +544,22 @@ const WareHouse = () => {
                   <thead className="bg-gray-50 border-b">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Sản phẩm
+                        Product
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Danh mục
+                        Category
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Số lượng
+                        Quantity
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Giá
+                        Price
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Trạng thái
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Nhập kho
+                        Status
                       </th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Thao tác
+                        Actions
                       </th>
                     </tr>
                   </thead>
@@ -462,10 +599,10 @@ const WareHouse = () => {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm">
                               <p className="font-medium text-gray-900">
-                                Tồn: {product.onHandQuantity || 0}
+                                Stock: {product.onHandQuantity || 0}
                               </p>
                               <p className="text-xs text-gray-500">
-                                Kế hoạch: {product.plannedQuantity || 0} | Đã nhập:{" "}
+                                Planned: {product.plannedQuantity || 0} | Received:{" "}
                                 {product.receivedQuantity || 0}
                               </p>
                             </div>
@@ -494,26 +631,45 @@ const WareHouse = () => {
                               </span>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <button
-                              onClick={() => handleOpenReceiptModal(product)}
-                              className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
-                              title="Nhập kho"
-                            >
-                              <Box size={18} />
-                            </button>
-                          </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div className="flex items-center justify-end space-x-2">
                               <button
-                                onClick={() => handleEditProduct(product)}
+                                onClick={() => handleViewProduct(product)}
                                 className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
+                                title="View details"
+                              >
+                                <Eye size={18} />
+                              </button>
+                              <button
+                                onClick={() => handleEditProduct(product)}
+                                className="text-green-600 hover:text-green-900 p-1 hover:bg-green-50 rounded"
+                                title="Edit product"
                               >
                                 <Edit size={18} />
                               </button>
+                              {/* Show Confirm Reset button when onHandQuantity === 0 and pendingBatchReset === true */}
+                              {product.onHandQuantity === 0 && product.pendingBatchReset && (
+                                <button
+                                  onClick={() => handleConfirmReset(product._id)}
+                                  disabled={confirmResetLoading || confirmingProductId === product._id}
+                                  className={`p-1 rounded transition-colors ${
+                                    confirmingProductId === product._id || confirmResetLoading
+                                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                      : "bg-orange-500 text-white hover:bg-orange-600"
+                                  }`}
+                                  title="Xác nhận reset lô hàng"
+                                >
+                                  {confirmingProductId === product._id || confirmResetLoading ? (
+                                    <RefreshCw size={18} className="animate-spin" />
+                                  ) : (
+                                    <RefreshCw size={18} />
+                                  )}
+                                </button>
+                              )}
                               <button
                                 onClick={() => handleDeleteProduct(product._id)}
                                 className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded"
+                                title="Delete product"
                               >
                                 <Trash2 size={18} />
                               </button>
@@ -530,9 +686,9 @@ const WareHouse = () => {
               {productsPagination && productsPagination.totalPages > 1 && (
                 <div className="px-6 py-4 border-t flex items-center justify-between">
                   <div className="text-sm text-gray-700">
-                    Hiển thị {productsPagination.page * productsPagination.limit - productsPagination.limit + 1} -{" "}
-                    {Math.min(productsPagination.page * productsPagination.limit, productsPagination.total)} trong
-                    tổng số {productsPagination.total} sản phẩm
+                    Showing {productsPagination.page * productsPagination.limit - productsPagination.limit + 1} -{" "}
+                    {Math.min(productsPagination.page * productsPagination.limit, productsPagination.total)} of{" "}
+                    {productsPagination.total} products
                   </div>
                   <div className="flex items-center space-x-2">
                     <button
@@ -540,7 +696,7 @@ const WareHouse = () => {
                       disabled={currentPage === 1}
                       className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                     >
-                      Trước
+                      Previous
                     </button>
                     {[...Array(productsPagination.totalPages)].map((_, index) => (
                       <button
@@ -560,7 +716,7 @@ const WareHouse = () => {
                       disabled={currentPage === productsPagination.totalPages}
                       className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                     >
-                      Sau
+                      Next
                     </button>
                   </div>
                 </div>
@@ -583,8 +739,8 @@ const WareHouse = () => {
         product={selectedProduct}
       />
 
-      {/* Read Product Modal */}
-      <ReadProduct
+      {/* Detail Product Modal */}
+      <DetailProduct
         isOpen={showReadModal}
         onClose={() => {
           setShowReadModal(false);
@@ -592,107 +748,6 @@ const WareHouse = () => {
         }}
         product={selectedProduct}
       />
-
-      {/* Receipt Modal */}
-      {showReceiptModal && selectedProductForReceipt && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-md w-full">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-xl font-bold text-gray-800">Nhập kho</h2>
-              <button
-                onClick={() => setShowReceiptModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Sản phẩm</p>
-                <p className="font-medium text-gray-900">{selectedProductForReceipt.name}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 mb-1">
-                  Kế hoạch: {selectedProductForReceipt.plannedQuantity} | Đã nhập:{" "}
-                  {selectedProductForReceipt.receivedQuantity} | Tồn:{" "}
-                  {selectedProductForReceipt.onHandQuantity}
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Số lượng nhập <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  value={receiptData.quantity}
-                  onChange={(e) =>
-                    setReceiptData({ ...receiptData, quantity: parseInt(e.target.value) || 0 })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  min="1"
-                  max={
-                    selectedProductForReceipt.plannedQuantity -
-                    selectedProductForReceipt.receivedQuantity
-                  }
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Còn có thể nhập tối đa:{" "}
-                  {selectedProductForReceipt.plannedQuantity -
-                    selectedProductForReceipt.receivedQuantity}
-                </p>
-              </div>
-              {/* Only show shelfLifeDays for first receipt (receivedQuantity = 0) */}
-              {selectedProductForReceipt.receivedQuantity === 0 && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Hạn sử dụng <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={receiptData.expiryDate}
-                    onChange={(e) => {
-                      setReceiptData({ ...receiptData, expiryDate: e.target.value, shelfLifeDays: "" });
-                    }}
-                    min={(() => {
-                      const tomorrow = new Date();
-                      tomorrow.setDate(tomorrow.getDate() + 1);
-                      return tomorrow.toISOString().split('T')[0];
-                    })()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Chọn ngày hết hạn (tối thiểu từ ngày mai)
-                  </p>
-                </div>
-              )}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
-                <textarea
-                  value={receiptData.note}
-                  onChange={(e) => setReceiptData({ ...receiptData, note: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  rows="3"
-                  placeholder="Nhập ghi chú (nếu có)"
-                />
-              </div>
-            </div>
-            <div className="flex items-center justify-end space-x-3 p-6 border-t">
-              <button
-                onClick={() => setShowReceiptModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleCreateReceipt}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-              >
-                Nhập kho
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -2,23 +2,6 @@ import { call, put, takeLatest } from "redux-saga/effects";
 import { toast } from "react-toastify";
 import apiClient from "../../utils/axiosConfig";
 import {
-  // Category
-  GET_CATEGORIES_REQUEST,
-  getCategoriesSuccess,
-  getCategoriesFailure,
-  GET_CATEGORY_BY_ID_REQUEST,
-  getCategoryByIdSuccess,
-  getCategoryByIdFailure,
-  CREATE_CATEGORY_REQUEST,
-  createCategorySuccess,
-  createCategoryFailure,
-  UPDATE_CATEGORY_REQUEST,
-  updateCategorySuccess,
-  updateCategoryFailure,
-  DELETE_CATEGORY_REQUEST,
-  deleteCategorySuccess,
-  deleteCategoryFailure,
-  // Product
   GET_PRODUCTS_REQUEST,
   getProductsSuccess,
   getProductsFailure,
@@ -34,47 +17,13 @@ import {
   DELETE_PRODUCT_REQUEST,
   deleteProductSuccess,
   deleteProductFailure,
-  // Inventory
-  CREATE_RECEIPT_REQUEST,
-  createReceiptSuccess,
-  createReceiptFailure,
-  // Update Expiry Date
+  GET_PRODUCT_STATS_REQUEST,
+  getProductStatsSuccess,
+  getProductStatsFailure,
   UPDATE_PRODUCT_EXPIRY_DATE_REQUEST,
   updateProductExpiryDateSuccess,
   updateProductExpiryDateFailure,
-} from "../actions/warehouseActions";
-
-// ===== CATEGORY API CALLS =====
-const apiGetCategories = async (params = {}) => {
-  const queryParams = new URLSearchParams();
-  if (params.page) queryParams.append("page", params.page);
-  if (params.limit) queryParams.append("limit", params.limit);
-  if (params.search) queryParams.append("search", params.search);
-  if (params.status !== undefined) queryParams.append("status", params.status);
-
-  const response = await apiClient.get(`/admin/categories?${queryParams.toString()}`);
-  return response.data;
-};
-
-const apiGetCategoryById = async (id) => {
-  const response = await apiClient.get(`/admin/categories/${id}`);
-  return response.data;
-};
-
-const apiCreateCategory = async (formData) => {
-  const response = await apiClient.post("/admin/categories", formData);
-  return response.data;
-};
-
-const apiUpdateCategory = async (id, formData) => {
-  const response = await apiClient.put(`/admin/categories/${id}`, formData);
-  return response.data;
-};
-
-const apiDeleteCategory = async (id) => {
-  const response = await apiClient.delete(`/admin/categories/${id}`);
-  return response.data;
-};
+} from "../actions/productActions";
 
 // ===== PRODUCT API CALLS =====
 const apiGetProducts = async (params = {}) => {
@@ -86,8 +35,15 @@ const apiGetProducts = async (params = {}) => {
   if (params.status !== undefined) queryParams.append("status", params.status);
   if (params.receivingStatus) queryParams.append("receivingStatus", params.receivingStatus);
   if (params.stockStatus) queryParams.append("stockStatus", params.stockStatus);
+  if (params.sortBy) queryParams.append("sortBy", params.sortBy);
+  if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
 
   const response = await apiClient.get(`/admin/products?${queryParams.toString()}`);
+  return response.data;
+};
+
+const apiGetProductStats = async () => {
+  const response = await apiClient.get("/admin/products/stats");
   return response.data;
 };
 
@@ -111,112 +67,10 @@ const apiDeleteProduct = async (id) => {
   return response.data;
 };
 
-// ===== INVENTORY TRANSACTION API CALLS =====
-const apiCreateReceipt = async (formData) => {
-  const response = await apiClient.post("/inventory/receipts", formData);
-  return response.data;
-};
-
-// ===== UPDATE PRODUCT EXPIRY DATE API CALL =====
 const apiUpdateProductExpiryDate = async (id, expiryDate) => {
   const response = await apiClient.patch(`/admin/products/${id}/expiry-date`, { expiryDate });
   return response.data;
 };
-
-// ===== CATEGORY SAGAS =====
-function* getCategoriesSaga(action) {
-  try {
-    const params = action.payload || {};
-    const response = yield call(apiGetCategories, params);
-    if (response.status === "OK") {
-      yield put(getCategoriesSuccess(response));
-    } else {
-      throw new Error(response.message || "Không thể tải danh sách danh mục");
-    }
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải danh sách danh mục";
-    yield put(getCategoriesFailure(errorMessage));
-    toast.error(errorMessage);
-  }
-}
-
-function* getCategoryByIdSaga(action) {
-  try {
-    const id = action.payload;
-    const response = yield call(apiGetCategoryById, id);
-    if (response.status === "OK") {
-      yield put(getCategoryByIdSuccess(response.data));
-    } else {
-      throw new Error(response.message || "Không thể tải danh mục");
-    }
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải danh mục";
-    yield put(getCategoryByIdFailure(errorMessage));
-    toast.error(errorMessage);
-  }
-}
-
-function* createCategorySaga(action) {
-  try {
-    const formData = action.payload;
-    const response = yield call(apiCreateCategory, formData);
-    if (response.status === "OK") {
-      yield put(createCategorySuccess(response.data));
-      // Toast is handled in component
-      // Refresh categories list
-      yield put({ type: GET_CATEGORIES_REQUEST });
-    } else {
-      throw new Error(response.message || "Không thể tạo danh mục");
-    }
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tạo danh mục";
-    yield put(createCategoryFailure(errorMessage));
-    toast.error(errorMessage);
-  }
-}
-
-function* updateCategorySaga(action) {
-  try {
-    const { id, formData } = action.payload;
-    const response = yield call(apiUpdateCategory, id, formData);
-    if (response.status === "OK") {
-      yield put(updateCategorySuccess(response.data));
-      // Toast is handled in component
-      // Removed: yield put({ type: GET_CATEGORIES_REQUEST });
-      // Category will be updated directly in reducer
-    } else {
-      throw new Error(response.message || "Không thể cập nhật danh mục");
-    }
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || error.message || "Không thể cập nhật danh mục";
-    yield put(updateCategoryFailure(errorMessage));
-    toast.error(errorMessage);
-  }
-}
-
-function* deleteCategorySaga(action) {
-  try {
-    const id = action.payload;
-    const response = yield call(apiDeleteCategory, id);
-    if (response.status === "OK") {
-      yield put(deleteCategorySuccess(response.message));
-      // Toast is handled in component
-      // Refresh categories list
-      yield put({ type: GET_CATEGORIES_REQUEST });
-    } else {
-      throw new Error(response.message || "Không thể xóa danh mục");
-    }
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || error.message || "Không thể xóa danh mục";
-    yield put(deleteCategoryFailure(errorMessage));
-    toast.error(errorMessage);
-  }
-}
 
 // ===== PRODUCT SAGAS =====
 function* getProductsSaga(action) {
@@ -322,28 +176,25 @@ function* deleteProductSaga(action) {
   }
 }
 
-// ===== INVENTORY TRANSACTION SAGAS =====
-function* createReceiptSaga(action) {
+function* getProductStatsSaga() {
   try {
-    const formData = action.payload;
-    const response = yield call(apiCreateReceipt, formData);
+    const response = yield call(apiGetProductStats);
     if (response.status === "OK") {
       yield put(createReceiptSuccess(response.data));
       // Toast is handled in component
       // Refresh products list to update quantities
       yield put({ type: GET_PRODUCTS_REQUEST });
+
     } else {
-      throw new Error(response.message || "Không thể nhập kho");
+      throw new Error(response.message || "Không thể tải thống kê sản phẩm");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể nhập kho";
-    yield put(createReceiptFailure(errorMessage));
-    toast.error(errorMessage);
+      error.response?.data?.message || error.message || "Không thể tải thống kê sản phẩm";
+    yield put(getProductStatsFailure(errorMessage));
   }
 }
 
-// ===== UPDATE PRODUCT EXPIRY DATE SAGAS =====
 function* updateProductExpiryDateSaga(action) {
   try {
     const { id, expiryDate } = action.payload;
@@ -354,9 +205,13 @@ function* updateProductExpiryDateSaga(action) {
       // Refresh products list to update expiry date
       yield put({ type: GET_PRODUCTS_REQUEST });
     } else {
-      throw new Error(response.message || "Không thể cập nhật hạn sử dụng");
+      // Backend trả về status "ERR" với message cụ thể
+      const errorMessage = response.message || "Không thể cập nhật hạn sử dụng";
+      yield put(updateProductExpiryDateFailure(errorMessage));
+      toast.error(errorMessage);
     }
   } catch (error) {
+    // Xử lý HTTP errors (400, 500, etc.)
     const errorMessage =
       error.response?.data?.message || error.message || "Không thể cập nhật hạn sử dụng";
     yield put(updateProductExpiryDateFailure(errorMessage));
@@ -365,21 +220,12 @@ function* updateProductExpiryDateSaga(action) {
 }
 
 // ===== ROOT SAGA =====
-export default function* warehouseSaga() {
-  // Category
-  yield takeLatest(GET_CATEGORIES_REQUEST, getCategoriesSaga);
-  yield takeLatest(GET_CATEGORY_BY_ID_REQUEST, getCategoryByIdSaga);
-  yield takeLatest(CREATE_CATEGORY_REQUEST, createCategorySaga);
-  yield takeLatest(UPDATE_CATEGORY_REQUEST, updateCategorySaga);
-  yield takeLatest(DELETE_CATEGORY_REQUEST, deleteCategorySaga);
-  // Product
+export default function* productSaga() {
   yield takeLatest(GET_PRODUCTS_REQUEST, getProductsSaga);
   yield takeLatest(GET_PRODUCT_BY_ID_REQUEST, getProductByIdSaga);
   yield takeLatest(CREATE_PRODUCT_REQUEST, createProductSaga);
   yield takeLatest(UPDATE_PRODUCT_REQUEST, updateProductSaga);
   yield takeLatest(DELETE_PRODUCT_REQUEST, deleteProductSaga);
-  // Inventory
-  yield takeLatest(CREATE_RECEIPT_REQUEST, createReceiptSaga);
-  // Update Expiry Date
+  yield takeLatest(GET_PRODUCT_STATS_REQUEST, getProductStatsSaga);
   yield takeLatest(UPDATE_PRODUCT_EXPIRY_DATE_REQUEST, updateProductExpiryDateSaga);
 }
