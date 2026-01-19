@@ -47,6 +47,20 @@ const CardContent = ({ children, className = "" }) => (
 
 const WareHouse = () => {
   const dispatch = useDispatch();
+<<<<<<< HEAD
+  const { 
+    products, 
+    productsLoading, 
+    productsPagination, 
+    categories,
+    createProductLoading,
+    createProductError,
+    deleteProductLoading,
+    deleteProductError,
+    createReceiptLoading,
+    createReceiptError,
+  } = useSelector((state) => state.warehouse);
+=======
   const {
     products,
     productsLoading,
@@ -61,6 +75,7 @@ const WareHouse = () => {
   } = useSelector((state) => state.product);
   
   const { categories } = useSelector((state) => state.category);
+>>>>>>> 22a3f19a9774da34e8f3624342ffe7c2e62850f3
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStockStatus, setFilterStockStatus] = useState("all"); // all, IN_STOCK, OUT_OF_STOCK
@@ -73,12 +88,18 @@ const WareHouse = () => {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showReadModal, setShowReadModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+<<<<<<< HEAD
+  const [selectedProductForReceipt, setSelectedProductForReceipt] = useState(null);
+  const [hasDeletedProduct, setHasDeletedProduct] = useState(false);
+  const [hasCreatedReceipt, setHasCreatedReceipt] = useState(false);
+=======
   const [prevCreateLoading, setPrevCreateLoading] = useState(false);
   const [prevUpdateLoading, setPrevUpdateLoading] = useState(false);
   const [prevDeleteLoading, setPrevDeleteLoading] = useState(false);
   const [confirmingProductId, setConfirmingProductId] = useState(null);
   
   const { confirmResetLoading } = useSelector((state) => state.productBatch);
+>>>>>>> 22a3f19a9774da34e8f3624342ffe7c2e62850f3
 
   // Fetch products, categories and stats on mount
   useEffect(() => {
@@ -162,6 +183,7 @@ const WareHouse = () => {
     setPrevDeleteLoading(deleteProductLoading);
   }, [dispatch, deleteProductLoading, deleteProductError, prevDeleteLoading, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory, sortBy, sortOrder]);
 
+
   const getStockStatus = (product) => {
     if (product.stockStatus === "OUT_OF_STOCK" || product.onHandQuantity === 0) {
       return { label: "Out of stock", color: "bg-red-100 text-red-800", icon: AlertCircle };
@@ -200,6 +222,49 @@ const WareHouse = () => {
   };
 
   const handleDeleteProduct = (id) => {
+<<<<<<< HEAD
+    if (!window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) return;
+    setHasDeletedProduct(true);
+    dispatch(deleteProductRequest(id));
+  };
+
+  // Show toast when product is deleted successfully
+  useEffect(() => {
+    if (hasDeletedProduct && !deleteProductLoading && !deleteProductError) {
+      // Product deletion completed successfully
+      toast.success("Product deleted successfully!");
+      setHasDeletedProduct(false);
+    }
+    if (hasDeletedProduct && deleteProductError) {
+      toast.error(deleteProductError);
+      setHasDeletedProduct(false);
+    }
+  }, [hasDeletedProduct, deleteProductLoading, deleteProductError]);
+
+  // Show toast when receipt is created successfully
+  useEffect(() => {
+    if (hasCreatedReceipt && !createReceiptLoading && !createReceiptError) {
+      // Receipt creation completed successfully
+      toast.success("Receipt created successfully!");
+      setHasCreatedReceipt(false);
+    }
+    if (hasCreatedReceipt && createReceiptError) {
+      toast.error(createReceiptError);
+      setHasCreatedReceipt(false);
+    }
+  }, [hasCreatedReceipt, createReceiptLoading, createReceiptError]);
+
+  const handleOpenReceiptModal = (product) => {
+    setSelectedProductForReceipt(product);
+    setReceiptData({
+      productId: product._id,
+      quantity: 0,
+      expiryDate: "",
+      shelfLifeDays: "",
+      note: "",
+    });
+    setShowReceiptModal(true);
+=======
     if (!window.confirm("Are you sure you want to delete this product?")) return;
     dispatch(deleteProductRequest(id));
   };
@@ -209,6 +274,7 @@ const WareHouse = () => {
       setConfirmingProductId(productId);
       dispatch(confirmResetProductRequest(productId));
     }
+>>>>>>> 22a3f19a9774da34e8f3624342ffe7c2e62850f3
   };
 
   // Reload products after successful confirmation
@@ -231,7 +297,53 @@ const WareHouse = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [confirmResetLoading]);
 
+<<<<<<< HEAD
+    // Validate expiryDate if provided (must be at least tomorrow)
+    if (receiptData.expiryDate) {
+      const selectedDate = new Date(receiptData.expiryDate);
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      selectedDate.setHours(0, 0, 0, 0);
+      
+      if (selectedDate < tomorrow) {
+        toast.error(`Hạn sử dụng phải tối thiểu từ ngày ${tomorrow.toISOString().split('T')[0]} (ngày mai)`);
+        return;
+      }
+    }
+
+    // Prepare receipt data (prioritize expiryDate over shelfLifeDays)
+    const receiptPayload = {
+      productId: receiptData.productId,
+      quantity: receiptData.quantity,
+      note: receiptData.note || "",
+    };
+    
+    // Ưu tiên expiryDate từ date picker
+    if (receiptData.expiryDate) {
+      receiptPayload.expiryDate = receiptData.expiryDate;
+    } 
+    // Backward compatible: nếu không có expiryDate, dùng shelfLifeDays
+    else if (receiptData.shelfLifeDays && receiptData.shelfLifeDays > 0) {
+      receiptPayload.shelfLifeDays = parseInt(receiptData.shelfLifeDays);
+    }
+
+    setHasCreatedReceipt(true);
+    dispatch(createReceiptRequest(receiptPayload));
+    setShowReceiptModal(false);
+    setReceiptData({
+      productId: "",
+      quantity: 0,
+      expiryDate: "",
+      shelfLifeDays: "",
+      note: "",
+    });
+  };
+
+  // Calculate stats from products
+=======
   // Use stats from API
+>>>>>>> 22a3f19a9774da34e8f3624342ffe7c2e62850f3
   const stats = {
     total: productStats?.total || 0,
     inStock: productStats?.inStock || 0,

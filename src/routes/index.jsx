@@ -3,7 +3,7 @@ import ForgotPassword from "../pages/ForgotPassword";
 import NotFoundPage from "../pages/NotFoundPage";
 import Register from "../pages/Register";
 import HomePage from "../pages/HomePage";
-import ContactPage from "../pages/CustomerView/ContactPage";
+import ContactPage from "../pages/ContactPage";
 import ContactHistoryPage from "../pages/CustomerView/ContactHistoryPage";
 import AuthenticatedRoute from "../components/AuthenticatedRoute";
 import ProdcutPage from "../pages/ProductPage";
@@ -32,6 +32,15 @@ import AdminDiscountManagement from "../pages/discountManagement/AdminManagement
 import StaffDiscountManagement from "../pages/discountManagement/StaffManagementPage";
 import SalesStaffPage from "../pages/SalesStaff/SalesStaffPage";
 import FinanceLayout from "../layout/FinanceLayout";
+import NewsPage from "../pages/NewsPage";
+import NewsDetailPage from "../pages/NewsDetailPage";
+import NewsListPage from "../pages/Admin/News/NewsListPage";
+import NewsFormPage from "../pages/Admin/News/NewsFormPage";
+import AdminNewsDetailPage from "../pages/Admin/News/NewsDetailPage";
+import ShopManagement from "../pages/Admin/Shop/ShopManagement";
+import AboutUsPage from "../pages/AboutUsPage";
+
+
 export const routes = [
   // Trang chủ
 
@@ -56,6 +65,18 @@ export const routes = [
     element: <Categories />,
   },
   {
+    path: "/news",
+    element: <NewsPage />,
+  },
+  {
+    path: "/news/:id",
+    element: <NewsDetailPage />,
+  },
+  {
+    path: "/about",
+    element: <AboutUsPage />,
+  },
+  {
     path: "/wishlist",
     element: (
       <PrivateRoute requiredRole="customer">
@@ -77,7 +98,7 @@ export const routes = [
       </PrivateRoute>
     ),
     children: [
-      { path: "profile", element: <ProfileManagement /> },
+{ path: "profile", element: <ProfileManagement /> },
       { path: "change-password", element: <UpdatePassword /> },
       { path: "contact", element: <ContactPage /> },
       { path: "contact-history", element: <ContactHistoryPage /> },
@@ -104,6 +125,11 @@ export const routes = [
       { path: "staff", element: <StaffManagement /> },
       { path: "customers", element: <CustomerManagement /> },
       { path: "discounts", element: <AdminDiscountManagement /> },
+      { path: "news", element: <NewsListPage /> },
+      { path: "news/create", element: <NewsFormPage /> },
+      { path: "news/edit/:id", element: <NewsFormPage /> },
+      { path: "news/:id", element: <AdminNewsDetailPage /> },
+      { path: "shop", element: <ShopManagement /> },
     ],
   },
 

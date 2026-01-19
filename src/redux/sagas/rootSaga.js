@@ -3,6 +3,9 @@ import authSaga from "./authSaga";
 import contactSaga from "./contactSaga";
 import profileSaga from "./profileSaga";
 
+import newsSaga from "./newsSaga";
+import shopSaga from "./shopSaga";
+
 import staffSaga from "./staffSage";
 import customerSaga from "./customerSaga";
 import discountSaga from "./discountSaga";
@@ -23,11 +26,11 @@ export default function* rootSaga() {
       authSaga(),
       contactSaga(),
       profileSaga(),
-
+      newsSaga(),
+      shopSaga(),
       staffSaga(),
       customerSaga(),
       discountSaga(),
-
       categorySaga(),
       productSaga(),
       inventorySaga(),
@@ -35,7 +38,6 @@ export default function* rootSaga() {
       publicCategorySaga(),
       productBatchSaga(),
       favoriteSaga(),
-
     ]);
   } catch (error) {
     console.error("🔴 rootSaga ERROR:", error);

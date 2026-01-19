@@ -2,22 +2,16 @@ import { Link, useLocation } from "react-router-dom";
 import { useSidebar } from "../../contexts/SidebarContext";
 import {
   LayoutDashboard,
-  Users,
-  Package,
-  ShoppingCart,
-  Settings,
-  Menu,
   X,
   MessageSquare,
   FileText,
   Store,
   FolderTree,
-
+  Building2,
   Ticket,
-
   History,
   ClipboardList,
-
+  Users,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -38,19 +32,28 @@ const Sidebar = () => {
     },
     {
       icon: Store,
-      label: "Products",
+      label: "Product",
       path: "/admin/warehouse",
     },
     {
-
-      icon: Users,
-      label: "Staff Management",
-      path: "/admin/staff",
+      icon: MessageSquare,
+      label: "Contact",
+      path: "/admin/contacts",
+    },
+    {
+      icon: FileText,
+      label: "News",
+      path: "/admin/news",
+    },
+    {
+      icon: Building2,
+      label: "Shop Information",
+      path: "/admin/shop",
     },
     {
       icon: Users,
-      label: "Customer Management",
-      path: "/admin/customers",
+      label: "Staff Management",
+      path: "/admin/staff",
     },
     {
       icon: Ticket,
@@ -65,7 +68,6 @@ const Sidebar = () => {
       icon: ClipboardList,
       label: "Receipt History",
       path: "/admin/receipt-history",
-
     },
   ];
 

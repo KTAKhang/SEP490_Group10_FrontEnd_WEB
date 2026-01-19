@@ -4,9 +4,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { MessageSquare, Paperclip, X, Send, AlertCircle } from 'lucide-react';
 import {
-  getCategoriesRequest,
-  createContactRequest,
-  clearContactMessages,
+  contactGetCategoriesRequest,
+  contactCreateContactRequest,
+  contactClearMessages,
 } from '../../redux/actions/contactActions';
 
 const ContactPage = () => {
@@ -34,7 +34,7 @@ const ContactPage = () => {
 
   /* ================= FETCH CATEGORIES ================= */
   useEffect(() => {
-    dispatch(getCategoriesRequest());
+    dispatch(contactGetCategoriesRequest());
   }, [dispatch]);
 
   /* ================= HANDLE SUCCESS ================= */
@@ -46,7 +46,7 @@ const ContactPage = () => {
 
       setTimeout(() => {
         navigate('/customer/contact-history');
-        dispatch(clearContactMessages());
+        dispatch(contactClearMessages());
       }, 1500);
     }
   }, [createContactSuccess, createContactMessage, navigate, dispatch]);
@@ -54,14 +54,14 @@ const ContactPage = () => {
   /* ================= HANDLE ERROR ================= */
   useEffect(() => {
     if (createContactError) {
-      dispatch(clearContactMessages());
+      dispatch(contactClearMessages());
     }
   }, [createContactError, dispatch]);
 
   /* ================= CLEANUP ================= */
   useEffect(() => {
     return () => {
-      dispatch(clearContactMessages());
+      dispatch(contactClearMessages());
     };
   }, [dispatch]);
 
@@ -150,7 +150,7 @@ const ContactPage = () => {
     if (!validateForm()) return;
 
     dispatch(
-      createContactRequest({
+      contactCreateContactRequest({
         subject: formData.subject.trim(),
         category: formData.category,
         message: formData.message.trim(),

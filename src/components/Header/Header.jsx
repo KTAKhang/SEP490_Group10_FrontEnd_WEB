@@ -61,6 +61,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
               { label: "Categories", path: "/categories" },
               { label: "About Us", path: "/about" },
               { label: "Contact", path: "/customer/contact" },
+              { label: "News", path: "/news" },
               { label: "FAQ", path: "/faq" },
        ...(storedUser ? [{ label: "Wishlist", path: "/wishlist" }] : []),
             ].map((item) => (
@@ -77,7 +78,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
           {/* ACTIONS */}
           <div className="flex items-center space-x-3">
             {/* USER */}
-{storedUser ? (
+            {storedUser ? (
               <>
                 {/* CART */}
                 <Link
@@ -91,7 +92,6 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                     </span>
                   )}
                 </Link>
-
                 {/* AVATAR */}
                 <div className="relative">
                   <button onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
@@ -108,7 +108,6 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                         <p className="font-semibold">{displayName}</p>
                         <p className="text-sm opacity-80">{displayEmail}</p>
                       </div>
-
                       <div className="py-2">
                         <DropdownItem
                           icon={<User size={18} />}
