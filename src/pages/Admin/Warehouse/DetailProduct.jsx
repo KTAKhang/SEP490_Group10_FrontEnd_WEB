@@ -93,6 +93,37 @@ const DetailProduct = ({ isOpen, onClose, product }) => {
                 }).format(product.price || 0)}
               </p>
             </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Purchase Price</h3>
+              <p className="text-lg font-semibold text-blue-600">
+                {new Intl.NumberFormat("vi-VN", {
+                  style: "currency",
+                  currency: "VND",
+                }).format(product.purchasePrice || 0)}
+              </p>
+            </div>
+            {product.profit !== undefined && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-700 mb-2">Profit</h3>
+                <p className="text-lg font-semibold text-green-600">
+                  {new Intl.NumberFormat("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                  }).format(product.profit || 0)}
+                </p>
+              </div>
+            )}
+            {product.profitMargin !== undefined && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-700 mb-2">Profit Margin</h3>
+                <p className={`text-lg font-semibold ${
+                  (product.profitMargin || 0) >= 30 ? "text-green-600" :
+                  (product.profitMargin || 0) >= 15 ? "text-yellow-600" : "text-red-600"
+                }`}>
+                  {(product.profitMargin || 0).toFixed(2)}%
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Status */}
