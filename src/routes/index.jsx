@@ -29,6 +29,8 @@ import NewsDetailPage from "../pages/NewsDetailPage";
 import NewsListPage from "../pages/Admin/News/NewsListPage";
 import NewsFormPage from "../pages/Admin/News/NewsFormPage";
 import AdminNewsDetailPage from "../pages/Admin/News/NewsDetailPage";
+import ShopManagement from "../pages/Admin/Shop/ShopManagement";
+import AboutUsPage from "../pages/AboutUsPage";
 export const routes = [
   // Trang chủ
 
@@ -55,6 +57,10 @@ export const routes = [
   {
     path: "/news/:id",
     element: <NewsDetailPage />,
+  },
+  {
+    path: "/about",
+    element: <AboutUsPage />,
   },
   // {
   //   path: "/contact",
@@ -89,6 +95,7 @@ export const routes = [
       { index: true, element: <AdminPage /> },
       { path: "warehouse", element: <WareHouse /> },
       { path: "category", element: <CategoryManagement /> },
+      { path: "shop", element: <ShopManagement /> },
     ],
   },
 
@@ -146,6 +153,7 @@ export const routes = [
       { path: "news/create", element: <NewsFormPage /> },
       { path: "news/edit/:id", element: <NewsFormPage /> },
       { path: "news/:id", element: <AdminNewsDetailPage /> },
+      { path: "shop", element: <ShopManagement /> },
     ],
   },
 
