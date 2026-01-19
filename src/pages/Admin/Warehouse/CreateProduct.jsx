@@ -4,7 +4,9 @@ import { X } from "lucide-react";
 import { toast } from "react-toastify";
 import { createProductRequest } from "../../../redux/actions/productActions";
 import { getCategoriesRequest } from "../../../redux/actions/categoryActions";
+
 import { getSuppliersForBrandRequest } from "../../../redux/actions/supplierActions";
+
 
 const CreateProduct = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
@@ -84,7 +86,7 @@ const CreateProduct = ({ isOpen, onClose }) => {
       formDataToSend.append("purchasePrice", formData.purchasePrice);
     }
     formDataToSend.append("plannedQuantity", formData.plannedQuantity);
-    formDataToSend.append("category", formData.category);
+formDataToSend.append("category", formData.category);
     formDataToSend.append("brand", formData.brand || "");
     formDataToSend.append("detail_desc", formData.detail_desc || "");
     formDataToSend.append("status", formData.status);
@@ -170,7 +172,7 @@ const CreateProduct = ({ isOpen, onClose }) => {
                   required
                 >
                   <option value="">Select category</option>
-                  {categories?.filter((cat) => cat.status === true).map((cat) => (
+{categories?.filter((cat) => cat.status === true).map((cat) => (
                     <option key={cat._id} value={cat._id}>
                       {cat.name}
                     </option>
@@ -233,7 +235,9 @@ const CreateProduct = ({ isOpen, onClose }) => {
                 onChange={(e) =>
                   setFormData({ ...formData, plannedQuantity: parseInt(e.target.value) || 0 })
                 }
+
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+
                 min="0"
                 required
               />
@@ -293,7 +297,7 @@ const CreateProduct = ({ isOpen, onClose }) => {
               <p className="text-xs text-gray-500 mt-1">{formData.detail_desc.length}/1000</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+<label className="block text-sm font-medium text-gray-700 mb-1">
                 Product images
               </label>
               <input
