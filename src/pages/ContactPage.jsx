@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { Paperclip, X, AlertCircle } from 'lucide-react';
 import Header from '../components/Header/Header';
-import Footer from '../components/Footer/Footer';
 import {
   contactGetCategoriesRequest,
   contactCreateContactRequest,
@@ -500,7 +499,6 @@ export default function Contact() {
         </div>
       </section>
 
-      <Footer />
     </div>
   );
 }

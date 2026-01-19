@@ -7,6 +7,7 @@ import {
   FileText,
   Store,
   FolderTree,
+  Building2,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -39,8 +40,12 @@ const Sidebar = () => {
       icon: FileText,
       label: "News",
       path: "/admin/news",
-    }
-    
+    },
+    {
+      icon: Building2,
+      label: "Shop Information",
+      path: "/admin/shop",
+    },
   ];
 
   const isActive = (path, exact = false) => {
