@@ -26,6 +26,8 @@ import PrivateRoute from "../components/PrivateRouter/index";
 import ContactListPage from "../pages/ContactManagement/ContactListPage";
 import ContactDetailPage from "../pages/ContactManagement/ContactDetailPage";
 import ContactEditPage from "../pages/ContactManagement/ContactEditPage";
+import CartPage from "../pages/CustomerView/CartPage";
+import CheckoutPage from "../pages/CustomerView/CheckoutPage";
 import StaffManagement from "../pages/StaffManagement/StaffManagement";
 import CustomerManagement from "../pages/customerManagement/customerManagementPage";
 import AdminDiscountManagement from "../pages/discountManagement/AdminManagementPage";
@@ -39,7 +41,6 @@ import NewsFormPage from "../pages/Admin/News/NewsFormPage";
 import AdminNewsDetailPage from "../pages/Admin/News/NewsDetailPage";
 import ShopManagement from "../pages/Admin/Shop/ShopManagement";
 import AboutUsPage from "../pages/AboutUsPage";
-
 
 export const routes = [
   // Trang chủ
@@ -89,7 +90,7 @@ export const routes = [
   //   element: <ContactPage1 />,
   // },
 
-  // Khu vực quản trị
+ 
   {
     path: "/customer",
     element: (
@@ -102,6 +103,8 @@ export const routes = [
       { path: "change-password", element: <UpdatePassword /> },
       { path: "contact", element: <ContactPage /> },
       { path: "contact-history", element: <ContactHistoryPage /> },
+      { path: "cart", element: <CartPage /> },
+      { path: "checkout", element: <CheckoutPage /> },
     ],
   },
 

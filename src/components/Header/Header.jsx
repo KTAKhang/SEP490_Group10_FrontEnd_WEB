@@ -4,13 +4,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { logoutRequest } from "../../redux/actions/authActions";
 import { LogOut, Settings, User, Clock, Package, Menu, X } from "lucide-react";
 import PropTypes from "prop-types";
-// import { fetchCartRequest } from "../../";
+import { fetchCartRequest } from "../../redux/actions/cartActions";
+
 const Header = ({ searchTerm, setSearchTerm }) => {
   void searchTerm;
   void setSearchTerm;
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
   // useEffect(() => {
   //   dispatch(fetchCartRequest());
   // }, [dispatch]);
