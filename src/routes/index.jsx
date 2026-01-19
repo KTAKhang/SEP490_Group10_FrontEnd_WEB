@@ -26,6 +26,7 @@ import StaffManagement from "../pages/StaffManagement/StaffManagement";
 import CustomerManagement from "../pages/customerManagement/customerManagementPage";
 import AdminDiscountManagement from "../pages/discountManagement/AdminManagementPage";
 import StaffDiscountManagement from "../pages/discountManagement/StaffManagementPage";
+import SalesStaffPage from "../pages/SalesStaff/SalesStaffPage";
 import FinanceLayout from "../layout/FinanceLayout";
 export const routes = [
   // Trang chủ
@@ -112,6 +113,7 @@ export const routes = [
     ),
     children: [
       { index: true, element: <FinanceLayout /> },
+      { path: "statistics", element: <SalesStaffPage /> },
       { path: "discounts", element: <StaffDiscountManagement /> },
     ],
   },

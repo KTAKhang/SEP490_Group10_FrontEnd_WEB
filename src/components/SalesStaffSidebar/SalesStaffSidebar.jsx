@@ -20,7 +20,7 @@ const SalesStaffSidebar = () => {
     {
       icon: LayoutDashboard,
       label: "Dashboard",
-      path: "/sale-staff",
+      path: "/sale-staff/statistics",
       exact: true,
     },
     {
