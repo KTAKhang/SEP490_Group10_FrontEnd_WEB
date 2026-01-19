@@ -97,21 +97,7 @@ const ForgotPassword = () => {
       <div className="min-h-screen flex items-center justify-center bg-[#F9FEFB] px-5">
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
           {/* Particles */}
-          {/* {[...Array(14)].map((_, i) => (
-          <span
-            key={`particle-${i}`}
-            className="absolute rounded-full animate-float"
-            style={{
-              width: `${Math.random() * 6 + 4}px`,
-              height: `${Math.random() * 6 + 4}px`,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              backgroundColor: "rgba(34, 197, 94, 0.12)",
-              animationDuration: `${6 + Math.random() * 6}s`, // 👈 NGẮN HƠN
-              animationDelay: `${Math.random() * 3}s`,
-            }}
-          />
-        ))} */}
+        
 
           {/* Fruits */}
           <img
@@ -139,7 +125,7 @@ const ForgotPassword = () => {
             className="flex items-center text-sm text-gray-500 hover:text-gray-700 mb-6"
           >
             <ArrowLeft className="w-4 h-4 mr-1" />
-            Quay lại đăng nhập
+           Back to login
           </Link>
 
           {/* Header */}

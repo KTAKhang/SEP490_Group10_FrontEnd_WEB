@@ -9,7 +9,7 @@ const ReadCategory = ({ isOpen, onClose, category }) => {
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-bold text-gray-800 flex items-center space-x-2">
             <Eye size={24} />
-            <span>Chi tiết danh mục</span>
+            <span>Category details</span>
           </h2>
           <button
             onClick={onClose}
@@ -22,7 +22,7 @@ const ReadCategory = ({ isOpen, onClose, category }) => {
           {/* Image */}
           {category.image && (
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-3">Hình ảnh</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-3">Image</h3>
               <img
                 src={category.image}
                 alt={category.name}
@@ -37,11 +37,11 @@ const ReadCategory = ({ isOpen, onClose, category }) => {
           {/* Basic Info */}
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Tên danh mục</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Category name</h3>
               <p className="text-lg font-semibold text-gray-900">{category.name}</p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Trạng thái</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Status</h3>
               <span
                 className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                   category.status
@@ -52,12 +52,12 @@ const ReadCategory = ({ isOpen, onClose, category }) => {
                 {category.status ? (
                   <>
                     <CheckCircle size={16} className="mr-1" />
-                    Đang hoạt động
+                    Active
                   </>
                 ) : (
                   <>
                     <XCircle size={16} className="mr-1" />
-                    Đã tắt
+                    Inactive
                   </>
                 )}
               </span>
@@ -67,7 +67,7 @@ const ReadCategory = ({ isOpen, onClose, category }) => {
           {/* Description */}
           {category.description && (
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Mô tả</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Description</h3>
               <p className="text-gray-900 whitespace-pre-wrap">{category.description}</p>
             </div>
           )}
@@ -75,10 +75,10 @@ const ReadCategory = ({ isOpen, onClose, category }) => {
           {/* Timestamps */}
           <div className="border-t pt-4 grid grid-cols-2 gap-4 text-sm text-gray-500">
             <div>
-              <p>Ngày tạo: {category.createdAt ? new Date(category.createdAt).toLocaleString("vi-VN") : "N/A"}</p>
+              <p>Created: {category.createdAt ? new Date(category.createdAt).toLocaleString("vi-VN") : "N/A"}</p>
             </div>
             <div>
-              <p>Cập nhật lần cuối: {category.updatedAt ? new Date(category.updatedAt).toLocaleString("vi-VN") : "N/A"}</p>
+              <p>Last updated: {category.updatedAt ? new Date(category.updatedAt).toLocaleString("vi-VN") : "N/A"}</p>
             </div>
           </div>
         </div>
@@ -87,7 +87,7 @@ const ReadCategory = ({ isOpen, onClose, category }) => {
             onClick={onClose}
             className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
           >
-            Đóng
+            Close
           </button>
         </div>
       </div>
