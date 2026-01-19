@@ -2,23 +2,14 @@ import { Link, useLocation } from "react-router-dom";
 import { useSidebar } from "../../contexts/SidebarContext";
 import {
   LayoutDashboard,
+  Building2,
+  Package,
+  CheckSquare,
+  BarChart3,
   X,
-  MessageSquare,
-  FileText,
-  Store,
-  FolderTree,
-  Building2,
-  Ticket,
-  History,
-  ClipboardList,
-Hieu/Add/Supplier
-  Building2,
-
-  Users,
- main
 } from "lucide-react";
 
-const Sidebar = () => {
+const QcStaffSidebar = () => {
   const { isOpen, toggleSidebar } = useSidebar();
   const location = useLocation();
 
@@ -26,52 +17,28 @@ const Sidebar = () => {
     {
       icon: LayoutDashboard,
       label: "Dashboard",
-      path: "/admin",
+      path: "/qc-staff",
       exact: true,
     },
     {
-      icon: FolderTree,
-      label: "Categories",
-      path: "/admin/category",
-    },
-    {
-      icon: Store,
-      label: "Product",
-      path: "/admin/warehouse",
-    },
-    {
-      icon: MessageSquare,
-      label: "Contact",
-      path: "/admin/contacts",
-    },
-    {
-      icon: FileText,
-      label: "News",
-      path: "/admin/news",
-    },
-    {
       icon: Building2,
-      label: "Shop Information",
-      path: "/admin/shop",
+      label: "Suppliers",
+      path: "/qc-staff/suppliers",
     },
     {
-      icon: Users,
-      label: "Staff Management",
-      path: "/admin/staff",
+      icon: Package,
+      label: "Harvest Batches",
+      path: "/qc-staff/harvest-batches",
     },
     {
-      icon: Ticket,
-      label: "Discount Management",
-      path: "/admin/discounts",
-
-      icon: History,
-      label: "Batch History",
-      path: "/admin/batch-history",
+      icon: CheckSquare,
+      label: "Quality Verifications",
+      path: "/qc-staff/quality-verifications",
     },
     {
-      icon: ClipboardList,
-      label: "Receipt History",
-      path: "/admin/receipt-history",
+      icon: BarChart3,
+      label: "Performance Evaluations",
+      path: "/qc-staff/performance-evaluations",
     },
   ];
 
@@ -94,19 +61,20 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full bg-white shadow-lg z-50 transition-all duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"
-          } lg:translate-x-0 w-64`}
+        className={`fixed top-0 left-0 h-full bg-white shadow-lg z-50 transition-all duration-300 ease-in-out ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0 w-64`}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
-            <Link to="/admin" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
+            <Link to="/qc-staff" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
                 <LayoutDashboard className="text-white" size={20} />
               </div>
               {isOpen && (
                 <span className="text-lg font-bold text-gray-800">
-                  Admin Panel
+                  QC Staff
                 </span>
               )}
             </Link>
@@ -128,10 +96,11 @@ const Sidebar = () => {
                   <li key={item.path}>
                     <Link
                       to={item.path}
-                      className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${active
-                          ? "bg-green-100 text-green-700 font-medium"
+                      className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                        active
+                          ? "bg-purple-100 text-purple-700 font-medium"
                           : "text-gray-700 hover:bg-gray-100"
-                        }`}
+                      }`}
                     >
                       <Icon size={20} />
                       <span>{item.label}</span>
@@ -147,4 +116,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default QcStaffSidebar;
