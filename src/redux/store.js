@@ -5,6 +5,9 @@ import authReducer from "./reducers/authReducer";
 import contactReducer from "./reducers/contactReducer";
 import profileReducer from "./reducers/profileReducer";
 import warehouseReducer from "./reducers/warehouseReducer";
+import cartReducer from "./reducers/cartReducer";
+import checkoutReducer from "./reducers/checkoutReducer";
+import orderReducer from "./reducers/orderReducer";
 import rootSaga from "./sagas/rootSaga";
 
 const rootReducer = combineReducers({
@@ -12,6 +15,9 @@ const rootReducer = combineReducers({
   contact: contactReducer,
   profile: profileReducer,
   warehouse: warehouseReducer,
+  cart: cartReducer,
+  checkout: checkoutReducer,
+  order: orderReducer,
 });
 
 const sagaMiddleware = createSagaMiddleware();

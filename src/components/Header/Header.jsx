@@ -1,21 +1,24 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logoutRequest } from "../../redux/actions/authActions";
 import { LogOut, Settings, User, Clock, Package, Menu, X } from "lucide-react";
 import PropTypes from "prop-types";
-
+import { fetchCartRequest } from "../../redux/actions/cartActions";
 const Header = ({ searchTerm, setSearchTerm }) => {
   void searchTerm;
   void setSearchTerm;
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
+  useEffect(() => {
+    dispatch(fetchCartRequest());
+  }, [dispatch]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const { cart } = useSelector((state) => state.cart || {});
+  console.log("cart", cart)
   const cartItems = cart?.items?.length || 0;
 
   const storedUser = JSON.parse(localStorage.getItem("user") || "null");
@@ -46,7 +49,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
               className="h-10 md:h-12"
             />
             <span className="text-xl font-bold text-green-700">
-             Smart fruit shop
+              Smart fruit shop
             </span>
           </Link>
 
@@ -78,7 +81,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                 {/* CART */}
                 <Link
                   to="/customer/cart"
-className="relative p-2 rounded-full hover:bg-gray-100 flex items-center justify-center"
+                  className="relative p-2 rounded-full hover:bg-gray-100 flex items-center justify-center"
                 >
                   <span className="text-xl">🛒</span>
                   {cartItems > 0 && (
@@ -87,7 +90,7 @@ className="relative p-2 rounded-full hover:bg-gray-100 flex items-center justify
                     </span>
                   )}
                 </Link>
-                
+
                 {/* AVATAR */}
                 <div className="relative">
                   <button onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
@@ -146,13 +149,13 @@ className="relative p-2 rounded-full hover:bg-gray-100 flex items-center justify
                   to="/login"
                   className="text-sm text-gray-700 hover:text-green-600"
                 >
-                  Đăng nhập
+                  Login
                 </Link>
                 <Link
-to="/register"
+                  to="/register"
                   className="text-sm text-gray-700 hover:text-green-600"
                 >
-                  Đăng ký
+                  Register
                 </Link>
               </>
             )}
@@ -171,7 +174,7 @@ to="/register"
         {isMobileMenuOpen && (
           <div className="md:hidden pb-4 space-y-2">
             {[
-               { label: "Home", path: "/" },
+              { label: "Home", path: "/" },
               { label: "Product", path: "/products" },
               { label: "Categories", path: "/categories" },
               { label: "About Us", path: "/about" },
@@ -197,9 +200,8 @@ to="/register"
 const DropdownItem = ({ icon, label, onClick, danger }) => (
   <button
     onClick={onClick}
-    className={`w-full flex items-center space-x-3 px-4 py-3 text-sm ${
-      danger ? "text-red-600 hover:bg-red-50" : "text-gray-700 hover:bg-gray-50"
-    }`}
+    className={`w-full flex items-center space-x-3 px-4 py-3 text-sm ${danger ? "text-red-600 hover:bg-red-50" : "text-gray-700 hover:bg-gray-50"
+      }`}
   >
     {icon}
     <span>{label}</span>

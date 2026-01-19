@@ -22,6 +22,8 @@ import PrivateRoute from "../components/PrivateRouter/index";
 import ContactListPage from "../pages/ContactManagement/ContactListPage";
 import ContactDetailPage from "../pages/ContactManagement/ContactDetailPage";
 import ContactEditPage from "../pages/ContactManagement/ContactEditPage";
+import CartPage from "../pages/CustomerView/CartPage";
+import CheckoutPage from "../pages/CustomerView/CheckoutPage";
 export const routes = [
   // Trang chủ
 
@@ -46,7 +48,7 @@ export const routes = [
   //   element: <ContactPage1 />,
   // },
 
-  // Khu vực quản trị
+ 
   {
     path: "/customer",
     element: (
@@ -59,6 +61,8 @@ export const routes = [
       { path: "change-password", element: <UpdatePassword /> },
       { path: "contact", element: <ContactPage /> },
       { path: "contact-history", element: <ContactHistoryPage /> },
+      { path: "cart", element: <CartPage /> },
+      { path: "checkout", element: <CheckoutPage /> },
     ],
   },
 
