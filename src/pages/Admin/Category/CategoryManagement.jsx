@@ -41,15 +41,6 @@ const CardContent = ({ children, className = "" }) => (
 
 const CategoryManagement = () => {
   const dispatch = useDispatch();
-<<<<<<< HEAD
-  const { 
-    categories, 
-    categoriesLoading, 
-    categoriesPagination,
-    deleteCategoryLoading,
-    deleteCategoryError,
-  } = useSelector((state) => state.warehouse);
-=======
   const {
     categories,
     categoriesLoading,
@@ -62,7 +53,6 @@ const CategoryManagement = () => {
     updateCategoryError,
     deleteCategoryError,
   } = useSelector((state) => state.category);
->>>>>>> 22a3f19a9774da34e8f3624342ffe7c2e62850f3
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all"); // all, true, false
@@ -73,13 +63,9 @@ const CategoryManagement = () => {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showReadModal, setShowReadModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
-<<<<<<< HEAD
-  const [hasDeletedCategory, setHasDeletedCategory] = useState(false);
-=======
   const [prevCreateLoading, setPrevCreateLoading] = useState(false);
   const [prevUpdateLoading, setPrevUpdateLoading] = useState(false);
   const [prevDeleteLoading, setPrevDeleteLoading] = useState(false);
->>>>>>> 22a3f19a9774da34e8f3624342ffe7c2e62850f3
 
   // Fetch categories and stats on mount
   useEffect(() => {
@@ -103,7 +89,7 @@ const CategoryManagement = () => {
   // Auto refresh after successful create
   useEffect(() => {
     if (prevCreateLoading && !createCategoryLoading && !createCategoryError) {
-      // Create was just completed successfully
+// Create was just completed successfully
       const params = {
         page: currentPage,
         limit: 10,
@@ -154,19 +140,6 @@ const CategoryManagement = () => {
     setPrevDeleteLoading(deleteCategoryLoading);
   }, [dispatch, deleteCategoryLoading, deleteCategoryError, prevDeleteLoading, currentPage, searchTerm, filterStatus, sortBy, sortOrder]);
 
-  // Show toast when category is deleted successfully
-  useEffect(() => {
-    if (hasDeletedCategory && !deleteCategoryLoading && !deleteCategoryError) {
-      // Category deletion completed successfully
-      toast.success("Category deleted successfully!");
-      setHasDeletedCategory(false);
-    }
-    if (hasDeletedCategory && deleteCategoryError) {
-      toast.error(deleteCategoryError);
-      setHasDeletedCategory(false);
-    }
-  }, [hasDeletedCategory, deleteCategoryLoading, deleteCategoryError]);
-
   const handleAddCategory = () => {
     setShowCreateModal(true);
   };
@@ -182,12 +155,7 @@ const CategoryManagement = () => {
   };
 
   const handleDeleteCategory = (id) => {
-<<<<<<< HEAD
-    if (!window.confirm("Bạn có chắc chắn muốn xóa danh mục này?")) return;
-    setHasDeletedCategory(true);
-=======
     if (!window.confirm("Are you sure you want to delete this category?")) return;
->>>>>>> 22a3f19a9774da34e8f3624342ffe7c2e62850f3
     dispatch(deleteCategoryRequest(id));
   };
 
@@ -208,7 +176,7 @@ const CategoryManagement = () => {
         </div>
         <button
           onClick={handleAddCategory}
-          className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
         >
           <Plus size={18} />
           <span>Add category</span>
@@ -281,7 +249,7 @@ const CategoryManagement = () => {
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
-                <option value="all">All statuses</option>
+<option value="all">All statuses</option>
                 <option value="true">Active</option>
                 <option value="false">Inactive</option>
               </select>
@@ -348,7 +316,7 @@ const CategoryManagement = () => {
                         Status
                       </th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
+Actions
                       </th>
                     </tr>
                   </thead>
@@ -406,7 +374,7 @@ const CategoryManagement = () => {
                           <div className="flex items-center justify-end space-x-2">
                             <button
                               onClick={() => handleViewCategory(category)}
-                              className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
+className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
                               title="View details"
                             >
                               <Eye size={18} />
@@ -463,7 +431,7 @@ const CategoryManagement = () => {
                       </button>
                     ))}
                     <button
-                      onClick={() => setCurrentPage((prev) => Math.min(categoriesPagination.totalPages, prev + 1))}
+onClick={() => setCurrentPage((prev) => Math.min(categoriesPagination.totalPages, prev + 1))}
                       disabled={currentPage === categoriesPagination.totalPages}
                       className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                     >
