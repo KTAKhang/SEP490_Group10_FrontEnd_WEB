@@ -2,8 +2,6 @@ import { Link, useLocation } from "react-router-dom";
 import { useSidebar } from "../../contexts/SidebarContext";
 import {
   LayoutDashboard,
-  Building2,
-  Package,
   CheckSquare,
   BarChart3,
   X,
@@ -19,16 +17,6 @@ const QcStaffSidebar = () => {
       label: "Dashboard",
       path: "/qc-staff",
       exact: true,
-    },
-    {
-      icon: Building2,
-      label: "Suppliers",
-      path: "/qc-staff/suppliers",
-    },
-    {
-      icon: Package,
-      label: "Harvest Batches",
-      path: "/qc-staff/harvest-batches",
     },
     {
       icon: CheckSquare,

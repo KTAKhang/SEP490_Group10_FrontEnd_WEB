@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X, Calendar, Package, MapPin } from "lucide-react";
-import { createHarvestBatchRequest } from "../../../../redux/actions/supplierActions";
-import { getSuppliersRequest } from "../../../../redux/actions/supplierActions";
-import { getProductsRequest } from "../../../../redux/actions/productActions";
+import { createHarvestBatchRequest } from "../../../redux/actions/supplierActions";
+import { getSuppliersRequest } from "../../../redux/actions/supplierActions";
+import { getProductsRequest } from "../../../redux/actions/productActions";
 
 const CreateHarvestBatch = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
@@ -46,8 +46,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
       });
       onClose();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasSubmitted, createHarvestBatchLoading]);
+  }, [hasSubmitted, createHarvestBatchLoading, onClose]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -90,16 +89,16 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
 
   const handleCancel = () => {
     setHasSubmitted(false);
-    setFormData({
-      supplierId: "",
-      productId: "",
-      batchNumber: "",
-      harvestDate: "",
-      quantity: "",
-      location: "",
-      qualityGrade: "A",
-      notes: "",
-    });
+      setFormData({
+        supplierId: "",
+        productId: "",
+        batchNumber: "",
+        harvestDate: "",
+        quantity: "",
+        location: "",
+        qualityGrade: "A",
+        notes: "",
+      });
     onClose();
   };
 
@@ -107,6 +106,13 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
   const activeSuppliers = suppliers?.filter(
     (s) => s.cooperationStatus === "ACTIVE" && s.status === true
   ) || [];
+
+  // Filter products based on selected supplier
+  const filteredProducts = products?.filter(product => {
+    // Check if product.supplier is an ObjectId string or a populated object
+    const productSupplierId = product.supplier?._id || product.supplier;
+    return productSupplierId && productSupplierId.toString() === formData.supplierId;
+  }) || [];
 
   if (!isOpen) return null;
 
@@ -159,33 +165,15 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
                   disabled={!formData.supplierId}
                 >
                   <option value="">Select product</option>
-                  {products?.filter((product) => {
-                    // ✅ Filter products by selected supplier
-                    if (!formData.supplierId) return false;
-                    // Check if product.supplier matches selected supplierId
-                    // Handle both ObjectId (string) and populated object
-                    if (!product.supplier) return false;
-                    const supplierIdToCompare = typeof product.supplier === 'object' && product.supplier._id
-                      ? product.supplier._id.toString()
-                      : product.supplier.toString();
-                    return supplierIdToCompare === formData.supplierId;
-                  }).map((product) => (
+                  {filteredProducts.length === 0 && formData.supplierId && (
+                    <option value="" disabled>No products for this supplier</option>
+                  )}
+                  {filteredProducts.map((product) => (
                     <option key={product._id} value={product._id}>
                       {product.name} {product.brand && `(${product.brand})`}
                     </option>
                   ))}
                 </select>
-                {formData.supplierId && products?.filter((p) => {
-                  if (!p.supplier) return false;
-                  const supplierIdToCompare = typeof p.supplier === 'object' && p.supplier._id
-                    ? p.supplier._id.toString()
-                    : p.supplier.toString();
-                  return supplierIdToCompare === formData.supplierId;
-                }).length === 0 && (
-                  <p className="text-xs text-orange-600 mt-1">
-                    Không có sản phẩm nào cho nhà cung cấp này. Vui lòng tạo sản phẩm trước.
-                  </p>
-                )}
               </div>
             </div>
 
