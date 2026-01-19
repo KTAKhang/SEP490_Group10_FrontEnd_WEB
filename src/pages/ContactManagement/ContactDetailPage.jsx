@@ -3,11 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import {
-  getContactDetailRequest,
-  downloadAttachmentRequest,
-  updateReplyRequest,
-  deleteReplyRequest,
-  clearContactMessages,
+  contactGetContactDetailRequest,
+  contactDownloadAttachmentRequest,
+  contactUpdateReplyRequest,
+  contactDeleteReplyRequest,
+  contactClearMessages,
 } from '../../redux/actions/contactActions';
 import {
   ArrowLeft,
@@ -50,15 +50,15 @@ const ContactDetailPage = () => {
   // Fetch contact detail
   useEffect(() => {
     if (id) {
-      dispatch(getContactDetailRequest(id));
+      dispatch(contactGetContactDetailRequest(id));
     }
   }, [id, dispatch]);
 
   // Refresh replies after successful update/delete
   useEffect(() => {
     if ((updateReplySuccess || deleteReplySuccess) && id) {
-      dispatch(getContactDetailRequest(id));
-      dispatch(clearContactMessages());
+      dispatch(contactGetContactDetailRequest(id));
+      dispatch(contactClearMessages());
       setEditingReplyId(null);
       setEditingReplyMessage('');
     }
@@ -113,13 +113,13 @@ const ContactDetailPage = () => {
       window.open(fileUrl, '_blank');
     } else {
       // For documents, download
-      dispatch(downloadAttachmentRequest(fileUrl, fileName));
+      dispatch(contactDownloadAttachmentRequest(fileUrl, fileName));
     }
   };
 
   const handleDownloadAttachment = (fileUrl, fileName) => {
     // Always download (for both images and documents)
-    dispatch(downloadAttachmentRequest(fileUrl, fileName));
+    dispatch(contactDownloadAttachmentRequest(fileUrl, fileName));
   };
 
   const handleStartEditReply = (reply) => {
@@ -140,7 +140,7 @@ const ContactDetailPage = () => {
       return;
     }
 
-    dispatch(updateReplyRequest(id, editingReplyId, editingReplyMessage.trim()));
+    dispatch(contactUpdateReplyRequest(id, editingReplyId, editingReplyMessage.trim()));
     setEditingReplyId(null);
     setEditingReplyMessage('');
   };
@@ -149,7 +149,7 @@ const ContactDetailPage = () => {
     if (!id || !replyId) return;
     
     if (window.confirm('Are you sure you want to delete this reply?')) {
-      dispatch(deleteReplyRequest(id, replyId));
+      dispatch(contactDeleteReplyRequest(id, replyId));
     }
   };
 

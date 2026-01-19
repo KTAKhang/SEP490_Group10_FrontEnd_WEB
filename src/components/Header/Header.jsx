@@ -5,15 +5,17 @@ import { logoutRequest } from "../../redux/actions/authActions";
 import { LogOut, Settings, User, Clock, Package, Menu, X } from "lucide-react";
 import PropTypes from "prop-types";
 import { fetchCartRequest } from "../../redux/actions/cartActions";
+
 const Header = ({ searchTerm, setSearchTerm }) => {
   void searchTerm;
   void setSearchTerm;
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  useEffect(() => {
-    dispatch(fetchCartRequest());
-  }, [dispatch]);
+
+  // useEffect(() => {
+  //   dispatch(fetchCartRequest());
+  // }, [dispatch]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -61,7 +63,9 @@ const Header = ({ searchTerm, setSearchTerm }) => {
               { label: "Categories", path: "/categories" },
               { label: "About Us", path: "/about" },
               { label: "Contact", path: "/customer/contact" },
+              { label: "News", path: "/news" },
               { label: "FAQ", path: "/faq" },
+       ...(storedUser ? [{ label: "Wishlist", path: "/wishlist" }] : []),
             ].map((item) => (
               <Link
                 key={item.path}
@@ -90,7 +94,6 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                     </span>
                   )}
                 </Link>
-
                 {/* AVATAR */}
                 <div className="relative">
                   <button onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
@@ -107,7 +110,6 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                         <p className="font-semibold">{displayName}</p>
                         <p className="text-sm opacity-80">{displayEmail}</p>
                       </div>
-
                       <div className="py-2">
                         <DropdownItem
                           icon={<User size={18} />}
@@ -147,7 +149,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
               <>
                 <Link
                   to="/login"
-                  className="text-sm text-gray-700 hover:text-green-600"
+className="text-sm text-gray-700 hover:text-green-600"
                 >
                   Login
                 </Link>
@@ -180,6 +182,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
               { label: "About Us", path: "/about" },
               { label: "Contact", path: "/customer/contact" },
               { label: "FAQ", path: "/faq" },
+             ...(storedUser ? [{ label: "Wishlist", path: "/wishlist" }] : []),
             ].map((item) => (
               <Link
                 key={item.path}
