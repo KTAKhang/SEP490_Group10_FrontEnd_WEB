@@ -4,6 +4,9 @@ import createSagaMiddleware from "redux-saga";
 import authReducer from "./reducers/authReducer";
 import contactReducer from "./reducers/contactReducer";
 import profileReducer from "./reducers/profileReducer";
+import cartReducer from "./reducers/cartReducer";
+import checkoutReducer from "./reducers/checkoutReducer";
+import orderReducer from "./reducers/orderReducer";
 import newsReducer from "./reducers/newsReducer";
 import shopReducer from "./reducers/shopReducer";
 import staffReducer from "./reducers/staffReducer";
@@ -16,13 +19,15 @@ import publicProductReducer from "./reducers/publicProductReducer";
 import publicCategoryReducer from "./reducers/publicCategoryReducer";
 import productBatchReducer from "./reducers/productBatchReducer";
 import favoriteReducer from "./reducers/favoriteReducer";
-
 import rootSaga from "./sagas/rootSaga";
 
 const rootReducer = combineReducers({
   auth: authReducer,
   contact: contactReducer,
   profile: profileReducer,
+  cart: cartReducer,
+  checkout: checkoutReducer,
+  order: orderReducer,
   news: newsReducer,
   shop: shopReducer,
   staff: staffReducer,
