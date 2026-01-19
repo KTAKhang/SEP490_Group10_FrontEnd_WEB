@@ -1,6 +1,27 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { getShopInfoPublicRequest } from '../../redux/actions/shopActions';
 
 const Footer = () => {
+  const dispatch = useDispatch();
+  const { publicShopInfo } = useSelector((state) => state.shop);
+
+  useEffect(() => {
+    // Load shop info once when component mounts
+    if (!publicShopInfo) {
+      dispatch(getShopInfoPublicRequest());
+    }
+  }, [dispatch, publicShopInfo]);
+
+  // Use shop info or fallback to default values
+  const shop = publicShopInfo || {
+    shopName: "Smart fruit shop",
+    address: "123 Nong Nghiep Street, District 1, Ho Chi Minh City",
+    email: "info@nongsansach.vn",
+    phone: "0123 456 789",
+    workingHours: "Monday - Sunday\n8:00 AM - 8:00 PM",
+  };
+
   return (
     <footer className="bg-gradient-to-br from-green-800 to-green-900 text-white">
       {/* Main content */}
@@ -102,37 +123,45 @@ const Footer = () => {
             <h3 className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-4">
               Contact
             </h3>
-            <ul className="space-y-3">
-              <li className="flex items-start space-x-3">
-                <i className="ri-map-pin-line text-green-300 mt-1" />
-                <span className="text-gray-300 text-sm">
-                  123 Nong Nghiep Street, District 1, Ho Chi Minh City
-                </span>
-              </li>
+            <ul className="space-y-3 -ml-3">
+              {shop.address && (
+                <li className="flex items-center space-x-3">
+                  <i className="ri-map-pin-line text-green-300 text-lg flex-shrink-0" />
+                  <span className="text-gray-300 text-sm">
+                    {shop.address}
+                  </span>
+                </li>
+              )}
 
-              <li className="flex items-center space-x-3">
-                <i className="ri-phone-line text-green-300" />
-                <a href="tel:0123456789" className="text-gray-300 hover:text-white text-sm">
-                  0123 456 789
-                </a>
-              </li>
+              {shop.phone && (
+                <li className="flex items-center space-x-3">
+                  <i className="ri-phone-line text-green-300 text-lg flex-shrink-0" />
+                  <a href={`tel:${shop.phone}`} className="text-gray-300 hover:text-white text-sm">
+                    {shop.phone}
+                  </a>
+                </li>
+              )}
 
-              <li className="flex items-center space-x-3">
-                <i className="ri-mail-line text-green-300" />
-                <a
-                  href="mailto:info@nongsansach.vn"
-                  className="text-gray-300 hover:text-white text-sm"
-                >
-                  info@nongsansach.vn
-                </a>
-              </li>
+              {shop.email && (
+                <li className="flex items-center space-x-3">
+                  <i className="ri-mail-line text-green-300 text-lg flex-shrink-0" />
+                  <a
+                    href={`mailto:${shop.email}`}
+                    className="text-gray-300 hover:text-white text-sm break-all"
+                  >
+                    {shop.email}
+                  </a>
+                </li>
+              )}
 
-              <li className="flex items-start space-x-3">
-                <i className="ri-time-line text-green-300 mt-1" />
-                <span className="text-gray-300 text-sm">
-                  Monday - Sunday <br /> 8:00 AM - 8:00 PM
-                </span>
-              </li>
+              {shop.workingHours && (
+                <li className="flex items-start space-x-3">
+                  <i className="ri-time-line text-green-300 text-lg flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-300 text-sm whitespace-pre-line">
+                    {shop.workingHours}
+                  </span>
+                </li>
+              )}
             </ul>
           </div>
         </div>
@@ -141,8 +170,8 @@ const Footer = () => {
       {/* Big text */}
       <div className="bg-green-900/50 py-12">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-green-100/20 tracking-tight text-center">
-            Smart fruit shop
+            <h2 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-green-100/20 tracking-tight text-center">
+            {shop.shopName || "Smart fruit shop"}
           </h2>
         </div>
       </div>
@@ -152,7 +181,7 @@ const Footer = () => {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-gray-400 text-sm text-center md:text-left">
-              © 2026 Smart fruit shop. All rights reserved.
+              © {new Date().getFullYear()} {shop.shopName || "Smart fruit shop"}. All rights reserved.
             </p>
 
             <div className="flex flex-wrap justify-center gap-6">

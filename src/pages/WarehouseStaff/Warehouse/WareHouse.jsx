@@ -9,15 +9,14 @@ import {
   Filter,
   Upload,
   Eye,
-  Calendar,
 } from "lucide-react";
 import {
   getProductsRequest,
-  getCategoriesRequest,
-} from "../../../redux/actions/warehouseActions";
+  getProductStatsRequest,
+} from "../../../redux/actions/productActions";
+import { getCategoriesRequest } from "../../../redux/actions/categoryActions";
 import ReadProduct from "./ReadProduct";
 import CreateReceipt from "./CreateReceipt";
-import UpdateExpiryDate from "./UpdateExpiryDate";
 import Loading from "../../../components/Loading/Loading";
 
 // Simple Card component
@@ -43,31 +42,30 @@ const WareHouse = () => {
     products,
     productsLoading,
     productsPagination,
-    categories,
-    createReceiptLoading,
-    updateProductExpiryDateLoading,
-    createReceiptError,
-    updateProductExpiryDateError,
-  } = useSelector((state) => state.warehouse);
+    productStats,
+  } = useSelector((state) => state.product);
+  
+  const { categories } = useSelector((state) => state.category);
+  const { createReceiptLoading, createReceiptError } = useSelector((state) => state.inventory);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStockStatus, setFilterStockStatus] = useState("all"); // all, IN_STOCK, OUT_OF_STOCK
   const [filterReceivingStatus, setFilterReceivingStatus] = useState("all"); // all, NOT_RECEIVED, PARTIAL, RECEIVED
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [showReadModal, setShowReadModal] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
-  const [showUpdateExpiryModal, setShowUpdateExpiryModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProductForReceipt, setSelectedProductForReceipt] = useState(null);
-  const [selectedProductForUpdateExpiry, setSelectedProductForUpdateExpiry] = useState(null);
   const [prevCreateReceiptLoading, setPrevCreateReceiptLoading] = useState(false);
-  const [prevUpdateExpiryLoading, setPrevUpdateExpiryLoading] = useState(false);
 
-  // Fetch products and categories on mount
+  // Fetch products, categories and stats on mount
   useEffect(() => {
-    dispatch(getProductsRequest({ page: currentPage, limit: 10 }));
+    dispatch(getProductsRequest({ page: currentPage, limit: 10, sortBy, sortOrder }));
     dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
+    dispatch(getProductStatsRequest());
   }, [dispatch]);
 
   // Fetch products when filters change
@@ -79,9 +77,11 @@ const WareHouse = () => {
       stockStatus: filterStockStatus !== "all" ? filterStockStatus : undefined,
       receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,
       category: selectedCategory !== "all" ? selectedCategory : undefined,
+      sortBy,
+      sortOrder,
     };
     dispatch(getProductsRequest(params));
-  }, [dispatch, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory]);
+  }, [dispatch, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory, sortBy, sortOrder]);
 
   // Auto refresh after successful create receipt
   useEffect(() => {
@@ -94,47 +94,34 @@ const WareHouse = () => {
         stockStatus: filterStockStatus !== "all" ? filterStockStatus : undefined,
         receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,
         category: selectedCategory !== "all" ? selectedCategory : undefined,
+        sortBy,
+        sortOrder,
       };
       dispatch(getProductsRequest(params));
+      dispatch(getProductStatsRequest());
     }
     setPrevCreateReceiptLoading(createReceiptLoading);
-  }, [dispatch, createReceiptLoading, createReceiptError, prevCreateReceiptLoading, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory]);
+  }, [dispatch, createReceiptLoading, createReceiptError, prevCreateReceiptLoading, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory, sortBy, sortOrder]);
 
-  // Auto refresh after successful update expiry date
-  useEffect(() => {
-    if (prevUpdateExpiryLoading && !updateProductExpiryDateLoading && !updateProductExpiryDateError) {
-      // Update expiry date was just completed successfully
-      const params = {
-        page: currentPage,
-        limit: 10,
-        search: searchTerm || undefined,
-        stockStatus: filterStockStatus !== "all" ? filterStockStatus : undefined,
-        receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,
-        category: selectedCategory !== "all" ? selectedCategory : undefined,
-      };
-      dispatch(getProductsRequest(params));
-    }
-    setPrevUpdateExpiryLoading(updateProductExpiryDateLoading);
-  }, [dispatch, updateProductExpiryDateLoading, updateProductExpiryDateError, prevUpdateExpiryLoading, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory]);
 
   const getStockStatus = (product) => {
     if (product.stockStatus === "OUT_OF_STOCK" || product.onHandQuantity === 0) {
-      return { label: "Hết hàng", color: "bg-red-100 text-red-800", icon: AlertCircle };
+      return { label: "Out of stock", color: "bg-red-100 text-red-800", icon: AlertCircle };
     }
     if (product.onHandQuantity <= 10) {
-      return { label: "Sắp hết", color: "bg-yellow-100 text-yellow-800", icon: TrendingDown };
+      return { label: "Low stock", color: "bg-yellow-100 text-yellow-800", icon: TrendingDown };
     }
-    return { label: "Còn hàng", color: "bg-green-100 text-green-800", icon: CheckCircle };
+    return { label: "In stock", color: "bg-green-100 text-green-800", icon: CheckCircle };
   };
 
   const getReceivingStatus = (product) => {
     switch (product.receivingStatus) {
       case "NOT_RECEIVED":
-        return { label: "Chưa nhập", color: "bg-gray-100 text-gray-800" };
+        return { label: "Not received", color: "bg-gray-100 text-gray-800" };
       case "PARTIAL":
-        return { label: "Chưa đủ", color: "bg-yellow-100 text-yellow-800" };
+        return { label: "Partial", color: "bg-yellow-100 text-yellow-800" };
       case "RECEIVED":
-        return { label: "Đã nhập đủ", color: "bg-green-100 text-green-800" };
+        return { label: "Fully received", color: "bg-green-100 text-green-800" };
       default:
         return { label: "N/A", color: "bg-gray-100 text-gray-800" };
     }
@@ -150,17 +137,41 @@ const WareHouse = () => {
     setShowReceiptModal(true);
   };
 
-  const handleOpenUpdateExpiryModal = (product) => {
-    setSelectedProductForUpdateExpiry(product);
-    setShowUpdateExpiryModal(true);
+  // Helper function to check if product can receive more inventory
+  // According to new backend logic: Can receive multiple times on the same day,
+  // but cannot receive on a different day (even if expiryDate is already set)
+  const canReceiveInventory = (product) => {
+    // If product has warehouseEntryDate, check if it's the same day (using date string if available)
+    if (product.warehouseEntryDateStr) {
+      // Use date string comparison (more reliable with timezone)
+      const today = new Date();
+      const vnToday = new Date(today.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
+      vnToday.setHours(0, 0, 0, 0);
+      const todayStr = `${vnToday.getFullYear()}-${String(vnToday.getMonth() + 1).padStart(2, "0")}-${String(vnToday.getDate()).padStart(2, "0")}`;
+      
+      // Can only receive on the same day
+      return product.warehouseEntryDateStr === todayStr;
+    } else if (product.warehouseEntryDate) {
+      // Fallback: compare Date objects (for old data)
+      const entryDate = new Date(product.warehouseEntryDate);
+      entryDate.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Can only receive on the same day
+      return entryDate.getTime() === today.getTime();
+    }
+
+    // If no warehouseEntryDate, can receive (first receipt)
+    return true;
   };
 
-  // Calculate stats from products
+  // Use stats from API
   const stats = {
-    total: productsPagination?.total || products.length,
-    inStock: products.filter((p) => p.stockStatus === "IN_STOCK").length,
-    outOfStock: products.filter((p) => p.stockStatus === "OUT_OF_STOCK").length,
-    lowStock: products.filter((p) => p.onHandQuantity > 0 && p.onHandQuantity <= 10).length,
+    total: productStats?.total || 0,
+    inStock: productStats?.inStock || 0,
+    outOfStock: productStats?.outOfStock || 0,
+    lowStock: productStats?.lowStock || 0,
   };
 
   return (
@@ -168,8 +179,8 @@ const WareHouse = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Quản lý sản phẩm</h1>
-          <p className="text-gray-600 mt-1">Xem và nhập kho sản phẩm</p>
+          <h1 className="text-3xl font-bold text-gray-800">Product management</h1>
+          <p className="text-gray-600 mt-1">View and receive products</p>
         </div>
       </div>
 
@@ -179,7 +190,7 @@ const WareHouse = () => {
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Tổng sản phẩm</p>
+                <p className="text-sm text-gray-600">Total products</p>
                 <p className="text-2xl font-bold text-gray-800 mt-1">{stats.total}</p>
               </div>
               <div className="p-3 bg-blue-100 rounded-lg">
@@ -193,7 +204,7 @@ const WareHouse = () => {
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Còn hàng</p>
+                <p className="text-sm text-gray-600">In stock</p>
                 <p className="text-2xl font-bold text-gray-800 mt-1">{stats.inStock}</p>
               </div>
               <div className="p-3 bg-green-100 rounded-lg">
@@ -207,7 +218,7 @@ const WareHouse = () => {
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Hết hàng</p>
+                <p className="text-sm text-gray-600">Out of stock</p>
                 <p className="text-2xl font-bold text-gray-800 mt-1">{stats.outOfStock}</p>
               </div>
               <div className="p-3 bg-red-100 rounded-lg">
@@ -221,7 +232,7 @@ const WareHouse = () => {
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Sắp hết</p>
+                <p className="text-sm text-gray-600">Low stock</p>
                 <p className="text-2xl font-bold text-gray-800 mt-1">{stats.lowStock}</p>
               </div>
               <div className="p-3 bg-yellow-100 rounded-lg">
@@ -235,16 +246,16 @@ const WareHouse = () => {
       {/* Filters and Search */}
       <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">Bộ lọc và tìm kiếm</CardTitle>
+          <CardTitle className="text-lg font-semibold">Filters and search</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="text"
-                placeholder="Tìm kiếm sản phẩm..."
+                placeholder="Search products..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -257,7 +268,7 @@ const WareHouse = () => {
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="all">Tất cả danh mục</option>
+              <option value="all">All categories</option>
               {categories.map((cat) => (
                 <option key={cat._id} value={cat._id}>
                   {cat.name}
@@ -271,9 +282,9 @@ const WareHouse = () => {
               onChange={(e) => setFilterStockStatus(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="IN_STOCK">Còn hàng</option>
-              <option value="OUT_OF_STOCK">Hết hàng</option>
+              <option value="all">All statuses</option>
+              <option value="IN_STOCK">In stock</option>
+              <option value="OUT_OF_STOCK">Out of stock</option>
             </select>
 
             {/* Receiving Status Filter */}
@@ -282,10 +293,39 @@ const WareHouse = () => {
               onChange={(e) => setFilterReceivingStatus(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="all">Tất cả trạng thái nhập</option>
-              <option value="NOT_RECEIVED">Chưa nhập</option>
-              <option value="PARTIAL">Chưa đủ</option>
-              <option value="RECEIVED">Đã nhập đủ</option>
+              <option value="all">All receipt statuses</option>
+              <option value="NOT_RECEIVED">Not received</option>
+              <option value="PARTIAL">Partial</option>
+              <option value="RECEIVED">Fully received</option>
+            </select>
+
+            {/* Sort By */}
+            <select
+              value={sortBy}
+              onChange={(e) => {
+                setSortBy(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="createdAt">Created date</option>
+              <option value="name">Name</option>
+              <option value="onHandQuantity">Stock</option>
+              <option value="receivedQuantity">Received</option>
+              <option value="updatedAt">Updated date</option>
+            </select>
+
+            {/* Sort Order */}
+            <select
+              value={sortOrder}
+              onChange={(e) => {
+                setSortOrder(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="desc">Descending</option>
+              <option value="asc">Ascending</option>
             </select>
           </div>
         </CardContent>
@@ -294,31 +334,31 @@ const WareHouse = () => {
       {/* Products Table */}
       <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">Danh sách sản phẩm</CardTitle>
+          <CardTitle className="text-lg font-semibold">Product list</CardTitle>
         </CardHeader>
         <CardContent>
-          {productsLoading || createReceiptLoading || updateProductExpiryDateLoading ? (
-            <Loading message="Đang tải dữ liệu..." />
+          {productsLoading || createReceiptLoading ? (
+            <Loading message="Loading data..." />
           ) : (
             <>
               {products.length === 0 ? (
                 <div className="text-center py-8">
                   <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">Không có sản phẩm nào</p>
+                  <p className="text-gray-500">No products found</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b">
-                        <th className="text-left py-3 px-4 font-medium text-gray-700">Tên sản phẩm</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700">Danh mục</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700">Tồn kho</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700">Đã nhập</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700">Kế hoạch</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700">Trạng thái</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700">Trạng thái nhập</th>
-                        <th className="text-center py-3 px-4 font-medium text-gray-700">Thao tác</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700">Product name</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700">Category</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700">Stock</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700">Received</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700">Planned</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700">Status</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-700">Receipt status</th>
+                        <th className="text-center py-3 px-4 font-medium text-gray-700">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -383,24 +423,25 @@ const WareHouse = () => {
                                 <button
                                   onClick={() => handleViewProduct(product)}
                                   className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                  title="Xem chi tiết"
+                                  title="View details"
                                 >
                                   <Eye size={18} />
                                 </button>
-                                <button
-                                  onClick={() => handleOpenReceiptModal(product)}
-                                  className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                  title="Nhập kho"
-                                >
-                                  <Upload size={18} />
-                                </button>
-                                {product.warehouseEntryDate && (
+                                {canReceiveInventory(product) ? (
                                   <button
-                                    onClick={() => handleOpenUpdateExpiryModal(product)}
-                                    className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                                    title="Cập nhật hạn sử dụng"
+                                    onClick={() => handleOpenReceiptModal(product)}
+                                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                    title="Receive stock"
                                   >
-                                    <Calendar size={18} />
+                                    <Upload size={18} />
+                                  </button>
+                                ) : (
+                                  <button
+                                    disabled
+                                    className="p-2 text-gray-400 cursor-not-allowed rounded-lg"
+                                    title="Receipt must be completed on the same day (according to Asia/Ho_Chi_Minh timezone). Cannot receive on a different day."
+                                  >
+                                    <Upload size={18} />
                                   </button>
                                 )}
                               </div>
@@ -418,7 +459,7 @@ const WareHouse = () => {
                 <div className="flex items-center justify-between mt-4 pt-4 border-t">
                   <div className="text-sm text-gray-600">
                     Trang {productsPagination.page} / {productsPagination.totalPages} (
-                    {productsPagination.total} sản phẩm)
+                    {productsPagination.total} products)
                   </div>
                   <div className="flex items-center space-x-2">
                     <button
@@ -426,7 +467,7 @@ const WareHouse = () => {
                       disabled={currentPage === 1}
                       className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                     >
-                      Trước
+                      Previous
                     </button>
                     {[...Array(productsPagination.totalPages)].map((_, index) => {
                       const page = index + 1;
@@ -488,15 +529,6 @@ const WareHouse = () => {
         product={selectedProductForReceipt}
       />
 
-      {/* Update Expiry Date Modal */}
-      <UpdateExpiryDate
-        isOpen={showUpdateExpiryModal}
-        onClose={() => {
-          setShowUpdateExpiryModal(false);
-          setSelectedProductForUpdateExpiry(null);
-        }}
-        product={selectedProductForUpdateExpiry}
-      />
     </div>
   );
 };

@@ -2,36 +2,36 @@
 import { call, put, takeLatest } from "redux-saga/effects";
 import { toast } from "react-toastify";
 import {
-  GET_CATEGORIES_REQUEST,
-  getCategoriesSuccess,
-  getCategoriesFailure,
-  CREATE_CONTACT_REQUEST,
-  createContactSuccess,
-  createContactFailure,
-  GET_MY_CONTACTS_REQUEST,
-  getMyContactsSuccess,
-  getMyContactsFailure,
-  GET_CONTACT_DETAIL_REQUEST,
-  getContactDetailSuccess,
-  getContactDetailFailure,
-  GET_CONTACT_REPLIES_REQUEST,
-  getContactRepliesSuccess,
-  getContactRepliesFailure,
-  SEND_REPLY_REQUEST,
-  sendReplySuccess,
-  sendReplyFailure,
-  DOWNLOAD_ATTACHMENT_REQUEST,
-  downloadAttachmentSuccess,
-  downloadAttachmentFailure,
-  UPDATE_CONTACT_REQUEST,
-  updateContactSuccess,
-  updateContactFailure,
-  UPDATE_REPLY_REQUEST,
-  updateReplySuccess,
-  updateReplyFailure,
-  DELETE_REPLY_REQUEST,
-  deleteReplySuccess,
-  deleteReplyFailure,
+  CONTACT_GET_CATEGORIES_REQUEST,
+  contactGetCategoriesSuccess,
+  contactGetCategoriesFailure,
+  CONTACT_CREATE_CONTACT_REQUEST,
+  contactCreateContactSuccess,
+  contactCreateContactFailure,
+  CONTACT_GET_MY_CONTACTS_REQUEST,
+  contactGetMyContactsSuccess,
+  contactGetMyContactsFailure,
+  CONTACT_GET_CONTACT_DETAIL_REQUEST,
+  contactGetContactDetailSuccess,
+  contactGetContactDetailFailure,
+  CONTACT_GET_CONTACT_REPLIES_REQUEST,
+  contactGetContactRepliesSuccess,
+  contactGetContactRepliesFailure,
+  CONTACT_SEND_REPLY_REQUEST,
+  contactSendReplySuccess,
+  contactSendReplyFailure,
+  CONTACT_DOWNLOAD_ATTACHMENT_REQUEST,
+  contactDownloadAttachmentSuccess,
+  contactDownloadAttachmentFailure,
+  CONTACT_UPDATE_CONTACT_REQUEST,
+  contactUpdateContactSuccess,
+  contactUpdateContactFailure,
+  CONTACT_UPDATE_REPLY_REQUEST,
+  contactUpdateReplySuccess,
+  contactUpdateReplyFailure,
+  CONTACT_DELETE_REPLY_REQUEST,
+  contactDeleteReplySuccess,
+  contactDeleteReplyFailure,
 } from "../actions/contactActions";
 import apiClient from "../../utils/axiosConfig";
 
@@ -137,12 +137,12 @@ const downloadAttachmentFromUrl = async (fileUrl, fileName) => {
 };
 
 // Saga for getting categories (no API call, return static categories)
-function* getCategoriesSaga() {
+function* contactGetCategoriesSaga() {
   try {
-    yield put(getCategoriesSuccess(CATEGORIES));
+    yield put(contactGetCategoriesSuccess(CATEGORIES));
   } catch (error) {
     console.error("Error getting categories:", error);
-    yield put(getCategoriesFailure(error.message));
+    yield put(contactGetCategoriesFailure(error.message));
   }
 }
 
@@ -208,7 +208,7 @@ const compressImage = (file, maxWidth = 1920, maxHeight = 1080, quality = 0.8) =
 };
 
 // Saga for creating contact
-function* createContactSaga(action) {
+function* contactCreateContactSaga(action) {
   try {
     const { subject, message, category, files } = action.payload;
     
@@ -242,7 +242,7 @@ function* createContactSaga(action) {
         }
       }
       
-      yield put(createContactSuccess(response));
+      yield put(contactCreateContactSuccess(response));
       toast.success(
         response.message || "Contact sent successfully! We will respond as soon as possible."
       );
@@ -254,33 +254,33 @@ function* createContactSaga(action) {
       error.response?.data?.message ||
       error.message ||
       "An error occurred while sending contact. Please try again.";
-    yield put(createContactFailure(errorMessage));
+    yield put(contactCreateContactFailure(errorMessage));
     toast.error(errorMessage);
   }
 }
 
 // Saga for getting my contacts
-function* getMyContactsSaga(action) {
+function* contactGetMyContactsSaga(action) {
   try {
     const params = action.payload || {};
     const response = yield call(apiGetMyContacts, params);
     if (response.status === "OK" && response.data) {
-      yield put(getMyContactsSuccess(response.data));
+      yield put(contactGetMyContactsSuccess(response.data));
     } else {
-      yield put(getMyContactsSuccess([]));
+      yield put(contactGetMyContactsSuccess([]));
     }
   } catch (error) {
     const errorMessage =
       error.response?.data?.message ||
       error.message ||
       "Unable to load contact history";
-    yield put(getMyContactsFailure(errorMessage));
+    yield put(contactGetMyContactsFailure(errorMessage));
     toast.error(errorMessage);
   }
 }
 
 // Saga for getting contact detail
-function* getContactDetailSaga(action) {
+function* contactGetContactDetailSaga(action) {
   try {
     const contactId = action.payload;
     const response = yield call(apiGetContactDetail, contactId);
@@ -298,8 +298,8 @@ function* getContactDetailSaga(action) {
         attachments: attachments,
       };
       
-      yield put(getContactDetailSuccess(contact));
-      yield put(getContactRepliesSuccess(replies));
+      yield put(contactGetContactDetailSuccess(contact));
+      yield put(contactGetContactRepliesSuccess(replies));
     } else {
       throw new Error(response.message || "Unable to load contact details");
     }
@@ -308,47 +308,47 @@ function* getContactDetailSaga(action) {
       error.response?.data?.message ||
       error.message ||
       "Unable to load contact details";
-    yield put(getContactDetailFailure(errorMessage));
+    yield put(contactGetContactDetailFailure(errorMessage));
     toast.error(errorMessage);
   }
 }
 
 // Saga for getting contact replies
-function* getContactRepliesSaga(action) {
+function* contactGetContactRepliesSaga(action) {
   try {
     const contactId = action.payload;
     const response = yield call(apiGetContactReplies, contactId);
     if (response.status === "OK" && response.data) {
-      yield put(getContactRepliesSuccess(response.data));
+      yield put(contactGetContactRepliesSuccess(response.data));
     } else {
-      yield put(getContactRepliesSuccess([]));
+      yield put(contactGetContactRepliesSuccess([]));
     }
   } catch (error) {
     const errorMessage =
       error.response?.data?.message ||
       error.message ||
       "Unable to load replies";
-    yield put(getContactRepliesFailure(errorMessage));
+    yield put(contactGetContactRepliesFailure(errorMessage));
   }
 }
 
 // Saga for sending reply
-function* sendReplySaga(action) {
+function* contactSendReplySaga(action) {
   try {
     const { contactId, message } = action.payload;
     const response = yield call(apiSendReply, contactId, message);
 
     if (response.status === "OK") {
-      yield put(sendReplySuccess(response));
+      yield put(contactSendReplySuccess(response));
       toast.success(response.message || "Reply sent successfully");
       // Refresh replies after sending
       yield put({
-        type: GET_CONTACT_REPLIES_REQUEST,
+        type: CONTACT_GET_CONTACT_REPLIES_REQUEST,
         payload: contactId,
       });
       // Refresh contacts list to update updated_at
       yield put({
-        type: GET_MY_CONTACTS_REQUEST,
+        type: CONTACT_GET_MY_CONTACTS_REQUEST,
       });
     } else {
       throw new Error(response.message || "An error occurred while sending reply");
@@ -358,28 +358,28 @@ function* sendReplySaga(action) {
       error.response?.data?.message ||
       error.message ||
       "An error occurred while sending reply";
-    yield put(sendReplyFailure(errorMessage));
+    yield put(contactSendReplyFailure(errorMessage));
     toast.error(errorMessage);
   }
 }
 
 // Saga for updating contact
-function* updateContactSaga(action) {
+function* contactUpdateContactSaga(action) {
   try {
     const { contactId, data } = action.payload;
     const response = yield call(apiUpdateContact, contactId, data);
 
     if (response.status === "OK") {
-      yield put(updateContactSuccess(response.data));
+      yield put(contactUpdateContactSuccess(response.data));
       toast.success(response.message || "Contact updated successfully");
       // Refresh contact detail after update
       yield put({
-        type: GET_CONTACT_DETAIL_REQUEST,
+        type: CONTACT_GET_CONTACT_DETAIL_REQUEST,
         payload: contactId,
       });
       // Refresh contacts list
       yield put({
-        type: GET_MY_CONTACTS_REQUEST,
+        type: CONTACT_GET_MY_CONTACTS_REQUEST,
         payload: {},
       });
     } else {
@@ -390,28 +390,28 @@ function* updateContactSaga(action) {
       error.response?.data?.message ||
       error.message ||
       "An error occurred while updating contact";
-    yield put(updateContactFailure(errorMessage));
+    yield put(contactUpdateContactFailure(errorMessage));
     toast.error(errorMessage);
   }
 }
 
 // Saga for updating reply
-function* updateReplySaga(action) {
+function* contactUpdateReplySaga(action) {
   try {
     const { contactId, replyId, message } = action.payload;
     const response = yield call(apiUpdateReply, contactId, replyId, message);
 
     if (response.status === "OK") {
-      yield put(updateReplySuccess(response.data));
+      yield put(contactUpdateReplySuccess(response.data));
       toast.success(response.message || "Reply updated successfully");
       // Refresh replies after update
       yield put({
-        type: GET_CONTACT_REPLIES_REQUEST,
+        type: CONTACT_GET_CONTACT_REPLIES_REQUEST,
         payload: contactId,
       });
       // Refresh contact detail
       yield put({
-        type: GET_CONTACT_DETAIL_REQUEST,
+        type: CONTACT_GET_CONTACT_DETAIL_REQUEST,
         payload: contactId,
       });
     } else {
@@ -422,28 +422,28 @@ function* updateReplySaga(action) {
       error.response?.data?.message ||
       error.message ||
       "An error occurred while updating reply";
-    yield put(updateReplyFailure(errorMessage));
+    yield put(contactUpdateReplyFailure(errorMessage));
     toast.error(errorMessage);
   }
 }
 
 // Saga for deleting reply
-function* deleteReplySaga(action) {
+function* contactDeleteReplySaga(action) {
   try {
     const { contactId, replyId } = action.payload;
     const response = yield call(apiDeleteReply, contactId, replyId);
 
     if (response.status === "OK") {
-      yield put(deleteReplySuccess(response.data));
+      yield put(contactDeleteReplySuccess(response.data));
       toast.success(response.message || "Reply deleted successfully");
       // Refresh replies after delete
       yield put({
-        type: GET_CONTACT_REPLIES_REQUEST,
+        type: CONTACT_GET_CONTACT_REPLIES_REQUEST,
         payload: contactId,
       });
       // Refresh contact detail
       yield put({
-        type: GET_CONTACT_DETAIL_REQUEST,
+        type: CONTACT_GET_CONTACT_DETAIL_REQUEST,
         payload: contactId,
       });
     } else {
@@ -454,41 +454,41 @@ function* deleteReplySaga(action) {
       error.response?.data?.message ||
       error.message ||
       "An error occurred while deleting reply";
-    yield put(deleteReplyFailure(errorMessage));
+    yield put(contactDeleteReplyFailure(errorMessage));
     toast.error(errorMessage);
   }
 }
 
 // Saga for downloading attachment
-function* downloadAttachmentSaga(action) {
+function* contactDownloadAttachmentSaga(action) {
   try {
     const { fileUrl, fileName } = action.payload;
     
     // Use Cloudinary URL directly
     yield call(downloadAttachmentFromUrl, fileUrl, fileName);
     
-    yield put(downloadAttachmentSuccess());
+    yield put(contactDownloadAttachmentSuccess());
     toast.success("File downloaded successfully");
   } catch (error) {
     const errorMessage =
       error.response?.data?.message ||
       error.message ||
       "Unable to download attachment";
-    yield put(downloadAttachmentFailure(errorMessage));
+    yield put(contactDownloadAttachmentFailure(errorMessage));
     toast.error(errorMessage);
   }
 }
 
 // Root saga
 export default function* contactSaga() {
-  yield takeLatest(GET_CATEGORIES_REQUEST, getCategoriesSaga);
-  yield takeLatest(CREATE_CONTACT_REQUEST, createContactSaga);
-  yield takeLatest(GET_MY_CONTACTS_REQUEST, getMyContactsSaga);
-  yield takeLatest(GET_CONTACT_DETAIL_REQUEST, getContactDetailSaga);
-  yield takeLatest(GET_CONTACT_REPLIES_REQUEST, getContactRepliesSaga);
-  yield takeLatest(SEND_REPLY_REQUEST, sendReplySaga);
-  yield takeLatest(UPDATE_CONTACT_REQUEST, updateContactSaga);
-  yield takeLatest(UPDATE_REPLY_REQUEST, updateReplySaga);
-  yield takeLatest(DELETE_REPLY_REQUEST, deleteReplySaga);
-  yield takeLatest(DOWNLOAD_ATTACHMENT_REQUEST, downloadAttachmentSaga);
+  yield takeLatest(CONTACT_GET_CATEGORIES_REQUEST, contactGetCategoriesSaga);
+  yield takeLatest(CONTACT_CREATE_CONTACT_REQUEST, contactCreateContactSaga);
+  yield takeLatest(CONTACT_GET_MY_CONTACTS_REQUEST, contactGetMyContactsSaga);
+  yield takeLatest(CONTACT_GET_CONTACT_DETAIL_REQUEST, contactGetContactDetailSaga);
+  yield takeLatest(CONTACT_GET_CONTACT_REPLIES_REQUEST, contactGetContactRepliesSaga);
+  yield takeLatest(CONTACT_SEND_REPLY_REQUEST, contactSendReplySaga);
+  yield takeLatest(CONTACT_UPDATE_CONTACT_REQUEST, contactUpdateContactSaga);
+  yield takeLatest(CONTACT_UPDATE_REPLY_REQUEST, contactUpdateReplySaga);
+  yield takeLatest(CONTACT_DELETE_REPLY_REQUEST, contactDeleteReplySaga);
+  yield takeLatest(CONTACT_DOWNLOAD_ATTACHMENT_REQUEST, contactDownloadAttachmentSaga);
 }

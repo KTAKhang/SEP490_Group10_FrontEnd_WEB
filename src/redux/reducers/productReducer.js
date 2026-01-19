@@ -1,21 +1,4 @@
 import {
-  // Category
-  GET_CATEGORIES_REQUEST,
-  GET_CATEGORIES_SUCCESS,
-  GET_CATEGORIES_FAILURE,
-  GET_CATEGORY_BY_ID_REQUEST,
-  GET_CATEGORY_BY_ID_SUCCESS,
-  GET_CATEGORY_BY_ID_FAILURE,
-  CREATE_CATEGORY_REQUEST,
-  CREATE_CATEGORY_SUCCESS,
-  CREATE_CATEGORY_FAILURE,
-  UPDATE_CATEGORY_REQUEST,
-  UPDATE_CATEGORY_SUCCESS,
-  UPDATE_CATEGORY_FAILURE,
-  DELETE_CATEGORY_REQUEST,
-  DELETE_CATEGORY_SUCCESS,
-  DELETE_CATEGORY_FAILURE,
-  // Product
   GET_PRODUCTS_REQUEST,
   GET_PRODUCTS_SUCCESS,
   GET_PRODUCTS_FAILURE,
@@ -31,35 +14,16 @@ import {
   DELETE_PRODUCT_REQUEST,
   DELETE_PRODUCT_SUCCESS,
   DELETE_PRODUCT_FAILURE,
-  // Update Expiry Date
+  GET_PRODUCT_STATS_REQUEST,
+  GET_PRODUCT_STATS_SUCCESS,
+  GET_PRODUCT_STATS_FAILURE,
   UPDATE_PRODUCT_EXPIRY_DATE_REQUEST,
   UPDATE_PRODUCT_EXPIRY_DATE_SUCCESS,
   UPDATE_PRODUCT_EXPIRY_DATE_FAILURE,
-  // Inventory
-  CREATE_RECEIPT_REQUEST,
-  CREATE_RECEIPT_SUCCESS,
-  CREATE_RECEIPT_FAILURE,
-  // Clear
-  CLEAR_WAREHOUSE_MESSAGES,
-} from "../actions/warehouseActions";
+  CLEAR_PRODUCT_MESSAGES,
+} from "../actions/productActions";
 
 const initialState = {
-  // Categories
-  categories: [],
-  categoriesLoading: false,
-  categoriesError: null,
-  categoriesPagination: null,
-  categoryDetail: null,
-  categoryDetailLoading: false,
-  categoryDetailError: null,
-  createCategoryLoading: false,
-  createCategoryError: null,
-  updateCategoryLoading: false,
-  updateCategoryError: null,
-  deleteCategoryLoading: false,
-  deleteCategoryError: null,
-
-  // Products
   products: [],
   productsLoading: false,
   productsError: null,
@@ -73,123 +37,15 @@ const initialState = {
   updateProductError: null,
   deleteProductLoading: false,
   deleteProductError: null,
-
-  // Inventory
-  createReceiptLoading: false,
-  createReceiptError: null,
+  productStats: null,
+  productStatsLoading: false,
+  productStatsError: null,
+  updateProductExpiryDateLoading: false,
+  updateProductExpiryDateError: null,
 };
 
-const warehouseReducer = (state = initialState, action) => {
+const productReducer = (state = initialState, action) => {
   switch (action.type) {
-    // ===== GET CATEGORIES =====
-    case GET_CATEGORIES_REQUEST:
-      return {
-        ...state,
-        categoriesLoading: true,
-        categoriesError: null,
-      };
-    case GET_CATEGORIES_SUCCESS:
-      return {
-        ...state,
-        categories: action.payload.data || [],
-        categoriesPagination: action.payload.pagination || null,
-        categoriesLoading: false,
-        categoriesError: null,
-      };
-    case GET_CATEGORIES_FAILURE:
-      return {
-        ...state,
-        categoriesLoading: false,
-        categoriesError: action.payload,
-      };
-
-    // ===== GET CATEGORY BY ID =====
-    case GET_CATEGORY_BY_ID_REQUEST:
-      return {
-        ...state,
-        categoryDetailLoading: true,
-        categoryDetailError: null,
-      };
-    case GET_CATEGORY_BY_ID_SUCCESS:
-      return {
-        ...state,
-        categoryDetail: action.payload,
-        categoryDetailLoading: false,
-        categoryDetailError: null,
-      };
-    case GET_CATEGORY_BY_ID_FAILURE:
-      return {
-        ...state,
-        categoryDetailLoading: false,
-        categoryDetailError: action.payload,
-      };
-
-    // ===== CREATE CATEGORY =====
-    case CREATE_CATEGORY_REQUEST:
-      return {
-        ...state,
-        createCategoryLoading: true,
-        createCategoryError: null,
-      };
-    case CREATE_CATEGORY_SUCCESS:
-      return {
-        ...state,
-        createCategoryLoading: false,
-        createCategoryError: null,
-      };
-    case CREATE_CATEGORY_FAILURE:
-      return {
-        ...state,
-        createCategoryLoading: false,
-        createCategoryError: action.payload,
-      };
-
-    // ===== UPDATE CATEGORY =====
-    case UPDATE_CATEGORY_REQUEST:
-      return {
-        ...state,
-        updateCategoryLoading: true,
-        updateCategoryError: null,
-      };
-    case UPDATE_CATEGORY_SUCCESS:
-      // Update category in the list immediately without refetching
-      const updatedCategory = action.payload;
-      const updatedCategories = state.categories.map((c) =>
-        c._id === updatedCategory._id ? updatedCategory : c
-      );
-      return {
-        ...state,
-        categories: updatedCategories,
-        updateCategoryLoading: false,
-        updateCategoryError: null,
-      };
-    case UPDATE_CATEGORY_FAILURE:
-      return {
-        ...state,
-        updateCategoryLoading: false,
-        updateCategoryError: action.payload,
-      };
-
-    // ===== DELETE CATEGORY =====
-    case DELETE_CATEGORY_REQUEST:
-      return {
-        ...state,
-        deleteCategoryLoading: true,
-        deleteCategoryError: null,
-      };
-    case DELETE_CATEGORY_SUCCESS:
-      return {
-        ...state,
-        deleteCategoryLoading: false,
-        deleteCategoryError: null,
-      };
-    case DELETE_CATEGORY_FAILURE:
-      return {
-        ...state,
-        deleteCategoryLoading: false,
-        deleteCategoryError: action.payload,
-      };
-
     // ===== GET PRODUCTS =====
     case GET_PRODUCTS_REQUEST:
       return {
@@ -325,37 +181,35 @@ const warehouseReducer = (state = initialState, action) => {
         deleteProductError: action.payload,
       };
 
-    // ===== CREATE RECEIPT =====
-    case CREATE_RECEIPT_REQUEST:
+    // ===== GET PRODUCT STATS =====
+    case GET_PRODUCT_STATS_REQUEST:
       return {
         ...state,
-        createReceiptLoading: true,
-        createReceiptError: null,
+        productStatsLoading: true,
+        productStatsError: null,
       };
-    case CREATE_RECEIPT_SUCCESS:
+    case GET_PRODUCT_STATS_SUCCESS:
       return {
         ...state,
-        createReceiptLoading: false,
-        createReceiptError: null,
+        productStats: action.payload,
+        productStatsLoading: false,
+        productStatsError: null,
       };
-    case CREATE_RECEIPT_FAILURE:
+    case GET_PRODUCT_STATS_FAILURE:
       return {
         ...state,
-        createReceiptLoading: false,
-        createReceiptError: action.payload,
+        productStatsLoading: false,
+        productStatsError: action.payload,
       };
 
     // ===== CLEAR MESSAGES =====
-    case CLEAR_WAREHOUSE_MESSAGES:
+    case CLEAR_PRODUCT_MESSAGES:
       return {
         ...state,
-        createCategoryError: null,
-        updateCategoryError: null,
-        deleteCategoryError: null,
         createProductError: null,
         updateProductError: null,
         deleteProductError: null,
-        createReceiptError: null,
+        updateProductExpiryDateError: null,
       };
 
     default:
@@ -363,4 +217,4 @@ const warehouseReducer = (state = initialState, action) => {
   }
 };
 
-export default warehouseReducer;
+export default productReducer;

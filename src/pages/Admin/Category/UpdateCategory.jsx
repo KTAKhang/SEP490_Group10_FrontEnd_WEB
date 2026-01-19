@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
-import { updateCategoryRequest } from "../../../redux/actions/warehouseActions";
+import { updateCategoryRequest } from "../../../redux/actions/categoryActions";
 
 const UpdateCategory = ({ isOpen, onClose, category }) => {
   const dispatch = useDispatch();
-  const { updateCategoryLoading, updateCategoryError } = useSelector((state) => state.warehouse);
+  const { updateCategoryLoading, updateCategoryError } = useSelector((state) => state.category);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -20,15 +20,30 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
 
   // Track if we submitted the form
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [hasShownToast, setHasShownToast] = useState(false);
 
   // Close modal after successful update
   useEffect(() => {
-    if (hasSubmitted && !updateCategoryLoading && !updateCategoryError) {
-      // Update was successful, close modal
+    if (hasSubmitted && !updateCategoryLoading && !updateCategoryError && !hasShownToast) {
+      // Update was successful, show toast and close modal
+      toast.success("Category updated successfully!");
+      setHasShownToast(true);
       setHasSubmitted(false);
       onClose();
     }
-  }, [hasSubmitted, updateCategoryLoading, updateCategoryError, onClose]);
+    if (hasSubmitted && updateCategoryError && !hasShownToast) {
+      toast.error(updateCategoryError);
+      setHasShownToast(true);
+    }
+  }, [hasSubmitted, updateCategoryLoading, updateCategoryError, hasShownToast, onClose]);
+
+  // Reset toast flag when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setHasShownToast(false);
+      setHasSubmitted(false);
+    }
+  }, [isOpen]);
 
   // Load category data when category changes
   useEffect(() => {
@@ -70,12 +85,12 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
 
     // Validation
     if (!formData.name || !formData.name.trim()) {
-      toast.error("Vui lòng nhập tên danh mục");
+      toast.error("Please enter category name");
       return;
     }
 
     if (!category?._id) {
-      toast.error("Không tìm thấy danh mục");
+      toast.error("Category not found");
       return;
     }
 
@@ -130,7 +145,7 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-bold text-gray-800">Chỉnh sửa danh mục</h2>
+          <h2 className="text-xl font-bold text-gray-800">Edit category</h2>
           <button
             onClick={handleCancel}
             className="text-gray-400 hover:text-gray-600"
@@ -142,32 +157,32 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
           <div className="p-6 space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tên danh mục <span className="text-red-500">*</span>
+                Category name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Nhập tên danh mục"
+                placeholder="Enter category name"
                 required
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Mô tả
+                Description
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 rows="4"
-                placeholder="Nhập mô tả danh mục"
+                placeholder="Enter category description"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Hình ảnh
+                Image
               </label>
               {displayImage ? (
                 <div className="mt-2">
@@ -178,7 +193,7 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
                   />
                   <div className="flex items-center space-x-2">
                     <label className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer">
-                      Thay đổi ảnh
+                      Change image
                       <input
                         type="file"
                         accept="image/*"
@@ -192,7 +207,7 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
                       onClick={handleRemoveImage}
                       className="text-sm text-red-600 hover:text-red-800"
                     >
-                      Xóa ảnh
+                      Remove image
                     </button>
                   </div>
                 </div>
@@ -207,15 +222,15 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Trạng thái
+                Status
               </label>
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value === "true" })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
-                <option value={true}>Hiển thị</option>
-                <option value={false}>Ẩn</option>
+                <option value={true}>Visible</option>
+                <option value={false}>Hidden</option>
               </select>
             </div>
           </div>
@@ -225,14 +240,14 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
               onClick={handleCancel}
               className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
-              Hủy
+              Cancel
             </button>
             <button
               type="submit"
               disabled={updateCategoryLoading}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {updateCategoryLoading ? "Đang cập nhật..." : "Cập nhật"}
+              {updateCategoryLoading ? "Updating..." : "Update"}
             </button>
           </div>
         </form>
