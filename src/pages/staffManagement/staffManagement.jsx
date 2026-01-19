@@ -1,3 +1,8 @@
+/**
+ * author: KhoanDCE170420 
+ * staffManagement.jsx
+ * Staff Management Page Component
+ */
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { staffListRequest, staffCreateRequest, updateStaffStatusRequest, updateStaffRequest } from "../../redux/actions/staffActions";
@@ -46,7 +51,7 @@ const StaffManagement = () => {
     if (query.keyword) payload.keyword = query.keyword;
     dispatch(staffListRequest(payload));
   }, [dispatch, sortBy, sortOrder]);
-  
+
   useEffect(() => {
     // Initial load
     loadStaff({ page: 1, limit: 10, sortBy: "createdAt", sortOrder: "desc" });
@@ -78,7 +83,7 @@ const StaffManagement = () => {
 
     return () => clearTimeout(timeoutId);
   }, [searchText, statusFilter, roleFilter, loadStaff]);
-  
+
   const staff = useMemo(() => {
     return (list || []);
   }, [list]);
@@ -175,13 +180,13 @@ const StaffManagement = () => {
       reader.readAsDataURL(file);
     }
   };
-
+  // method to remove avatar
   const handleRemoveAvatar = () => {
     setAvatarFile(null);
     setAvatarPreview("");
     setFormData({ ...formData, avatar: "" });
   };
-
+  // Refresh staff list
   const handleRefresh = useCallback(() => {
     setLoadingRefresh(true);
     const query = { page: pageMeta.page, limit: pageMeta.limit, sortBy, sortOrder };
@@ -192,7 +197,7 @@ const StaffManagement = () => {
     loadStaff(query);
     setTimeout(() => setLoadingRefresh(false), 450);
   }, [loadStaff, statusFilter, roleFilter, searchText, pageMeta.page, pageMeta.limit, sortBy, sortOrder]);
-
+  // Toggle staff active/inactive status
   const handleStatusToggle = (record) => {
     const current = record.status;
     const newStatus = typeof current === "boolean" ? !current : (current === "active" ? "inactive" : "active");
@@ -226,13 +231,13 @@ const StaffManagement = () => {
       errors.user_name = "User name must be at least 3 characters";
     }
     if (!isUpdate) {
-      // Email only required for create
+      // Email validation for create staff account
       if (!formData.email) {
         errors.email = "Please enter an email";
       } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
         errors.email = "Invalid email";
       }
-      // Password required for create
+      // Password required for create staff account
       if (!formData.password || formData.password.length < 6) {
         errors.password = "Password must be at least 6 characters";
       }
@@ -276,19 +281,19 @@ const StaffManagement = () => {
       formDataToSend.append("address", submitData.address);
       formDataToSend.append("role", submitData.role);
       formDataToSend.append("avatar", avatarFile);
-      
+
       // Log FormData contents
       console.log("[Frontend] Sending FormData with fields:");
       for (let pair of formDataToSend.entries()) {
         console.log(`  ${pair[0]}:`, pair[1] instanceof File ? `File: ${pair[1].name}` : pair[1]);
       }
-      
+
       dispatch(staffCreateRequest(formDataToSend));
     } else {
       console.log("[Frontend] Sending JSON:", submitData);
       dispatch(staffCreateRequest(submitData));
     }
-    
+
     setIsCreateOpen(false);
     setTimeout(() => handleRefresh(), 600);
   };
@@ -300,17 +305,18 @@ const StaffManagement = () => {
       setFormErrors(errors);
       return;
     }
-    
+
     if (!selectedStaff?._id && !selectedStaff?.id) {
       alert("Role ID is missing!");
       return;
     }
-    
+
     const submitData = { ...formData };
+    //for case update, not submit confirmPassword and email
     delete submitData.confirmPassword;
-    delete submitData.email; // Email cannot be updated
-    
-    // Remove password if empty (don't update password)
+    delete submitData.email;
+
+    // Remove password if empty (if admin don't update staff account password)
     if (!submitData.password) {
       delete submitData.password;
     }
@@ -323,13 +329,13 @@ const StaffManagement = () => {
       formDataToSend.append("address", submitData.address);
       formDataToSend.append("role", submitData.role);
       formDataToSend.append("avatar", avatarFile);
-      
+
       // Log FormData contents
       console.log("[Frontend] Sending FormData with fields:");
       for (let pair of formDataToSend.entries()) {
         console.log(`  ${pair[0]}:`, pair[1] instanceof File ? `File: ${pair[1].name}` : pair[1]);
       }
-      
+
       dispatch(updateStaffRequest(selectedStaff._id || selectedStaff.id, formDataToSend));
     } else {
       // If no new avatar file but has existing avatar URL, keep it
@@ -338,7 +344,7 @@ const StaffManagement = () => {
       }
       dispatch(updateStaffRequest(selectedStaff._id || selectedStaff.id, submitData));
     }
-    
+
     setIsUpdateOpen(false);
     setTimeout(() => handleRefresh(), 600);
   };
@@ -391,7 +397,7 @@ const StaffManagement = () => {
       </span>
     );
   };
-
+  // Main render for whole webpage starting here
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -629,11 +635,10 @@ const StaffManagement = () => {
                           </button>
                           <button
                             onClick={() => handleStatusToggle(record)}
-                            className={`p-2 rounded-lg transition-colors ${
-                              isActive(record.status)
-                                ? 'text-red-600 hover:bg-red-50'
-                                : 'text-green-600 hover:bg-green-50'
-                            }`}
+                            className={`p-2 rounded-lg transition-colors ${isActive(record.status)
+                              ? 'text-red-600 hover:bg-red-50'
+                              : 'text-green-600 hover:bg-green-50'
+                              }`}
                             title={isActive(record.status) ? "Disable" : "Enable"}
                           >
                             <i className={`text-lg ${isActive(record.status) ? 'ri-close-circle-line' : 'ri-checkbox-circle-line'}`}></i>
@@ -685,11 +690,10 @@ const StaffManagement = () => {
                           <button
                             key={pageNum}
                             onClick={() => handleTableChange(pageNum)}
-                            className={`px-3 py-1.5 rounded-lg transition-colors ${
-                              pageMeta.page === pageNum
-                                ? 'bg-green-600 text-white'
-                                : 'border border-gray-200 hover:bg-gray-50'
-                            }`}
+                            className={`px-3 py-1.5 rounded-lg transition-colors ${pageMeta.page === pageNum
+                              ? 'bg-green-600 text-white'
+                              : 'border border-gray-200 hover:bg-gray-50'
+                              }`}
                           >
                             {pageNum}
                           </button>

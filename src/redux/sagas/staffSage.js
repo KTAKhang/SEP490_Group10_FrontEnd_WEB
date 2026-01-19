@@ -1,3 +1,8 @@
+/**
+ * author: KhoaNDCE170420
+ * staffSaga.js
+ * Saga to handle staff-related actions
+ */
 import { takeLatest, call, put, select } from "redux-saga/effects";
 import apiClient from "../../utils/axiosConfig";
 import { toast } from "react-toastify";
@@ -19,13 +24,13 @@ import {
   STAFF_DETAIL_FAILURE,
 } from "../actions/staffActions";
 
-// Lấy danh sách staff
+// Get staff list
 function* fetchStaffList(action) {
   try {
-    // Kiểm tra token trước khi gọi API
+    // Check token before calling API
     const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error("Không tìm thấy token. Vui lòng đăng nhập lại.");
+      throw new Error("Token not found. Please log in again.");
     }
 
     const params = action.payload || {};
@@ -34,39 +39,39 @@ function* fetchStaffList(action) {
       limit: params.limit || 10,
     };
     
-    // Thêm sortBy và sortOrder nếu có
+    // sort and order params
     if (params.sortBy) queryParams.sortBy = params.sortBy;
     if (params.sortOrder) queryParams.sortOrder = params.sortOrder;
     
-    // Thêm status filter nếu có
+    // status filter params
     if (params.status && params.status !== "all") {
       queryParams.status = params.status;
     }
 
     let url;
     
-    // Nếu có keyword, dùng endpoint search
+    // use search endpoint if keyword exists
     if (params.keyword && params.keyword.trim()) {
       queryParams.keyword = params.keyword.trim();
       url = "/staff/search";
     } 
-    // Nếu có role filter (không có keyword), dùng endpoint filter
+    // use filter endpoint if role filter exists (and no keyword)
     else if (params.role && params.role !== "all") {
       queryParams.role = params.role;
       url = "/staff/filter";
     } 
-    // Mặc định dùng endpoint list
+    // Default to list endpoint
     else {
       url = "/staff";
     }
 
-    console.log("🔍 [Saga] Fetching staff list:", { url, queryParams, fullUrl: `http://localhost:3001${url}` });
+    console.log("[Saga] Fetching staff list:", { url, queryParams, fullUrl: `http://localhost:3001${url}` });
     
     const res = yield call(() => apiClient.get(url, { params: queryParams }));
   
     let payload = res.data;
 
-    // Xử lý response từ backend
+    // Handle response from backend
     if (payload && payload.status === "OK") {
       payload = {
         data: payload.data || [],
@@ -94,7 +99,7 @@ function* fetchStaffList(action) {
       headers: err.response?.headers,
     });
     
-    // Nếu là lỗi 401 hoặc 403, có thể là vấn đề về token
+    // Additional handling for specific error statuses
     if (err.response?.status === 401) {
       console.error("[Saga] Unauthorized - Token may be invalid or expired");
     } else if (err.response?.status === 403) {
@@ -105,11 +110,11 @@ function* fetchStaffList(action) {
       type: STAFF_LIST_FAILURE,
       payload: err.response?.data?.message || err.message,
     });
-    toast.error(err.response?.data?.message || "Lỗi khi tải danh sách nhân viên");
+    toast.error(err.response?.data?.message || "Error loading staff list");
   }
 }
 
-// Tạo staff mới
+// Create new staff
 function* createStaff(action) {
   try {
     const payload = action.payload;
@@ -129,13 +134,13 @@ function* createStaff(action) {
 
     if (response.data?.status === "OK") {
       yield put({ type: STAFF_CREATE_SUCCESS });
-      toast.success(response.data.message || "Tạo nhân viên thành công");
+      toast.success(response.data.message || "Staff created successfully");
 
-      // Reload list với params hiện tại
+      // Reload list with current params
       const currentParams = yield select((state) => state.staff.params);
       yield put({ type: STAFF_LIST_REQUEST, payload: currentParams });
     } else {
-      throw new Error(response.data?.message || "Tạo nhân viên thất bại");
+      throw new Error(response.data?.message || "Failed to create staff");
     }
   } catch (err) {
     const message = err.response?.data?.message || err.message;
@@ -147,7 +152,7 @@ function* createStaff(action) {
   }
 }
 
-// Cập nhật trạng thái staff (active/inactive)
+// Update staff status (active/inactive)
 function* updateStaffStatus(action) {
   try {
     const { staffId, status } = action.payload;
@@ -157,23 +162,23 @@ function* updateStaffStatus(action) {
 
     if (response.data?.status === "OK") {
       yield put({ type: STAFF_UPDATE_STATUS_SUCCESS });
-      toast.success(response.data.message || "Cập nhật trạng thái nhân viên thành công");
+      toast.success(response.data.message || "Staff status updated successfully");
 
-      // Reload list với params hiện tại
+      // Reload list with current params
       const currentParams = yield select((state) => state.staff.params);
       yield put({ type: STAFF_LIST_REQUEST, payload: currentParams });
     } else {
-      throw new Error(response.data?.message || "Cập nhật trạng thái thất bại");
+      throw new Error(response.data?.message || "Failed to update staff status");
     }
   } catch (err) {
-    console.error("❌ [Saga] Update staff status error:", err);
+    console.error("[Saga] Update staff status error:", err);
     const message = err.response?.data?.message || err.message;
     yield put({ type: STAFF_UPDATE_STATUS_FAILURE, payload: message });
     toast.error(message);
   }
 }
 
-// Cập nhật thông tin staff
+// Update staff information
 function* updateStaff(action) {
   try {
     const { staffId, data } = action.payload;
@@ -193,13 +198,13 @@ function* updateStaff(action) {
 
     if (response.data?.status === "OK") {
       yield put({ type: STAFF_UPDATE_SUCCESS });
-      toast.success(response.data.message || "Cập nhật thông tin nhân viên thành công");
+      toast.success(response.data.message || "Staff information updated successfully");
 
-      // Reload list với params hiện tại
+      // Reload list with current params
       const currentParams = yield select((state) => state.staff.params);
       yield put({ type: STAFF_LIST_REQUEST, payload: currentParams });
     } else {
-      throw new Error(response.data?.message || "Cập nhật thông tin thất bại");
+      throw new Error(response.data?.message || "Failed to update staff information");
     }
   } catch (err) {
     const message = err.response?.data?.message || err.message;
@@ -208,7 +213,7 @@ function* updateStaff(action) {
   }
 }
 
-// Lấy chi tiết staff
+// Fetch staff detail
 function* fetchStaffDetail(action) {
   try {
     const res = yield call(() =>
@@ -221,7 +226,7 @@ function* fetchStaffDetail(action) {
       type: STAFF_DETAIL_FAILURE,
       payload: err.response?.data?.message || err.message,
     });
-    toast.error(err.response?.data?.message || "Lỗi khi tải thông tin nhân viên");
+    toast.error(err.response?.data?.message || "Failed to load staff details");
   }
 }
 

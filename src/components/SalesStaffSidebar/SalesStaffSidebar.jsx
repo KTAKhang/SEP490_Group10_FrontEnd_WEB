@@ -1,21 +1,18 @@
+/**
+ * author: KhoanDCE170420
+ * SalesStaffSidebar.jsx
+ * Sidebar component for Sales Staff
+ */
 import { Link, useLocation } from "react-router-dom";
 import { useSidebar } from "../../contexts/SidebarContext";
 import {
   LayoutDashboard,
-  Users,
-  Package,
-  ShoppingCart,
-  Settings,
+  Ticket,
   Menu,
   X,
-  MessageSquare,
-  FileText,
-  Store,
-  FolderTree,
-  Ticket,
 } from "lucide-react";
 
-const Sidebar = () => {
+const SalesStaffSidebar = () => {
   const { isOpen, toggleSidebar } = useSidebar();
   const location = useLocation();
 
@@ -23,33 +20,13 @@ const Sidebar = () => {
     {
       icon: LayoutDashboard,
       label: "Dashboard",
-      path: "/admin",
+      path: "/sale-staff",
       exact: true,
-    },
-    {
-      icon: FolderTree,
-      label: "Danh mục",
-      path: "/admin/category",
-    },
-    {
-      icon: Store,
-      label: "Sản phẩm",
-      path: "/admin/warehouse",
-    },
-    {
-      icon: Users,
-      label: "Staff Management",
-      path: "/admin/staff",
-    },
-    {
-      icon: Users,
-      label: "Customer Management",
-      path: "/admin/customers",
     },
     {
       icon: Ticket,
       label: "Discount Management",
-      path: "/admin/discounts",
+      path: "/sale-staff/discounts",
     },
   ];
 
@@ -72,19 +49,20 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full bg-white shadow-lg z-50 transition-all duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"
-          } lg:translate-x-0 w-64`}
+        className={`fixed top-0 left-0 h-full bg-white shadow-lg z-50 transition-all duration-300 ease-in-out ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0 w-64`}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
-            <Link to="/admin" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
+            <Link to="/sale-staff" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <LayoutDashboard className="text-white" size={20} />
               </div>
               {isOpen && (
                 <span className="text-lg font-bold text-gray-800">
-                  Admin Panel
+                  Sales Staff
                 </span>
               )}
             </Link>
@@ -106,10 +84,11 @@ const Sidebar = () => {
                   <li key={item.path}>
                     <Link
                       to={item.path}
-                      className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${active
-                          ? "bg-green-100 text-green-700 font-medium"
+                      className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                        active
+                          ? "bg-blue-100 text-blue-700 font-medium"
                           : "text-gray-700 hover:bg-gray-100"
-                        }`}
+                      }`}
                     >
                       <Icon size={20} />
                       <span>{item.label}</span>
@@ -125,4 +104,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default SalesStaffSidebar;
