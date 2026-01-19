@@ -11,11 +11,7 @@ import {
   Ticket,
   History,
   ClipboardList,
-Hieu/Add/Supplier
-  Building2,
-
   Users,
- main
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -63,7 +59,8 @@ const Sidebar = () => {
       icon: Ticket,
       label: "Discount Management",
       path: "/admin/discounts",
-
+    },
+    {
       icon: History,
       label: "Batch History",
       path: "/admin/batch-history",
