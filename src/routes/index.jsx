@@ -2,21 +2,21 @@ import LoginPage from "../pages/LoginPage";
 import ForgotPassword from "../pages/ForgotPassword";
 import NotFoundPage from "../pages/NotFoundPage";
 import Register from "../pages/Register";
-import HomePage from "../pages/HomePage";
+import HomePage from "../pages/CustomerView/HomePage";
 import ContactPage from "../pages/ContactPage";
 import ContactHistoryPage from "../pages/CustomerView/ContactHistoryPage";
 import AuthenticatedRoute from "../components/AuthenticatedRoute";
-import ProdcutPage from "../pages/ProductPage";
-import ProductDetailPage from "../pages/ProductDetailPage";
-import Categories from "../pages/CategoryPage";
-import WishlistPage from "../pages/WishlistPage";
+import ProdcutPage from "../pages/CustomerView/ProductPage";
+import ProductDetailPage from "../pages/CustomerView/ProductDetailPage";
+import Categories from "../pages/CustomerView/CategoryPage";
+import WishlistPage from "../pages/CustomerView/WishlistPage";
 import CustomerLayout from "../layout/CustomerLayout";
 import AdminLayout from "../layout/AdminLayout";
 import AdminPage from "../pages/Admin/AdminPage/AdminPage";
 import WareHouse from "../pages/Admin/Warehouse/WareHouse";
 import CategoryManagement from "../pages/Admin/Category/CategoryManagement";
-import BatchHistoryPage from "../pages/Admin/Warehouse/BatchHistoryPage";
-import ReceiptHistoryPage from "../pages/Admin/Warehouse/ReceiptHistoryPage";
+import BatchHistoryPage from "../pages/Admin/BatchHistory/BatchHistoryPage";
+import ReceiptHistoryPage from "../pages/Admin/ReceiptHistory/ReceiptHistoryPage";
 import WarehouseStaffLayout from "../layout/WarehouseStaffLayout";
 import WarehouseStaffPage from "../pages/WarehouseStaff/WarehouseStaffPage";
 import WarehouseStaffWareHouse from "../pages/WarehouseStaff/Warehouse/WareHouse";
@@ -27,8 +27,12 @@ import ContactListPage from "../pages/ContactManagement/ContactListPage";
 import ContactDetailPage from "../pages/ContactManagement/ContactDetailPage";
 import ContactEditPage from "../pages/ContactManagement/ContactEditPage";
 
-import SupplierManagement from "../pages/QcStaff/Supplier/Supplier/SupplierManagement";
-import HarvestBatchManagement from "../pages/QcStaff/Supplier/HarvestBatch/HarvestBatchManagement";
+// Admin Supplier Management
+import AdminSupplierManagement from "../pages/Admin/Supplier/SupplierManagement";
+// Admin Harvest Batch Management
+import AdminHarvestBatchManagement from "../pages/Admin/HarvestBatch/HarvestBatchManagement";
+
+// QC Staff Management (Quality Verification, Performance Evaluation)
 import QualityVerificationManagement from "../pages/QcStaff/Supplier/QualityVerification/QualityVerificationManagement";
 import PerformanceEvaluationManagement from "../pages/QcStaff/Supplier/Performance/PerformanceEvaluationManagement";
 import QcStaffLayout from "../layout/QcStaffLayout";
@@ -129,6 +133,8 @@ export const routes = [
       { index: true, element: <AdminPage /> },
       { path: "warehouse", element: <WareHouse /> },
       { path: "category", element: <CategoryManagement /> },
+      { path: "suppliers", element: <AdminSupplierManagement /> },
+      { path: "harvest-batches", element: <AdminHarvestBatchManagement /> },
       { path: "batch-history", element: <BatchHistoryPage /> },
       { path: "receipt-history", element: <ReceiptHistoryPage /> },
       { path: "contacts", element: <ContactListPage /> },
@@ -155,8 +161,6 @@ export const routes = [
     ),
     children: [
       { index: true, element: <QcStaffPage /> },
-      { path: "suppliers", element: <SupplierManagement /> },
-      { path: "harvest-batches", element: <HarvestBatchManagement /> },
       { path: "quality-verifications", element: <QualityVerificationManagement /> },
       { path: "performance-evaluations", element: <PerformanceEvaluationManagement /> },
     ],

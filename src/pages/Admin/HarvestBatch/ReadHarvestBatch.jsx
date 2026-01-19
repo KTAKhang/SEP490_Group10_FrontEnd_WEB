@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X, Package, Calendar, CheckCircle, XCircle, AlertCircle, Building2, Scale } from "lucide-react";
-import { getHarvestBatchByIdRequest } from "../../../../redux/actions/supplierActions";
-import Loading from "../../../../components/Loading/Loading";
+import { getHarvestBatchByIdRequest } from "../../../redux/actions/supplierActions";
+import Loading from "../../../components/Loading/Loading";
 
 const ReadHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
   const dispatch = useDispatch();

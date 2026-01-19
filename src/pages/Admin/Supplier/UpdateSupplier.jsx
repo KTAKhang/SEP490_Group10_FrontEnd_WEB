@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X } from "lucide-react";
-import { createSupplierRequest } from "../../../../redux/actions/supplierActions";
+import { updateSupplierRequest } from "../../../redux/actions/supplierActions";
 
-const CreateSupplier = ({ isOpen, onClose }) => {
+const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
   const dispatch = useDispatch();
-  const { createSupplierLoading, createSupplierError } = useSelector((state) => state.supplier);
+  const { updateSupplierLoading, updateSupplierError } = useSelector((state) => state.supplier);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -22,22 +22,27 @@ const CreateSupplier = ({ isOpen, onClose }) => {
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
   useEffect(() => {
-    if (hasSubmitted && !createSupplierLoading && !createSupplierError) {
-      setHasSubmitted(false);
+    if (supplier) {
       setFormData({
-        name: "",
-        type: "FARM",
-        code: "",
-        contactPerson: "",
-        phone: "",
-        email: "",
-        address: "",
-        notes: "",
-        status: true,
+        name: supplier.name || "",
+        type: supplier.type || "FARM",
+        code: supplier.code || "",
+        contactPerson: supplier.contactPerson || "",
+        phone: supplier.phone || "",
+        email: supplier.email || "",
+        address: supplier.address || "",
+        notes: supplier.notes || "",
+        status: supplier.status !== undefined ? supplier.status : true,
       });
+    }
+  }, [supplier]);
+
+  useEffect(() => {
+    if (hasSubmitted && !updateSupplierLoading && !updateSupplierError) {
+      setHasSubmitted(false);
       onClose();
     }
-  }, [hasSubmitted, createSupplierLoading, createSupplierError, onClose]);
+  }, [hasSubmitted, updateSupplierLoading, updateSupplierError, onClose]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -61,53 +66,42 @@ const CreateSupplier = ({ isOpen, onClose }) => {
       status: formData.status,
     };
 
-    // Only include optional fields if they have values
-    if (formData.code && formData.code.trim()) {
-      cleanedData.code = formData.code.trim().toUpperCase();
+    // Only include fields that are provided
+    if (formData.code !== undefined) {
+      cleanedData.code = formData.code?.toString().trim().toUpperCase() || null;
     }
-    if (formData.contactPerson && formData.contactPerson.trim()) {
-      cleanedData.contactPerson = formData.contactPerson.trim();
+    if (formData.contactPerson !== undefined) {
+      cleanedData.contactPerson = formData.contactPerson?.toString().trim() || "";
     }
-    if (phone) {
-      cleanedData.phone = phone;
+    if (formData.phone !== undefined) {
+      cleanedData.phone = phone || "";
     }
-    if (email) {
-      cleanedData.email = email;
+    if (formData.email !== undefined) {
+      cleanedData.email = email || "";
     }
-    if (formData.address && formData.address.trim()) {
-      cleanedData.address = formData.address.trim();
+    if (formData.address !== undefined) {
+      cleanedData.address = formData.address?.toString().trim() || "";
     }
-    if (formData.notes && formData.notes.trim()) {
-      cleanedData.notes = formData.notes.trim();
+    if (formData.notes !== undefined) {
+      cleanedData.notes = formData.notes?.toString().trim() || "";
     }
 
     setHasSubmitted(true);
-    dispatch(createSupplierRequest(cleanedData));
+    dispatch(updateSupplierRequest(supplier._id, cleanedData));
   };
 
   const handleCancel = () => {
     setHasSubmitted(false);
-    setFormData({
-      name: "",
-      type: "FARM",
-      code: "",
-      contactPerson: "",
-      phone: "",
-      email: "",
-      address: "",
-      notes: "",
-      status: true,
-    });
     onClose();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !supplier) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-bold text-gray-800">Add new supplier</h2>
+          <h2 className="text-xl font-bold text-gray-800">Update Supplier</h2>
           <button onClick={handleCancel} className="text-gray-400 hover:text-gray-600">
             <X size={24} />
           </button>
@@ -240,10 +234,10 @@ const CreateSupplier = ({ isOpen, onClose }) => {
             </button>
             <button
               type="submit"
-              disabled={createSupplierLoading}
+              disabled={updateSupplierLoading}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {createSupplierLoading ? "Creating..." : "Create Supplier"}
+              {updateSupplierLoading ? "Updating..." : "Update Supplier"}
             </button>
           </div>
         </form>
@@ -252,4 +246,4 @@ const CreateSupplier = ({ isOpen, onClose }) => {
   );
 };
 
-export default CreateSupplier;
+export default UpdateSupplier;

@@ -1,11 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
-import Header from '../components/Header/Header';
-import Footer from '../components/Footer/Footer';
-import Loading from '../components/Loading/Loading';
-import { getPublicProductByIdRequest } from '../redux/actions/publicProductActions';
-import { addFavoriteRequest, removeFavoriteRequest, getFavoritesRequest } from '../redux/actions/favoriteActions';
+import Header from '../../components/Header/Header';
+import Footer from '../../components/Footer/Footer';
+import Loading from '../../components/Loading/Loading';
+import { getPublicProductByIdRequest } from '../../redux/actions/publicProductActions';
+import { addFavoriteRequest, removeFavoriteRequest, getFavoritesRequest } from '../../redux/actions/favoriteActions';
 import { ChevronLeft, ShoppingCart, Heart } from 'lucide-react';
 
 export default function ProductDetailPage() {

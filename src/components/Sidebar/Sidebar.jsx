@@ -8,6 +8,8 @@ import {
   Store,
   FolderTree,
   Building2,
+  Truck,
+  Package,
   Ticket,
   History,
   ClipboardList,
@@ -34,6 +36,16 @@ const Sidebar = () => {
       icon: Store,
       label: "Product",
       path: "/admin/warehouse",
+    },
+    {
+      icon: Truck,
+      label: "Supplier",
+      path: "/admin/suppliers",
+    },
+    {
+      icon: Package,
+      label: "Harvest Batch",
+      path: "/admin/harvest-batches",
     },
     {
       icon: MessageSquare,
