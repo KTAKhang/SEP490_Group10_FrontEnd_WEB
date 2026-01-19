@@ -27,7 +27,7 @@ export default function* rootSaga() {
       profileSaga(),
       cartSaga(),
       checkoutSaga(),
-      orderSaga()
+      orderSaga(),
       newsSaga(),
       shopSaga(),
       staffSaga(),
