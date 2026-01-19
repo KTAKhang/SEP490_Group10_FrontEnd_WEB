@@ -2,6 +2,11 @@ import { all } from "redux-saga/effects";
 import authSaga from "./authSaga";
 import contactSaga from "./contactSaga";
 import profileSaga from "./profileSaga";
+
+import staffSaga from "./staffSage";
+import customerSaga from "./customerSaga";
+import discountSaga from "./discountSaga";
+
 import categorySaga from "./categorySaga";
 import productSaga from "./productSaga";
 import inventorySaga from "./inventorySaga";
@@ -11,12 +16,18 @@ import { productBatchSaga } from "./productBatchSaga";
 import favoriteSaga from "./favoriteSaga";
 
 
+
 export default function* rootSaga() {
   try {
     yield all([
       authSaga(),
       contactSaga(),
       profileSaga(),
+
+      staffSaga(),
+      customerSaga(),
+      discountSaga(),
+
       categorySaga(),
       productSaga(),
       inventorySaga(),
@@ -24,6 +35,7 @@ export default function* rootSaga() {
       publicCategorySaga(),
       productBatchSaga(),
       favoriteSaga(),
+
     ]);
   } catch (error) {
     console.error("🔴 rootSaga ERROR:", error);
