@@ -1,54 +1,51 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header/Header';
 import Footer from '../components/Footer/Footer';
-
-// Mock data cho danh mục
-const categories = [
-  {
-    id: 1,
-    name: 'Rau Củ',
-    description: 'Rau củ tươi ngon, hữu cơ 100%, không hóa chất độc hại',
-    image: 'https://cdn.britannica.com/17/196817-050-6A15DAC3/vegetables.jpg?w=400&h=300&c=crop',
-    productCount: 15
-  },
-  {
-    id: 2,
-    name: 'Trái Cây',
-    description: 'Trái cây ngọt tự nhiên, giàu vitamin và khoáng chất',
-    image: 'https://img.freepik.com/free-vector/vector-ripe-yellow-banana-bunch-isolated-white-background_1284-45456.jpg?semt=ais_hybrid&w=740&q=80',
-    productCount: 12
-  },
-  {
-    id: 3,
-    name: 'Nấm',
-    description: 'Nấm tươi các loại, giàu protein và chất dinh dưỡng',
-    image: 'https://images.immediate.co.uk/production/volatile/sites/30/2023/08/Chestnut-mushrooms-a223a78.jpg?quality=90&resize=440,400',
-    productCount: 8
-  },
-  {
-    id: 4,
-    name: 'Gia Vị',
-    description: 'Gia vị tự nhiên, thơm ngon cho món ăn thêm hấp dẫn',
-    image: 'https://t4.ftcdn.net/jpg/01/02/58/91/360_F_102589163_hk02O92vzEYP0rZbVyvDTbkje1GaUDk1.jpg',
-    productCount: 10
-  },
-  {
-    id: 5,
-    name: 'Rau Ăn Lá',
-    description: 'Rau xanh giòn ngon, giàu chất xơ và vitamin',
-    image: 'https://www.unileverfoodsolutions.com.vn/vi/goc-am-thuc/nhat-quan/nang-tam-lau/rau-an-lau-ga/jcr:content/parsys/set1/row2/span12/textimage_811810871/image.img.png/1658722672229.png',
-    productCount: 18
-  },
-  {
-    id: 6,
-    name: 'Củ Quả',
-    description: 'Củ quả tươi ngon, bổ dưỡng cho cả nhà',
-    image: 'https://images.pexels.com/photos/144248/potatoes-vegetables-erdfrucht-bio-144248.jpeg',
-    productCount: 14
-  }
-];
+import Loading from '../components/Loading/Loading';
+import { getPublicCategoriesRequest } from '../redux/actions/publicCategoryActions';
+import { Search, Grid } from 'lucide-react';
 
 export default function Categories() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { 
+    publicCategories, 
+    publicCategoriesPagination, 
+    publicCategoriesLoading 
+  } = useSelector((state) => state.publicCategory);
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Fetch categories
+  useEffect(() => {
+    const params = {
+      page: currentPage,
+      limit: 6,
+      search: searchTerm || undefined,
+    };
+    dispatch(getPublicCategoriesRequest(params));
+  }, [dispatch, currentPage, searchTerm]);
+
+  // Handle search
+  const handleSearch = (e) => {
+    e.preventDefault();
+    setCurrentPage(1);
+  };
+
+  // Handle category click - navigate to products page with category filter
+  const handleCategoryClick = (categoryId) => {
+    navigate(`/products?category=${categoryId}`);
+  };
+
+  // Handle pagination
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -67,50 +64,141 @@ export default function Categories() {
         </div>
       </section>
 
+      {/* Search Section */}
+      <section className="py-8 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <form onSubmit={handleSearch} className="relative max-w-md mx-auto">
+            <input
+              type="text"
+              placeholder="Search by category name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          </form>
+        </div>
+      </section>
+
       {/* Categories Grid */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {categories.map((category) => (
-              <a
-                key={category.id}
-                href="/products"
-                className="group relative bg-white rounded-3xl overflow-hidden border border-gray-200 hover:shadow-2xl transition-all duration-300 cursor-pointer"
-              >
-                {/* Category Image */}
-                <div className="relative h-64 overflow-hidden">
-                  <img
-                    src={category.image}
-                    alt={category.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-                  
-                  {/* Product Count Badge */}
-                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full">
-                    <span className="text-sm font-semibold text-gray-900">
-                      {category.productCount} products
-                    </span>
-                  </div>
-                </div>
+          {publicCategoriesLoading ? (
+            <div className="flex justify-center py-12">
+              <Loading message="Loading categories..." />
+            </div>
+          ) : publicCategories.length === 0 ? (
+            <div className="text-center py-12">
+              <Grid className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 text-lg">No categories found</p>
+            </div>
+          ) : (
+            <>
+              <div className="mb-8">
+                <p className="text-gray-600">
+                  Showing{' '}
+                  <span className="font-semibold">
+                    {publicCategoriesPagination
+                      ? publicCategoriesPagination.page * publicCategoriesPagination.limit -
+                        publicCategoriesPagination.limit +
+                        1
+                      : 0}{' '}
+                    -{' '}
+                    {publicCategoriesPagination
+                      ? Math.min(
+                          publicCategoriesPagination.page * publicCategoriesPagination.limit,
+                          publicCategoriesPagination.total
+                        )
+                      : 0}{' '}
+                    of {publicCategoriesPagination?.total || 0} categories
+                  </span>
+                </p>
+              </div>
 
-                {/* Category Info */}
-                <div className="p-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">
-                    {category.name}
-                  </h3>
-                  <p className="text-gray-600 leading-relaxed mb-4">
-                    {category.description}
-                  </p>
-                  
-                  <div className="flex items-center text-gray-900 font-semibold group-hover:text-green-600 transition-colors">
-                    <span>Explore now</span>
-                    <i className="ri-arrow-right-line ml-2 group-hover:translate-x-2 transition-transform"></i>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {publicCategories.map((category) => (
+                  <div
+                    key={category._id}
+                    onClick={() => handleCategoryClick(category._id)}
+                    className="group relative bg-white rounded-3xl overflow-hidden border border-gray-200 hover:shadow-2xl transition-all duration-300 cursor-pointer"
+                  >
+                    {/* Category Image */}
+                    <div className="relative h-64 overflow-hidden">
+                      <img
+                        src={category.image || 'https://via.placeholder.com/400x400?text=No+Image'}
+                        alt={category.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+                    </div>
+
+                    {/* Category Info */}
+                    <div className="p-6">
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">
+                        {category.name}
+                      </h3>
+                      {category.description && (
+                        <p className="text-gray-600 leading-relaxed mb-4 line-clamp-2">
+                          {category.description}
+                        </p>
+                      )}
+
+                      <div className="flex items-center text-gray-900 font-semibold group-hover:text-green-600 transition-colors">
+                        <span>Explore now</span>
+                        <i className="ri-arrow-right-line ml-2 group-hover:translate-x-2 transition-transform"></i>
+                      </div>
+                    </div>
                   </div>
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {publicCategoriesPagination && publicCategoriesPagination.totalPages > 1 && (
+                <div className="mt-12 flex items-center justify-center space-x-2">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 cursor-pointer"
+                  >
+                    Previous
+                  </button>
+                  {[...Array(publicCategoriesPagination.totalPages)].map((_, index) => {
+                    const page = index + 1;
+                    // Show first page, last page, current page, and pages around current
+                    if (
+                      page === 1 ||
+                      page === publicCategoriesPagination.totalPages ||
+                      (page >= currentPage - 1 && page <= currentPage + 1)
+                    ) {
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          className={`px-4 py-2 border rounded-lg cursor-pointer ${
+                            currentPage === page
+                              ? 'bg-gray-900 text-white border-gray-900'
+                              : 'border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    } else if (page === currentPage - 2 || page === currentPage + 2) {
+                      return <span key={page} className="px-2">...</span>;
+                    }
+                    return null;
+                  })}
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === publicCategoriesPagination.totalPages}
+                    className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 cursor-pointer"
+                  >
+                    Next
+                  </button>
                 </div>
-              </a>
-            ))}
-          </div>
+              )}
+            </>
+          )}
         </div>
       </section>
 
@@ -123,12 +211,12 @@ export default function Categories() {
           <p className="text-xl text-gray-300 mb-8">
             Contact us for consultation and special product orders
           </p>
-          <a
-            href="/contact"
+          <button
+            onClick={() => navigate('/customer/contact')}
             className="inline-block bg-white text-gray-900 px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition-colors whitespace-nowrap cursor-pointer"
           >
             Contact Us
-          </a>
+          </button>
         </div>
       </section>
 

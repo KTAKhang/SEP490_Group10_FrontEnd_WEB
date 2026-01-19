@@ -7,12 +7,16 @@ import ContactPage from "../pages/CustomerView/ContactPage";
 import ContactHistoryPage from "../pages/CustomerView/ContactHistoryPage";
 import AuthenticatedRoute from "../components/AuthenticatedRoute";
 import ProdcutPage from "../pages/ProductPage";
+import ProductDetailPage from "../pages/ProductDetailPage";
 import Categories from "../pages/CategoryPage";
+import WishlistPage from "../pages/WishlistPage";
 import CustomerLayout from "../layout/CustomerLayout";
 import AdminLayout from "../layout/AdminLayout";
 import AdminPage from "../pages/Admin/AdminPage/AdminPage";
 import WareHouse from "../pages/Admin/Warehouse/WareHouse";
 import CategoryManagement from "../pages/Admin/Category/CategoryManagement";
+import BatchHistoryPage from "../pages/Admin/Warehouse/BatchHistoryPage";
+import ReceiptHistoryPage from "../pages/Admin/Warehouse/ReceiptHistoryPage";
 import WarehouseStaffLayout from "../layout/WarehouseStaffLayout";
 import WarehouseStaffPage from "../pages/WarehouseStaff/WarehouseStaffPage";
 import WarehouseStaffWareHouse from "../pages/WarehouseStaff/Warehouse/WareHouse";
@@ -44,8 +48,20 @@ export const routes = [
     element: <ProdcutPage />,
   },
   {
+    path: "/products/:id",
+    element: <ProductDetailPage />,
+  },
+  {
     path: "/categories",
     element: <Categories />,
+  },
+  {
+    path: "/wishlist",
+    element: (
+      <PrivateRoute requiredRole="customer">
+        <WishlistPage />
+      </PrivateRoute>
+    ),
   },
   // {
   //   path: "/contact",
@@ -80,6 +96,8 @@ export const routes = [
       { index: true, element: <AdminPage /> },
       { path: "warehouse", element: <WareHouse /> },
       { path: "category", element: <CategoryManagement /> },
+      { path: "batch-history", element: <BatchHistoryPage /> },
+      { path: "receipt-history", element: <ReceiptHistoryPage /> },
       { path: "contacts", element: <ContactListPage /> },
       { path: "contacts/:id", element: <ContactDetailPage /> },
       { path: "contacts/:id/edit", element: <ContactEditPage /> },
