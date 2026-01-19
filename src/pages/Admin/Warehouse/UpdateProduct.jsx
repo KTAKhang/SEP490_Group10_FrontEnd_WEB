@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
-import { updateProductRequest, getCategoriesRequest } from "../../../redux/actions/warehouseActions";
+import { updateProductRequest } from "../../../redux/actions/productActions";
+import { getCategoriesRequest } from "../../../redux/actions/categoryActions";
 
 const UpdateProduct = ({ isOpen, onClose, product }) => {
   const dispatch = useDispatch();
-  const { categories, updateProductLoading, updateProductError } = useSelector((state) => state.warehouse);
+  const { categories } = useSelector((state) => state.category);
+  const { updateProductLoading, updateProductError } = useSelector((state) => state.product);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -98,13 +100,19 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
     e.preventDefault();
     
     // Validation
-    if (!formData.name || !formData.category || formData.price <= 0 || formData.plannedQuantity < 0) {
-      toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
+    if (!formData.name || !formData.category || !formData.brand || formData.price <= 0 || formData.plannedQuantity < 0) {
+      toast.error("Please fill in all required fields (name, category, brand, price, planned quantity)");
       return;
     }
 
     if (!product?._id) {
-      toast.error("Không tìm thấy sản phẩm");
+      toast.error("Product not found");
+      return;
+    }
+
+    // ✅ Block updating plannedQuantity if onHandQuantity > 0
+    if (product.onHandQuantity > 0 && formData.plannedQuantity !== product.plannedQuantity) {
+      toast.error("Cannot update planned quantity while product has stock. Please wait until stock is sold out or expired.");
       return;
     }
 
@@ -162,7 +170,7 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-bold text-gray-800">Chỉnh sửa sản phẩm</h2>
+          <h2 className="text-xl font-bold text-gray-800">Edit product</h2>
           <button
             onClick={handleCancel}
             className="text-gray-400 hover:text-gray-600"
@@ -175,20 +183,20 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tên sản phẩm <span className="text-red-500">*</span>
+                  Product name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Nhập tên sản phẩm"
+                  placeholder="Enter product name"
                   required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Danh mục <span className="text-red-500">*</span>
+                  Category <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={formData.category}
@@ -196,7 +204,7 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   required
                 >
-                  <option value="">Chọn danh mục</option>
+                  <option value="">Select category</option>
                   {categories?.filter((cat) => cat.status === true).map((cat) => (
                     <option key={cat._id} value={cat._id}>
                       {cat.name}
@@ -207,14 +215,14 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Mô tả ngắn
+                Short description
               </label>
               <textarea
                 value={formData.short_desc}
                 onChange={(e) => setFormData({ ...formData, short_desc: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 rows="2"
-                placeholder="Mô tả ngắn (tối đa 200 ký tự)"
+                placeholder="Short description (max 200 characters)"
                 maxLength={200}
               />
               <p className="text-xs text-gray-500 mt-1">{formData.short_desc.length}/200</p>
@@ -222,7 +230,7 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Giá (VNĐ) <span className="text-red-500">*</span>
+                  Price (VND) <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -236,7 +244,7 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Số lượng kế hoạch <span className="text-red-500">*</span>
+                  Planned quantity <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -244,64 +252,72 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
                   onChange={(e) =>
                     setFormData({ ...formData, plannedQuantity: parseInt(e.target.value) || 0 })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
+                    product.onHandQuantity > 0 
+                      ? "bg-gray-100 border-gray-300 cursor-not-allowed" 
+                      : "border-gray-300"
+                  }`}
                   min="0"
                   required
+                  disabled={product.onHandQuantity > 0}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Đã nhập: {product.receivedQuantity || 0} | Không thể giảm dưới số đã nhập
+                  {product.onHandQuantity > 0 
+                    ? `Cannot update planned quantity while product has stock (onHand: ${product.onHandQuantity}). Please wait until stock is sold out or expired.`
+                    : `Received: ${product.receivedQuantity || 0} | Cannot reduce below received amount`}
                 </p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Thương hiệu
+                  Brand <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.brand}
                   onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Nhập thương hiệu"
+                  placeholder="Enter brand"
+                  required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Trạng thái
+                  Status
                 </label>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value === "true" })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 >
-                  <option value={true}>Hiển thị</option>
-                  <option value={false}>Ẩn</option>
+                  <option value={true}>Visible</option>
+                  <option value={false}>Hidden</option>
                 </select>
               </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Mô tả chi tiết
+                Detailed description
               </label>
               <textarea
                 value={formData.detail_desc}
                 onChange={(e) => setFormData({ ...formData, detail_desc: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 rows="4"
-                placeholder="Mô tả chi tiết (tối đa 1000 ký tự)"
+                placeholder="Detailed description (max 1000 characters)"
                 maxLength={1000}
               />
               <p className="text-xs text-gray-500 mt-1">{formData.detail_desc.length}/1000</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Hình ảnh sản phẩm
+                Product images
               </label>
               {/* Existing images */}
               {existingImages.length > 0 && (
                 <div className="mb-2">
-                  <p className="text-xs text-gray-500 mb-1">Ảnh hiện có:</p>
+                  <p className="text-xs text-gray-500 mb-1">Current images:</p>
                   <div className="flex flex-wrap gap-2">
                     {existingImages.map((img, index) => (
                       <div key={index} className="relative">
@@ -333,7 +349,7 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
               {/* New image previews */}
               {newImagePreviews.length > 0 && (
                 <div className="mt-2">
-                  <p className="text-xs text-gray-500 mb-1">Ảnh mới:</p>
+                  <p className="text-xs text-gray-500 mb-1">New images:</p>
                   <div className="flex flex-wrap gap-2">
                     {newImagePreviews.map((preview, index) => (
                       <div key={index} className="relative">
@@ -362,14 +378,14 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
               onClick={handleCancel}
               className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
-              Hủy
+              Cancel
             </button>
             <button
               type="submit"
               disabled={updateProductLoading}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {updateProductLoading ? "Đang cập nhật..." : "Cập nhật"}
+              {updateProductLoading ? "Updating..." : "Update"}
             </button>
           </div>
         </form>

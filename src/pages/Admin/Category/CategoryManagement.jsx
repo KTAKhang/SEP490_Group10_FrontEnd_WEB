@@ -15,7 +15,8 @@ import {
 import {
   getCategoriesRequest,
   deleteCategoryRequest,
-} from "../../../redux/actions/warehouseActions";
+  getCategoryStatsRequest,
+} from "../../../redux/actions/categoryActions";
 import CreateCategory from "./CreateCategory";
 import UpdateCategory from "./UpdateCategory";
 import ReadCategory from "./ReadCategory";
@@ -44,17 +45,20 @@ const CategoryManagement = () => {
     categories,
     categoriesLoading,
     categoriesPagination,
+    categoryStats,
     createCategoryLoading,
     updateCategoryLoading,
     deleteCategoryLoading,
     createCategoryError,
     updateCategoryError,
     deleteCategoryError,
-  } = useSelector((state) => state.warehouse);
+  } = useSelector((state) => state.category);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all"); // all, true, false
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showReadModal, setShowReadModal] = useState(false);
@@ -63,9 +67,10 @@ const CategoryManagement = () => {
   const [prevUpdateLoading, setPrevUpdateLoading] = useState(false);
   const [prevDeleteLoading, setPrevDeleteLoading] = useState(false);
 
-  // Fetch categories on mount
+  // Fetch categories and stats on mount
   useEffect(() => {
-    dispatch(getCategoriesRequest({ page: currentPage, limit: 10 }));
+    dispatch(getCategoriesRequest({ page: currentPage, limit: 10, sortBy, sortOrder }));
+    dispatch(getCategoryStatsRequest());
   }, [dispatch]);
 
   // Fetch categories when filters change
@@ -75,9 +80,11 @@ const CategoryManagement = () => {
       limit: 10,
       search: searchTerm || undefined,
       status: filterStatus !== "all" ? filterStatus : undefined,
+      sortBy,
+      sortOrder,
     };
     dispatch(getCategoriesRequest(params));
-  }, [dispatch, currentPage, searchTerm, filterStatus]);
+  }, [dispatch, currentPage, searchTerm, filterStatus, sortBy, sortOrder]);
 
   // Auto refresh after successful create
   useEffect(() => {
@@ -88,11 +95,14 @@ const CategoryManagement = () => {
         limit: 10,
         search: searchTerm || undefined,
         status: filterStatus !== "all" ? filterStatus : undefined,
+        sortBy,
+        sortOrder,
       };
       dispatch(getCategoriesRequest(params));
+      dispatch(getCategoryStatsRequest());
     }
     setPrevCreateLoading(createCategoryLoading);
-  }, [dispatch, createCategoryLoading, createCategoryError, prevCreateLoading, currentPage, searchTerm, filterStatus]);
+  }, [dispatch, createCategoryLoading, createCategoryError, prevCreateLoading, currentPage, searchTerm, filterStatus, sortBy, sortOrder]);
 
   // Auto refresh after successful update
   useEffect(() => {
@@ -103,11 +113,14 @@ const CategoryManagement = () => {
         limit: 10,
         search: searchTerm || undefined,
         status: filterStatus !== "all" ? filterStatus : undefined,
+        sortBy,
+        sortOrder,
       };
       dispatch(getCategoriesRequest(params));
+      dispatch(getCategoryStatsRequest());
     }
     setPrevUpdateLoading(updateCategoryLoading);
-  }, [dispatch, updateCategoryLoading, updateCategoryError, prevUpdateLoading, currentPage, searchTerm, filterStatus]);
+  }, [dispatch, updateCategoryLoading, updateCategoryError, prevUpdateLoading, currentPage, searchTerm, filterStatus, sortBy, sortOrder]);
 
   // Auto refresh after successful delete
   useEffect(() => {
@@ -118,11 +131,14 @@ const CategoryManagement = () => {
         limit: 10,
         search: searchTerm || undefined,
         status: filterStatus !== "all" ? filterStatus : undefined,
+        sortBy,
+        sortOrder,
       };
       dispatch(getCategoriesRequest(params));
+      dispatch(getCategoryStatsRequest());
     }
     setPrevDeleteLoading(deleteCategoryLoading);
-  }, [dispatch, deleteCategoryLoading, deleteCategoryError, prevDeleteLoading, currentPage, searchTerm, filterStatus]);
+  }, [dispatch, deleteCategoryLoading, deleteCategoryError, prevDeleteLoading, currentPage, searchTerm, filterStatus, sortBy, sortOrder]);
 
   const handleAddCategory = () => {
     setShowCreateModal(true);
@@ -139,15 +155,15 @@ const CategoryManagement = () => {
   };
 
   const handleDeleteCategory = (id) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa danh mục này?")) return;
+    if (!window.confirm("Are you sure you want to delete this category?")) return;
     dispatch(deleteCategoryRequest(id));
   };
 
-  // Calculate stats from categories
+  // Use stats from API
   const stats = {
-    total: categoriesPagination?.total || categories.length,
-    active: categories.filter((c) => c.status === true).length,
-    inactive: categories.filter((c) => c.status === false).length,
+    total: categoryStats?.total || 0,
+    active: categoryStats?.active || 0,
+    inactive: categoryStats?.hidden || 0,
   };
 
   return (
@@ -155,15 +171,15 @@ const CategoryManagement = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Quản lý danh mục</h1>
-          <p className="text-gray-600 mt-1">Quản lý các danh mục sản phẩm</p>
+          <h1 className="text-3xl font-bold text-gray-800">Category management</h1>
+          <p className="text-gray-600 mt-1">Manage product categories</p>
         </div>
         <button
           onClick={handleAddCategory}
           className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
         >
           <Plus size={18} />
-          <span>Thêm danh mục</span>
+          <span>Add category</span>
         </button>
       </div>
 
@@ -173,7 +189,7 @@ const CategoryManagement = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Tổng danh mục</p>
+                <p className="text-sm text-gray-600">Total categories</p>
                 <p className="text-2xl font-bold text-gray-800">{stats.total}</p>
               </div>
               <FolderTree className="h-10 w-10 text-blue-500" />
@@ -184,7 +200,7 @@ const CategoryManagement = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Đang hoạt động</p>
+                <p className="text-sm text-gray-600">Active</p>
                 <p className="text-2xl font-bold text-green-600">{stats.active}</p>
               </div>
               <CheckCircle className="h-10 w-10 text-green-500" />
@@ -195,7 +211,7 @@ const CategoryManagement = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Đã tắt</p>
+                <p className="text-sm text-gray-600">Inactive</p>
                 <p className="text-2xl font-bold text-red-600">{stats.inactive}</p>
               </div>
               <XCircle className="h-10 w-10 text-red-500" />
@@ -213,7 +229,7 @@ const CategoryManagement = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="text"
-                placeholder="Tìm kiếm theo tên danh mục..."
+                placeholder="Search by category name..."
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -233,9 +249,36 @@ const CategoryManagement = () => {
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
-                <option value="all">Tất cả trạng thái</option>
-                <option value="true">Đang hoạt động</option>
-                <option value="false">Đã tắt</option>
+                <option value="all">All statuses</option>
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+              </select>
+            </div>
+            {/* Sort */}
+            <div className="flex items-center space-x-2">
+              <select
+                value={sortBy}
+                onChange={(e) => {
+                  setSortBy(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              >
+                <option value="createdAt">Created date</option>
+                <option value="name">Name</option>
+                <option value="updatedAt">Updated date</option>
+                <option value="status">Status</option>
+              </select>
+              <select
+                value={sortOrder}
+                onChange={(e) => {
+                  setSortOrder(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              >
+                <option value="desc">Descending</option>
+                <option value="asc">Ascending</option>
               </select>
             </div>
           </div>
@@ -246,16 +289,16 @@ const CategoryManagement = () => {
       <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="text-lg font-semibold">
-            Danh sách danh mục ({categoriesPagination?.total || categories.length})
+            Category list ({categoriesPagination?.total || categories.length})
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {categoriesLoading || createCategoryLoading || updateCategoryLoading || deleteCategoryLoading ? (
-            <Loading message="Đang tải dữ liệu..." />
+            <Loading message="Loading data..." />
           ) : categories.length === 0 ? (
             <div className="p-8 text-center">
               <FolderTree className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-600">Không tìm thấy danh mục nào</p>
+              <p className="text-gray-600">No categories found</p>
             </div>
           ) : (
             <>
@@ -264,16 +307,16 @@ const CategoryManagement = () => {
                   <thead className="bg-gray-50 border-b">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Danh mục
+                        Category
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Mô tả
+                        Description
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Trạng thái
+                        Status
                       </th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Thao tác
+                        Actions
                       </th>
                     </tr>
                   </thead>
@@ -303,7 +346,7 @@ const CategoryManagement = () => {
                         </td>
                         <td className="px-6 py-4">
                           <p className="text-sm text-gray-500 truncate max-w-md">
-                            {category.description || "Chưa có mô tả"}
+                            {category.description || "No description"}
                           </p>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -317,12 +360,12 @@ const CategoryManagement = () => {
                             {category.status ? (
                               <>
                                 <CheckCircle size={14} className="mr-1" />
-                                Đang hoạt động
+                                Active
                               </>
                             ) : (
                               <>
                                 <XCircle size={14} className="mr-1" />
-                                Đã tắt
+                                Inactive
                               </>
                             )}
                           </span>
@@ -332,21 +375,21 @@ const CategoryManagement = () => {
                             <button
                               onClick={() => handleViewCategory(category)}
                               className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
-                              title="Xem chi tiết"
+                              title="View details"
                             >
                               <Eye size={18} />
                             </button>
                             <button
                               onClick={() => handleEditCategory(category)}
                               className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
-                              title="Chỉnh sửa"
+                              title="Edit"
                             >
                               <Edit size={18} />
                             </button>
                             <button
                               onClick={() => handleDeleteCategory(category._id)}
                               className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded"
-                              title="Xóa"
+                              title="Delete"
                             >
                               <Trash2 size={18} />
                             </button>
@@ -362,9 +405,9 @@ const CategoryManagement = () => {
               {categoriesPagination && categoriesPagination.totalPages > 1 && (
                 <div className="px-6 py-4 border-t flex items-center justify-between">
                   <div className="text-sm text-gray-700">
-                    Hiển thị {categoriesPagination.page * categoriesPagination.limit - categoriesPagination.limit + 1} -{" "}
-                    {Math.min(categoriesPagination.page * categoriesPagination.limit, categoriesPagination.total)} trong
-                    tổng số {categoriesPagination.total} danh mục
+                    Showing {categoriesPagination.page * categoriesPagination.limit - categoriesPagination.limit + 1} -{" "}
+                    {Math.min(categoriesPagination.page * categoriesPagination.limit, categoriesPagination.total)} of{" "}
+                    {categoriesPagination.total} categories
                   </div>
                   <div className="flex items-center space-x-2">
                     <button
@@ -372,7 +415,7 @@ const CategoryManagement = () => {
                       disabled={currentPage === 1}
                       className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                     >
-                      Trước
+                      Previous
                     </button>
                     {[...Array(categoriesPagination.totalPages)].map((_, index) => (
                       <button
@@ -392,7 +435,7 @@ const CategoryManagement = () => {
                       disabled={currentPage === categoriesPagination.totalPages}
                       className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                     >
-                      Sau
+                      Next
                     </button>
                   </div>
                 </div>

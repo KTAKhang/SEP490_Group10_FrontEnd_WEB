@@ -12,7 +12,12 @@ import {
   FileText,
   Store,
   FolderTree,
+
   Ticket,
+
+  History,
+  ClipboardList,
+
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -28,15 +33,16 @@ const Sidebar = () => {
     },
     {
       icon: FolderTree,
-      label: "Danh mục",
+      label: "Categories",
       path: "/admin/category",
     },
     {
       icon: Store,
-      label: "Sản phẩm",
+      label: "Products",
       path: "/admin/warehouse",
     },
     {
+
       icon: Users,
       label: "Staff Management",
       path: "/admin/staff",
@@ -50,6 +56,16 @@ const Sidebar = () => {
       icon: Ticket,
       label: "Discount Management",
       path: "/admin/discounts",
+
+      icon: History,
+      label: "Batch History",
+      path: "/admin/batch-history",
+    },
+    {
+      icon: ClipboardList,
+      label: "Receipt History",
+      path: "/admin/receipt-history",
+
     },
   ];
 
