@@ -26,6 +26,14 @@ import PrivateRoute from "../components/PrivateRouter/index";
 import ContactListPage from "../pages/ContactManagement/ContactListPage";
 import ContactDetailPage from "../pages/ContactManagement/ContactDetailPage";
 import ContactEditPage from "../pages/ContactManagement/ContactEditPage";
+
+import SupplierManagement from "../pages/QcStaff/Supplier/Supplier/SupplierManagement";
+import HarvestBatchManagement from "../pages/QcStaff/Supplier/HarvestBatch/HarvestBatchManagement";
+import QualityVerificationManagement from "../pages/QcStaff/Supplier/QualityVerification/QualityVerificationManagement";
+import PerformanceEvaluationManagement from "../pages/QcStaff/Supplier/Performance/PerformanceEvaluationManagement";
+import QcStaffLayout from "../layout/QcStaffLayout";
+import QcStaffPage from "../pages/QcStaff/QcStaffPage/QcStaffPage";
+
 import CartPage from "../pages/CustomerView/CartPage";
 import CheckoutPage from "../pages/CustomerView/CheckoutPage";
 import StaffManagement from "../pages/StaffManagement/StaffManagement";
@@ -41,6 +49,7 @@ import NewsFormPage from "../pages/Admin/News/NewsFormPage";
 import AdminNewsDetailPage from "../pages/Admin/News/NewsDetailPage";
 import ShopManagement from "../pages/Admin/Shop/ShopManagement";
 import AboutUsPage from "../pages/AboutUsPage";
+
 
 export const routes = [
   // Trang chủ
@@ -133,6 +142,23 @@ export const routes = [
       { path: "news/edit/:id", element: <NewsFormPage /> },
       { path: "news/:id", element: <AdminNewsDetailPage /> },
       { path: "shop", element: <ShopManagement /> },
+    ],
+  },
+
+  // Khu vực QC Staff
+  {
+    path: "/qc-staff",
+    element: (
+      <PrivateRoute requiredRole="qc_staff">
+        <QcStaffLayout />
+      </PrivateRoute>
+    ),
+    children: [
+      { index: true, element: <QcStaffPage /> },
+      { path: "suppliers", element: <SupplierManagement /> },
+      { path: "harvest-batches", element: <HarvestBatchManagement /> },
+      { path: "quality-verifications", element: <QualityVerificationManagement /> },
+      { path: "performance-evaluations", element: <PerformanceEvaluationManagement /> },
     ],
   },
 
