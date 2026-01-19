@@ -4,11 +4,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 // import { useAuth } from '../../contexts/AuthContext';
 import {
-  getMyContactsRequest,
-  getContactDetailRequest,
-  sendReplyRequest,
-  downloadAttachmentRequest,
-  clearContactMessages,
+  contactGetMyContactsRequest,
+  contactGetContactDetailRequest,
+  contactSendReplyRequest,
+  contactDownloadAttachmentRequest,
+  contactClearMessages,
 } from '../../redux/actions/contactActions';
 import {
   MessageSquare,
@@ -46,7 +46,7 @@ const ContactHistoryPage = () => {
 
   // Fetch contacts using Redux
   useEffect(() => {
-    dispatch(getMyContactsRequest());
+    dispatch(contactGetMyContactsRequest());
   }, [dispatch]);
 
   // Update selected contact when contactDetail changes
@@ -68,9 +68,9 @@ const ContactHistoryPage = () => {
       const contactId = selectedContact._id || selectedContact.id;
       // Backend returns contact with replies in one call
       // Note: saga already refreshes contacts list, so we only need to refresh detail
-      dispatch(getContactDetailRequest(contactId));
+      dispatch(contactGetContactDetailRequest(contactId));
       // Clear success flag to prevent infinite loop
-      dispatch(clearContactMessages());
+      dispatch(contactClearMessages());
     }
   }, [sendReplySuccess, selectedContact, dispatch]);
 
@@ -79,7 +79,7 @@ const ContactHistoryPage = () => {
     setReplyMessage('');
     const contactId = contact._id || contact.id;
     // Backend returns contact with replies and attachments in one call
-    dispatch(getContactDetailRequest(contactId));
+    dispatch(contactGetContactDetailRequest(contactId));
   };
 
   // Check if customer can reply (only 1 reply allowed after each admin reply)
@@ -180,7 +180,7 @@ const ContactHistoryPage = () => {
 
     const contactId = selectedContact._id || selectedContact.id;
     // BR-R-03: User can only send with sender_type=USER
-    dispatch(sendReplyRequest(contactId, replyMessage.trim()));
+    dispatch(contactSendReplyRequest(contactId, replyMessage.trim()));
   };
 
   const getStatusBadge = (status) => {
@@ -215,7 +215,7 @@ const ContactHistoryPage = () => {
   };
 
   const handleDownloadAttachment = (fileUrl, fileName) => {
-    dispatch(downloadAttachmentRequest(fileUrl, fileName));
+    dispatch(contactDownloadAttachmentRequest(fileUrl, fileName));
   };
 
   return (

@@ -4,13 +4,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { logoutRequest } from "../../redux/actions/authActions";
 import { LogOut, Settings, User, Clock, Package, Menu, X } from "lucide-react";
 import PropTypes from "prop-types";
-// import { fetchCartRequest } from "../../";
+import { fetchCartRequest } from "../../redux/actions/cartActions";
+
 const Header = ({ searchTerm, setSearchTerm }) => {
   void searchTerm;
   void setSearchTerm;
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
   // useEffect(() => {
   //   dispatch(fetchCartRequest());
   // }, [dispatch]);
@@ -61,6 +63,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
               { label: "Categories", path: "/categories" },
               { label: "About Us", path: "/about" },
               { label: "Contact", path: "/customer/contact" },
+              { label: "News", path: "/news" },
               { label: "FAQ", path: "/faq" },
        ...(storedUser ? [{ label: "Wishlist", path: "/wishlist" }] : []),
             ].map((item) => (
@@ -77,7 +80,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
           {/* ACTIONS */}
           <div className="flex items-center space-x-3">
             {/* USER */}
-{storedUser ? (
+            {storedUser ? (
               <>
                 {/* CART */}
                 <Link
@@ -91,7 +94,6 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                     </span>
                   )}
                 </Link>
-
                 {/* AVATAR */}
                 <div className="relative">
                   <button onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
@@ -108,7 +110,6 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                         <p className="font-semibold">{displayName}</p>
                         <p className="text-sm opacity-80">{displayEmail}</p>
                       </div>
-
                       <div className="py-2">
                         <DropdownItem
                           icon={<User size={18} />}

@@ -1,35 +1,35 @@
 import {
-  GET_CATEGORIES_REQUEST,
-  GET_CATEGORIES_SUCCESS,
-  GET_CATEGORIES_FAILURE,
-  CREATE_CONTACT_REQUEST,
-  CREATE_CONTACT_SUCCESS,
-  CREATE_CONTACT_FAILURE,
-  GET_MY_CONTACTS_REQUEST,
-  GET_MY_CONTACTS_SUCCESS,
-  GET_MY_CONTACTS_FAILURE,
-  GET_CONTACT_DETAIL_REQUEST,
-  GET_CONTACT_DETAIL_SUCCESS,
-  GET_CONTACT_DETAIL_FAILURE,
-  GET_CONTACT_REPLIES_REQUEST,
-  GET_CONTACT_REPLIES_SUCCESS,
-  GET_CONTACT_REPLIES_FAILURE,
-  SEND_REPLY_REQUEST,
-  SEND_REPLY_SUCCESS,
-  SEND_REPLY_FAILURE,
-  DOWNLOAD_ATTACHMENT_REQUEST,
-  DOWNLOAD_ATTACHMENT_SUCCESS,
-  DOWNLOAD_ATTACHMENT_FAILURE,
-  CLEAR_CONTACT_MESSAGES,
-  UPDATE_CONTACT_REQUEST,
-  UPDATE_CONTACT_SUCCESS,
-  UPDATE_CONTACT_FAILURE,
-  UPDATE_REPLY_REQUEST,
-  UPDATE_REPLY_SUCCESS,
-  UPDATE_REPLY_FAILURE,
-  DELETE_REPLY_REQUEST,
-  DELETE_REPLY_SUCCESS,
-  DELETE_REPLY_FAILURE,
+  CONTACT_GET_CATEGORIES_REQUEST,
+  CONTACT_GET_CATEGORIES_SUCCESS,
+  CONTACT_GET_CATEGORIES_FAILURE,
+  CONTACT_CREATE_CONTACT_REQUEST,
+  CONTACT_CREATE_CONTACT_SUCCESS,
+  CONTACT_CREATE_CONTACT_FAILURE,
+  CONTACT_GET_MY_CONTACTS_REQUEST,
+  CONTACT_GET_MY_CONTACTS_SUCCESS,
+  CONTACT_GET_MY_CONTACTS_FAILURE,
+  CONTACT_GET_CONTACT_DETAIL_REQUEST,
+  CONTACT_GET_CONTACT_DETAIL_SUCCESS,
+  CONTACT_GET_CONTACT_DETAIL_FAILURE,
+  CONTACT_GET_CONTACT_REPLIES_REQUEST,
+  CONTACT_GET_CONTACT_REPLIES_SUCCESS,
+  CONTACT_GET_CONTACT_REPLIES_FAILURE,
+  CONTACT_SEND_REPLY_REQUEST,
+  CONTACT_SEND_REPLY_SUCCESS,
+  CONTACT_SEND_REPLY_FAILURE,
+  CONTACT_DOWNLOAD_ATTACHMENT_REQUEST,
+  CONTACT_DOWNLOAD_ATTACHMENT_SUCCESS,
+  CONTACT_DOWNLOAD_ATTACHMENT_FAILURE,
+  CONTACT_CLEAR_MESSAGES,
+  CONTACT_UPDATE_CONTACT_REQUEST,
+  CONTACT_UPDATE_CONTACT_SUCCESS,
+  CONTACT_UPDATE_CONTACT_FAILURE,
+  CONTACT_UPDATE_REPLY_REQUEST,
+  CONTACT_UPDATE_REPLY_SUCCESS,
+  CONTACT_UPDATE_REPLY_FAILURE,
+  CONTACT_DELETE_REPLY_REQUEST,
+  CONTACT_DELETE_REPLY_SUCCESS,
+  CONTACT_DELETE_REPLY_FAILURE,
 } from "../actions/contactActions";
 
 const initialState = {
@@ -87,20 +87,20 @@ const initialState = {
 const contactReducer = (state = initialState, action) => {
   switch (action.type) {
     // ===== GET CATEGORIES =====
-    case GET_CATEGORIES_REQUEST:
+    case CONTACT_GET_CATEGORIES_REQUEST:
       return {
         ...state,
         categoriesLoading: true,
         categoriesError: null,
       };
-    case GET_CATEGORIES_SUCCESS:
+    case CONTACT_GET_CATEGORIES_SUCCESS:
       return {
         ...state,
         categories: action.payload,
         categoriesLoading: false,
         categoriesError: null,
       };
-    case GET_CATEGORIES_FAILURE:
+    case CONTACT_GET_CATEGORIES_FAILURE:
       return {
         ...state,
         categoriesLoading: false,
@@ -108,7 +108,7 @@ const contactReducer = (state = initialState, action) => {
       };
 
     // ===== CREATE CONTACT =====
-    case CREATE_CONTACT_REQUEST:
+    case CONTACT_CREATE_CONTACT_REQUEST:
       return {
         ...state,
         createContactLoading: true,
@@ -116,7 +116,7 @@ const contactReducer = (state = initialState, action) => {
         createContactError: null,
         createContactMessage: null,
       };
-    case CREATE_CONTACT_SUCCESS:
+    case CONTACT_CREATE_CONTACT_SUCCESS:
       return {
         ...state,
         createContactLoading: false,
@@ -124,7 +124,7 @@ const contactReducer = (state = initialState, action) => {
         createContactError: null,
         createContactMessage: action.payload.message || "Gửi liên hệ thành công",
       };
-    case CREATE_CONTACT_FAILURE:
+    case CONTACT_CREATE_CONTACT_FAILURE:
       return {
         ...state,
         createContactLoading: false,
@@ -134,20 +134,20 @@ const contactReducer = (state = initialState, action) => {
       };
 
     // ===== GET MY CONTACTS =====
-    case GET_MY_CONTACTS_REQUEST:
+    case CONTACT_GET_MY_CONTACTS_REQUEST:
       return {
         ...state,
         contactsLoading: true,
         contactsError: null,
       };
-    case GET_MY_CONTACTS_SUCCESS:
+    case CONTACT_GET_MY_CONTACTS_SUCCESS:
       return {
         ...state,
         contacts: action.payload,
         contactsLoading: false,
         contactsError: null,
       };
-    case GET_MY_CONTACTS_FAILURE:
+    case CONTACT_GET_MY_CONTACTS_FAILURE:
       return {
         ...state,
         contactsLoading: false,
@@ -155,20 +155,20 @@ const contactReducer = (state = initialState, action) => {
       };
 
     // ===== GET CONTACT DETAIL =====
-    case GET_CONTACT_DETAIL_REQUEST:
+    case CONTACT_GET_CONTACT_DETAIL_REQUEST:
       return {
         ...state,
         contactDetailLoading: true,
         contactDetailError: null,
       };
-    case GET_CONTACT_DETAIL_SUCCESS:
+    case CONTACT_GET_CONTACT_DETAIL_SUCCESS:
       return {
         ...state,
         contactDetail: action.payload,
         contactDetailLoading: false,
         contactDetailError: null,
       };
-    case GET_CONTACT_DETAIL_FAILURE:
+    case CONTACT_GET_CONTACT_DETAIL_FAILURE:
       return {
         ...state,
         contactDetailLoading: false,
@@ -176,20 +176,20 @@ const contactReducer = (state = initialState, action) => {
       };
 
     // ===== GET CONTACT REPLIES =====
-    case GET_CONTACT_REPLIES_REQUEST:
+    case CONTACT_GET_CONTACT_REPLIES_REQUEST:
       return {
         ...state,
         repliesLoading: true,
         repliesError: null,
       };
-    case GET_CONTACT_REPLIES_SUCCESS:
+    case CONTACT_GET_CONTACT_REPLIES_SUCCESS:
       return {
         ...state,
         replies: action.payload,
         repliesLoading: false,
         repliesError: null,
       };
-    case GET_CONTACT_REPLIES_FAILURE:
+    case CONTACT_GET_CONTACT_REPLIES_FAILURE:
       return {
         ...state,
         repliesLoading: false,
@@ -197,21 +197,21 @@ const contactReducer = (state = initialState, action) => {
       };
 
     // ===== SEND REPLY =====
-    case SEND_REPLY_REQUEST:
+    case CONTACT_SEND_REPLY_REQUEST:
       return {
         ...state,
         sendReplyLoading: true,
         sendReplySuccess: false,
         sendReplyError: null,
       };
-    case SEND_REPLY_SUCCESS:
+    case CONTACT_SEND_REPLY_SUCCESS:
       return {
         ...state,
         sendReplyLoading: false,
         sendReplySuccess: true,
         sendReplyError: null,
       };
-    case SEND_REPLY_FAILURE:
+    case CONTACT_SEND_REPLY_FAILURE:
       return {
         ...state,
         sendReplyLoading: false,
@@ -220,19 +220,19 @@ const contactReducer = (state = initialState, action) => {
       };
 
     // ===== DOWNLOAD ATTACHMENT =====
-    case DOWNLOAD_ATTACHMENT_REQUEST:
+    case CONTACT_DOWNLOAD_ATTACHMENT_REQUEST:
       return {
         ...state,
         downloadAttachmentLoading: true,
         downloadAttachmentError: null,
       };
-    case DOWNLOAD_ATTACHMENT_SUCCESS:
+    case CONTACT_DOWNLOAD_ATTACHMENT_SUCCESS:
       return {
         ...state,
         downloadAttachmentLoading: false,
         downloadAttachmentError: null,
       };
-    case DOWNLOAD_ATTACHMENT_FAILURE:
+    case CONTACT_DOWNLOAD_ATTACHMENT_FAILURE:
       return {
         ...state,
         downloadAttachmentLoading: false,
@@ -240,21 +240,21 @@ const contactReducer = (state = initialState, action) => {
       };
 
     // ===== UPDATE CONTACT =====
-    case UPDATE_CONTACT_REQUEST:
+    case CONTACT_UPDATE_CONTACT_REQUEST:
       return {
         ...state,
         updateContactLoading: true,
         updateContactSuccess: false,
         updateContactError: null,
       };
-    case UPDATE_CONTACT_SUCCESS:
+    case CONTACT_UPDATE_CONTACT_SUCCESS:
       return {
         ...state,
         updateContactLoading: false,
         updateContactSuccess: true,
         updateContactError: null,
       };
-    case UPDATE_CONTACT_FAILURE:
+    case CONTACT_UPDATE_CONTACT_FAILURE:
       return {
         ...state,
         updateContactLoading: false,
@@ -263,21 +263,21 @@ const contactReducer = (state = initialState, action) => {
       };
 
     // ===== UPDATE REPLY =====
-    case UPDATE_REPLY_REQUEST:
+    case CONTACT_UPDATE_REPLY_REQUEST:
       return {
         ...state,
         updateReplyLoading: true,
         updateReplySuccess: false,
         updateReplyError: null,
       };
-    case UPDATE_REPLY_SUCCESS:
+    case CONTACT_UPDATE_REPLY_SUCCESS:
       return {
         ...state,
         updateReplyLoading: false,
         updateReplySuccess: true,
         updateReplyError: null,
       };
-    case UPDATE_REPLY_FAILURE:
+    case CONTACT_UPDATE_REPLY_FAILURE:
       return {
         ...state,
         updateReplyLoading: false,
@@ -286,21 +286,21 @@ const contactReducer = (state = initialState, action) => {
       };
 
     // ===== DELETE REPLY =====
-    case DELETE_REPLY_REQUEST:
+    case CONTACT_DELETE_REPLY_REQUEST:
       return {
         ...state,
         deleteReplyLoading: true,
         deleteReplySuccess: false,
         deleteReplyError: null,
       };
-    case DELETE_REPLY_SUCCESS:
+    case CONTACT_DELETE_REPLY_SUCCESS:
       return {
         ...state,
         deleteReplyLoading: false,
         deleteReplySuccess: true,
         deleteReplyError: null,
       };
-    case DELETE_REPLY_FAILURE:
+    case CONTACT_DELETE_REPLY_FAILURE:
       return {
         ...state,
         deleteReplyLoading: false,
@@ -309,7 +309,7 @@ const contactReducer = (state = initialState, action) => {
       };
 
     // ===== CLEAR MESSAGES =====
-    case CLEAR_CONTACT_MESSAGES:
+    case CONTACT_CLEAR_MESSAGES:
       return {
         ...state,
         createContactSuccess: false,

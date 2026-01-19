@@ -83,7 +83,7 @@ const WareHouse = () => {
   // Fetch products, categories and stats on mount
   useEffect(() => {
     dispatch(getProductsRequest({ page: currentPage, limit: 10, sortBy, sortOrder }));
-    dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
+dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
     dispatch(getProductStatsRequest());
   }, [dispatch]);
 
@@ -151,7 +151,7 @@ const WareHouse = () => {
         limit: 10,
         search: searchTerm || undefined,
         stockStatus: filterStockStatus !== "all" ? filterStockStatus : undefined,
-        receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,
+receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,
         category: selectedCategory !== "all" ? selectedCategory : undefined,
         sortBy,
         sortOrder,
@@ -230,8 +230,7 @@ const WareHouse = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [confirmResetLoading]);
-
-  // Use stats from API
+// Use stats from API
   const stats = {
     total: productStats?.total || 0,
     inStock: productStats?.inStock || 0,
@@ -305,7 +304,7 @@ const WareHouse = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Out of stock</p>
+<p className="text-sm text-gray-600">Out of stock</p>
                 <p className="text-2xl font-bold text-red-600">{stats.outOfStock}</p>
               </div>
               <AlertCircle className="h-10 w-10 text-red-500" />
@@ -371,7 +370,7 @@ const WareHouse = () => {
                 <option value="all">All categories</option>
                 {categories?.map((cat) => (
                   <option key={cat._id} value={cat._id}>
-                    {cat.name}
+{cat.name}
                   </option>
                 ))}
               </select>
@@ -440,7 +439,7 @@ const WareHouse = () => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Quantity
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Price
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -492,7 +491,7 @@ const WareHouse = () => {
                               <p className="text-xs text-gray-500">
                                 Planned: {product.plannedQuantity || 0} | Received:{" "}
                                 {product.receivedQuantity || 0}
-                              </p>
+</p>
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -541,7 +540,7 @@ const WareHouse = () => {
                                   onClick={() => handleConfirmReset(product._id)}
                                   disabled={confirmResetLoading || confirmingProductId === product._id}
                                   className={`p-1 rounded transition-colors ${
-                                    confirmingProductId === product._id || confirmResetLoading
+confirmingProductId === product._id || confirmResetLoading
                                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                                       : "bg-orange-500 text-white hover:bg-orange-600"
                                   }`}
@@ -597,7 +596,7 @@ const WareHouse = () => {
                         }`}
                       >
                         {index + 1}
-                      </button>
+</button>
                     ))}
                     <button
                       onClick={() => setCurrentPage((prev) => Math.min(productsPagination.totalPages, prev + 1))}

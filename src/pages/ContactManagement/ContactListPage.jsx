@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  getMyContactsRequest,
+  contactGetMyContactsRequest,
 } from '../../redux/actions/contactActions';
 import {
   MessageSquare,
@@ -45,7 +45,7 @@ const ContactListPage = () => {
       ...(statusFilter !== 'all' && { status: statusFilter }),
       ...(categoryFilter !== 'all' && { category: categoryFilter }),
     };
-    dispatch(getMyContactsRequest(params));
+    dispatch(contactGetMyContactsRequest(params));
   }, [dispatch, statusFilter, categoryFilter]);
 
   // Reset to page 1 when filters change

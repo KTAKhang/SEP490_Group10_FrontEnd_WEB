@@ -113,7 +113,17 @@ function* createProductSaga(action) {
     const response = yield call(apiCreateProduct, formData);
     if (response.status === "OK") {
       yield put(createProductSuccess(response.data));
-      toast.success(response.message || "Tạo sản phẩm thành công");
+      
+      // Check if product is automatically marked as featured
+      if (response.data && response.data.is_featured) {
+        console.log("✅ Product created and automatically marked as featured:", response.data._id);
+        console.log("📊 Featured status:", response.data.is_featured);
+      } else {
+        console.log("ℹ️ Product created but NOT marked as featured");
+        console.log("📊 Featured status:", response.data?.is_featured || false);
+      }
+      
+      // Toast is handled in component (CreateProduct or WareHouse)
       // Refresh products list
       yield put({ type: GET_PRODUCTS_REQUEST });
     } else {
@@ -133,7 +143,7 @@ function* updateProductSaga(action) {
     const response = yield call(apiUpdateProduct, id, formData);
     if (response.status === "OK") {
       yield put(updateProductSuccess(response.data));
-      toast.success(response.message || "Cập nhật sản phẩm thành công");
+      // Toast is handled in component
       // Product is updated directly in reducer, no need to refetch
     } else {
       throw new Error(response.message || "Không thể cập nhật sản phẩm");
@@ -152,7 +162,7 @@ function* deleteProductSaga(action) {
     const response = yield call(apiDeleteProduct, id);
     if (response.status === "OK") {
       yield put(deleteProductSuccess(response.message));
-      toast.success(response.message || "Xóa sản phẩm thành công");
+      // Toast is handled in component
       // Refresh products list
       yield put({ type: GET_PRODUCTS_REQUEST });
     } else {
@@ -170,7 +180,11 @@ function* getProductStatsSaga() {
   try {
     const response = yield call(apiGetProductStats);
     if (response.status === "OK") {
-      yield put(getProductStatsSuccess(response.data));
+      yield put(createReceiptSuccess(response.data));
+      // Toast is handled in component
+      // Refresh products list to update quantities
+      yield put({ type: GET_PRODUCTS_REQUEST });
+
     } else {
       throw new Error(response.message || "Không thể tải thống kê sản phẩm");
     }
@@ -187,7 +201,7 @@ function* updateProductExpiryDateSaga(action) {
     const response = yield call(apiUpdateProductExpiryDate, id, expiryDate);
     if (response.status === "OK") {
       yield put(updateProductExpiryDateSuccess(response.data));
-      toast.success(response.message || "Cập nhật hạn sử dụng thành công");
+      // Toast is handled in component
       // Refresh products list to update expiry date
       yield put({ type: GET_PRODUCTS_REQUEST });
     } else {
