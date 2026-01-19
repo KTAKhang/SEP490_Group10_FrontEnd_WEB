@@ -1,3 +1,8 @@
+/** 
+ * author: KhoanDCE170420
+ * staffReducer.js
+ * Reducer to handle staff-related actions
+ */
 import {
   STAFF_LIST_REQUEST,
   STAFF_LIST_SUCCESS,
@@ -22,7 +27,7 @@ const initialState = {
   loading: false,
   error: null,
   detail: null,
-  params: { page: 1, limit: 10 }, 
+  params: { page: 1, limit: 10 },
 };
 
 export default function staffReducer(state = initialState, action) {
@@ -32,7 +37,7 @@ export default function staffReducer(state = initialState, action) {
         ...state,
         loading: true,
         error: null,
-        params: action.payload || state.params, 
+        params: action.payload || state.params,
       };
     case STAFF_LIST_SUCCESS:
       const newState = {
@@ -43,7 +48,7 @@ export default function staffReducer(state = initialState, action) {
       };
       return newState;
     case STAFF_LIST_FAILURE:
-  
+
       return {
         ...state,
         loading: false,
