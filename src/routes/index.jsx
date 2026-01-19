@@ -21,11 +21,17 @@ import WarehouseStaffLayout from "../layout/WarehouseStaffLayout";
 import WarehouseStaffPage from "../pages/WarehouseStaff/WarehouseStaffPage";
 import WarehouseStaffWareHouse from "../pages/WarehouseStaff/Warehouse/WareHouse";
 import ProfileManagement from "../pages/ProfileManagement/ProfileManagerment";
-import UpdatePassword from "../pages/ProfileManagement/UpdatePassword"; 
+import UpdatePassword from "../pages/ProfileManagement/UpdatePassword";
 import PrivateRoute from "../components/PrivateRouter/index";
 import ContactListPage from "../pages/ContactManagement/ContactListPage";
 import ContactDetailPage from "../pages/ContactManagement/ContactDetailPage";
 import ContactEditPage from "../pages/ContactManagement/ContactEditPage";
+import StaffManagement from "../pages/StaffManagement/StaffManagement";
+import CustomerManagement from "../pages/customerManagement/customerManagementPage";
+import AdminDiscountManagement from "../pages/discountManagement/AdminManagementPage";
+import StaffDiscountManagement from "../pages/discountManagement/StaffManagementPage";
+import SalesStaffPage from "../pages/SalesStaff/SalesStaffPage";
+import FinanceLayout from "../layout/FinanceLayout";
 export const routes = [
   // Trang chủ
 
@@ -95,6 +101,9 @@ export const routes = [
       { path: "contacts", element: <ContactListPage /> },
       { path: "contacts/:id", element: <ContactDetailPage /> },
       { path: "contacts/:id/edit", element: <ContactEditPage /> },
+      { path: "staff", element: <StaffManagement /> },
+      { path: "customers", element: <CustomerManagement /> },
+      { path: "discounts", element: <AdminDiscountManagement /> },
     ],
   },
 
@@ -112,28 +121,20 @@ export const routes = [
     ],
   },
 
-  // {
-  //   path: "/sale-staff",
-  //   element: (
-  //     <PrivateRoute requiredRole="sales-staff">
-  //       <FinanceLayout />
-  //     </PrivateRoute>
-  //   ),
-  //   children: [
-  //     { index: true, element: <StatisticsStaff /> },
-  //     { path: "order", element: <StaffOrderManagement /> },
-
-
-  //     { path: "product", element: <StaffProductManagement /> },
-
-
-  //     { path: "change-password", element: <UpdatePassword /> },
-  //     { path: "profile", element: <ProfileManagement /> },
-  //     { path: "review", element: <StaffReviewManagement /> },
-
-
-  //   ],
-  // },
+  //sale staff navigate to finance layout
+  {
+    path: "/sale-staff",
+    element: (
+      <PrivateRoute requiredRole="sales-staff">
+        <FinanceLayout />
+      </PrivateRoute>
+    ),
+    children: [
+      { index: true, element: <FinanceLayout /> },
+      { path: "statistics", element: <SalesStaffPage /> },
+      { path: "discounts", element: <StaffDiscountManagement /> },
+    ],
+  },
 
   // // Khu vực Repair Staff
   // {
