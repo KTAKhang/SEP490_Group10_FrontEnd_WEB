@@ -66,6 +66,12 @@ function* orderCreateSaga(action) {
     if (res.success) {
       yield put(orderCreateSuccess(res));
 
+       if (res.redirect_url) {
+        window.location.href = res.redirect_url;
+      } else {
+        toast.success("Đặt hàng thành công");
+      }
+
       // 🔥 VNPAY → redirect
       if (res.payment_url) {
         window.location.href = res.payment_url;
