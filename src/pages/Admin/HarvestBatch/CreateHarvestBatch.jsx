@@ -9,7 +9,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const { suppliers } = useSelector((state) => state.supplier);
   const { products } = useSelector((state) => state.product);
-  const { createHarvestBatchLoading } = useSelector((state) => state.supplier);
+  const { createHarvestBatchLoading, createHarvestBatchError } = useSelector((state) => state.supplier);
 
   const [formData, setFormData] = useState({
     supplierId: "",
@@ -28,11 +28,8 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
     if (isOpen) {
       dispatch(getSuppliersRequest({ page: 1, limit: 1000, status: true }));
       dispatch(getProductsRequest({ page: 1, limit: 1000 }));
-    }
-  }, [dispatch, isOpen]);
-
-  useEffect(() => {
-    if (hasSubmitted && !createHarvestBatchLoading) {
+    } else {
+      // Reset form when modal is closed
       setHasSubmitted(false);
       setFormData({
         supplierId: "",
@@ -44,9 +41,31 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
         qualityGrade: "A",
         notes: "",
       });
-      onClose();
     }
-  }, [hasSubmitted, createHarvestBatchLoading, onClose]);
+  }, [dispatch, isOpen]);
+
+  useEffect(() => {
+    // Only close modal if submission was successful (no error) and loading is done
+    if (hasSubmitted && !createHarvestBatchLoading && !createHarvestBatchError) {
+      setHasSubmitted(false);
+      setFormData({
+        supplierId: "",
+        productId: "",
+        batchNumber: "",
+        harvestDate: "",
+        quantity: "",
+        location: "",
+        qualityGrade: "A",
+        notes: "",
+      });
+      // Close modal after successful creation
+      onClose();
+    } else if (hasSubmitted && !createHarvestBatchLoading && createHarvestBatchError) {
+      // Reset hasSubmitted on error so user can try again
+      setHasSubmitted(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasSubmitted, createHarvestBatchLoading, createHarvestBatchError]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
