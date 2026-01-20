@@ -367,7 +367,9 @@ function* getSuppliersForBrandSaga(action) {
 function* createHarvestBatchSaga(action) {
   try {
     const formData = action.payload;
+    console.log("📤 Creating harvest batch with data:", formData);
     const response = yield call(apiCreateHarvestBatch, formData);
+    console.log("✅ Create harvest batch response:", response);
     if (response.status === "OK") {
       yield put(createHarvestBatchSuccess(response.data));
       toast.success(response.message || "Tạo lô thu hoạch thành công");
@@ -377,8 +379,13 @@ function* createHarvestBatchSaga(action) {
       toast.error(errorMessage);
     }
   } catch (error) {
+    console.error("❌ Create harvest batch error:", error);
+    console.error("❌ Error response:", error.response?.data);
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tạo lô thu hoạch";
+      error.response?.data?.message || 
+      error.response?.data?.error ||
+      error.message || 
+      "Không thể tạo lô thu hoạch";
     yield put(createHarvestBatchFailure(errorMessage));
     toast.error(errorMessage);
   }

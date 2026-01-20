@@ -72,6 +72,10 @@ const ReadSupplier = ({ isOpen, onClose, supplierId }) => {
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">Basic Information</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
+                    <p className="text-sm text-gray-500 mb-1">Code</p>
+                    <p className="text-base font-medium text-gray-900">{supplierDetail.code || "N/A"}</p>
+                  </div>
+                  <div>
                     <p className="text-sm text-gray-500 mb-1">Name</p>
                     <p className="text-base font-medium text-gray-900">{supplierDetail.name}</p>
                   </div>
