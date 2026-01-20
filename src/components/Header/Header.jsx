@@ -13,14 +13,13 @@ const Header = ({ searchTerm, setSearchTerm }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // useEffect(() => {
-  //   dispatch(fetchCartRequest());
-  // }, [dispatch]);
+  useEffect(() => {
+    dispatch(fetchCartRequest());
+  }, [dispatch]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const { cart } = useSelector((state) => state.cart || {});
-  console.log("cart", cart)
+  const  cart  = useSelector((state) => state.cart || {});
   const cartItems = cart?.items?.length || 0;
 
   const storedUser = JSON.parse(localStorage.getItem("user") || "null");
