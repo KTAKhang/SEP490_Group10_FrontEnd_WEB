@@ -22,7 +22,6 @@ const CartPage = () => {
 
   const cart = useSelector((state) => state.cart || {});
   const items = cart.items || [];
-  console.log("cart", cart.items);
 
   const [selectedItems, setSelectedItems] = useState([]);
   const [editingQuantity, setEditingQuantity] = useState({}); // Track editing state for each item
