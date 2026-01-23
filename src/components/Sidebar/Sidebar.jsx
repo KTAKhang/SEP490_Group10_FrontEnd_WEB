@@ -59,7 +59,8 @@ const Sidebar = () => {
       icon: Ticket,
       label: "Discount Management",
       path: "/admin/discounts",
-
+    },
+    {
       icon: History,
       label: "Batch History",
       path: "/admin/batch-history",

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getShopInfoRequest,
@@ -23,7 +23,55 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
+import CustomCKEditor from "../../../components/CustomCKEditor/CustomCKEditor";
 import apiClient from "../../../utils/axiosConfig";
+
+// Custom Upload Adapter để xử lý response format từ backend cho shop description
+class ShopDescriptionImageAdapter {
+  constructor(loader, editor) {
+    this.loader = loader;
+    this.editor = editor;
+  }
+
+  upload() {
+    return this.loader.file.then(
+      (file) =>
+        new Promise((resolve, reject) => {
+          const token = localStorage.getItem('token');
+          const uploadFormData = new FormData();
+          uploadFormData.append('image', file);
+
+          fetch('http://localhost:3001/shop/upload-description-image', {
+            method: 'POST',
+            headers: {
+              'Authorization': token ? `Bearer ${token}` : ''
+            },
+            body: uploadFormData,
+            credentials: 'include'
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              // Backend trả về: { status: "OK", data: { url: "...", publicId: "..." } }
+              // CKEditor cần: { url: "..." }
+              if (data.status === 'OK' && data.data?.url) {
+                resolve({ default: data.data.url });
+              } else {
+                reject(new Error(data.message || 'Upload failed'));
+                toast.error(data.message || 'Failed to upload image');
+              }
+            })
+            .catch((error) => {
+              reject(error);
+              toast.error('Failed to upload image: ' + error.message);
+            });
+        })
+    );
+  }
+
+  abort() {
+    // Handle abort if needed
+  }
+}
 
 const ShopManagement = () => {
   const dispatch = useDispatch();
@@ -51,6 +99,7 @@ const ShopManagement = () => {
   const [imagePublicIds, setImagePublicIds] = useState([]);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [errors, setErrors] = useState({});
+  const editorRef = useRef(null);
 
   // Load shop info on mount
   useEffect(() => {
@@ -123,11 +172,77 @@ const ShopManagement = () => {
     dispatch(updateShopBasicInfoRequest(formData));
   };
 
+  // CKEditor configuration cho shop description
+  const getEditorConfig = () => {
+    const token = localStorage.getItem('token');
+    return {
+      toolbar: [
+        'heading', '|',
+        'bold', 'italic', 'underline', 'strikethrough', '|',
+        'link', 'blockQuote', 'insertTable', '|',
+        'bulletedList', 'numberedList', '|',
+        'outdent', 'indent', '|',
+        'imageUpload', '|',
+        'undo', 'redo'
+      ],
+      heading: {
+        options: [
+          { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+          { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+          { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+          { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
+          { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' },
+        ]
+      },
+      simpleUpload: {
+        uploadUrl: 'http://localhost:3001/shop/upload-description-image',
+        withCredentials: true,
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : ''
+        }
+      },
+      image: {
+        toolbar: [
+          'imageTextAlternative',
+          'toggleImageCaption',
+          'imageStyle:inline',
+          'imageStyle:block',
+          'imageStyle:side'
+        ]
+      },
+      // Cho phép style text-align trong paragraph
+      htmlSupport: {
+        allow: [
+          {
+            name: /.*/,
+            attributes: true,
+            classes: true,
+            styles: {
+              'text-align': true
+            }
+          }
+        ]
+      }
+    };
+  };
+
+  // Handle CKEditor change
+  const handleEditorChange = (event, editor) => {
+    const html = editor.getData();
+    setDescription(html);
+  };
+
   // Handle description update
   const handleDescriptionSubmit = (e) => {
     e.preventDefault();
-    if (description && description.length > 5000) {
-      toast.error("Nội dung mô tả không được vượt quá 5000 ký tự");
+    // Validate content length (excluding HTML tags)
+    const textContent = description.replace(/<[^>]*>/g, '').trim();
+    if (textContent.length > 5000) {
+      toast.error("Nội dung mô tả không được vượt quá 5000 ký tự (không tính HTML tags)");
+      return;
+    }
+    if (textContent.length < 10) {
+      toast.error("Nội dung mô tả phải có ít nhất 10 ký tự");
       return;
     }
     dispatch(updateShopDescriptionRequest(description));
@@ -412,26 +527,35 @@ const ShopManagement = () => {
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Mô tả shop
                     <span className="text-gray-500 font-normal text-xs ml-2">
-                      (Hỗ trợ HTML, tối đa 5000 ký tự)
+                      (Rich text editor, tối đa 5000 ký tự, tối thiểu 10 ký tự)
                     </span>
                   </label>
-                  <textarea
-                    rows={12}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none font-mono text-sm"
-                    placeholder="Nhập mô tả shop (có thể sử dụng HTML)..."
-                    maxLength={5000}
-                  />
-                  <div className="text-xs text-gray-500 mt-1">
-                    {description.length}/5000 ký tự
+                  <div className="border rounded-lg border-gray-300">
+                    <CustomCKEditor
+                      config={getEditorConfig()}
+                      data={description}
+                      onReady={(editor) => {
+                        editorRef.current = editor;
+                        
+                        // Override SimpleUploadAdapter để xử lý response format từ backend
+                        const fileRepository = editor.plugins.get('FileRepository');
+                        if (fileRepository) {
+                          fileRepository.createUploadAdapter = (loader) => {
+                            return new ShopDescriptionImageAdapter(loader, editor);
+                          };
+                        }
+                      }}
+                      onChange={handleEditorChange}
+                      onError={(error, { willEditorRestart }) => {
+                        console.error('CKEditor error:', error);
+                        if (willEditorRestart) {
+                          editorRef.current?.setData(description);
+                        }
+                      }}
+                    />
                   </div>
-                  <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-800">
-                      <strong>Lưu ý:</strong> Bạn có thể sử dụng HTML để định dạng nội dung. Ví dụ:
-                      &lt;p&gt;Đoạn văn&lt;/p&gt;, &lt;strong&gt;In đậm&lt;/strong&gt;,
-                      &lt;img src="url" alt="mô tả" /&gt;
-                    </p>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {description.replace(/<[^>]*>/g, '').length}/5000 ký tự (không tính HTML tags)
                   </div>
                 </div>
 
