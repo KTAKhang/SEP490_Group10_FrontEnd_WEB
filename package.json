@@ -11,6 +11,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ckeditor/ckeditor5-build-decoupled-document": "^44.3.0",
+    "@ckeditor/ckeditor5-react": "^11.0.1",
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
     "@material-tailwind/react": "^2.1.10",
@@ -19,7 +21,6 @@
     "@reduxjs/toolkit": "^2.5.0",
     "antd": "^5.23.1",
     "axios": "^1.7.9",
-    "eco-web": "file:",
     "file-saver": "^2.0.5",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.511.0",
