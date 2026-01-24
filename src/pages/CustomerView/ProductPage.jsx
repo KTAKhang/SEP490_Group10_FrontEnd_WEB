@@ -1,13 +1,18 @@
-import { useState, useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import Header from '../../components/Header/Header';
-import Footer from '../../components/Footer/Footer';
-import Loading from '../../components/Loading/Loading';
-import { getPublicProductsRequest } from '../../redux/actions/publicProductActions';
-import { getPublicCategoriesRequest } from '../../redux/actions/publicCategoryActions';
-import { addFavoriteRequest, removeFavoriteRequest, getFavoritesRequest } from '../../redux/actions/favoriteActions';
-import { Search, Package, Heart } from 'lucide-react';
+import { useState, useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import Header from "../../components/Header/Header";
+import Footer from "../../components/Footer/Footer";
+import Loading from "../../components/Loading/Loading";
+import { getPublicProductsRequest } from "../../redux/actions/publicProductActions";
+import { getPublicCategoriesRequest } from "../../redux/actions/publicCategoryActions";
+import {
+  addFavoriteRequest,
+  removeFavoriteRequest,
+  getFavoritesRequest,
+} from "../../redux/actions/favoriteActions";
+import { Search, Package, Heart } from "lucide-react";
+import { addItemToCartRequest } from "../../redux/actions/cartActions";
 
 export default function ProductPage() {
   const dispatch = useDispatch();
@@ -16,30 +21,39 @@ export default function ProductPage() {
 
   // Get categories for filter
   const { publicCategories } = useSelector((state) => state.publicCategory);
-  
+
   // Get products
-  const { 
-    publicProducts, 
-    publicProductsPagination, 
-    publicProductsLoading 
-  } = useSelector((state) => state.publicProduct);
-  const { favoriteStatus, favoritesLoading } = useSelector((state) => state.favorite);
+  const { publicProducts, publicProductsPagination, publicProductsLoading } =
+    useSelector((state) => state.publicProduct);
+  const { favoriteStatus, favoritesLoading } = useSelector(
+    (state) => state.favorite,
+  );
 
   // Check if user is logged in
   const storedUser = JSON.parse(localStorage.getItem("user") || "null");
 
   // Track previous URL params to avoid infinite loop
-  const prevUrlParamsRef = useRef('');
+  const prevUrlParamsRef = useRef("");
   // Track if favorites have been loaded for current user
   const favoritesLoadedRef = useRef(false);
   const prevUserRef = useRef(null);
 
   // State for filters and search
-  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
-  const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'createdAt');
-  const [sortOrder, setSortOrder] = useState(searchParams.get('sortOrder') || 'desc');
-  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page')) || 1);
+  const [searchTerm, setSearchTerm] = useState(
+    searchParams.get("search") || "",
+  );
+  const [selectedCategory, setSelectedCategory] = useState(
+    searchParams.get("category") || "all",
+  );
+  const [sortBy, setSortBy] = useState(
+    searchParams.get("sortBy") || "createdAt",
+  );
+  const [sortOrder, setSortOrder] = useState(
+    searchParams.get("sortOrder") || "desc",
+  );
+  const [currentPage, setCurrentPage] = useState(
+    parseInt(searchParams.get("page")) || 1,
+  );
 
   // Fetch categories on mount
   useEffect(() => {
@@ -49,8 +63,9 @@ export default function ProductPage() {
   // Load favorites list when user logs in (to populate favoriteStatus)
   useEffect(() => {
     const currentUserId = storedUser?._id || storedUser?.id || null;
-    const prevUserId = prevUserRef.current?._id || prevUserRef.current?.id || null;
-    
+    const prevUserId =
+      prevUserRef.current?._id || prevUserRef.current?.id || null;
+
     // User changed (logged in or logged out)
     if (currentUserId !== prevUserId) {
       if (currentUserId) {
@@ -69,7 +84,7 @@ export default function ProductPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storedUser, dispatch]);
-  
+
   // Mark favorites as loaded after successful fetch
   useEffect(() => {
     if (!favoritesLoading && storedUser) {
@@ -80,16 +95,17 @@ export default function ProductPage() {
   // Update URL params separately to avoid loop
   useEffect(() => {
     const newSearchParams = new URLSearchParams();
-    if (searchTerm) newSearchParams.set('search', searchTerm);
-    if (selectedCategory !== 'all') newSearchParams.set('category', selectedCategory);
-    if (sortBy !== 'createdAt' || sortOrder !== 'desc') {
-      if (sortBy !== 'createdAt') newSearchParams.set('sortBy', sortBy);
-      if (sortOrder !== 'desc') newSearchParams.set('sortOrder', sortOrder);
+    if (searchTerm) newSearchParams.set("search", searchTerm);
+    if (selectedCategory !== "all")
+      newSearchParams.set("category", selectedCategory);
+    if (sortBy !== "createdAt" || sortOrder !== "desc") {
+      if (sortBy !== "createdAt") newSearchParams.set("sortBy", sortBy);
+      if (sortOrder !== "desc") newSearchParams.set("sortOrder", sortOrder);
     }
-    if (currentPage > 1) newSearchParams.set('page', currentPage.toString());
-    
+    if (currentPage > 1) newSearchParams.set("page", currentPage.toString());
+
     const newParamsString = newSearchParams.toString();
-    
+
     // Only update if params actually changed
     if (prevUrlParamsRef.current !== newParamsString) {
       prevUrlParamsRef.current = newParamsString;
@@ -104,8 +120,8 @@ export default function ProductPage() {
       page: currentPage,
       limit: 12,
       search: searchTerm || undefined,
-      category: selectedCategory !== 'all' ? selectedCategory : undefined,
-      sortBy: sortBy === 'default' ? 'createdAt' : sortBy,
+      category: selectedCategory !== "all" ? selectedCategory : undefined,
+      sortBy: sortBy === "default" ? "createdAt" : sortBy,
       sortOrder: sortOrder,
     };
 
@@ -120,18 +136,18 @@ export default function ProductPage() {
 
   // Handle sort change
   const handleSortChange = (value) => {
-    if (value === 'default') {
-      setSortBy('createdAt');
-      setSortOrder('desc');
-    } else if (value === 'price-low') {
-      setSortBy('price');
-      setSortOrder('asc');
-    } else if (value === 'price-high') {
-      setSortBy('price');
-      setSortOrder('desc');
-    } else if (value === 'name') {
-      setSortBy('name');
-      setSortOrder('asc');
+    if (value === "default") {
+      setSortBy("createdAt");
+      setSortOrder("desc");
+    } else if (value === "price-low") {
+      setSortBy("price");
+      setSortOrder("asc");
+    } else if (value === "price-high") {
+      setSortBy("price");
+      setSortOrder("desc");
+    } else if (value === "name") {
+      setSortBy("name");
+      setSortOrder("asc");
     }
     setCurrentPage(1);
   };
@@ -150,14 +166,19 @@ export default function ProductPage() {
   // Handle pagination
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const sortValue = 
-    sortBy === 'createdAt' && sortOrder === 'desc' ? 'default' :
-    sortBy === 'price' && sortOrder === 'asc' ? 'price-low' :
-    sortBy === 'price' && sortOrder === 'desc' ? 'price-high' :
-    sortBy === 'name' && sortOrder === 'asc' ? 'name' : 'default';
+  const sortValue =
+    sortBy === "createdAt" && sortOrder === "desc"
+      ? "default"
+      : sortBy === "price" && sortOrder === "asc"
+        ? "price-low"
+        : sortBy === "price" && sortOrder === "desc"
+          ? "price-high"
+          : sortBy === "name" && sortOrder === "asc"
+            ? "name"
+            : "default";
 
   return (
     <div className="min-h-screen bg-white">
@@ -171,7 +192,8 @@ export default function ProductPage() {
               Our Products
             </h1>
             <p className="text-xl text-gray-600 leading-relaxed">
-              Explore a collection of fresh organic agricultural products, carefully selected from reputable farms
+              Explore a collection of fresh organic agricultural products,
+              carefully selected from reputable farms
             </p>
           </div>
         </div>
@@ -190,7 +212,10 @@ export default function ProductPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Search
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={20}
+              />
             </form>
           </div>
 
@@ -198,11 +223,11 @@ export default function ProductPage() {
             {/* Category Filter */}
             <div className="flex flex-wrap gap-2">
               <button
-                onClick={() => handleCategoryChange('all')}
+                onClick={() => handleCategoryChange("all")}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap cursor-pointer ${
-                  selectedCategory === 'all'
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  selectedCategory === "all"
+                    ? "bg-gray-900 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
                 All
@@ -213,8 +238,8 @@ export default function ProductPage() {
                   onClick={() => handleCategoryChange(cat._id)}
                   className={`px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap cursor-pointer ${
                     selectedCategory === cat._id
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? "bg-gray-900 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
                   {cat.name}
@@ -256,18 +281,22 @@ export default function ProductPage() {
             <>
               <div className="mb-8">
                 <p className="text-gray-600">
-                  Showing{' '}
+                  Showing{" "}
                   <span className="font-semibold">
-                    {publicProductsPagination 
-                      ? publicProductsPagination.page * publicProductsPagination.limit - publicProductsPagination.limit + 1
-                      : 0}{' '}
-                    -{' '}
+                    {publicProductsPagination
+                      ? publicProductsPagination.page *
+                          publicProductsPagination.limit -
+                        publicProductsPagination.limit +
+                        1
+                      : 0}{" "}
+                    -{" "}
                     {publicProductsPagination
                       ? Math.min(
-                          publicProductsPagination.page * publicProductsPagination.limit,
-                          publicProductsPagination.total
+                          publicProductsPagination.page *
+                            publicProductsPagination.limit,
+                          publicProductsPagination.total,
                         )
-                      : 0}{' '}
+                      : 0}{" "}
                     of {publicProductsPagination?.total || 0} products
                   </span>
                 </p>
@@ -283,7 +312,10 @@ export default function ProductPage() {
                     {/* Product Image */}
                     <div className="relative h-64 bg-gray-100 overflow-hidden">
                       <img
-                        src={product.featuredImage || 'https://via.placeholder.com/400x400?text=No+Image'}
+                        src={
+                          product.featuredImage ||
+                          "https://via.placeholder.com/400x400?text=No+Image"
+                        }
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
@@ -308,14 +340,22 @@ export default function ProductPage() {
                           }}
                           className={`absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full transition-opacity shadow-lg cursor-pointer ${
                             favoriteStatus[product._id]
-                              ? 'bg-red-500 text-white opacity-100'
-                              : 'bg-white opacity-0 group-hover:opacity-100'
+                              ? "bg-red-500 text-white opacity-100"
+                              : "bg-white opacity-0 group-hover:opacity-100"
                           }`}
-                          aria-label={favoriteStatus[product._id] ? "Remove from wishlist" : "Add to wishlist"}
+                          aria-label={
+                            favoriteStatus[product._id]
+                              ? "Remove from wishlist"
+                              : "Add to wishlist"
+                          }
                         >
-                          <Heart 
-                            size={18} 
-                            fill={favoriteStatus[product._id] ? 'currentColor' : 'none'}
+                          <Heart
+                            size={18}
+                            fill={
+                              favoriteStatus[product._id]
+                                ? "currentColor"
+                                : "none"
+                            }
                           />
                         </button>
                       )}
@@ -324,33 +364,30 @@ export default function ProductPage() {
                     {/* Product Info */}
                     <div className="p-5">
                       <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
-                        {product.category?.name || 'N/A'}
+                        {product.category?.name || "N/A"}
                       </p>
                       <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
                         {product.name}
                       </h3>
                       <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                        {product.description || ''}
+                        {product.description || ""}
                       </p>
 
                       <div className="flex items-center justify-between">
                         <div>
                           <span className="text-xl font-bold text-gray-900">
-                            {product.price?.toLocaleString('vi-VN') || '0'}đ
+                            {product.price?.toLocaleString("vi-VN") || "0"}đ
                           </span>
                         </div>
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (product.onHandQuantity > 0) {
-                              // Handle add to cart logic here
-                            }
+                          onClick={() => {
+                            dispatch(addItemToCartRequest(product._id, 1));
                           }}
                           disabled={product.onHandQuantity === 0}
                           className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
                             product.onHandQuantity === 0
-                              ? 'bg-gray-400 text-white cursor-not-allowed'
-                              : 'bg-gray-900 text-white hover:bg-gray-800 cursor-pointer'
+                              ? "bg-gray-400 text-white cursor-not-allowed"
+                              : "bg-gray-900 text-white hover:bg-gray-800 cursor-pointer"
                           }`}
                           aria-label="Add to cart"
                         >
@@ -363,53 +400,62 @@ export default function ProductPage() {
               </div>
 
               {/* Pagination */}
-              {publicProductsPagination && publicProductsPagination.totalPages > 1 && (
-                <div className="mt-12 flex items-center justify-center space-x-2">
-                  <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 cursor-pointer"
-                  >
-                    Previous
-                  </button>
-                  {[...Array(publicProductsPagination.totalPages)].map((_, index) => {
-                    const page = index + 1;
-                    // Show first page, last page, current page, and pages around current
-                    if (
-                      page === 1 ||
-                      page === publicProductsPagination.totalPages ||
-                      (page >= currentPage - 1 && page <= currentPage + 1)
-                    ) {
-                      return (
-                        <button
-                          key={page}
-                          onClick={() => handlePageChange(page)}
-                          className={`px-4 py-2 border rounded-lg cursor-pointer ${
-                            currentPage === page
-                              ? 'bg-gray-900 text-white border-gray-900'
-                              : 'border-gray-300 hover:bg-gray-50'
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      );
-                    } else if (
-                      page === currentPage - 2 ||
-                      page === currentPage + 2
-                    ) {
-                      return <span key={page} className="px-2">...</span>;
-                    }
-                    return null;
-                  })}
-                  <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === publicProductsPagination.totalPages}
-                    className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 cursor-pointer"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
+              {publicProductsPagination &&
+                publicProductsPagination.totalPages > 1 && (
+                  <div className="mt-12 flex items-center justify-center space-x-2">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 cursor-pointer"
+                    >
+                      Previous
+                    </button>
+                    {[...Array(publicProductsPagination.totalPages)].map(
+                      (_, index) => {
+                        const page = index + 1;
+                        // Show first page, last page, current page, and pages around current
+                        if (
+                          page === 1 ||
+                          page === publicProductsPagination.totalPages ||
+                          (page >= currentPage - 1 && page <= currentPage + 1)
+                        ) {
+                          return (
+                            <button
+                              key={page}
+                              onClick={() => handlePageChange(page)}
+                              className={`px-4 py-2 border rounded-lg cursor-pointer ${
+                                currentPage === page
+                                  ? "bg-gray-900 text-white border-gray-900"
+                                  : "border-gray-300 hover:bg-gray-50"
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          );
+                        } else if (
+                          page === currentPage - 2 ||
+                          page === currentPage + 2
+                        ) {
+                          return (
+                            <span key={page} className="px-2">
+                              ...
+                            </span>
+                          );
+                        }
+                        return null;
+                      },
+                    )}
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={
+                        currentPage === publicProductsPagination.totalPages
+                      }
+                      className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 cursor-pointer"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
             </>
           )}
         </div>
