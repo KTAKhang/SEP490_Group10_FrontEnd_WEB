@@ -2,6 +2,9 @@ import {
   ORDER_CREATE_REQUEST,
   ORDER_CREATE_SUCCESS,
   ORDER_CREATE_FAILURE,
+  RETRY_PAYMENT_REQUEST,
+  RETRY_PAYMENT_SUCCESS,
+  RETRY_PAYMENT_FAILURE,
   ORDER_CANCEL_REQUEST,
   ORDER_CANCEL_SUCCESS,
   ORDER_CANCEL_FAILURE,
@@ -33,6 +36,21 @@ const orderReducer = (state = initialState, action) => {
       };
 
     case ORDER_CREATE_FAILURE:
+      return { ...state, loading: false, error: action.payload };
+
+     case RETRY_PAYMENT_REQUEST:
+      return { ...state, loading: true, error: null };
+
+    case RETRY_PAYMENT_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        order_id: action.payload.order_id || null,
+        payment_url: action.payload.payment_url || null,
+        message: "Thanh toán thành công",
+      };
+
+    case RETRY_PAYMENT_FAILURE:
       return { ...state, loading: false, error: action.payload };
 
     // ===== CANCEL =====

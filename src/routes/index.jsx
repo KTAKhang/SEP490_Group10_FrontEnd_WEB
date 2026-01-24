@@ -11,6 +11,7 @@ import ProductDetailPage from "../pages/CustomerView/ProductDetailPage";
 import Categories from "../pages/CustomerView/CategoryPage";
 import WishlistPage from "../pages/CustomerView/WishlistPage";
 import CustomerLayout from "../layout/CustomerLayout";
+import FeedbackStaffLayout from "../layout/FeedbackStaffLayout";
 import AdminLayout from "../layout/AdminLayout";
 import AdminPage from "../pages/Admin/AdminPage/AdminPage";
 import WareHouse from "../pages/Admin/Warehouse/WareHouse";
@@ -26,7 +27,7 @@ import PrivateRoute from "../components/PrivateRouter/index";
 import ContactListPage from "../pages/ContactManagement/ContactListPage";
 import ContactDetailPage from "../pages/ContactManagement/ContactDetailPage";
 import ContactEditPage from "../pages/ContactManagement/ContactEditPage";
-
+import ChatForStaffPage from "../pages/FeedbackStaff/ChatForStaffPage";
 // Admin Supplier Management
 import AdminSupplierManagement from "../pages/Admin/Supplier/SupplierManagement";
 // Admin Harvest Batch Management
@@ -55,7 +56,7 @@ import ShopManagement from "../pages/Admin/Shop/ShopManagement";
 import AboutUsPage from "../pages/AboutUsPage";
 import OrderSuccessPage from "../pages/CustomerView/OrderSuccessPage";
 import PaymentSuccessPage from "../pages/CustomerView/PaymentSuccessPage";
-
+import PaymentFailPage from "../pages/CustomerView/PaymentFailPage";
 
 export const routes = [
   // Trang chủ
@@ -105,7 +106,6 @@ export const routes = [
   //   element: <ContactPage1 />,
   // },
 
- 
   {
     path: "/customer",
     element: (
@@ -114,7 +114,7 @@ export const routes = [
       </PrivateRoute>
     ),
     children: [
-{ path: "profile", element: <ProfileManagement /> },
+      { path: "profile", element: <ProfileManagement /> },
       { path: "change-password", element: <UpdatePassword /> },
       { path: "contact", element: <ContactPage /> },
       { path: "contact-history", element: <ContactHistoryPage /> },
@@ -122,7 +122,18 @@ export const routes = [
       { path: "checkout", element: <CheckoutPage /> },
       { path: "order-success", element: <OrderSuccessPage /> },
       { path: "payment-result", element: <PaymentSuccessPage /> },
+      { path: "payment-fail", element: <PaymentFailPage /> },
     ],
+  },
+
+  {
+    path: "/feedbacked-staff",
+    element: (
+      <PrivateRoute requiredRole="feedbacked-staff">
+        <FeedbackStaffLayout />
+      </PrivateRoute>
+    ),
+    children: [{ index: true, element: <ChatForStaffPage /> }],
   },
 
   // Khu vực Admin
@@ -165,8 +176,14 @@ export const routes = [
     ),
     children: [
       { index: true, element: <QcStaffPage /> },
-      { path: "quality-verifications", element: <QualityVerificationManagement /> },
-      { path: "performance-evaluations", element: <PerformanceEvaluationManagement /> },
+      {
+        path: "quality-verifications",
+        element: <QualityVerificationManagement />,
+      },
+      {
+        path: "performance-evaluations",
+        element: <PerformanceEvaluationManagement />,
+      },
     ],
   },
 
