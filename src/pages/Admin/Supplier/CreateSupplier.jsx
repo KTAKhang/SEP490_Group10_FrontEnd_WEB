@@ -46,6 +46,13 @@ const CreateSupplier = ({ isOpen, onClose }) => {
       return;
     }
 
+    // ✅ Validation: Code không được để trống
+    const codeTrimmed = formData.code?.trim() || "";
+    if (!codeTrimmed) {
+      alert("Mã nhà cung cấp (Code) là bắt buộc và không được để trống");
+      return;
+    }
+
     // ✅ BR-SUP-02: Phải có ít nhất phone hoặc email
     const phone = formData.phone?.toString().trim() || "";
     const email = formData.email?.toString().trim() || "";
@@ -54,17 +61,15 @@ const CreateSupplier = ({ isOpen, onClose }) => {
       return;
     }
 
-    // Clean data: remove empty strings and undefined values
+    // Clean data
     const cleanedData = {
       name: formData.name.trim(),
       type: formData.type,
+      code: codeTrimmed.toUpperCase(),
       status: formData.status,
     };
 
     // Only include optional fields if they have values
-    if (formData.code && formData.code.trim()) {
-      cleanedData.code = formData.code.trim().toUpperCase();
-    }
     if (formData.contactPerson && formData.contactPerson.trim()) {
       cleanedData.contactPerson = formData.contactPerson.trim();
     }
@@ -146,15 +151,16 @@ const CreateSupplier = ({ isOpen, onClose }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Code
+                  Code <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.code}
                   onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Enter supplier code (optional)"
+                  placeholder="Enter supplier code"
                   maxLength={20}
+                  required
                 />
               </div>
             </div>

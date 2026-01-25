@@ -14,6 +14,9 @@ const apiGetPublicCategories = async (params) => {
   if (params.page) queryParams.append("page", params.page);
   if (params.limit) queryParams.append("limit", params.limit);
   if (params.search) queryParams.append("search", params.search);
+  // Only return active categories by default
+  const status = params.status ?? true;
+  queryParams.append("status", status);
 
   const response = await axios.get(
     `${API_BASE_URL}/categories?${queryParams.toString()}`,

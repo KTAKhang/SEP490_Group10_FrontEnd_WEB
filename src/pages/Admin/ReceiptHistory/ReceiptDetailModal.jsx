@@ -163,6 +163,35 @@ const ReceiptDetailModal = ({ isOpen, onClose, receiptId }) => {
                       <p className="text-base text-gray-900 font-mono text-sm">{receiptDetail.referenceId}</p>
                     </div>
                   )}
+                  {/* ✅ Harvest Batch Information */}
+                  {receiptDetail.harvestBatch && (
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Lô thu hoạch</label>
+                      <div className="bg-white p-3 rounded border border-gray-200">
+                        <p className="text-base text-gray-900 font-medium">
+                          {receiptDetail.harvestBatch.batchCode || receiptDetail.harvestBatch.batchNumber || "N/A"}
+                        </p>
+                        {receiptDetail.harvestBatch.harvestDateStr && (
+                          <p className="text-sm text-gray-600 mt-1">
+                            Ngày thu hoạch: {receiptDetail.harvestBatch.harvestDateStr}
+                          </p>
+                        )}
+                        <div className="flex space-x-4 mt-2 text-sm">
+                          <span className="text-gray-600">
+                            Số lượng: <span className="font-medium text-gray-900">{receiptDetail.harvestBatch.quantity || 0}</span>
+                          </span>
+                          <span className="text-gray-600">
+                            Đã nhập: <span className="font-medium text-gray-900">{receiptDetail.harvestBatch.receivedQuantity || 0}</span>
+                          </span>
+                          <span className="text-gray-600">
+                            Còn lại: <span className="font-medium text-green-600">
+                              {(receiptDetail.harvestBatch.quantity || 0) - (receiptDetail.harvestBatch.receivedQuantity || 0)}
+                            </span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

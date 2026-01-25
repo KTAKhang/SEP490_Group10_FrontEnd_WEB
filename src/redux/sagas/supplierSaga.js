@@ -32,39 +32,12 @@ import {
   GET_HARVEST_BATCH_BY_ID_REQUEST,
   getHarvestBatchByIdSuccess,
   getHarvestBatchByIdFailure,
-  VERIFY_QUALITY_REQUEST,
-  verifyQualitySuccess,
-  verifyQualityFailure,
-  UPDATE_QUALITY_VERIFICATION_REQUEST,
-  updateQualityVerificationSuccess,
-  updateQualityVerificationFailure,
-  DELETE_QUALITY_VERIFICATION_REQUEST,
-  deleteQualityVerificationSuccess,
-  deleteQualityVerificationFailure,
-  GET_QUALITY_VERIFICATIONS_REQUEST,
-  getQualityVerificationsSuccess,
-  getQualityVerificationsFailure,
-  GET_QUALITY_VERIFICATION_BY_ID_REQUEST,
-  getQualityVerificationByIdSuccess,
-  getQualityVerificationByIdFailure,
   UPDATE_PURCHASE_COST_REQUEST,
   updatePurchaseCostSuccess,
   updatePurchaseCostFailure,
-  EVALUATE_PERFORMANCE_REQUEST,
-  evaluatePerformanceSuccess,
-  evaluatePerformanceFailure,
-  GET_PERFORMANCES_REQUEST,
-  getPerformancesSuccess,
-  getPerformancesFailure,
-  GET_PERFORMANCE_BY_ID_REQUEST,
-  getPerformanceByIdSuccess,
-  getPerformanceByIdFailure,
   UPDATE_COOPERATION_STATUS_REQUEST,
   updateCooperationStatusSuccess,
   updateCooperationStatusFailure,
-  GET_ACTIVITY_LOG_REQUEST,
-  getActivityLogSuccess,
-  getActivityLogFailure,
 } from "../actions/supplierActions";
 
 // ===== SUPPLIER API CALLS =====
@@ -88,8 +61,6 @@ const apiGetSuppliers = async (params = {}) => {
   if (params.cooperationStatus) queryParams.append("cooperationStatus", params.cooperationStatus);
   if (params.status !== undefined) queryParams.append("status", params.status);
   // ✅ Hỗ trợ các filter mới từ backend
-  if (params.minPerformanceScore !== undefined) queryParams.append("minPerformanceScore", params.minPerformanceScore);
-  if (params.maxPerformanceScore !== undefined) queryParams.append("maxPerformanceScore", params.maxPerformanceScore);
   if (params.minTotalBatches !== undefined) queryParams.append("minTotalBatches", params.minTotalBatches);
   if (params.maxTotalBatches !== undefined) queryParams.append("maxTotalBatches", params.maxTotalBatches);
   if (params.minTotalProductsSupplied !== undefined) queryParams.append("minTotalProductsSupplied", params.minTotalProductsSupplied);
@@ -172,92 +143,13 @@ const apiGetHarvestBatchById = async (harvestBatchId) => {
   return response.data;
 };
 
-const apiVerifyQuality = async (formData) => {
-  const response = await apiClient.post("/admin/suppliers/quality/verify", formData);
-  return response.data;
-};
-
-const apiUpdateQualityVerification = async (verificationId, formData) => {
-  const response = await apiClient.put(`/admin/suppliers/quality/verifications/${verificationId}`, formData);
-  return response.data;
-};
-
-const apiDeleteQualityVerification = async (verificationId) => {
-  const response = await apiClient.delete(`/admin/suppliers/quality/verifications/${verificationId}`);
-  return response.data;
-};
-
-const apiGetQualityVerifications = async (params = {}) => {
-  const queryParams = new URLSearchParams();
-  if (params.page) queryParams.append("page", params.page);
-  if (params.limit) queryParams.append("limit", params.limit);
-  if (params.supplierId) queryParams.append("supplierId", params.supplierId);
-  if (params.productId) queryParams.append("productId", params.productId);
-  if (params.harvestBatchId) queryParams.append("harvestBatchId", params.harvestBatchId);
-  if (params.verificationResult) queryParams.append("verificationResult", params.verificationResult);
-  if (params.sortBy) queryParams.append("sortBy", params.sortBy);
-  if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
-
-  const queryString = queryParams.toString();
-  const url = `/admin/suppliers/quality/verifications${queryString ? `?${queryString}` : ""}`;
-  const response = await apiClient.get(url);
-  return response.data;
-};
-
-const apiGetQualityVerificationById = async (verificationId) => {
-  const response = await apiClient.get(`/admin/suppliers/quality/verifications/${verificationId}`);
-  return response.data;
-};
-
 const apiUpdatePurchaseCost = async (supplierId, formData) => {
   const response = await apiClient.put(`/admin/suppliers/${supplierId}/purchase-cost`, formData);
   return response.data;
 };
 
-const apiEvaluatePerformance = async (formData) => {
-  const response = await apiClient.post("/admin/suppliers/performance/evaluate", formData);
-  return response.data;
-};
-
-const apiGetPerformances = async (params = {}) => {
-  const queryParams = new URLSearchParams();
-  if (params.page) queryParams.append("page", params.page);
-  if (params.limit) queryParams.append("limit", params.limit);
-  if (params.supplierId) queryParams.append("supplierId", params.supplierId);
-  if (params.period) queryParams.append("period", params.period);
-  if (params.rating) queryParams.append("rating", params.rating);
-  if (params.minScore) queryParams.append("minScore", params.minScore);
-  if (params.maxScore) queryParams.append("maxScore", params.maxScore);
-  if (params.sortBy) queryParams.append("sortBy", params.sortBy);
-  if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
-
-  const queryString = queryParams.toString();
-  const url = `/admin/suppliers/performance${queryString ? `?${queryString}` : ""}`;
-  const response = await apiClient.get(url);
-  return response.data;
-};
-
-const apiGetPerformanceById = async (performanceId) => {
-  const response = await apiClient.get(`/admin/suppliers/performance/${performanceId}`);
-  return response.data;
-};
-
 const apiUpdateCooperationStatus = async (supplierId, formData) => {
   const response = await apiClient.put(`/admin/suppliers/${supplierId}/cooperation-status`, formData);
-  return response.data;
-};
-
-const apiGetActivityLog = async (supplierId, params = {}) => {
-  const queryParams = new URLSearchParams();
-  if (params.page) queryParams.append("page", params.page);
-  if (params.limit) queryParams.append("limit", params.limit);
-  if (params.action) queryParams.append("action", params.action);
-  if (params.sortBy) queryParams.append("sortBy", params.sortBy);
-  if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
-
-  const queryString = queryParams.toString();
-  const url = `/admin/suppliers/${supplierId}/activity-log${queryString ? `?${queryString}` : ""}`;
-  const response = await apiClient.get(url);
   return response.data;
 };
 
@@ -391,26 +283,6 @@ function* createHarvestBatchSaga(action) {
   }
 }
 
-function* verifyQualitySaga(action) {
-  try {
-    const formData = action.payload;
-    const response = yield call(apiVerifyQuality, formData);
-    if (response.status === "OK") {
-      yield put(verifyQualitySuccess(response.data));
-      toast.success(response.message || "Xác minh chất lượng thành công");
-    } else {
-      const errorMessage = response.message || "Không thể xác minh chất lượng";
-      yield put(verifyQualityFailure(errorMessage));
-      toast.error(errorMessage);
-    }
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || error.message || "Không thể xác minh chất lượng";
-    yield put(verifyQualityFailure(errorMessage));
-    toast.error(errorMessage);
-  }
-}
-
 function* updatePurchaseCostSaga(action) {
   try {
     const { supplierId, formData } = action.payload;
@@ -431,26 +303,6 @@ function* updatePurchaseCostSaga(action) {
   }
 }
 
-function* evaluatePerformanceSaga(action) {
-  try {
-    const formData = action.payload;
-    const response = yield call(apiEvaluatePerformance, formData);
-    if (response.status === "OK") {
-      yield put(evaluatePerformanceSuccess(response.data));
-      toast.success(response.message || "Đánh giá hiệu suất thành công");
-    } else {
-      const errorMessage = response.message || "Không thể đánh giá hiệu suất";
-      yield put(evaluatePerformanceFailure(errorMessage));
-      toast.error(errorMessage);
-    }
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || error.message || "Không thể đánh giá hiệu suất";
-    yield put(evaluatePerformanceFailure(errorMessage));
-    toast.error(errorMessage);
-  }
-}
-
 function* updateCooperationStatusSaga(action) {
   try {
     const { supplierId, formData } = action.payload;
@@ -467,28 +319,6 @@ function* updateCooperationStatusSaga(action) {
     const errorMessage =
       error.response?.data?.message || error.message || "Không thể cập nhật trạng thái hợp tác";
     yield put(updateCooperationStatusFailure(errorMessage));
-    toast.error(errorMessage);
-  }
-}
-
-function* getActivityLogSaga(action) {
-  try {
-    const { supplierId, params } = action.payload;
-    const response = yield call(apiGetActivityLog, supplierId, params);
-    if (response.status === "OK") {
-      yield put(
-        getActivityLogSuccess({
-          data: response.data,
-          pagination: response.pagination,
-        })
-      );
-    } else {
-      throw new Error(response.message || "Không thể tải lịch sử hoạt động");
-    }
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải lịch sử hoạt động";
-    yield put(getActivityLogFailure(errorMessage));
     toast.error(errorMessage);
   }
 }
@@ -573,126 +403,6 @@ function* getHarvestBatchByIdSaga(action) {
   }
 }
 
-// ===== QUALITY VERIFICATION SAGAS =====
-function* updateQualityVerificationSaga(action) {
-  try {
-    const { verificationId, formData } = action.payload;
-    const response = yield call(apiUpdateQualityVerification, verificationId, formData);
-    if (response.status === "OK") {
-      yield put(updateQualityVerificationSuccess(response.data));
-      toast.success(response.message || "Cập nhật xác minh chất lượng thành công");
-    } else {
-      const errorMessage = response.message || "Không thể cập nhật xác minh chất lượng";
-      yield put(updateQualityVerificationFailure(errorMessage));
-      toast.error(errorMessage);
-    }
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || error.message || "Không thể cập nhật xác minh chất lượng";
-    yield put(updateQualityVerificationFailure(errorMessage));
-    toast.error(errorMessage);
-  }
-}
-
-function* deleteQualityVerificationSaga(action) {
-  try {
-    const verificationId = action.payload;
-    const response = yield call(apiDeleteQualityVerification, verificationId);
-    if (response.status === "OK") {
-      yield put(deleteQualityVerificationSuccess(response.data));
-      toast.success(response.message || "Xóa xác minh chất lượng thành công");
-    } else {
-      const errorMessage = response.message || "Không thể xóa xác minh chất lượng";
-      yield put(deleteQualityVerificationFailure(errorMessage));
-      toast.error(errorMessage);
-    }
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || error.message || "Không thể xóa xác minh chất lượng";
-    yield put(deleteQualityVerificationFailure(errorMessage));
-    toast.error(errorMessage);
-  }
-}
-
-function* getQualityVerificationsSaga(action) {
-  try {
-    const params = action.payload || {};
-    const response = yield call(apiGetQualityVerifications, params);
-    if (response.status === "OK") {
-      yield put(
-        getQualityVerificationsSuccess({
-          data: response.data,
-          pagination: response.pagination,
-        })
-      );
-    } else {
-      throw new Error(response.message || "Không thể tải danh sách xác minh chất lượng");
-    }
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải danh sách xác minh chất lượng";
-    yield put(getQualityVerificationsFailure(errorMessage));
-    toast.error(errorMessage);
-  }
-}
-
-function* getQualityVerificationByIdSaga(action) {
-  try {
-    const verificationId = action.payload;
-    const response = yield call(apiGetQualityVerificationById, verificationId);
-    if (response.status === "OK") {
-      yield put(getQualityVerificationByIdSuccess(response.data));
-    } else {
-      throw new Error(response.message || "Không thể tải chi tiết xác minh chất lượng");
-    }
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải chi tiết xác minh chất lượng";
-    yield put(getQualityVerificationByIdFailure(errorMessage));
-    toast.error(errorMessage);
-  }
-}
-
-// ===== PERFORMANCE SAGAS =====
-function* getPerformancesSaga(action) {
-  try {
-    const params = action.payload || {};
-    const response = yield call(apiGetPerformances, params);
-    if (response.status === "OK") {
-      yield put(
-        getPerformancesSuccess({
-          data: response.data,
-          pagination: response.pagination,
-        })
-      );
-    } else {
-      throw new Error(response.message || "Không thể tải danh sách đánh giá hiệu suất");
-    }
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải danh sách đánh giá hiệu suất";
-    yield put(getPerformancesFailure(errorMessage));
-    toast.error(errorMessage);
-  }
-}
-
-function* getPerformanceByIdSaga(action) {
-  try {
-    const performanceId = action.payload;
-    const response = yield call(apiGetPerformanceById, performanceId);
-    if (response.status === "OK") {
-      yield put(getPerformanceByIdSuccess(response.data));
-    } else {
-      throw new Error(response.message || "Không thể tải chi tiết đánh giá hiệu suất");
-    }
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải chi tiết đánh giá hiệu suất";
-    yield put(getPerformanceByIdFailure(errorMessage));
-    toast.error(errorMessage);
-  }
-}
-
 // ===== WATCHERS =====
 export default function* supplierSaga() {
   yield takeLatest(CREATE_SUPPLIER_REQUEST, createSupplierSaga);
@@ -705,15 +415,6 @@ export default function* supplierSaga() {
   yield takeLatest(DELETE_HARVEST_BATCH_REQUEST, deleteHarvestBatchSaga);
   yield takeLatest(GET_HARVEST_BATCHES_REQUEST, getHarvestBatchesSaga);
   yield takeLatest(GET_HARVEST_BATCH_BY_ID_REQUEST, getHarvestBatchByIdSaga);
-  yield takeLatest(VERIFY_QUALITY_REQUEST, verifyQualitySaga);
-  yield takeLatest(UPDATE_QUALITY_VERIFICATION_REQUEST, updateQualityVerificationSaga);
-  yield takeLatest(DELETE_QUALITY_VERIFICATION_REQUEST, deleteQualityVerificationSaga);
-  yield takeLatest(GET_QUALITY_VERIFICATIONS_REQUEST, getQualityVerificationsSaga);
-  yield takeLatest(GET_QUALITY_VERIFICATION_BY_ID_REQUEST, getQualityVerificationByIdSaga);
   yield takeLatest(UPDATE_PURCHASE_COST_REQUEST, updatePurchaseCostSaga);
-  yield takeLatest(EVALUATE_PERFORMANCE_REQUEST, evaluatePerformanceSaga);
-  yield takeLatest(GET_PERFORMANCES_REQUEST, getPerformancesSaga);
-  yield takeLatest(GET_PERFORMANCE_BY_ID_REQUEST, getPerformanceByIdSaga);
   yield takeLatest(UPDATE_COOPERATION_STATUS_REQUEST, updateCooperationStatusSaga);
-  yield takeLatest(GET_ACTIVITY_LOG_REQUEST, getActivityLogSaga);
 }

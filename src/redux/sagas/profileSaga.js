@@ -121,13 +121,19 @@ function* getProfileSaga() {
         const response = yield call(() => apiCall("get", "/profile/user-info"));
         if (response.status === "OK") {
             yield put(getProfileSuccess(response.data));
+            
+            // Sync localStorage với Redux state
+            const storedUser = JSON.parse(localStorage.getItem("user")) || {};
+            const updatedUser = { ...storedUser, ...response.data };
+            localStorage.setItem("user", JSON.stringify(updatedUser));
         } else {
             throw new Error(response.message);
         }
     } catch (error) {
         const msg = error.response?.data?.message || error.message || "Lấy thông tin thất bại";
         yield put(getProfileFailure(msg));
-        toast.error(msg);
+        // Don't show toast error for profile fetch on mount (too noisy)
+        // toast.error(msg);
     }
 }
 

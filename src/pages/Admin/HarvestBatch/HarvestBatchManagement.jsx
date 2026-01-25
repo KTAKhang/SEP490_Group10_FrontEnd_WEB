@@ -8,9 +8,6 @@ import {
   Eye,
   Trash2,
   Filter,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
   Calendar,
 } from "lucide-react";
 import {
@@ -35,7 +32,6 @@ const HarvestBatchManagement = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSupplier, setFilterSupplier] = useState("all");
-  const [filterStatus, setFilterStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
@@ -51,12 +47,11 @@ const HarvestBatchManagement = () => {
       limit: 10,
       search: searchTerm || undefined,
       supplierId: filterSupplier !== "all" ? filterSupplier : undefined,
-      status: filterStatus !== "all" ? filterStatus : undefined,
       sortBy,
       sortOrder,
     };
     dispatch(getHarvestBatchesRequest(params));
-  }, [dispatch, currentPage, searchTerm, filterSupplier, filterStatus, sortBy, sortOrder]);
+  }, [dispatch, currentPage, searchTerm, filterSupplier, sortBy, sortOrder]);
 
   const handleAddBatch = () => {
     setShowCreateModal(true);
@@ -90,7 +85,6 @@ const HarvestBatchManagement = () => {
         limit: 10,
         search: searchTerm || undefined,
         supplierId: filterSupplier !== "all" ? filterSupplier : undefined,
-        status: filterStatus !== "all" ? filterStatus : undefined,
         sortBy,
         sortOrder,
       };
@@ -101,34 +95,6 @@ const HarvestBatchManagement = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deleteHarvestBatchLoading, deleteHarvestBatchError]);
-
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case "PENDING":
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-            <AlertCircle size={12} className="mr-1" />
-            Pending
-          </span>
-        );
-      case "APPROVED":
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-            <CheckCircle size={12} className="mr-1" />
-            Approved
-          </span>
-        );
-      case "REJECTED":
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-            <XCircle size={12} className="mr-1" />
-            Rejected
-          </span>
-        );
-      default:
-        return <span className="text-gray-500">N/A</span>;
-    }
-  };
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -163,7 +129,7 @@ const HarvestBatchManagement = () => {
           <h2 className="text-lg font-semibold text-gray-800">Filters</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -177,23 +143,6 @@ const HarvestBatchManagement = () => {
               }}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
-          </div>
-
-          {/* Status Filter */}
-          <div>
-            <select
-              value={filterStatus}
-              onChange={(e) => {
-                setFilterStatus(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            >
-              <option value="all">All Status</option>
-              <option value="PENDING">Pending</option>
-              <option value="APPROVED">Approved</option>
-              <option value="REJECTED">Rejected</option>
-            </select>
           </div>
 
           {/* Sort */}
@@ -214,7 +163,6 @@ const HarvestBatchManagement = () => {
               <option value="batchCode">Batch Code</option>
               <option value="quantity">Quantity</option>
               <option value="receivedQuantity">Received Quantity</option>
-              <option value="status">Status</option>
               <option value="qualityGrade">Quality Grade</option>
             </select>
             <button
@@ -278,9 +226,6 @@ const HarvestBatchManagement = () => {
                         Received
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
@@ -311,9 +256,6 @@ const HarvestBatchManagement = () => {
                         </td>
                         <td className="px-4 py-3">
                           <p className="text-sm text-gray-900">{batch.receivedQuantity || 0} KG</p>
-                        </td>
-                        <td className="px-4 py-3">
-                          {getStatusBadge(batch.status)}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
                           <div className="flex items-center space-x-2">
@@ -419,7 +361,6 @@ const HarvestBatchManagement = () => {
               limit: 10,
               search: searchTerm || undefined,
               supplierId: filterSupplier !== "all" ? filterSupplier : undefined,
-              status: filterStatus !== "all" ? filterStatus : undefined,
               sortBy,
               sortOrder,
             };
@@ -451,7 +392,6 @@ const HarvestBatchManagement = () => {
               limit: 10,
               search: searchTerm || undefined,
               supplierId: filterSupplier !== "all" ? filterSupplier : undefined,
-              status: filterStatus !== "all" ? filterStatus : undefined,
               sortBy,
               sortOrder,
             };

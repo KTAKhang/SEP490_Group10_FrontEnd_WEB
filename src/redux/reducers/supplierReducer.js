@@ -29,39 +29,12 @@ import {
   GET_HARVEST_BATCH_BY_ID_REQUEST,
   GET_HARVEST_BATCH_BY_ID_SUCCESS,
   GET_HARVEST_BATCH_BY_ID_FAILURE,
-  VERIFY_QUALITY_REQUEST,
-  VERIFY_QUALITY_SUCCESS,
-  VERIFY_QUALITY_FAILURE,
-  UPDATE_QUALITY_VERIFICATION_REQUEST,
-  UPDATE_QUALITY_VERIFICATION_SUCCESS,
-  UPDATE_QUALITY_VERIFICATION_FAILURE,
-  DELETE_QUALITY_VERIFICATION_REQUEST,
-  DELETE_QUALITY_VERIFICATION_SUCCESS,
-  DELETE_QUALITY_VERIFICATION_FAILURE,
-  GET_QUALITY_VERIFICATIONS_REQUEST,
-  GET_QUALITY_VERIFICATIONS_SUCCESS,
-  GET_QUALITY_VERIFICATIONS_FAILURE,
-  GET_QUALITY_VERIFICATION_BY_ID_REQUEST,
-  GET_QUALITY_VERIFICATION_BY_ID_SUCCESS,
-  GET_QUALITY_VERIFICATION_BY_ID_FAILURE,
   UPDATE_PURCHASE_COST_REQUEST,
   UPDATE_PURCHASE_COST_SUCCESS,
   UPDATE_PURCHASE_COST_FAILURE,
-  EVALUATE_PERFORMANCE_REQUEST,
-  EVALUATE_PERFORMANCE_SUCCESS,
-  EVALUATE_PERFORMANCE_FAILURE,
-  GET_PERFORMANCES_REQUEST,
-  GET_PERFORMANCES_SUCCESS,
-  GET_PERFORMANCES_FAILURE,
-  GET_PERFORMANCE_BY_ID_REQUEST,
-  GET_PERFORMANCE_BY_ID_SUCCESS,
-  GET_PERFORMANCE_BY_ID_FAILURE,
   UPDATE_COOPERATION_STATUS_REQUEST,
   UPDATE_COOPERATION_STATUS_SUCCESS,
   UPDATE_COOPERATION_STATUS_FAILURE,
-  GET_ACTIVITY_LOG_REQUEST,
-  GET_ACTIVITY_LOG_SUCCESS,
-  GET_ACTIVITY_LOG_FAILURE,
   CLEAR_SUPPLIER_MESSAGES,
 } from "../actions/supplierActions";
 
@@ -93,36 +66,10 @@ const initialState = {
   updateHarvestBatchError: null,
   deleteHarvestBatchLoading: false,
   deleteHarvestBatchError: null,
-  verifyQualityLoading: false,
-  verifyQualityError: null,
-  qualityVerifications: [],
-  qualityVerificationsLoading: false,
-  qualityVerificationsError: null,
-  qualityVerificationsPagination: null,
-  qualityVerificationDetail: null,
-  qualityVerificationDetailLoading: false,
-  qualityVerificationDetailError: null,
-  updateQualityVerificationLoading: false,
-  updateQualityVerificationError: null,
-  deleteQualityVerificationLoading: false,
-  deleteQualityVerificationError: null,
   updatePurchaseCostLoading: false,
   updatePurchaseCostError: null,
-  evaluatePerformanceLoading: false,
-  evaluatePerformanceError: null,
-  performances: [],
-  performancesLoading: false,
-  performancesError: null,
-  performancesPagination: null,
-  performanceDetail: null,
-  performanceDetailLoading: false,
-  performanceDetailError: null,
   updateCooperationStatusLoading: false,
   updateCooperationStatusError: null,
-  activityLog: [],
-  activityLogLoading: false,
-  activityLogError: null,
-  activityLogPagination: null,
 };
 
 const supplierReducer = (state = initialState, action) => {
@@ -347,117 +294,6 @@ const supplierReducer = (state = initialState, action) => {
         deleteHarvestBatchError: action.payload,
       };
 
-    // ===== VERIFY QUALITY =====
-    case VERIFY_QUALITY_REQUEST:
-      return {
-        ...state,
-        verifyQualityLoading: true,
-        verifyQualityError: null,
-      };
-    case VERIFY_QUALITY_SUCCESS:
-      return {
-        ...state,
-        verifyQualityLoading: false,
-        qualityVerifications: [action.payload, ...state.qualityVerifications],
-        verifyQualityError: null,
-      };
-    case VERIFY_QUALITY_FAILURE:
-      return {
-        ...state,
-        verifyQualityLoading: false,
-        verifyQualityError: action.payload,
-      };
-
-    // ===== GET QUALITY VERIFICATIONS =====
-    case GET_QUALITY_VERIFICATIONS_REQUEST:
-      return {
-        ...state,
-        qualityVerificationsLoading: true,
-        qualityVerificationsError: null,
-      };
-    case GET_QUALITY_VERIFICATIONS_SUCCESS:
-      return {
-        ...state,
-        qualityVerificationsLoading: false,
-        qualityVerifications: action.payload.data,
-        qualityVerificationsPagination: action.payload.pagination,
-        qualityVerificationsError: null,
-      };
-    case GET_QUALITY_VERIFICATIONS_FAILURE:
-      return {
-        ...state,
-        qualityVerificationsLoading: false,
-        qualityVerificationsError: action.payload,
-      };
-
-    // ===== GET QUALITY VERIFICATION BY ID =====
-    case GET_QUALITY_VERIFICATION_BY_ID_REQUEST:
-      return {
-        ...state,
-        qualityVerificationDetailLoading: true,
-        qualityVerificationDetailError: null,
-      };
-    case GET_QUALITY_VERIFICATION_BY_ID_SUCCESS:
-      return {
-        ...state,
-        qualityVerificationDetailLoading: false,
-        qualityVerificationDetail: action.payload,
-        qualityVerificationDetailError: null,
-      };
-    case GET_QUALITY_VERIFICATION_BY_ID_FAILURE:
-      return {
-        ...state,
-        qualityVerificationDetailLoading: false,
-        qualityVerificationDetailError: action.payload,
-      };
-
-    // ===== UPDATE QUALITY VERIFICATION =====
-    case UPDATE_QUALITY_VERIFICATION_REQUEST:
-      return {
-        ...state,
-        updateQualityVerificationLoading: true,
-        updateQualityVerificationError: null,
-      };
-    case UPDATE_QUALITY_VERIFICATION_SUCCESS:
-      return {
-        ...state,
-        updateQualityVerificationLoading: false,
-        qualityVerifications: state.qualityVerifications.map((verification) =>
-          verification._id === action.payload._id ? action.payload : verification
-        ),
-        qualityVerificationDetail: action.payload,
-        updateQualityVerificationError: null,
-      };
-    case UPDATE_QUALITY_VERIFICATION_FAILURE:
-      return {
-        ...state,
-        updateQualityVerificationLoading: false,
-        updateQualityVerificationError: action.payload,
-      };
-
-    // ===== DELETE QUALITY VERIFICATION =====
-    case DELETE_QUALITY_VERIFICATION_REQUEST:
-      return {
-        ...state,
-        deleteQualityVerificationLoading: true,
-        deleteQualityVerificationError: null,
-      };
-    case DELETE_QUALITY_VERIFICATION_SUCCESS:
-      return {
-        ...state,
-        deleteQualityVerificationLoading: false,
-        qualityVerifications: state.qualityVerifications.filter(
-          (verification) => verification._id !== action.payload
-        ),
-        deleteQualityVerificationError: null,
-      };
-    case DELETE_QUALITY_VERIFICATION_FAILURE:
-      return {
-        ...state,
-        deleteQualityVerificationLoading: false,
-        deleteQualityVerificationError: action.payload,
-      };
-
     // ===== UPDATE PURCHASE COST =====
     case UPDATE_PURCHASE_COST_REQUEST:
       return {
@@ -484,70 +320,6 @@ const supplierReducer = (state = initialState, action) => {
         updatePurchaseCostError: action.payload,
       };
 
-    // ===== EVALUATE PERFORMANCE =====
-    case EVALUATE_PERFORMANCE_REQUEST:
-      return {
-        ...state,
-        evaluatePerformanceLoading: true,
-        evaluatePerformanceError: null,
-      };
-    case EVALUATE_PERFORMANCE_SUCCESS:
-      return {
-        ...state,
-        evaluatePerformanceLoading: false,
-        performances: [action.payload, ...state.performances],
-        evaluatePerformanceError: null,
-      };
-    case EVALUATE_PERFORMANCE_FAILURE:
-      return {
-        ...state,
-        evaluatePerformanceLoading: false,
-        evaluatePerformanceError: action.payload,
-      };
-
-    // ===== GET PERFORMANCES =====
-    case GET_PERFORMANCES_REQUEST:
-      return {
-        ...state,
-        performancesLoading: true,
-        performancesError: null,
-      };
-    case GET_PERFORMANCES_SUCCESS:
-      return {
-        ...state,
-        performancesLoading: false,
-        performances: action.payload.data,
-        performancesPagination: action.payload.pagination,
-        performancesError: null,
-      };
-    case GET_PERFORMANCES_FAILURE:
-      return {
-        ...state,
-        performancesLoading: false,
-        performancesError: action.payload,
-      };
-
-    // ===== GET PERFORMANCE BY ID =====
-    case GET_PERFORMANCE_BY_ID_REQUEST:
-      return {
-        ...state,
-        performanceDetailLoading: true,
-        performanceDetailError: null,
-      };
-    case GET_PERFORMANCE_BY_ID_SUCCESS:
-      return {
-        ...state,
-        performanceDetailLoading: false,
-        performanceDetail: action.payload,
-        performanceDetailError: null,
-      };
-    case GET_PERFORMANCE_BY_ID_FAILURE:
-      return {
-        ...state,
-        performanceDetailLoading: false,
-        performanceDetailError: action.payload,
-      };
-
     // ===== UPDATE COOPERATION STATUS =====
     case UPDATE_COOPERATION_STATUS_REQUEST:
       return {
@@ -572,28 +344,6 @@ const supplierReducer = (state = initialState, action) => {
         updateCooperationStatusError: action.payload,
       };
 
-    // ===== GET ACTIVITY LOG =====
-    case GET_ACTIVITY_LOG_REQUEST:
-      return {
-        ...state,
-        activityLogLoading: true,
-        activityLogError: null,
-      };
-    case GET_ACTIVITY_LOG_SUCCESS:
-      return {
-        ...state,
-        activityLogLoading: false,
-        activityLog: action.payload.data,
-        activityLogPagination: action.payload.pagination,
-        activityLogError: null,
-      };
-    case GET_ACTIVITY_LOG_FAILURE:
-      return {
-        ...state,
-        activityLogLoading: false,
-        activityLogError: action.payload,
-      };
-
     // ===== CLEAR MESSAGES =====
     case CLEAR_SUPPLIER_MESSAGES:
       return {
@@ -603,11 +353,7 @@ const supplierReducer = (state = initialState, action) => {
         createHarvestBatchError: null,
         updateHarvestBatchError: null,
         deleteHarvestBatchError: null,
-        verifyQualityError: null,
-        updateQualityVerificationError: null,
-        deleteQualityVerificationError: null,
         updatePurchaseCostError: null,
-        evaluatePerformanceError: null,
         updateCooperationStatusError: null,
       };
 
