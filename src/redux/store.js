@@ -20,6 +20,8 @@ import publicCategoryReducer from "./reducers/publicCategoryReducer";
 import productBatchReducer from "./reducers/productBatchReducer";
 import favoriteReducer from "./reducers/favoriteReducer";
 import supplierReducer from "./reducers/supplierReducer";
+import fruitBasketReducer from "./reducers/fruitBasketReducer";
+import publicFruitBasketReducer from "./reducers/publicFruitBasketReducer";
 import rootSaga from "./sagas/rootSaga";
 
 const rootReducer = combineReducers({
@@ -39,9 +41,11 @@ const rootReducer = combineReducers({
   inventory: inventoryReducer,
   publicProduct: publicProductReducer,
   publicCategory: publicCategoryReducer,
+  publicFruitBasket: publicFruitBasketReducer,
   productBatch: productBatchReducer,
   favorite: favoriteReducer,
   supplier: supplierReducer,
+  fruitBasket: fruitBasketReducer,
 });
 
 const sagaMiddleware = createSagaMiddleware();
