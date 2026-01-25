@@ -5,6 +5,24 @@ import {
   ORDER_CANCEL_REQUEST,
   ORDER_CANCEL_SUCCESS,
   ORDER_CANCEL_FAILURE,
+  ORDER_HISTORY_REQUEST,
+  ORDER_HISTORY_SUCCESS,
+  ORDER_HISTORY_FAILURE,
+  ORDER_DETAIL_REQUEST,
+  ORDER_DETAIL_SUCCESS,
+  ORDER_DETAIL_FAILURE,
+  ORDER_ADMIN_LIST_REQUEST,
+  ORDER_ADMIN_LIST_SUCCESS,
+  ORDER_ADMIN_LIST_FAILURE,
+  ORDER_ADMIN_UPDATE_REQUEST,
+  ORDER_ADMIN_UPDATE_SUCCESS,
+  ORDER_ADMIN_UPDATE_FAILURE,
+  ORDER_ADMIN_DETAIL_REQUEST,
+  ORDER_ADMIN_DETAIL_SUCCESS,
+  ORDER_ADMIN_DETAIL_FAILURE,
+  ORDER_ADMIN_STATS_REQUEST,
+  ORDER_ADMIN_STATS_SUCCESS,
+  ORDER_ADMIN_STATS_FAILURE,
   ORDER_CLEAR_MESSAGES,
 } from "../actions/orderActions";
 
@@ -12,7 +30,22 @@ const initialState = {
   order_id: null,
   payment_url: null, // dùng cho VNPAY
 
+  orders: [],
+  ordersPagination: null,
+  orderDetail: null,
+
+  adminOrders: [],
+  adminPagination: null,
+  adminDetail: null,
+  adminStats: null,
+
   loading: false,
+  historyLoading: false,
+  detailLoading: false,
+  adminLoading: false,
+  adminUpdateLoading: false,
+  adminDetailLoading: false,
+  adminStatsLoading: false,
   error: null,
   message: null,
 };
@@ -48,6 +81,92 @@ const orderReducer = (state = initialState, action) => {
 
     case ORDER_CANCEL_FAILURE:
       return { ...state, loading: false, error: action.payload };
+
+    // ===== ORDER HISTORY =====
+    case ORDER_HISTORY_REQUEST:
+      return { ...state, historyLoading: true, error: null };
+
+    case ORDER_HISTORY_SUCCESS:
+      return {
+        ...state,
+        historyLoading: false,
+        orders: action.payload.data || [],
+        ordersPagination: action.payload.pagination || null,
+      };
+
+    case ORDER_HISTORY_FAILURE:
+      return { ...state, historyLoading: false, error: action.payload };
+
+    // ===== ORDER DETAIL =====
+    case ORDER_DETAIL_REQUEST:
+      return { ...state, detailLoading: true, error: null };
+
+    case ORDER_DETAIL_SUCCESS:
+      return {
+        ...state,
+        detailLoading: false,
+        orderDetail: action.payload,
+      };
+
+    case ORDER_DETAIL_FAILURE:
+      return { ...state, detailLoading: false, error: action.payload };
+
+    // ===== ADMIN LIST =====
+    case ORDER_ADMIN_LIST_REQUEST:
+      return { ...state, adminLoading: true, error: null };
+
+    case ORDER_ADMIN_LIST_SUCCESS:
+      return {
+        ...state,
+        adminLoading: false,
+        adminOrders: action.payload.data || [],
+        adminPagination: action.payload.pagination || null,
+      };
+
+    case ORDER_ADMIN_LIST_FAILURE:
+      return { ...state, adminLoading: false, error: action.payload };
+
+    // ===== ADMIN UPDATE =====
+    case ORDER_ADMIN_UPDATE_REQUEST:
+      return { ...state, adminUpdateLoading: true, error: null };
+
+    case ORDER_ADMIN_UPDATE_SUCCESS:
+      return {
+        ...state,
+        adminUpdateLoading: false,
+        message: action.payload,
+      };
+
+    case ORDER_ADMIN_UPDATE_FAILURE:
+      return { ...state, adminUpdateLoading: false, error: action.payload };
+
+    // ===== ADMIN DETAIL =====
+    case ORDER_ADMIN_DETAIL_REQUEST:
+      return { ...state, adminDetailLoading: true, error: null };
+
+    case ORDER_ADMIN_DETAIL_SUCCESS:
+      return {
+        ...state,
+        adminDetailLoading: false,
+        adminDetail: action.payload,
+      };
+
+    case ORDER_ADMIN_DETAIL_FAILURE:
+      return { ...state, adminDetailLoading: false, error: action.payload };
+
+    // ===== ADMIN STATS =====
+    case ORDER_ADMIN_STATS_REQUEST:
+      return { ...state, adminStatsLoading: true, error: null };
+
+    case ORDER_ADMIN_STATS_SUCCESS:
+      return {
+        ...state,
+        adminStatsLoading: false,
+        adminStats: action.payload,
+      };
+
+    case ORDER_ADMIN_STATS_FAILURE:
+      return { ...state, adminStatsLoading: false, error: action.payload };
 
     // ===== CLEAR =====
     case ORDER_CLEAR_MESSAGES:

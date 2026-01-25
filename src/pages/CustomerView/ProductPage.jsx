@@ -7,6 +7,7 @@ import Loading from '../../components/Loading/Loading';
 import { getPublicProductsRequest } from '../../redux/actions/publicProductActions';
 import { getPublicCategoriesRequest } from '../../redux/actions/publicCategoryActions';
 import { addFavoriteRequest, removeFavoriteRequest, getFavoritesRequest } from '../../redux/actions/favoriteActions';
+import { addItemToCartRequest } from '../../redux/actions/cartActions';
 import { Search, Package, Heart } from 'lucide-react';
 
 export default function ProductPage() {
@@ -145,6 +146,16 @@ export default function ProductPage() {
   // Handle product click
   const handleProductClick = (productId) => {
     navigate(`/products/${productId}`);
+  };
+
+  const handleAddToCart = (e, productId, inStock) => {
+    e.stopPropagation();
+    if (!storedUser) {
+      navigate('/login');
+      return;
+    }
+    if (!inStock) return;
+    dispatch(addItemToCartRequest(productId, 1));
   };
 
   // Handle pagination
@@ -340,12 +351,9 @@ export default function ProductPage() {
                           </span>
                         </div>
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (product.onHandQuantity > 0) {
-                              // Handle add to cart logic here
-                            }
-                          }}
+                          onClick={(e) =>
+                            handleAddToCart(e, product._id, product.onHandQuantity > 0)
+                          }
                           disabled={product.onHandQuantity === 0}
                           className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
                             product.onHandQuantity === 0

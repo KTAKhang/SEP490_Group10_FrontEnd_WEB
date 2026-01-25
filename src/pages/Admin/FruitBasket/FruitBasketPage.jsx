@@ -197,7 +197,7 @@ const FruitBasketPage = () => {
     dispatch(
       getFruitBasketsRequest({
         page: currentPage,
-        limit: 10,
+        limit: 5,
         search: searchTerm || undefined,
         status: filterStatus !== "all" ? filterStatus : undefined,
         sortBy,
@@ -211,7 +211,7 @@ const FruitBasketPage = () => {
       dispatch(
         getFruitBasketsRequest({
           page: currentPage,
-          limit: 10,
+          limit: 5,
           search: searchTerm || undefined,
           status: filterStatus !== "all" ? filterStatus : undefined,
           sortBy,
@@ -237,7 +237,7 @@ const FruitBasketPage = () => {
       dispatch(
         getFruitBasketsRequest({
           page: currentPage,
-          limit: 10,
+          limit: 5,
           search: searchTerm || undefined,
           status: filterStatus !== "all" ? filterStatus : undefined,
           sortBy,
@@ -263,7 +263,7 @@ const FruitBasketPage = () => {
       dispatch(
         getFruitBasketsRequest({
           page: currentPage,
-          limit: 10,
+          limit: 5,
           search: searchTerm || undefined,
           status: filterStatus !== "all" ? filterStatus : undefined,
           sortBy,

@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X, Calendar, Package, MapPin, AlertCircle } from "lucide-react";
+import axios from "axios";
 import { updateHarvestBatchRequest, getHarvestBatchByIdRequest } from "../../../redux/actions/supplierActions";
+
+const API_BASE = "https://provinces.open-api.vn/api/v2";
 
 const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
   const dispatch = useDispatch();
@@ -16,10 +19,15 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
     harvestDate: "",
     quantity: "",
     location: "",
+    city: "",
+    ward: "",
     qualityGrade: "A",
     notes: "",
   });
 
+  const [provinces, setProvinces] = useState([]);
+  const [wards, setWards] = useState([]);
+  const [icity, setIcity] = useState("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
   // Load harvest batch data when modal opens
@@ -42,9 +50,12 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
         harvestDate: harvestDate,
         quantity: harvestBatchDetail.quantity?.toString() || "",
         location: harvestBatchDetail.location || "",
+        city: "",
+        ward: "",
         qualityGrade: harvestBatchDetail.qualityGrade || "A",
         notes: harvestBatchDetail.notes || "",
       });
+      setIcity("");
     }
   }, [harvestBatchDetail]);
 
@@ -55,6 +66,41 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
       onClose();
     }
   }, [hasSubmitted, updateHarvestBatchLoading, onClose]);
+
+  useEffect(() => {
+    axios
+      .get(`${API_BASE}/p/`)
+      .then((res) => setProvinces(res.data))
+      .catch((err) => console.error("Error loading provinces:", err));
+  }, []);
+
+  useEffect(() => {
+    if (!formData.city) {
+      setWards([]);
+      setFormData((prev) => ({ ...prev, ward: "" }));
+      setIcity("");
+      return;
+    }
+
+    axios
+      .get(`${API_BASE}/w/`)
+      .then((res) => {
+        const filtered = res.data.filter(
+          (ward) => ward.province_code === Number(formData.city),
+        );
+        setWards(filtered);
+      })
+      .catch((err) => console.error("Error loading wards:", err));
+  }, [formData.city]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "city") {
+      const selectedProvince = provinces.find((p) => p.code === Number(value));
+      setIcity(selectedProvince ? selectedProvince.name : "");
+    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -88,11 +134,16 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
     }
 
     // Clean data - chỉ gửi các fields được phép update
+    const locationLine = formData.location?.trim() || "";
+    const wardName = formData.ward?.toString().trim() || "";
+    const provinceName = icity?.toString().trim() || "";
+    const locationParts = [locationLine, wardName, provinceName].filter(Boolean);
+
     const cleanedData = {
       batchNumber: formData.batchNumber.trim(),
       harvestDate: formData.harvestDate,
       quantity: quantityNum,
-      location: formData.location?.trim() || "",
+      location: locationParts.join(", "),
       qualityGrade: formData.qualityGrade || "A",
       notes: formData.notes?.trim() || "",
     };
@@ -193,7 +244,8 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                     <input
                       type="text"
                       value={formData.batchNumber}
-                      onChange={(e) => setFormData({ ...formData, batchNumber: e.target.value })}
+                      onChange={handleInputChange}
+                      name="batchNumber"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                       placeholder="Enter batch number"
                       required
@@ -210,7 +262,8 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                       <input
                         type="date"
                         value={formData.harvestDate}
-                        onChange={(e) => setFormData({ ...formData, harvestDate: e.target.value })}
+                        onChange={handleInputChange}
+                        name="harvestDate"
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                         max={today}
                         required
@@ -232,7 +285,8 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                   <input
                     type="number"
                     value={formData.quantity}
-                    onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                    onChange={handleInputChange}
+                    name="quantity"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                     placeholder="Enter quantity in KG"
                     min={receivedQuantity > 0 ? receivedQuantity : 1}
@@ -247,14 +301,47 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                     <MapPin size={16} />
                     <span>Location</span>
                   </label>
-                  <input
-                    type="text"
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                    placeholder="Enter harvest location"
-                    disabled={!canEdit}
-                  />
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      value={formData.location}
+                      onChange={handleInputChange}
+                      name="location"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      placeholder="Số nhà, tên đường"
+                      disabled={!canEdit}
+                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <select
+                        name="city"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        disabled={!canEdit}
+                      >
+                        <option value="">Chọn tỉnh/thành</option>
+                        {provinces.map((province) => (
+                          <option key={province.code} value={province.code}>
+                            {province.name}
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        name="ward"
+                        value={formData.ward}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        disabled={!canEdit || !formData.city}
+                      >
+                        <option value="">Chọn phường/xã</option>
+                        {wards.map((ward) => (
+                          <option key={ward.code} value={ward.name}>
+                            {ward.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 </div>
 
                 <div>
@@ -263,7 +350,8 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                   </label>
                   <select
                     value={formData.qualityGrade}
-                    onChange={(e) => setFormData({ ...formData, qualityGrade: e.target.value })}
+                  onChange={handleInputChange}
+                  name="qualityGrade"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                     required
                     disabled={!canEdit}
@@ -281,7 +369,8 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                   </label>
                   <textarea
                     value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  onChange={handleInputChange}
+                  name="notes"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                     rows="3"
                     placeholder="Enter notes"
