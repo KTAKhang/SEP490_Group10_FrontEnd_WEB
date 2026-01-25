@@ -10,6 +10,7 @@ import ProdcutPage from "../pages/CustomerView/ProductPage";
 import ProductDetailPage from "../pages/CustomerView/ProductDetailPage";
 import Categories from "../pages/CustomerView/CategoryPage";
 import WishlistPage from "../pages/CustomerView/WishlistPage";
+import FruitBasketPage from "../pages/CustomerView/FruitBasketPage";
 import CustomerLayout from "../layout/CustomerLayout";
 import AdminLayout from "../layout/AdminLayout";
 import AdminPage from "../pages/Admin/AdminPage/AdminPage";
@@ -31,6 +32,7 @@ import ContactEditPage from "../pages/ContactManagement/ContactEditPage";
 import AdminSupplierManagement from "../pages/Admin/Supplier/SupplierManagement";
 // Admin Harvest Batch Management
 import AdminHarvestBatchManagement from "../pages/Admin/HarvestBatch/HarvestBatchManagement";
+import AdminFruitBasketPage from "../pages/Admin/FruitBasket/FruitBasketPage";
 
 import CartPage from "../pages/CustomerView/CartPage";
 import CheckoutPage from "../pages/CustomerView/CheckoutPage";
@@ -73,6 +75,10 @@ export const routes = [
   {
     path: "/categories",
     element: <Categories />,
+  },
+  {
+    path: "/fruit-baskets",
+    element: <FruitBasketPage />,
   },
   {
     path: "/news",
@@ -135,6 +141,7 @@ export const routes = [
       { path: "category", element: <CategoryManagement /> },
       { path: "suppliers", element: <AdminSupplierManagement /> },
       { path: "harvest-batches", element: <AdminHarvestBatchManagement /> },
+      { path: "fruit-baskets", element: <AdminFruitBasketPage /> },
       { path: "batch-history", element: <BatchHistoryPage /> },
       { path: "receipt-history", element: <ReceiptHistoryPage /> },
       { path: "contacts", element: <ContactListPage /> },

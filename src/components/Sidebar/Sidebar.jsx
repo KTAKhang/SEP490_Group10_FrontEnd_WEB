@@ -14,6 +14,7 @@ import {
   History,
   ClipboardList,
   Users,
+  Gift,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -46,6 +47,11 @@ const Sidebar = () => {
       icon: Package,
       label: "Harvest Batch",
       path: "/admin/harvest-batches",
+    },
+    {
+      icon: Gift,
+      label: "Fruit Baskets",
+      path: "/admin/fruit-baskets",
     },
     {
       icon: MessageSquare,
