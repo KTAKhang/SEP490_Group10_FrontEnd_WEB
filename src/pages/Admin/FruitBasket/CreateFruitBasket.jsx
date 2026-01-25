@@ -19,7 +19,7 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
     status: true,
   });
   const [items, setItems] = useState([{ productId: "", quantity: 1 }]);
-  const [images, setImages] = useState([]);
+  const [uploadFiles, setUploadFiles] = useState([]);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const toastShownRef = useRef(false);
 
@@ -55,7 +55,10 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
       status: true,
     });
     setItems([{ productId: "", quantity: 1 }]);
-    setImages([]);
+    setUploadFiles((prev) => {
+      prev.forEach((file) => URL.revokeObjectURL(file.preview));
+      return [];
+    });
   };
 
   const handleAddItem = () => {
@@ -76,22 +79,30 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
     );
   };
 
-  const handleAddImage = () => {
-    if (images.length >= 10) {
+  const handleAddImages = (event) => {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+
+    const total = uploadFiles.length + files.length;
+    if (total > 10) {
       toast.error("Số lượng ảnh không được vượt quá 10");
       return;
     }
-    setImages((prev) => [...prev, { url: "", publicId: "" }]);
+
+    const nextFiles = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setUploadFiles((prev) => [...prev, ...nextFiles]);
+    event.target.value = "";
   };
 
-  const handleImageChange = (index, key, value) => {
-    setImages((prev) =>
-      prev.map((img, i) => (i === index ? { ...img, [key]: value } : img))
-    );
-  };
-
-  const handleRemoveImage = (index) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
+  const handleRemoveUpload = (index) => {
+    setUploadFiles((prev) => {
+      const target = prev[index];
+      if (target) URL.revokeObjectURL(target.preview);
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   const validateItems = () => {
@@ -126,21 +137,11 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
   };
 
   const validateImages = () => {
-    const normalized = images.filter((img) => img.url || img.publicId);
-    for (const img of normalized) {
-      if (!img.url || !img.publicId) {
-        toast.error("Image URL và Public ID phải được nhập đầy đủ");
-        return null;
-      }
-    }
-    if (normalized.length > 10) {
+    if (uploadFiles.length > 10) {
       toast.error("Số lượng ảnh không được vượt quá 10");
       return null;
     }
-    return {
-      images: normalized.map((img) => img.url),
-      imagePublicIds: normalized.map((img) => img.publicId),
-    };
+    return uploadFiles.map((item) => item.file);
   };
 
   const handleSubmit = (e) => {
@@ -154,18 +155,19 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
     const itemsPayload = validateItems();
     if (!itemsPayload) return;
 
-    const imagePayload = validateImages();
-    if (!imagePayload) return;
+    const imageFiles = validateImages();
+    if (!imageFiles) return;
 
-    const payload = {
-      name: formData.name.trim(),
-      short_desc: formData.short_desc || "",
-      detail_desc: formData.detail_desc || "",
-      items: itemsPayload,
-      images: imagePayload.images,
-      imagePublicIds: imagePayload.imagePublicIds,
-      status: formData.status,
-    };
+    const payload = new FormData();
+    payload.append("name", formData.name.trim());
+    payload.append("short_desc", formData.short_desc || "");
+    payload.append("detail_desc", formData.detail_desc || "");
+    itemsPayload.forEach((item, index) => {
+      payload.append(`items[${index}][product]`, item.product);
+      payload.append(`items[${index}][quantity]`, String(item.quantity));
+    });
+    payload.append("status", formData.status ? "true" : "false");
+    imageFiles.forEach((file) => payload.append("images", file));
 
     setHasSubmitted(true);
     dispatch(createFruitBasketRequest(payload));
@@ -283,49 +285,41 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-gray-800">Images (optional, up to 10)</h3>
-                <button
-                  type="button"
-                  onClick={handleAddImage}
-                  className="flex items-center space-x-1 text-green-600 hover:text-green-800"
-                >
+                <label className="flex items-center space-x-1 text-green-600 hover:text-green-800 cursor-pointer">
                   <Plus size={16} />
-                  <span>Add image</span>
-                </button>
+                  <span>Add images</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleAddImages}
+                    className="hidden"
+                  />
+                </label>
               </div>
-              {images.length === 0 && (
-                <p className="text-xs text-gray-500">Provide URL + Public ID if you want to attach images.</p>
+              {uploadFiles.length === 0 && (
+                <p className="text-xs text-gray-500">Upload images from your device (max 10).</p>
               )}
-              {images.map((image, index) => (
-                <div key={index} className="grid grid-cols-1 md:grid-cols-10 gap-3 items-center">
-                  <div className="md:col-span-4">
-                    <input
-                      type="text"
-                      value={image.url}
-                      onChange={(e) => handleImageChange(index, "url", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="Image URL"
-                    />
-                  </div>
-                  <div className="md:col-span-5">
-                    <input
-                      type="text"
-                      value={image.publicId}
-                      onChange={(e) => handleImageChange(index, "publicId", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="Image Public ID"
-                    />
-                  </div>
-                  <div className="md:col-span-1 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage(index)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
+              {uploadFiles.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {uploadFiles.map((item, index) => (
+                    <div key={index} className="relative border rounded-lg overflow-hidden">
+                      <img
+                        src={item.preview}
+                        alt={`Upload ${index + 1}`}
+                        className="w-full h-24 object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveUpload(index)}
+                        className="absolute top-1 right-1 bg-white/80 text-red-600 hover:text-red-800 rounded-full p-1"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
 
             <div>
