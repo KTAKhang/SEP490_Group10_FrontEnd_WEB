@@ -70,7 +70,14 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.supplierId || !formData.productId || !formData.batchNumber || !formData.harvestDate || !formData.quantity) {
+    if (!formData.supplierId || !formData.productId || !formData.harvestDate || !formData.quantity) {
+      return;
+    }
+
+    // ✅ Validation: Batch Number không được để trống
+    const batchNumberTrimmed = formData.batchNumber?.trim() || "";
+    if (!batchNumberTrimmed) {
+      alert("Số lô thu hoạch (Batch Number) là bắt buộc và không được để trống");
       return;
     }
 
@@ -94,7 +101,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
     const cleanedData = {
       supplierId: formData.supplierId,
       productId: formData.productId,
-      batchNumber: formData.batchNumber.trim(),
+      batchNumber: batchNumberTrimmed,
       harvestDate: formData.harvestDate,
       quantity: quantityNum,
       location: formData.location?.trim() || "",
