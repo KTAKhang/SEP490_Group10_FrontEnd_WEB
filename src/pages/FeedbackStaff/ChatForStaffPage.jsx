@@ -62,31 +62,44 @@ export default function StaffChat() {
   /* ======================
      SOCKET: ROOM UPDATED
   ====================== */
-  useEffect(() => {
-    socket.on("room_updated", (updatedRoom) => {
-      setRooms((prev) => {
-        const exists = prev.find((r) => r._id === updatedRoom._id);
+ useEffect(() => {
+  if (!staff?._id) return;
 
-        // 🆕 Room mới
-        if (!exists) {
-          return [updatedRoom, ...prev];
-        }
+  const handler = (updatedRoom) => {
+    // ❌ Không phải room của staff này → bỏ qua
+    if (
+      !updatedRoom.staff ||
+      updatedRoom.staff._id !== staff._id
+    ) {
+      return;
+    }
 
-        // 🔁 Update lastMessage + đẩy lên đầu
-        return [
-          {
-            ...exists,
-            lastMessage: updatedRoom.lastMessage,
-            updatedAt: updatedRoom.updatedAt,
-            unreadByStaff: updatedRoom.unreadByStaff ?? exists.unreadByStaff,
-          },
-          ...prev.filter((r) => r._id !== updatedRoom._id),
-        ];
-      });
+    setRooms((prev) => {
+      const exists = prev.find((r) => r._id === updatedRoom._id);
+
+      // 🆕 Room mới
+      if (!exists) {
+        return [updatedRoom, ...prev];
+      }
+
+      // 🔁 Update lastMessage + đẩy lên đầu
+      return [
+        {
+          ...exists,
+          lastMessage: updatedRoom.lastMessage,
+          updatedAt: updatedRoom.updatedAt,
+          unreadByStaff:
+            updatedRoom.unreadByStaff ?? exists.unreadByStaff,
+        },
+        ...prev.filter((r) => r._id !== updatedRoom._id),
+      ];
     });
+  };
 
-    return () => socket.off("room_updated");
-  }, []);
+  socket.on("room_updated", handler);
+  return () => socket.off("room_updated", handler);
+}, [staff]);
+
 
   /* ======================
      JOIN ROOM

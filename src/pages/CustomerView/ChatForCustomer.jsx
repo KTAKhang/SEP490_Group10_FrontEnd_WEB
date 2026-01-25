@@ -157,7 +157,7 @@ const [user, setUser] = useState(null);
                 <MessageCircle className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h3 className="text-white font-semibold">Hỗ trợ khách hàng</h3>
+                <h3 className="text-white font-semibold">Support </h3>
                 <p className="text-blue-100 text-xs flex items-center gap-1">
                   <span className="w-2 h-2 bg-green-400 rounded-full"></span>
                   Trực tuyến
