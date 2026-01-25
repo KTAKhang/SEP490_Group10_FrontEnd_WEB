@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X, Calendar, Package, MapPin } from "lucide-react";
+import axios from "axios";
 import { createHarvestBatchRequest } from "../../../redux/actions/supplierActions";
 import { getSuppliersRequest } from "../../../redux/actions/supplierActions";
 import { getProductsRequest } from "../../../redux/actions/productActions";
+
+const API_BASE = "https://provinces.open-api.vn/api/v2";
 
 const CreateHarvestBatch = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
@@ -18,10 +21,15 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
     harvestDate: "",
     quantity: "",
     location: "",
+    city: "",
+    ward: "",
     qualityGrade: "A",
     notes: "",
   });
 
+  const [provinces, setProvinces] = useState([]);
+  const [wards, setWards] = useState([]);
+  const [icity, setIcity] = useState("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
   useEffect(() => {
@@ -38,11 +46,49 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
         harvestDate: "",
         quantity: "",
         location: "",
+        city: "",
+        ward: "",
         qualityGrade: "A",
         notes: "",
       });
+      setIcity("");
     }
   }, [dispatch, isOpen]);
+
+  useEffect(() => {
+    axios
+      .get(`${API_BASE}/p/`)
+      .then((res) => setProvinces(res.data))
+      .catch((err) => console.error("Error loading provinces:", err));
+  }, []);
+
+  useEffect(() => {
+    if (!formData.city) {
+      setWards([]);
+      setFormData((prev) => ({ ...prev, ward: "" }));
+      setIcity("");
+      return;
+    }
+
+    axios
+      .get(`${API_BASE}/w/`)
+      .then((res) => {
+        const filtered = res.data.filter(
+          (ward) => ward.province_code === Number(formData.city),
+        );
+        setWards(filtered);
+      })
+      .catch((err) => console.error("Error loading wards:", err));
+  }, [formData.city]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "city") {
+      const selectedProvince = provinces.find((p) => p.code === Number(value));
+      setIcity(selectedProvince ? selectedProvince.name : "");
+    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   useEffect(() => {
     // Only close modal if submission was successful (no error) and loading is done
@@ -55,9 +101,12 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
         harvestDate: "",
         quantity: "",
         location: "",
+        city: "",
+        ward: "",
         qualityGrade: "A",
         notes: "",
       });
+      setIcity("");
       // Close modal after successful creation
       onClose();
     } else if (hasSubmitted && !createHarvestBatchLoading && createHarvestBatchError) {
@@ -98,13 +147,18 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
     }
 
     // Clean data
+    const locationLine = formData.location?.trim() || "";
+    const wardName = formData.ward?.toString().trim() || "";
+    const provinceName = icity?.toString().trim() || "";
+    const locationParts = [locationLine, wardName, provinceName].filter(Boolean);
+
     const cleanedData = {
       supplierId: formData.supplierId,
       productId: formData.productId,
       batchNumber: batchNumberTrimmed,
       harvestDate: formData.harvestDate,
       quantity: quantityNum,
-      location: formData.location?.trim() || "",
+      location: locationParts.join(", "),
       qualityGrade: formData.qualityGrade || "A",
       notes: formData.notes?.trim() || "",
     };
@@ -122,9 +176,12 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
         harvestDate: "",
         quantity: "",
         location: "",
+        city: "",
+        ward: "",
         qualityGrade: "A",
         notes: "",
       });
+    setIcity("");
     onClose();
   };
 
@@ -211,7 +268,8 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
                 <input
                   type="text"
                   value={formData.batchNumber}
-                  onChange={(e) => setFormData({ ...formData, batchNumber: e.target.value })}
+                  onChange={handleInputChange}
+                  name="batchNumber"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   placeholder="Enter batch number"
                   required
@@ -227,7 +285,8 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
                   <input
                     type="date"
                     value={formData.harvestDate}
-                    onChange={(e) => setFormData({ ...formData, harvestDate: e.target.value })}
+                    onChange={handleInputChange}
+                    name="harvestDate"
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     max={today}
                     required
@@ -243,7 +302,8 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
               <input
                 type="number"
                 value={formData.quantity}
-                onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                onChange={handleInputChange}
+                name="quantity"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 placeholder="Enter quantity in KG"
                 min="1"
@@ -257,13 +317,45 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
                 <MapPin size={16} />
                 <span>Location</span>
               </label>
-              <input
-                type="text"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Enter harvest location"
-              />
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  value={formData.location}
+                  onChange={handleInputChange}
+                  name="location"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Số nhà, tên đường"
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <select
+                    name="city"
+                    value={formData.city}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  >
+                    <option value="">Chọn tỉnh/thành</option>
+                    {provinces.map((province) => (
+                      <option key={province.code} value={province.code}>
+                        {province.name}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    name="ward"
+                    value={formData.ward}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    disabled={!formData.city}
+                  >
+                    <option value="">Chọn phường/xã</option>
+                    {wards.map((ward) => (
+                      <option key={ward.code} value={ward.name}>
+                        {ward.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
 
             <div>
@@ -272,7 +364,8 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
               </label>
               <select
                 value={formData.qualityGrade}
-                onChange={(e) => setFormData({ ...formData, qualityGrade: e.target.value })}
+                onChange={handleInputChange}
+                name="qualityGrade"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 required
               >
@@ -289,7 +382,8 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
               </label>
               <textarea
                 value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                onChange={handleInputChange}
+                name="notes"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 rows="3"
                 placeholder="Enter notes"

@@ -102,7 +102,6 @@ function* createCategorySaga(action) {
     const response = yield call(apiCreateCategory, formData);
     if (response.status === "OK") {
       yield put(createCategorySuccess(response.data));
-      toast.success(response.message || "Tạo danh mục thành công");
       // Refresh categories list
       yield put({ type: GET_CATEGORIES_REQUEST });
     } else {
@@ -122,7 +121,6 @@ function* updateCategorySaga(action) {
     const response = yield call(apiUpdateCategory, id, formData);
     if (response.status === "OK") {
       yield put(updateCategorySuccess(response.data));
-      toast.success(response.message || "Cập nhật danh mục thành công");
     } else {
       throw new Error(response.message || "Không thể cập nhật danh mục");
     }
