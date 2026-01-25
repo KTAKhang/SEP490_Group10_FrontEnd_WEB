@@ -180,11 +180,7 @@ function* getProductStatsSaga() {
   try {
     const response = yield call(apiGetProductStats);
     if (response.status === "OK") {
-      yield put(createReceiptSuccess(response.data));
-      // Toast is handled in component
-      // Refresh products list to update quantities
-      yield put({ type: GET_PRODUCTS_REQUEST });
-
+      yield put(getProductStatsSuccess(response.data));
     } else {
       throw new Error(response.message || "Không thể tải thống kê sản phẩm");
     }

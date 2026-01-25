@@ -14,7 +14,6 @@ import {
   Download,
   Upload,
   Eye,
-  RefreshCw,
 } from "lucide-react";
 import {
   getProductsRequest,
@@ -22,7 +21,6 @@ import {
   getProductStatsRequest,
 } from "../../../redux/actions/productActions";
 import { getCategoriesRequest } from "../../../redux/actions/categoryActions";
-import { confirmResetProductRequest } from "../../../redux/actions/productBatchActions";
 import CreateProduct from "./CreateProduct";
 import UpdateProduct from "./UpdateProduct";
 import DetailProduct from "./DetailProduct";
@@ -76,9 +74,6 @@ const WareHouse = () => {
   const [prevCreateLoading, setPrevCreateLoading] = useState(false);
   const [prevUpdateLoading, setPrevUpdateLoading] = useState(false);
   const [prevDeleteLoading, setPrevDeleteLoading] = useState(false);
-  const [confirmingProductId, setConfirmingProductId] = useState(null);
-  
-  const { confirmResetLoading } = useSelector((state) => state.productBatch);
 
   // Fetch products, categories and stats on mount
   useEffect(() => {
@@ -203,33 +198,6 @@ receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undef
     if (!window.confirm("Are you sure you want to delete this product?")) return;
     dispatch(deleteProductRequest(id));
   };
-
-  const handleConfirmReset = (productId) => {
-    if (window.confirm("Bạn có chắc chắn muốn xác nhận reset lô hàng này không? Hệ thống sẽ tạo batch history và reset sản phẩm về 0.")) {
-      setConfirmingProductId(productId);
-      dispatch(confirmResetProductRequest(productId));
-    }
-  };
-
-  // Reload products after successful confirmation
-  useEffect(() => {
-    if (!confirmResetLoading && confirmingProductId) {
-      setConfirmingProductId(null);
-      const params = {
-        page: currentPage,
-        limit: 10,
-        search: searchTerm || undefined,
-        stockStatus: filterStockStatus !== "all" ? filterStockStatus : undefined,
-        receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,
-        category: selectedCategory !== "all" ? selectedCategory : undefined,
-        sortBy,
-        sortOrder,
-      };
-      dispatch(getProductsRequest(params));
-      dispatch(getProductStatsRequest());
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [confirmResetLoading]);
 // Use stats from API
   const stats = {
     total: productStats?.total || 0,
@@ -534,25 +502,6 @@ receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undef
                               >
                                 <Edit size={18} />
                               </button>
-                              {/* Show Confirm Reset button when onHandQuantity === 0 and pendingBatchReset === true */}
-                              {product.onHandQuantity === 0 && product.pendingBatchReset && (
-                                <button
-                                  onClick={() => handleConfirmReset(product._id)}
-                                  disabled={confirmResetLoading || confirmingProductId === product._id}
-                                  className={`p-1 rounded transition-colors ${
-confirmingProductId === product._id || confirmResetLoading
-                                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                      : "bg-orange-500 text-white hover:bg-orange-600"
-                                  }`}
-                                  title="Xác nhận reset lô hàng"
-                                >
-                                  {confirmingProductId === product._id || confirmResetLoading ? (
-                                    <RefreshCw size={18} className="animate-spin" />
-                                  ) : (
-                                    <RefreshCw size={18} />
-                                  )}
-                                </button>
-                              )}
                               <button
                                 onClick={() => handleDeleteProduct(product._id)}
                                 className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded"
