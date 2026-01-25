@@ -32,12 +32,6 @@ import AdminSupplierManagement from "../pages/Admin/Supplier/SupplierManagement"
 // Admin Harvest Batch Management
 import AdminHarvestBatchManagement from "../pages/Admin/HarvestBatch/HarvestBatchManagement";
 
-// QC Staff Management (Quality Verification, Performance Evaluation)
-import QualityVerificationManagement from "../pages/QcStaff/Supplier/QualityVerification/QualityVerificationManagement";
-import PerformanceEvaluationManagement from "../pages/QcStaff/Supplier/Performance/PerformanceEvaluationManagement";
-import QcStaffLayout from "../layout/QcStaffLayout";
-import QcStaffPage from "../pages/QcStaff/QcStaffPage/QcStaffPage";
-
 import CartPage from "../pages/CustomerView/CartPage";
 import CheckoutPage from "../pages/CustomerView/CheckoutPage";
 import StaffManagement from "../pages/StaffManagement/StaffManagement";
@@ -135,6 +129,8 @@ export const routes = [
     ),
     children: [
       { index: true, element: <AdminPage /> },
+      { path: "profile", element: <ProfileManagement /> },
+      { path: "change-password", element: <UpdatePassword /> },
       { path: "warehouse", element: <WareHouse /> },
       { path: "category", element: <CategoryManagement /> },
       { path: "suppliers", element: <AdminSupplierManagement /> },
@@ -155,21 +151,6 @@ export const routes = [
     ],
   },
 
-  // Khu vực QC Staff
-  {
-    path: "/qc-staff",
-    element: (
-      <PrivateRoute requiredRole="qc_staff">
-        <QcStaffLayout />
-      </PrivateRoute>
-    ),
-    children: [
-      { index: true, element: <QcStaffPage /> },
-      { path: "quality-verifications", element: <QualityVerificationManagement /> },
-      { path: "performance-evaluations", element: <PerformanceEvaluationManagement /> },
-    ],
-  },
-
   // Khu vực Warehouse Staff
   {
     path: "/warehouse-staff",
@@ -180,6 +161,8 @@ export const routes = [
     ),
     children: [
       { index: true, element: <WarehouseStaffPage /> },
+      { path: "profile", element: <ProfileManagement /> },
+      { path: "change-password", element: <UpdatePassword /> },
       { path: "warehouse", element: <WarehouseStaffWareHouse /> },
     ],
   },
