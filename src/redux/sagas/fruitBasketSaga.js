@@ -37,13 +37,20 @@ const apiGetFruitBasketById = async (id) => {
   return response.data;
 };
 
+const isFormData = (value) =>
+  typeof FormData !== "undefined" && value instanceof FormData;
+
 const apiCreateFruitBasket = async (formData) => {
-  const response = await apiClient.post("/admin/fruit-baskets", formData);
+  const response = await apiClient.post("/admin/fruit-baskets", formData, {
+    headers: isFormData(formData) ? { "Content-Type": "multipart/form-data" } : undefined,
+  });
   return response.data;
 };
 
 const apiUpdateFruitBasket = async (id, formData) => {
-  const response = await apiClient.put(`/admin/fruit-baskets/${id}`, formData);
+  const response = await apiClient.put(`/admin/fruit-baskets/${id}`, formData, {
+    headers: isFormData(formData) ? { "Content-Type": "multipart/form-data" } : undefined,
+  });
   return response.data;
 };
 

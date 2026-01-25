@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { X, Package, Calendar, Building2, Scale } from "lucide-react";
+import { X, Package, Calendar, Building2, Scale, MapPin } from "lucide-react";
 import { getHarvestBatchByIdRequest } from "../../../redux/actions/supplierActions";
 import Loading from "../../../components/Loading/Loading";
 
@@ -84,6 +84,15 @@ const ReadHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                       {formatDate(harvestBatchDetail.harvestDate)}
                     </span>
                   </div>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-sm text-gray-500 mb-1 flex items-center space-x-1">
+                    <MapPin size={16} className="text-gray-400" />
+                    <span>Location</span>
+                  </p>
+                  <p className="text-base font-medium text-gray-900">
+                    {harvestBatchDetail.location || "N/A"}
+                  </p>
                 </div>
               </div>
             </div>

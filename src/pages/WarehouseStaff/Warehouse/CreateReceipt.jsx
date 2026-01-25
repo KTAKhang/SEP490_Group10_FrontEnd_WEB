@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
-import { createReceiptRequest } from "../../../redux/actions/inventoryActions";
+import { createReceiptRequest, getReceiptHistoryRequest } from "../../../redux/actions/inventoryActions";
 import { getHarvestBatchesRequest } from "../../../redux/actions/supplierActions";
 
 const CreateReceipt = ({ isOpen, onClose, product }) => {
   const dispatch = useDispatch();
-  const { createReceiptLoading } = useSelector((state) => state.inventory);
+  const { createReceiptLoading, receiptHistory, receiptHistoryLoading } = useSelector((state) => state.inventory);
   const { harvestBatches, harvestBatchesLoading } = useSelector((state) => state.supplier);
 
   const [receiptData, setReceiptData] = useState({
@@ -55,6 +55,21 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
     }
   }, [isOpen, product, hasSupplier, dispatch]);
 
+  // Load receipt history to enforce "same harvest batch" rule
+  useEffect(() => {
+    if (isOpen && product && hasSupplier) {
+      dispatch(
+        getReceiptHistoryRequest({
+          productId: product._id,
+          page: 1,
+          limit: 100,
+          sortBy: "createdAt",
+          sortOrder: "asc",
+        })
+      );
+    }
+  }, [isOpen, product, hasSupplier, dispatch]);
+
   // Load product data when product changes
   useEffect(() => {
     if (product) {
@@ -68,6 +83,18 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
     }
   }, [product]);
 
+  const existingReceiptWithBatch = (receiptHistory || []).find(
+    (tx) => tx?.harvestBatch?._id || tx?.harvestBatch
+  );
+  const existingHarvestBatchId =
+    existingReceiptWithBatch?.harvestBatch?._id || existingReceiptWithBatch?.harvestBatch || "";
+
+  useEffect(() => {
+    if (existingHarvestBatchId) {
+      setReceiptData((prev) => ({ ...prev, harvestBatchId: existingHarvestBatchId }));
+    }
+  }, [existingHarvestBatchId]);
+
   const handleSubmit = () => {
     if (!receiptData.productId || receiptData.quantity <= 0) {
       toast.error("Please enter a valid quantity");
@@ -78,6 +105,12 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
     if (hasSupplier) {
       if (!receiptData.harvestBatchId) {
         toast.error("Sản phẩm có nhà cung cấp, bắt buộc phải chọn lô thu hoạch (harvestBatchId) khi nhập hàng vào kho");
+        return;
+      }
+
+      // ✅ Ràng buộc: Nếu đã từng nhập kho với lô thu hoạch, các lần sau phải dùng cùng lô
+      if (existingHarvestBatchId && receiptData.harvestBatchId !== existingHarvestBatchId) {
+        toast.error("Đã chọn lô thu hoạch ở lần nhập kho đầu tiên, các lần sau không thể đổi lô khác");
         return;
       }
 
@@ -191,7 +224,7 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
             />
           </div>
           {/* ✅ Harvest Batch Selection - Required if product has supplier */}
-          {hasSupplier && (
+          {hasSupplier && !existingHarvestBatchId && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Harvest Batch <span className="text-red-500">*</span>
@@ -199,6 +232,10 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
               {harvestBatchesLoading ? (
                 <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 text-sm">
                   Loading harvest batches...
+                </div>
+              ) : receiptHistoryLoading ? (
+                <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 text-sm">
+                  Loading receipt history...
                 </div>
               ) : harvestBatches.length === 0 ? (
                 <div className="w-full px-3 py-2 border border-red-300 rounded-lg bg-red-50 text-red-700 text-sm">

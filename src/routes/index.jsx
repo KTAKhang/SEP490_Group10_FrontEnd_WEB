@@ -51,6 +51,8 @@ import ShopManagement from "../pages/Admin/Shop/ShopManagement";
 import AboutUsPage from "../pages/AboutUsPage";
 import OrderSuccessPage from "../pages/CustomerView/OrderSuccessPage";
 import PaymentSuccessPage from "../pages/CustomerView/PaymentSuccessPage";
+import OrderHistory from "../pages/CustomerView/OrderHistory";
+import OrderManagement from "../pages/Admin/OrderManagement/OrderManagement";
 
 
 export const routes = [
@@ -120,6 +122,7 @@ export const routes = [
       { path: "contact-history", element: <ContactHistoryPage /> },
       { path: "cart", element: <CartPage /> },
       { path: "checkout", element: <CheckoutPage /> },
+      { path: "orders", element: <OrderHistory /> },
       { path: "order-success", element: <OrderSuccessPage /> },
       { path: "payment-result", element: <PaymentSuccessPage /> },
     ],
@@ -150,6 +153,7 @@ export const routes = [
       { path: "staff", element: <StaffManagement /> },
       { path: "customers", element: <CustomerManagement /> },
       { path: "discounts", element: <AdminDiscountManagement /> },
+      { path: "orders", element: <OrderManagement /> },
       { path: "news", element: <NewsListPage /> },
       { path: "news/create", element: <NewsFormPage /> },
       { path: "news/edit/:id", element: <NewsFormPage /> },
