@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logoutRequest } from "../../redux/actions/authActions";
 import { useSidebar } from "../../contexts/SidebarContext";
-import { Menu, LogOut, User, Settings, Bell } from "lucide-react";
+import { Menu, LogOut, User, Settings } from "lucide-react";
+import NotificationBell from "../NotificationBell/NotificationBell";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -40,12 +41,9 @@ const Navbar = () => {
 
       {/* Right: User menu */}
       <div className="flex items-center space-x-4">
-        {/* Notifications */}
-        <button className="p-2 hover:bg-gray-100 rounded-lg relative">
-          <Bell size={20} />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
-
+        {/* NOTIFICATIONS */}
+        <NotificationBell />
+        
         {/* User dropdown */}
         <div className="relative">
           <button

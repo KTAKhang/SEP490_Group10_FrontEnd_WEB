@@ -67,6 +67,11 @@ const Sidebar = () => {
       label: "Staff Management",
       path: "/admin/staff",
     },
+      {
+      icon: Users,
+      label: "Customer Management",
+      path: "/admin/customers",
+    },
     {
       icon: Ticket,
       label: "Discount Management",
