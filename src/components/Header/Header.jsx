@@ -5,6 +5,7 @@ import { logoutRequest } from "../../redux/actions/authActions";
 import { LogOut, Settings, User, Clock, Package, Menu, X } from "lucide-react";
 import PropTypes from "prop-types";
 import { fetchCartRequest } from "../../redux/actions/cartActions";
+import NotificationBell from "../NotificationBell/NotificationBell";
 
 const Header = ({ searchTerm, setSearchTerm }) => {
   void searchTerm;
@@ -65,6 +66,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
               { label: "Contact", path: "/customer/contact" },
               { label: "News", path: "/news" },
               { label: "FAQ", path: "/faq" },
+              { label: "Voucher", path: "/customer/vouchers" },
        ...(storedUser ? [{ label: "Wishlist", path: "/wishlist" }] : []),
             ].map((item) => (
               <Link
@@ -82,6 +84,9 @@ const Header = ({ searchTerm, setSearchTerm }) => {
             {/* USER */}
             {storedUser ? (
               <>
+                {/* NOTIFICATIONS */}
+                <NotificationBell />
+                
                 {/* CART */}
                 <Link
                   to="/customer/cart"
@@ -183,6 +188,7 @@ className="text-sm text-gray-700 hover:text-green-600"
               { label: "About Us", path: "/about" },
               { label: "Contact", path: "/customer/contact" },
               { label: "FAQ", path: "/faq" },
+              { label: "Voucher", path: "/customer/vouchers" },
              ...(storedUser ? [{ label: "Wishlist", path: "/wishlist" }] : []),
             ].map((item) => (
               <Link
