@@ -347,7 +347,7 @@ const OrderManagement = () => {
         <div className="flex flex-col lg:flex-row lg:items-start gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Trạng thái đơn hàng (chọn nhiều)
+              Trạng thái đơn hàng
             </label>
             <div className="flex flex-wrap gap-2">
               <button
@@ -369,12 +369,9 @@ const OrderManagement = () => {
                   <button
                     key={status.value}
                     onClick={() => {
-                      setStatusFilters((prev) => {
-                        const next = prev.includes(status.value)
-                          ? prev.filter((item) => item !== status.value)
-                          : [...prev, status.value];
-                        return next;
-                      });
+                      setStatusFilters((prev) =>
+                        prev.includes(status.value) ? [] : [status.value]
+                      );
                       setPage(1);
                     }}
                     className={`px-3 py-2 rounded-lg border text-sm ${
