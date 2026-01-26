@@ -16,9 +16,8 @@ export const AuthProvider = ({ children }) => {
       try {
         setUser(JSON.parse(storedUser));
         setToken(storedToken);
-        console.log('🔄 Auth initialized from localStorage');
       } catch (error) {
-        console.error('❌ Error parsing stored user data:', error);
+        console.error('Error parsing stored user data:', error);
         // Clear corrupted data
         localStorage.removeItem('user');
         localStorage.removeItem('token');
@@ -33,9 +32,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('user', JSON.stringify(userData));
     if (authToken) {
       localStorage.setItem('token', authToken);
-      console.log('🔑 Token stored:', authToken ? `${authToken.substring(0, 20)}...` : 'null');
     }
-    console.log('✅ User logged in:', userData?.user_name || userData?.email);
   };
 
   const logout = () => {
@@ -44,7 +41,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     localStorage.removeItem('role');
-    console.log('👋 User logged out');
   };
 
   const isAuthenticated = () => {
