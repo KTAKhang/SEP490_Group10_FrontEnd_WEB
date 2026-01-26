@@ -38,27 +38,20 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
 
   // Track if we submitted the form
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  const [hasShownToast, setHasShownToast] = useState(false);
 
   // Close modal after successful update
   useEffect(() => {
-    if (hasSubmitted && !updateProductLoading && !updateProductError && !hasShownToast) {
-      // Update was successful, show toast and close modal
-      toast.success("Product updated successfully!");
-      setHasShownToast(true);
+    if (hasSubmitted && !updateProductLoading && !updateProductError) {
       setHasSubmitted(false);
       onClose();
+    } else if (hasSubmitted && !updateProductLoading && updateProductError) {
+      setHasSubmitted(false);
     }
-    if (hasSubmitted && updateProductError && !hasShownToast) {
-      toast.error(updateProductError);
-      setHasShownToast(true);
-    }
-  }, [hasSubmitted, updateProductLoading, updateProductError, hasShownToast, onClose]);
+  }, [hasSubmitted, updateProductLoading, updateProductError, onClose]);
 
-  // Reset toast flag when modal opens
+  // Reset submit flag when modal opens
   useEffect(() => {
     if (isOpen) {
-      setHasShownToast(false);
       setHasSubmitted(false);
     }
   }, [isOpen]);
