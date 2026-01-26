@@ -40,6 +40,9 @@ import {
     DISCOUNT_GET_VALID_REQUEST,
     DISCOUNT_GET_VALID_SUCCESS,
     DISCOUNT_GET_VALID_FAILURE,
+    DISCOUNT_APPLY_REQUEST,
+    DISCOUNT_APPLY_SUCCESS,
+    DISCOUNT_APPLY_FAILURE,
 } from "../actions/discountActions";
 
 // Get discount list
@@ -286,6 +289,31 @@ function* validateDiscountCode(action) {
     }
 }
 
+// Apply discount code after order creation
+function* applyDiscountCode(action) {
+    try {
+        const { discountId, orderValue, orderId } = action.payload;
+        if (!discountId || orderValue === undefined) {
+            throw new Error("Thiếu thông tin mã giảm giá hoặc giá trị đơn hàng");
+        }
+
+        const response = yield call(() =>
+            apiClient.post("/discounts/customer/apply", { discountId, orderValue, orderId })
+        );
+
+        if (response.data?.status === "OK") {
+            yield put({ type: DISCOUNT_APPLY_SUCCESS, payload: response.data });
+            toast.success(response.data.message || "Áp dụng mã giảm giá thành công");
+        } else {
+            throw new Error(response.data?.message || "Áp dụng mã giảm giá thất bại");
+        }
+    } catch (err) {
+        const message = err.response?.data?.message || err.message;
+        yield put({ type: DISCOUNT_APPLY_FAILURE, payload: message });
+        toast.error(message);
+    }
+}
+
 // Get valid discounts for customer
 function* getValidDiscounts(action) {
     try {
@@ -317,4 +345,5 @@ export default function* discountSaga() {
     yield takeLatest(DISCOUNT_DETAIL_REQUEST, fetchDiscountDetail);
     yield takeLatest(DISCOUNT_VALIDATE_REQUEST, validateDiscountCode);
     yield takeLatest(DISCOUNT_GET_VALID_REQUEST, getValidDiscounts);
+    yield takeLatest(DISCOUNT_APPLY_REQUEST, applyDiscountCode);
 }

@@ -21,7 +21,7 @@ const StaffManagementPage = () => {
         (state) => state.discount || {}
     );
 
-    const [statusFilter, setStatusFilter] = useState("PENDING");
+    const [statusFilter, setStatusFilter] = useState("ALL");
     const [sortBy, setSortBy] = useState("createdAt");
     const [sortOrder, setSortOrder] = useState("desc");
     const [loadingRefresh, setLoadingRefresh] = useState(false);
@@ -45,13 +45,15 @@ const StaffManagementPage = () => {
         const stats = {
             pending: 0,
             approved: 0,
-            rejected: 0
+            rejected: 0,
+            expired: 0
         };
         
         list.forEach(discount => {
             if (discount.status === "PENDING") stats.pending++;
             else if (discount.status === "APPROVED") stats.approved++;
             else if (discount.status === "REJECTED") stats.rejected++;
+            else if (discount.status === "EXPIRED") stats.expired++;
         });
         
         return stats;
@@ -65,20 +67,25 @@ const StaffManagementPage = () => {
                 limit: query.limit ?? 10,
                 sortBy: query.sortBy ?? sortBy,
                 sortOrder: query.sortOrder ?? sortOrder,
-                status: query.status ?? statusFilter,
             };
+            // Only include status filter if it's not "ALL"
+            if (query.status && query.status !== "ALL") {
+                payload.status = query.status;
+            } else if (statusFilter && statusFilter !== "ALL") {
+                payload.status = statusFilter;
+            }
             dispatch(discountListRequest(payload));
         },
         [dispatch, sortBy, sortOrder, statusFilter]
     );
 
     useEffect(() => {
-        loadDiscounts({ page: 1, limit: 10, status: "PENDING" });
+        loadDiscounts({ page: 1, limit: 10 });
     }, []);
 
     // Auto-load when filters change
     useEffect(() => {
-        loadDiscounts({ page: 1, status: statusFilter });
+        loadDiscounts({ page: 1, status: statusFilter === "ALL" ? undefined : statusFilter });
     }, [statusFilter, loadDiscounts]);
 
     const handleCreate = () => {
@@ -153,9 +160,32 @@ const StaffManagementPage = () => {
         if (!formData.endDate) {
             errors.endDate = "End date is required";
         }
+        
+        // Validate dates are not in the past
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time to start of day for comparison
+        
+        if (formData.startDate) {
+            const startDate = new Date(formData.startDate);
+            startDate.setHours(0, 0, 0, 0);
+            if (startDate < today) {
+                errors.startDate = "Start date cannot be in the past";
+            }
+        }
+        
+        if (formData.endDate) {
+            const endDate = new Date(formData.endDate);
+            endDate.setHours(0, 0, 0, 0);
+            if (endDate < today) {
+                errors.endDate = "End date cannot be in the past";
+            }
+        }
+        
+        // Validate date range
         if (formData.startDate && formData.endDate && new Date(formData.startDate) >= new Date(formData.endDate)) {
             errors.endDate = "End date must be after start date";
         }
+        
         if (formData.usageLimit && formData.usageLimit < 1) {
             errors.usageLimit = "Usage limit must be at least 1 (leave empty for unlimited)";
         }
@@ -228,6 +258,7 @@ const StaffManagementPage = () => {
             PENDING: { label: "Pending", color: "bg-yellow-100 text-yellow-700" },
             APPROVED: { label: "Approved", color: "bg-green-100 text-green-700" },
             REJECTED: { label: "Rejected", color: "bg-red-100 text-red-700" },
+            EXPIRED: { label: "Expired", color: "bg-gray-100 text-gray-700" },
         };
         const statusConfig = config[status] || { label: status, color: "bg-gray-100 text-gray-700" };
         return (
@@ -237,7 +268,7 @@ const StaffManagementPage = () => {
         );
     };
 
-    const filteredList = list.filter((d) => d.status === statusFilter);
+    const filteredList = statusFilter === "ALL" ? list : list.filter((d) => d.status === statusFilter);
 
     return (
         <div className="min-h-screen bg-gray-50 p-6">
@@ -280,9 +311,11 @@ const StaffManagementPage = () => {
                                 onChange={(e) => setStatusFilter(e.target.value)}
                                 className="px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white"
                             >
+                                <option value="ALL">All Discounts</option>
                                 <option value="PENDING">Pending</option>
                                 <option value="APPROVED">Approved</option>
                                 <option value="REJECTED">Rejected</option>
+                                <option value="EXPIRED">Expired</option>
                             </select>
 
                             <select
