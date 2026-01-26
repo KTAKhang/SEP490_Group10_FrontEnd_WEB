@@ -11,6 +11,7 @@ import ProductDetailPage from "../pages/CustomerView/ProductDetailPage";
 import Categories from "../pages/CustomerView/CategoryPage";
 import WishlistPage from "../pages/CustomerView/WishlistPage";
 import FruitBasketPage from "../pages/CustomerView/FruitBasketPage";
+import FruitBasketDetail from "../pages/CustomerView/FruitBasketDetail";
 import CustomerLayout from "../layout/CustomerLayout";
 import AdminLayout from "../layout/AdminLayout";
 import AdminPage from "../pages/Admin/AdminPage/AdminPage";
@@ -81,6 +82,10 @@ export const routes = [
   {
     path: "/fruit-baskets",
     element: <FruitBasketPage />,
+  },
+  {
+    path: "/fruit-baskets/:id",
+    element: <FruitBasketDetail />,
   },
   {
     path: "/news",
