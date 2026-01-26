@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { X, Building2, Phone, Mail, MapPin, FileText, TrendingUp, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { X, Building2, Phone, Mail, MapPin, FileText, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import { getSupplierByIdRequest } from "../../../redux/actions/supplierActions";
 import Loading from "../../../components/Loading/Loading";
 
@@ -88,15 +88,6 @@ const ReadSupplier = ({ isOpen, onClose, supplierId }) => {
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Cooperation Status</p>
                     {getCooperationStatusBadge(supplierDetail.cooperationStatus)}
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Performance Score</p>
-                    <div className="flex items-center space-x-2">
-                      <TrendingUp size={16} className="text-gray-400" />
-                      <span className="text-base font-medium text-gray-900">
-                        {supplierDetail.performanceScore || 0}/100
-                      </span>
-                    </div>
                   </div>
                 </div>
               </div>

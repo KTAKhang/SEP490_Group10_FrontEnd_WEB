@@ -125,7 +125,6 @@ const ProfileManager = () => {
   };
   useEffect(() => {
     if (updateSuccess) {
-      message.success("Cập nhật thành công!");
       setTimeout(() => {
         window.location.reload();
       }, 1000);
