@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Check } from 'lucide-react';
 
 export default function OrderSuccessPage() {
   const [animate, setAnimate] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setAnimate(true);
@@ -19,7 +21,10 @@ export default function OrderSuccessPage() {
         
         <p className="text-gray-600 mb-8 text-lg">Cảm ơn bạn đã mua hàng</p>
         
-        <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-200 shadow-md">
+        <button
+          onClick={() => navigate("/customer/orders")}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-200 shadow-md"
+        >
           Xem chi tiết đơn hàng
         </button>
       </div>

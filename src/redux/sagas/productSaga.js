@@ -123,7 +123,7 @@ function* createProductSaga(action) {
         console.log("📊 Featured status:", response.data?.is_featured || false);
       }
       
-      // Toast is handled in component (CreateProduct or WareHouse)
+      toast.success(response.message || "Tạo sản phẩm thành công");
       // Refresh products list
       yield put({ type: GET_PRODUCTS_REQUEST });
     } else {
@@ -143,7 +143,7 @@ function* updateProductSaga(action) {
     const response = yield call(apiUpdateProduct, id, formData);
     if (response.status === "OK") {
       yield put(updateProductSuccess(response.data));
-      // Toast is handled in component
+      toast.success(response.message || "Cập nhật sản phẩm thành công");
       // Product is updated directly in reducer, no need to refetch
     } else {
       throw new Error(response.message || "Không thể cập nhật sản phẩm");
@@ -180,11 +180,7 @@ function* getProductStatsSaga() {
   try {
     const response = yield call(apiGetProductStats);
     if (response.status === "OK") {
-      yield put(createReceiptSuccess(response.data));
-      // Toast is handled in component
-      // Refresh products list to update quantities
-      yield put({ type: GET_PRODUCTS_REQUEST });
-
+      yield put(getProductStatsSuccess(response.data));
     } else {
       throw new Error(response.message || "Không thể tải thống kê sản phẩm");
     }

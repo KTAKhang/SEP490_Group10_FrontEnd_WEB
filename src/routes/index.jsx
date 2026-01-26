@@ -10,6 +10,8 @@ import ProdcutPage from "../pages/CustomerView/ProductPage";
 import ProductDetailPage from "../pages/CustomerView/ProductDetailPage";
 import Categories from "../pages/CustomerView/CategoryPage";
 import WishlistPage from "../pages/CustomerView/WishlistPage";
+import FruitBasketPage from "../pages/CustomerView/FruitBasketPage";
+import FruitBasketDetail from "../pages/CustomerView/FruitBasketDetail";
 import CustomerLayout from "../layout/CustomerLayout";
 import AdminLayout from "../layout/AdminLayout";
 import AdminPage from "../pages/Admin/AdminPage/AdminPage";
@@ -31,12 +33,7 @@ import ContactEditPage from "../pages/ContactManagement/ContactEditPage";
 import AdminSupplierManagement from "../pages/Admin/Supplier/SupplierManagement";
 // Admin Harvest Batch Management
 import AdminHarvestBatchManagement from "../pages/Admin/HarvestBatch/HarvestBatchManagement";
-
-// QC Staff Management (Quality Verification, Performance Evaluation)
-import QualityVerificationManagement from "../pages/QcStaff/Supplier/QualityVerification/QualityVerificationManagement";
-import PerformanceEvaluationManagement from "../pages/QcStaff/Supplier/Performance/PerformanceEvaluationManagement";
-import QcStaffLayout from "../layout/QcStaffLayout";
-import QcStaffPage from "../pages/QcStaff/QcStaffPage/QcStaffPage";
+import AdminFruitBasketPage from "../pages/Admin/FruitBasket/FruitBasketPage";
 
 import CartPage from "../pages/CustomerView/CartPage";
 import CheckoutPage from "../pages/CustomerView/CheckoutPage";
@@ -55,7 +52,12 @@ import ShopManagement from "../pages/Admin/Shop/ShopManagement";
 import AboutUsPage from "../pages/AboutUsPage";
 import OrderSuccessPage from "../pages/CustomerView/OrderSuccessPage";
 import PaymentSuccessPage from "../pages/CustomerView/PaymentSuccessPage";
+
 import VoucherPage from "../pages/CustomerView/VoucherPage";
+
+import OrderHistory from "../pages/CustomerView/OrderHistory";
+import OrderManagement from "../pages/Admin/OrderManagement/OrderManagement";
+
 
 
 export const routes = [
@@ -80,6 +82,14 @@ export const routes = [
   {
     path: "/categories",
     element: <Categories />,
+  },
+  {
+    path: "/fruit-baskets",
+    element: <FruitBasketPage />,
+  },
+  {
+    path: "/fruit-baskets/:id",
+    element: <FruitBasketDetail />,
   },
   {
     path: "/news",
@@ -121,7 +131,11 @@ export const routes = [
       { path: "contact-history", element: <ContactHistoryPage /> },
       { path: "cart", element: <CartPage /> },
       { path: "checkout", element: <CheckoutPage /> },
+
       { path: "vouchers", element: <VoucherPage /> },
+
+      { path: "orders", element: <OrderHistory /> },
+
       { path: "order-success", element: <OrderSuccessPage /> },
       { path: "payment-result", element: <PaymentSuccessPage /> },
     ],
@@ -137,10 +151,13 @@ export const routes = [
     ),
     children: [
       { index: true, element: <AdminPage /> },
+      { path: "profile", element: <ProfileManagement /> },
+      { path: "change-password", element: <UpdatePassword /> },
       { path: "warehouse", element: <WareHouse /> },
       { path: "category", element: <CategoryManagement /> },
       { path: "suppliers", element: <AdminSupplierManagement /> },
       { path: "harvest-batches", element: <AdminHarvestBatchManagement /> },
+      { path: "fruit-baskets", element: <AdminFruitBasketPage /> },
       { path: "batch-history", element: <BatchHistoryPage /> },
       { path: "receipt-history", element: <ReceiptHistoryPage /> },
       { path: "contacts", element: <ContactListPage /> },
@@ -149,26 +166,12 @@ export const routes = [
       { path: "staff", element: <StaffManagement /> },
       { path: "customers", element: <CustomerManagement /> },
       { path: "discounts", element: <AdminDiscountManagement /> },
+      { path: "orders", element: <OrderManagement /> },
       { path: "news", element: <NewsListPage /> },
       { path: "news/create", element: <NewsFormPage /> },
       { path: "news/edit/:id", element: <NewsFormPage /> },
       { path: "news/:id", element: <AdminNewsDetailPage /> },
       { path: "shop", element: <ShopManagement /> },
-    ],
-  },
-
-  // Khu vực QC Staff
-  {
-    path: "/qc-staff",
-    element: (
-      <PrivateRoute requiredRole="qc_staff">
-        <QcStaffLayout />
-      </PrivateRoute>
-    ),
-    children: [
-      { index: true, element: <QcStaffPage /> },
-      { path: "quality-verifications", element: <QualityVerificationManagement /> },
-      { path: "performance-evaluations", element: <PerformanceEvaluationManagement /> },
     ],
   },
 
@@ -182,6 +185,8 @@ export const routes = [
     ),
     children: [
       { index: true, element: <WarehouseStaffPage /> },
+      { path: "profile", element: <ProfileManagement /> },
+      { path: "change-password", element: <UpdatePassword /> },
       { path: "warehouse", element: <WarehouseStaffWareHouse /> },
     ],
   },

@@ -10,7 +10,6 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
-  TrendingUp,
   Users,
 } from "lucide-react";
 import {
@@ -272,7 +271,6 @@ const SupplierManagement = () => {
               <option value="name">Name</option>
               <option value="type">Type</option>
               <option value="cooperationStatus">Cooperation Status</option>
-              <option value="performanceScore">Performance Score</option>
               <option value="totalBatches">Total Batches</option>
               <option value="totalProductsSupplied">Total Products Supplied</option>
             </select>
@@ -328,9 +326,6 @@ const SupplierManagement = () => {
                         Cooperation Status
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Performance
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -359,14 +354,6 @@ const SupplierManagement = () => {
                         </td>
                         <td className="px-4 py-3">
                           {getCooperationStatusBadge(supplier.cooperationStatus)}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center space-x-2">
-                            <TrendingUp size={16} className="text-gray-400" />
-                            <span className="text-sm font-medium text-gray-900">
-                              {supplier.performanceScore || 0}/100
-                            </span>
-                          </div>
                         </td>
                         <td className="px-4 py-3">
                           {supplier.status ? (

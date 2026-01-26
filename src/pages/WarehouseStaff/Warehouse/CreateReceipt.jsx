@@ -2,17 +2,20 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
-import { createReceiptRequest } from "../../../redux/actions/inventoryActions";
+import { createReceiptRequest, getReceiptHistoryRequest } from "../../../redux/actions/inventoryActions";
+import { getHarvestBatchesRequest } from "../../../redux/actions/supplierActions";
 
 const CreateReceipt = ({ isOpen, onClose, product }) => {
   const dispatch = useDispatch();
-  const { createReceiptLoading } = useSelector((state) => state.inventory);
+  const { createReceiptLoading, receiptHistory, receiptHistoryLoading } = useSelector((state) => state.inventory);
+  const { harvestBatches, harvestBatchesLoading } = useSelector((state) => state.supplier);
 
   const [receiptData, setReceiptData] = useState({
     productId: "",
     quantity: 0,
     expiryDate: "",
     note: "",
+    harvestBatchId: "",
   });
 
   // Track if we submitted the form
@@ -28,10 +31,44 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
         quantity: 0,
         expiryDate: "",
         note: "",
+        harvestBatchId: "",
       });
       onClose();
     }
   }, [hasSubmitted, createReceiptLoading, onClose]);
+
+  // Check if product has supplier
+  const productSupplierId = product?.supplier?._id || product?.supplier;
+  const hasSupplier = !!productSupplierId;
+
+  // Load harvest batches when product has supplier and modal opens
+  useEffect(() => {
+    if (isOpen && product && hasSupplier) {
+      // ✅ Load harvest batches for this product (không filter theo status - cho phép nhập với bất kỳ status nào)
+      dispatch(
+        getHarvestBatchesRequest({
+          productId: product._id,
+          page: 1,
+          limit: 100, // Get all available batches
+        })
+      );
+    }
+  }, [isOpen, product, hasSupplier, dispatch]);
+
+  // Load receipt history to enforce "same harvest batch" rule
+  useEffect(() => {
+    if (isOpen && product && hasSupplier) {
+      dispatch(
+        getReceiptHistoryRequest({
+          productId: product._id,
+          page: 1,
+          limit: 100,
+          sortBy: "createdAt",
+          sortOrder: "asc",
+        })
+      );
+    }
+  }, [isOpen, product, hasSupplier, dispatch]);
 
   // Load product data when product changes
   useEffect(() => {
@@ -41,14 +78,51 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
         quantity: 0,
         expiryDate: "",
         note: "",
+        harvestBatchId: "",
       });
     }
   }, [product]);
+
+  const existingReceiptWithBatch = (receiptHistory || []).find(
+    (tx) => tx?.harvestBatch?._id || tx?.harvestBatch
+  );
+  const existingHarvestBatchId =
+    existingReceiptWithBatch?.harvestBatch?._id || existingReceiptWithBatch?.harvestBatch || "";
+
+  useEffect(() => {
+    if (existingHarvestBatchId) {
+      setReceiptData((prev) => ({ ...prev, harvestBatchId: existingHarvestBatchId }));
+    }
+  }, [existingHarvestBatchId]);
 
   const handleSubmit = () => {
     if (!receiptData.productId || receiptData.quantity <= 0) {
       toast.error("Please enter a valid quantity");
       return;
+    }
+
+    // ✅ Validate: Nếu sản phẩm có supplier, bắt buộc phải chọn harvestBatchId
+    if (hasSupplier) {
+      if (!receiptData.harvestBatchId) {
+        toast.error("Sản phẩm có nhà cung cấp, bắt buộc phải chọn lô thu hoạch (harvestBatchId) khi nhập hàng vào kho");
+        return;
+      }
+
+      // ✅ Ràng buộc: Nếu đã từng nhập kho với lô thu hoạch, các lần sau phải dùng cùng lô
+      if (existingHarvestBatchId && receiptData.harvestBatchId !== existingHarvestBatchId) {
+        toast.error("Đã chọn lô thu hoạch ở lần nhập kho đầu tiên, các lần sau không thể đổi lô khác");
+        return;
+      }
+
+      // Validate: Kiểm tra số lượng nhập không vượt quá số lượng còn lại
+      const selectedBatch = harvestBatches.find((batch) => batch._id === receiptData.harvestBatchId);
+      if (selectedBatch) {
+        const remainingQty = (selectedBatch.quantity || 0) - (selectedBatch.receivedQuantity || 0);
+        if (receiptData.quantity > remainingQty) {
+          toast.error(`Số lượng nhập kho (${receiptData.quantity}) vượt quá số lượng còn lại trong lô thu hoạch (${remainingQty}). Vui lòng nhập không quá ${remainingQty}.`);
+          return;
+        }
+      }
     }
 
     // ✅ Check if this is the first receipt (no warehouseEntryDate)
@@ -88,6 +162,11 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
       receiptPayload.expiryDate = receiptData.expiryDate;
     }
 
+    // ✅ Add harvestBatchId if product has supplier
+    if (hasSupplier && receiptData.harvestBatchId) {
+      receiptPayload.harvestBatchId = receiptData.harvestBatchId;
+    }
+
     // Don't close modal immediately - let it close after success
     setHasSubmitted(true);
     dispatch(createReceiptRequest(receiptPayload));
@@ -100,6 +179,7 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
       quantity: 0,
       expiryDate: "",
       note: "",
+      harvestBatchId: "",
     });
     onClose();
   };
@@ -143,6 +223,53 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"
             />
           </div>
+          {/* ✅ Harvest Batch Selection - Required if product has supplier */}
+          {hasSupplier && !existingHarvestBatchId && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Harvest Batch <span className="text-red-500">*</span>
+              </label>
+              {harvestBatchesLoading ? (
+                <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 text-sm">
+                  Loading harvest batches...
+                </div>
+              ) : receiptHistoryLoading ? (
+                <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 text-sm">
+                  Loading receipt history...
+                </div>
+              ) : harvestBatches.length === 0 ? (
+                <div className="w-full px-3 py-2 border border-red-300 rounded-lg bg-red-50 text-red-700 text-sm">
+                  Không có lô thu hoạch nào cho sản phẩm này
+                </div>
+              ) : (
+                <select
+                  value={receiptData.harvestBatchId}
+                  onChange={(e) =>
+                    setReceiptData({ ...receiptData, harvestBatchId: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">-- Chọn lô thu hoạch --</option>
+                  {harvestBatches.map((batch) => {
+                    const remainingQty = (batch.quantity || 0) - (batch.receivedQuantity || 0);
+                    // ✅ Hiển thị status để người dùng biết trạng thái của harvest batch
+                    const statusLabel = batch.status === "APPROVED" ? "✓" : batch.status === "PENDING" ? "⏳" : batch.status === "REJECTED" ? "✗" : "";
+                    return (
+                      <option key={batch._id} value={batch._id}>
+                        {batch.batchCode || batch.batchNumber} {statusLabel} - Còn lại: {remainingQty} / {batch.quantity || 0}
+                        {batch.harvestDateStr && ` (${batch.harvestDateStr})`}
+                      </option>
+                    );
+                  })}
+                </select>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                Sản phẩm có nhà cung cấp, bắt buộc phải chọn lô thu hoạch khi nhập hàng
+              </p>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Receive quantity <span className="text-red-500">*</span>
@@ -157,6 +284,27 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter quantity"
             />
+            {/* ✅ Show remaining quantity warning if harvest batch is selected */}
+            {hasSupplier && receiptData.harvestBatchId && receiptData.quantity > 0 && (() => {
+              const selectedBatch = harvestBatches.find((batch) => batch._id === receiptData.harvestBatchId);
+              if (selectedBatch) {
+                const remainingQty = (selectedBatch.quantity || 0) - (selectedBatch.receivedQuantity || 0);
+                if (receiptData.quantity > remainingQty) {
+                  return (
+                    <p className="text-xs text-red-600 mt-1">
+                      ⚠️ Số lượng nhập ({receiptData.quantity}) vượt quá số lượng còn lại ({remainingQty})
+                    </p>
+                  );
+                } else {
+                  return (
+                    <p className="text-xs text-green-600 mt-1">
+                      ✓ Số lượng còn lại: {remainingQty - receiptData.quantity} sau khi nhập
+                    </p>
+                  );
+                }
+              }
+              return null;
+            })()}
           </div>
           {/* Only show expiry date input if no expiry date has been set yet */}
           {hasNoExpiryDate && (
