@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Search, Gift, ShoppingBasket } from "lucide-react";
+import { Link } from "react-router-dom";
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
 import Loading from "../../components/Loading/Loading";
@@ -138,8 +139,9 @@ const FruitBasketPage = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {publicFruitBaskets.map((basket) => (
-                  <div
+                  <Link
                     key={basket._id}
+                    to={`/fruit-baskets/${basket._id}`}
                     className="group bg-white rounded-3xl border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300"
                   >
                     <div className="relative h-56 overflow-hidden">
@@ -186,7 +188,7 @@ const FruitBasketPage = () => {
                         {(basket.items || []).length > 3 ? "..." : ""}
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
 
