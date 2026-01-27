@@ -24,7 +24,7 @@ const CartPage = () => {
   const items = cart.items || [];
 
   const [selectedItems, setSelectedItems] = useState([]);
-  const [editingQuantity, setEditingQuantity] = useState({}); // Track editing state for each item
+  const [editingQuantity, setEditingQuantity] = useState({}); 
 
   const navigate = useNavigate();
 
