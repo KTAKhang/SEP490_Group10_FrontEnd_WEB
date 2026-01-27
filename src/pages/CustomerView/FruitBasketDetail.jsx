@@ -51,7 +51,7 @@ const FruitBasketDetail = () => {
               <ShoppingBasket className="text-orange-600" size={22} />
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-black text-gray-900">
+              <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 font-sans">
                 {basket?.name || "Fruit Basket"}
               </h1>
               {basket?.short_desc && (
