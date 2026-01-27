@@ -10,7 +10,6 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
   const [formData, setFormData] = useState({
     name: "",
     type: "FARM",
-    code: "",
     contactPerson: "",
     phone: "",
     email: "",
@@ -26,7 +25,6 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
       setFormData({
         name: supplier.name || "",
         type: supplier.type || "FARM",
-        code: supplier.code || "",
         contactPerson: supplier.contactPerson || "",
         phone: supplier.phone || "",
         email: supplier.email || "",
@@ -67,9 +65,6 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
     };
 
     // Only include fields that are provided
-    if (formData.code !== undefined) {
-      cleanedData.code = formData.code?.toString().trim().toUpperCase() || null;
-    }
     if (formData.contactPerson !== undefined) {
       cleanedData.contactPerson = formData.contactPerson?.toString().trim() || "";
     }
@@ -137,19 +132,6 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
                   <option value="COOPERATIVE">Cooperative</option>
                   <option value="BUSINESS">Business</option>
                 </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Code
-                </label>
-                <input
-                  type="text"
-                  value={formData.code}
-                  onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Enter supplier code (optional)"
-                  maxLength={20}
-                />
               </div>
             </div>
 

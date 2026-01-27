@@ -271,6 +271,9 @@ const ReceiptHistoryPage = () => {
                         </div>
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Harvest Batch
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Received By
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -318,6 +321,30 @@ const ReceiptHistoryPage = () => {
                           <span className="text-sm font-medium text-gray-900">
                             {receipt.quantity}
                           </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          {receipt.harvestBatch ? (
+                            <div className="flex flex-col space-y-1">
+                              <div className="flex items-center space-x-1">
+                                <Package className="text-blue-400" size={14} />
+                                <span className="text-sm font-medium text-gray-900">
+                                  {receipt.harvestBatch.batchCode || receipt.harvestBatch.batchNumber || "N/A"}
+                                </span>
+                              </div>
+                              {receipt.harvestBatch.harvestDateStr && (
+                                <span className="text-xs text-gray-500">
+                                  {receipt.harvestBatch.harvestDateStr}
+                                </span>
+                              )}
+                              {receipt.harvestBatch.supplier && (
+                                <span className="text-xs text-gray-500">
+                                  {receipt.harvestBatch.supplier.name || receipt.harvestBatch.supplier.code || ""}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-400">-</span>
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           {receipt.createdBy ? (

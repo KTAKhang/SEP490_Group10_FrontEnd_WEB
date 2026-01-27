@@ -16,6 +16,10 @@ export const CUSTOMER_UPDATE_STATUS_FAILURE = "CUSTOMER_UPDATE_STATUS_FAILURE";
 export const CUSTOMER_DETAIL_REQUEST = "CUSTOMER_DETAIL_REQUEST";
 export const CUSTOMER_DETAIL_SUCCESS = "CUSTOMER_DETAIL_SUCCESS";
 export const CUSTOMER_DETAIL_FAILURE = "CUSTOMER_DETAIL_FAILURE";
+// Customer orders actions
+export const CUSTOMER_ORDERS_REQUEST = "CUSTOMER_ORDERS_REQUEST";
+export const CUSTOMER_ORDERS_SUCCESS = "CUSTOMER_ORDERS_SUCCESS";
+export const CUSTOMER_ORDERS_FAILURE = "CUSTOMER_ORDERS_FAILURE";
 
 // Action creators
 export const customerListRequest = (params) => ({
@@ -31,4 +35,9 @@ export const updateCustomerStatusRequest = (customerId, status) => ({
 export const customerDetailRequest = (id) => ({
   type: CUSTOMER_DETAIL_REQUEST,
   payload: id,
+});
+
+export const customerOrdersRequest = (customerId) => ({
+  type: CUSTOMER_ORDERS_REQUEST,
+  payload: customerId,
 });

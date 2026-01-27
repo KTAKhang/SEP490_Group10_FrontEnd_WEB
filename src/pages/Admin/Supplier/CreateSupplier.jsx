@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X } from "lucide-react";
+import axios from "axios";
 import { createSupplierRequest } from "../../../redux/actions/supplierActions";
+
+const API_BASE = "https://provinces.open-api.vn/api/v2";
 
 const CreateSupplier = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
@@ -10,16 +13,46 @@ const CreateSupplier = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
     name: "",
     type: "FARM",
-    code: "",
     contactPerson: "",
     phone: "",
     email: "",
     address: "",
+    city: "",
+    ward: "",
     notes: "",
     status: true,
   });
 
+  const [provinces, setProvinces] = useState([]);
+  const [wards, setWards] = useState([]);
+  const [icity, setIcity] = useState("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
+
+  useEffect(() => {
+    axios
+      .get(`${API_BASE}/p/`)
+      .then((res) => setProvinces(res.data))
+      .catch((err) => console.error("Error loading provinces:", err));
+  }, []);
+
+  useEffect(() => {
+    if (!formData.city) {
+      setWards([]);
+      setFormData((prev) => ({ ...prev, ward: "" }));
+      setIcity("");
+      return;
+    }
+
+    axios
+      .get(`${API_BASE}/w/`)
+      .then((res) => {
+        const filtered = res.data.filter(
+          (ward) => ward.province_code === Number(formData.city),
+        );
+        setWards(filtered);
+      })
+      .catch((err) => console.error("Error loading wards:", err));
+  }, [formData.city]);
 
   useEffect(() => {
     if (hasSubmitted && !createSupplierLoading && !createSupplierError) {
@@ -27,17 +60,28 @@ const CreateSupplier = ({ isOpen, onClose }) => {
       setFormData({
         name: "",
         type: "FARM",
-        code: "",
         contactPerson: "",
         phone: "",
         email: "",
         address: "",
+        city: "",
+        ward: "",
         notes: "",
         status: true,
       });
+      setIcity("");
       onClose();
     }
   }, [hasSubmitted, createSupplierLoading, createSupplierError, onClose]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "city") {
+      const selectedProvince = provinces.find((p) => p.code === Number(value));
+      setIcity(selectedProvince ? selectedProvince.name : "");
+    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -54,7 +98,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
       return;
     }
 
-    // Clean data: remove empty strings and undefined values
+    // Clean data
     const cleanedData = {
       name: formData.name.trim(),
       type: formData.type,
@@ -62,9 +106,6 @@ const CreateSupplier = ({ isOpen, onClose }) => {
     };
 
     // Only include optional fields if they have values
-    if (formData.code && formData.code.trim()) {
-      cleanedData.code = formData.code.trim().toUpperCase();
-    }
     if (formData.contactPerson && formData.contactPerson.trim()) {
       cleanedData.contactPerson = formData.contactPerson.trim();
     }
@@ -74,8 +115,12 @@ const CreateSupplier = ({ isOpen, onClose }) => {
     if (email) {
       cleanedData.email = email;
     }
-    if (formData.address && formData.address.trim()) {
-      cleanedData.address = formData.address.trim();
+    const addressLine = formData.address?.toString().trim() || "";
+    const wardName = formData.ward?.toString().trim() || "";
+    const provinceName = icity?.toString().trim() || "";
+    if (addressLine || wardName || provinceName) {
+      const parts = [addressLine, wardName, provinceName].filter(Boolean);
+      cleanedData.address = parts.join(", ");
     }
     if (formData.notes && formData.notes.trim()) {
       cleanedData.notes = formData.notes.trim();
@@ -90,14 +135,16 @@ const CreateSupplier = ({ isOpen, onClose }) => {
     setFormData({
       name: "",
       type: "FARM",
-      code: "",
       contactPerson: "",
       phone: "",
       email: "",
       address: "",
+      city: "",
+      ward: "",
       notes: "",
       status: true,
     });
+    setIcity("");
     onClose();
   };
 
@@ -135,7 +182,8 @@ const CreateSupplier = ({ isOpen, onClose }) => {
                 </label>
                 <select
                   value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  onChange={handleInputChange}
+                  name="type"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   required
                 >
@@ -143,19 +191,6 @@ const CreateSupplier = ({ isOpen, onClose }) => {
                   <option value="COOPERATIVE">Cooperative</option>
                   <option value="BUSINESS">Business</option>
                 </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Code
-                </label>
-                <input
-                  type="text"
-                  value={formData.code}
-                  onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Enter supplier code (optional)"
-                  maxLength={20}
-                />
               </div>
             </div>
 
@@ -166,7 +201,8 @@ const CreateSupplier = ({ isOpen, onClose }) => {
               <input
                 type="text"
                 value={formData.contactPerson}
-                onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
+                onChange={handleInputChange}
+                name="contactPerson"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 placeholder="Enter contact person name"
               />
@@ -178,7 +214,8 @@ const CreateSupplier = ({ isOpen, onClose }) => {
                 <input
                   type="tel"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={handleInputChange}
+                  name="phone"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   placeholder="Enter phone number"
                 />
@@ -188,7 +225,8 @@ const CreateSupplier = ({ isOpen, onClose }) => {
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={handleInputChange}
+                  name="email"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   placeholder="Enter email address"
                 />
@@ -197,20 +235,53 @@ const CreateSupplier = ({ isOpen, onClose }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-              <textarea
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                rows="3"
-                placeholder="Enter address"
-              />
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Số nhà, tên đường"
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <select
+                    name="city"
+                    value={formData.city}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  >
+                    <option value="">Chọn tỉnh/thành</option>
+                    {provinces.map((province) => (
+                      <option key={province.code} value={province.code}>
+                        {province.name}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    name="ward"
+                    value={formData.ward}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    disabled={!formData.city}
+                  >
+                    <option value="">Chọn phường/xã</option>
+                    {wards.map((ward) => (
+                      <option key={ward.code} value={ward.name}>
+                        {ward.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
               <textarea
                 value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                onChange={handleInputChange}
+                name="notes"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 rows="3"
                 placeholder="Enter notes"

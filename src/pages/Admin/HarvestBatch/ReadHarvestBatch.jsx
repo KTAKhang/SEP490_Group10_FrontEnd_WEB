@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { X, Package, Calendar, CheckCircle, XCircle, AlertCircle, Building2, Scale } from "lucide-react";
+import { X, Package, Calendar, Building2, Scale, MapPin } from "lucide-react";
 import { getHarvestBatchByIdRequest } from "../../../redux/actions/supplierActions";
 import Loading from "../../../components/Loading/Loading";
 
@@ -16,34 +16,6 @@ const ReadHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
       dispatch(getHarvestBatchByIdRequest(harvestBatchId));
     }
   }, [dispatch, isOpen, harvestBatchId]);
-
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case "PENDING":
-        return (
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-            <AlertCircle size={16} className="mr-1" />
-            Pending
-          </span>
-        );
-      case "APPROVED":
-        return (
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-            <CheckCircle size={16} className="mr-1" />
-            Approved
-          </span>
-        );
-      case "REJECTED":
-        return (
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-            <XCircle size={16} className="mr-1" />
-            Rejected
-          </span>
-        );
-      default:
-        return <span className="text-gray-500">N/A</span>;
-    }
-  };
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -105,10 +77,6 @@ const ReadHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Status</p>
-                  {getStatusBadge(harvestBatchDetail.status)}
-                </div>
-                <div>
                   <p className="text-sm text-gray-500 mb-1">Harvest Date</p>
                   <div className="flex items-center space-x-2">
                     <Calendar size={16} className="text-gray-400" />
@@ -116,6 +84,15 @@ const ReadHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                       {formatDate(harvestBatchDetail.harvestDate)}
                     </span>
                   </div>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-sm text-gray-500 mb-1 flex items-center space-x-1">
+                    <MapPin size={16} className="text-gray-400" />
+                    <span>Location</span>
+                  </p>
+                  <p className="text-base font-medium text-gray-900">
+                    {harvestBatchDetail.location || "N/A"}
+                  </p>
                 </div>
               </div>
             </div>
