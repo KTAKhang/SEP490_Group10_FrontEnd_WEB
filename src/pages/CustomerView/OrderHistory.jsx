@@ -31,6 +31,11 @@ const STATUS_BADGE = {
   CANCELLED: "bg-red-100 text-red-800",
 };
 
+const normalizeStatus = (value) =>
+  value ? value.toString().trim().toUpperCase().replace(/[_\s]+/g, "-") : "";
+
+const toApiStatus = (value) => normalizeStatus(value).replace(/-/g, "_");
+
 const formatCurrency = (value) =>
   (value || 0).toLocaleString("vi-VN", { maximumFractionDigits: 0 }) + "đ";
 
@@ -61,7 +66,10 @@ const OrderHistory = () => {
     () => ({
       page,
       limit,
-      status_names: statusFilters.length > 0 ? statusFilters : undefined,
+      status_names:
+        statusFilters.length > 0
+          ? statusFilters.map((status) => toApiStatus(status))
+          : undefined,
       sortBy,
       sortOrder,
     }),
@@ -107,9 +115,10 @@ const OrderHistory = () => {
   };
 
   const renderStatusBadge = (statusName) => {
-    const badgeClass = STATUS_BADGE[statusName] || "bg-gray-100 text-gray-800";
+    const normalized = normalizeStatus(statusName);
+    const badgeClass = STATUS_BADGE[normalized] || "bg-gray-100 text-gray-800";
     const label =
-      STATUS_OPTIONS.find((option) => option.value === statusName)?.label ||
+      STATUS_OPTIONS.find((option) => option.value === normalized)?.label ||
       statusName ||
       "N/A";
     return (
