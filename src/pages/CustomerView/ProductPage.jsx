@@ -347,7 +347,7 @@ export default function ProductPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <span className="text-xl font-bold text-gray-900">
-                            {product.price?.toLocaleString('vi-VN') || '0'}đ
+                            {product.price?.toLocaleString('vi-VN') || '0'}đ/Kg
                           </span>
                         </div>
                         <button
