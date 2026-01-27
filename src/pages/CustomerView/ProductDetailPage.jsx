@@ -208,7 +208,7 @@ export default function ProductDetailPage() {
               )}
 
               <p className="text-2xl font-bold text-gray-900 mb-6">
-                {product.price?.toLocaleString('vi-VN') || '0'}đ
+                {product.price?.toLocaleString('vi-VN') || '0'}đ/Kg
               </p>
 
               {/* Stock Status Badge */}
