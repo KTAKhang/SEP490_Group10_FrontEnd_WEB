@@ -6,6 +6,7 @@ import Footer from '../../components/Footer/Footer';
 import Loading from '../../components/Loading/Loading';
 import { getPublicProductByIdRequest } from '../../redux/actions/publicProductActions';
 import { addFavoriteRequest, removeFavoriteRequest, getFavoritesRequest } from '../../redux/actions/favoriteActions';
+import { addItemToCartRequest } from '../../redux/actions/cartActions';
 import { ChevronLeft, ShoppingCart, Heart } from 'lucide-react';
 
 export default function ProductDetailPage() {
@@ -116,6 +117,16 @@ export default function ProductDetailPage() {
     ? [product.featuredImage]
     : [];
 
+  const handleAddToCart = () => {
+    if (!storedUser) {
+      navigate('/login');
+      return;
+    }
+    if (product.onHandQuantity > 0) {
+      dispatch(addItemToCartRequest(product._id, 1));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -197,7 +208,7 @@ export default function ProductDetailPage() {
               )}
 
               <p className="text-2xl font-bold text-gray-900 mb-6">
-                {product.price?.toLocaleString('vi-VN') || '0'}đ
+                {product.price?.toLocaleString('vi-VN') || '0'}đ/Kg
               </p>
 
               {/* Stock Status Badge */}
@@ -280,12 +291,7 @@ export default function ProductDetailPage() {
               {/* Action Buttons */}
               <div className="flex items-center space-x-4">
                 <button
-                  onClick={() => {
-                    // Handle add to cart logic here
-                    if (product.onHandQuantity > 0) {
-                      console.log('Add to cart:', product._id);
-                    }
-                  }}
+                  onClick={handleAddToCart}
                   disabled={product.onHandQuantity === 0}
                   className={`flex-1 flex items-center justify-center space-x-2 px-8 py-4 rounded-lg font-semibold transition-colors ${
                     product.onHandQuantity === 0

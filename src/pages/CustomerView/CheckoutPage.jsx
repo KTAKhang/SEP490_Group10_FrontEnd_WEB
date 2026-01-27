@@ -5,6 +5,12 @@ import axios from "axios";
 import { checkoutCancelRequest } from "../../redux/actions/checkoutActions";
 import { fetchCartRequest } from "../../redux/actions/cartActions";
 import { orderCreateRequest } from "../../redux/actions/orderActions";
+import {
+  clearDiscountFeedback,
+  clearSelectedDiscount,
+  discountApplyRequest,
+  discountValidateRequest,
+} from "../../redux/actions/discountActions";
 const API_BASE = "https://provinces.open-api.vn/api/v2";
 
 export default function CheckoutPage() {
@@ -30,6 +36,7 @@ export default function CheckoutPage() {
   const checkout = useSelector((state) => state.checkout || {});
   const cart = useSelector((state) => state.cart || {});
   const order = useSelector((state) => state.order || {});
+  const discount = useSelector((state) => state.discount || {});
 
   // Prefer items from checkout (returned by checkout hold), otherwise fallback to cart items
   const cartItems =
@@ -43,6 +50,19 @@ export default function CheckoutPage() {
     0,
   );
   const total = subtotal;
+
+  const {
+    selectedDiscount,
+    validationResult,
+    validationError,
+    applyResult,
+    loading: discountLoading,
+  } = discount;
+
+  const discountData =
+    applyResult?.data || validationResult?.data || null;
+  const discountAmount = discountData?.discountAmount || 0;
+  const finalAmount = discountData?.finalAmount || total;
 
   // Load provinces on mount
   useEffect(() => {
@@ -124,6 +144,34 @@ export default function CheckoutPage() {
     }
   }, [checkout.checkout_session_id, navigate]);
 
+  useEffect(() => {
+    if (validationError && selectedDiscount) {
+      alert(validationError);
+      dispatch(clearSelectedDiscount());
+      dispatch(clearDiscountFeedback());
+    }
+  }, [validationError, selectedDiscount, dispatch]);
+
+  useEffect(() => {
+    if (discount.applyError && selectedDiscount) {
+      alert(discount.applyError);
+      dispatch(clearSelectedDiscount());
+      dispatch(clearDiscountFeedback());
+    }
+  }, [discount.applyError, selectedDiscount, dispatch]);
+
+  useEffect(() => {
+    dispatch(clearDiscountFeedback());
+  }, [total, dispatch]);
+
+  useEffect(() => {
+    if (order.order_id && selectedDiscount?.discountId) {
+      dispatch(
+        discountApplyRequest(selectedDiscount.discountId, total, order.order_id),
+      );
+    }
+  }, [order.order_id, selectedDiscount, total, dispatch]);
+
   const handleCancel = () => {
     const sessionId =
       checkout.checkout_session_id ||
@@ -144,6 +192,20 @@ export default function CheckoutPage() {
       style: "currency",
       currency: "VND",
     }).format(price);
+  };
+
+  const handleValidateDiscount = () => {
+    if (!selectedDiscount?.code) {
+      alert("Vui lòng chọn voucher trước khi kiểm tra.");
+      return;
+    }
+
+    dispatch(discountValidateRequest(selectedDiscount.code, total));
+  };
+
+  const handleRemoveVoucher = () => {
+    dispatch(clearSelectedDiscount());
+    dispatch(clearDiscountFeedback());
   };
 
   console.log("provinces", provinces);
@@ -360,6 +422,76 @@ export default function CheckoutPage() {
                     </div>
                   ))}
                 </div>
+                <div className="border border-dashed border-gray-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-sm text-gray-600">Voucher</p>
+                      <p className="font-semibold text-gray-900">
+                        {selectedDiscount?.code || "Chưa chọn"}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {selectedDiscount && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveVoucher}
+                          className="text-xs text-red-600 hover:text-red-700"
+                        >
+                          Gỡ
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => navigate("/customer/vouchers")}
+                        className="text-sm font-semibold text-blue-600 hover:text-blue-700"
+                      >
+                        Chọn voucher
+                      </button>
+                    </div>
+                  </div>
+
+                  {selectedDiscount && (
+                    <div className="text-xs text-gray-600 space-y-1 mb-3">
+                      <p>
+                        Giảm {selectedDiscount.discountPercent}% tối đa{" "}
+                        {formatPrice(selectedDiscount.maxDiscountAmount)}
+                      </p>
+                      <p>Đơn tối thiểu: {formatPrice(selectedDiscount.minOrderValue)}</p>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleValidateDiscount}
+                      disabled={discountLoading || !selectedDiscount}
+                      className="flex-1 bg-green-50 text-green-700 border border-green-200 rounded-lg py-2 text-sm font-semibold hover:bg-green-100 disabled:opacity-60"
+                    >
+                      Kiểm tra mã
+                    </button>
+                    {discountAmount > 0 && (
+                      <span className="text-sm text-green-700 font-semibold">
+                        -{formatPrice(discountAmount)}
+                      </span>
+                    )}
+                  </div>
+                  {discountData && (
+                    <div className="mt-3 text-sm text-gray-700 space-y-1">
+                      <div className="flex justify-between">
+                        <span>Giá gốc</span>
+                        <span>{formatPrice(total)}</span>
+                      </div>
+                      <div className="flex justify-between text-green-700">
+                        <span>Giảm giá</span>
+                        <span>- {formatPrice(discountAmount)}</span>
+                      </div>
+                      <div className="flex justify-between font-semibold">
+                        <span>Tạm tính sau giảm</span>
+                        <span>{formatPrice(finalAmount)}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <div className="border-t border-gray-200 pt-4 space-y-3 mb-6">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Tạm tính:</span>
@@ -371,7 +503,7 @@ export default function CheckoutPage() {
                         Tổng cộng:
                       </span>
                       <span className="text-2xl font-bold text-red-600">
-                        {formatPrice(total)}
+                        {formatPrice(finalAmount)}
                       </span>
                     </div>
                   </div>
