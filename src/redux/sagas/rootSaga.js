@@ -20,6 +20,7 @@ import favoriteSaga from "./favoriteSaga";
 import supplierSaga from "./supplierSaga";
 import fruitBasketSaga from "./fruitBasketSaga";
 import publicFruitBasketSaga from "./publicFruitBasketSaga";
+import reviewSaga from "./reviewSaga";
 
 export default function* rootSaga() {
   try {
@@ -45,6 +46,7 @@ export default function* rootSaga() {
       favoriteSaga(),
       supplierSaga(),
       fruitBasketSaga(),
+      reviewSaga(),
     ]);
   } catch (error) {
     console.error("🔴 rootSaga ERROR:", error);
