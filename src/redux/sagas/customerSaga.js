@@ -16,6 +16,9 @@ import {
   CUSTOMER_DETAIL_REQUEST,
   CUSTOMER_DETAIL_SUCCESS,
   CUSTOMER_DETAIL_FAILURE,
+  CUSTOMER_ORDERS_REQUEST,
+  CUSTOMER_ORDERS_SUCCESS,
+  CUSTOMER_ORDERS_FAILURE,
 } from "../actions/customerActions";
 
 // get customer list with params: page, limit, sortBy, sortOrder, status, isGoogleAccount, keyword
@@ -131,8 +134,32 @@ function* fetchCustomerDetail(action) {
   }
 }
 
+// Get customer orders
+function* fetchCustomerOrders(action) {
+  try {
+    const customerId = action.payload;
+    const res = yield call(() =>
+      apiClient.get(`/customers/${customerId}/orders`)
+    );
+    
+    if (res.data?.status === "OK") {
+      yield put({ type: CUSTOMER_ORDERS_SUCCESS, payload: res.data.data || [] });
+    } else {
+      throw new Error(res.data?.message || "Failed to fetch customer orders");
+    }
+  } catch (err) {
+    console.error("[Saga] Fetch customer orders error:", err);
+    yield put({
+      type: CUSTOMER_ORDERS_FAILURE,
+      payload: err.response?.data?.message || err.message,
+    });
+    // Don't show toast for orders, just log error
+  }
+}
+
 export default function* customerSaga() {
   yield takeLatest(CUSTOMER_LIST_REQUEST, fetchCustomerList);
   yield takeLatest(CUSTOMER_UPDATE_STATUS_REQUEST, updateCustomerStatus);
   yield takeLatest(CUSTOMER_DETAIL_REQUEST, fetchCustomerDetail);
+  yield takeLatest(CUSTOMER_ORDERS_REQUEST, fetchCustomerOrders);
 }

@@ -14,9 +14,6 @@ import {
   History,
   ClipboardList,
   Users,
-  Gift,
-  ShoppingCart,
-  Star,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -26,85 +23,10 @@ const Sidebar = () => {
   const menuItems = [
     {
       icon: LayoutDashboard,
-      label: "Dashboard",
-      path: "/admin",
+      label: "Chat Management",
+      path: "/feedbacked-staff",
       exact: true,
-    },
-    {
-      icon: FolderTree,
-      label: "Categories",
-      path: "/admin/category",
-    },
-    {
-      icon: Store,
-      label: "Product",
-      path: "/admin/warehouse",
-    },
-    {
-      icon: Truck,
-      label: "Supplier",
-      path: "/admin/suppliers",
-    },
-    {
-      icon: Package,
-      label: "Harvest Batch",
-      path: "/admin/harvest-batches",
-    },
-    {
-      icon: Gift,
-      label: "Fruit Baskets",
-      path: "/admin/fruit-baskets",
-    },
-    {
-      icon: ShoppingCart,
-      label: "Orders",
-      path: "/admin/orders",
-    },
-    {
-      icon: Star,
-      label: "Reviews",
-      path: "/admin/reviews",
-    },
-    {
-      icon: MessageSquare,
-      label: "Contact",
-      path: "/admin/contacts",
-    },
-    {
-      icon: FileText,
-      label: "News",
-      path: "/admin/news",
-    },
-    {
-      icon: Building2,
-      label: "Shop Information",
-      path: "/admin/shop",
-    },
-    {
-      icon: Users,
-      label: "Staff Management",
-      path: "/admin/staff",
-    },
-      {
-      icon: Users,
-      label: "Customer Management",
-      path: "/admin/customers",
-    },
-    {
-      icon: Ticket,
-      label: "Discount Management",
-      path: "/admin/discounts",
-    },
-    {
-      icon: History,
-      label: "Batch History",
-      path: "/admin/batch-history",
-    },
-    {
-      icon: ClipboardList,
-      label: "Receipt History",
-      path: "/admin/receipt-history",
-    },
+    }
   ];
 
   const isActive = (path, exact = false) => {
@@ -132,13 +54,13 @@ const Sidebar = () => {
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
-            <Link to="/admin" className="flex items-center space-x-2">
+            <Link to="/feedbacked-staff" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
                 <LayoutDashboard className="text-white" size={20} />
               </div>
               {isOpen && (
                 <span className="text-lg font-bold text-gray-800">
-                  Admin Panel
+                 Feedback Staff Panel
                 </span>
               )}
             </Link>

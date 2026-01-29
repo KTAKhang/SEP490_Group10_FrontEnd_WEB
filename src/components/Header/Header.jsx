@@ -5,6 +5,8 @@ import { logoutRequest } from "../../redux/actions/authActions";
 import { LogOut, Settings, User, Clock, Package, Menu, X } from "lucide-react";
 import PropTypes from "prop-types";
 import { fetchCartRequest } from "../../redux/actions/cartActions";
+import NotificationBell from "../NotificationBell/NotificationBell";
+import ChatForCustomer from "../../pages/CustomerView/ChatForCustomer";
 
 const Header = ({ searchTerm, setSearchTerm }) => {
   void searchTerm;
@@ -13,9 +15,13 @@ const Header = ({ searchTerm, setSearchTerm }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const tokenFromStorage = localStorage.getItem("token");
+
   useEffect(() => {
+  if (tokenFromStorage) {
     dispatch(fetchCartRequest());
-  }, [dispatch]);
+  }
+}, [dispatch, tokenFromStorage]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -39,6 +45,8 @@ const Header = ({ searchTerm, setSearchTerm }) => {
   };
 
   return (
+    <>
+      <ChatForCustomer />
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
@@ -65,6 +73,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
               { label: "Contact", path: "/customer/contact" },
               { label: "News", path: "/news" },
               { label: "FAQ", path: "/faq" },
+              { label: "Voucher", path: "/customer/vouchers" },
        ...(storedUser ? [{ label: "Wishlist", path: "/wishlist" }] : []),
             ].map((item) => (
               <Link
@@ -82,6 +91,9 @@ const Header = ({ searchTerm, setSearchTerm }) => {
             {/* USER */}
             {storedUser ? (
               <>
+                {/* NOTIFICATIONS */}
+                <NotificationBell />
+                
                 {/* CART */}
                 <Link
                   to="/customer/cart"
@@ -183,6 +195,7 @@ className="text-sm text-gray-700 hover:text-green-600"
               { label: "About Us", path: "/about" },
               { label: "Contact", path: "/customer/contact" },
               { label: "FAQ", path: "/faq" },
+              { label: "Voucher", path: "/customer/vouchers" },
              ...(storedUser ? [{ label: "Wishlist", path: "/wishlist" }] : []),
             ].map((item) => (
               <Link
@@ -198,6 +211,7 @@ className="text-sm text-gray-700 hover:text-green-600"
         )}
       </div>
     </nav>
+    </>
   );
 };
 

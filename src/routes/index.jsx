@@ -13,6 +13,7 @@ import WishlistPage from "../pages/CustomerView/WishlistPage";
 import FruitBasketPage from "../pages/CustomerView/FruitBasketPage";
 import FruitBasketDetail from "../pages/CustomerView/FruitBasketDetail";
 import CustomerLayout from "../layout/CustomerLayout";
+import FeedbackStaffLayout from "../layout/FeedbackStaffLayout";
 import AdminLayout from "../layout/AdminLayout";
 import AdminPage from "../pages/Admin/AdminPage/AdminPage";
 import WareHouse from "../pages/Admin/Warehouse/WareHouse";
@@ -28,7 +29,7 @@ import PrivateRoute from "../components/PrivateRouter/index";
 import ContactListPage from "../pages/ContactManagement/ContactListPage";
 import ContactDetailPage from "../pages/ContactManagement/ContactDetailPage";
 import ContactEditPage from "../pages/ContactManagement/ContactEditPage";
-
+import ChatForStaffPage from "../pages/FeedbackStaff/ChatForStaffPage";
 // Admin Supplier Management
 import AdminSupplierManagement from "../pages/Admin/Supplier/SupplierManagement";
 // Admin Harvest Batch Management
@@ -52,6 +53,8 @@ import ShopManagement from "../pages/Admin/Shop/ShopManagement";
 import AboutUsPage from "../pages/AboutUsPage";
 import OrderSuccessPage from "../pages/CustomerView/OrderSuccessPage";
 import PaymentSuccessPage from "../pages/CustomerView/PaymentSuccessPage";
+import PaymentFailPage from "../pages/CustomerView/PaymentFailPage";
+import VoucherPage from "../pages/CustomerView/VoucherPage";
 import OrderHistory from "../pages/CustomerView/OrderHistory";
 import OrderHistoryDetail from "../pages/CustomerView/OrderHistoryDetail";
 import OrderManagement from "../pages/Admin/OrderManagement/OrderManagement";
@@ -116,7 +119,6 @@ export const routes = [
   //   element: <ContactPage1 />,
   // },
 
- 
   {
     path: "/customer",
     element: (
@@ -125,7 +127,7 @@ export const routes = [
       </PrivateRoute>
     ),
     children: [
-{ path: "profile", element: <ProfileManagement /> },
+      { path: "profile", element: <ProfileManagement /> },
       { path: "change-password", element: <UpdatePassword /> },
       { path: "reviews/create", element: <CreateReview /> },
       { path: "reviews/:reviewId/edit", element: <EditReview /> },
@@ -133,11 +135,27 @@ export const routes = [
       { path: "contact-history", element: <ContactHistoryPage /> },
       { path: "cart", element: <CartPage /> },
       { path: "checkout", element: <CheckoutPage /> },
+
+      { path: "vouchers", element: <VoucherPage /> },
+
       { path: "orders", element: <OrderHistory /> },
+
       { path: "orders/:orderId", element: <OrderHistoryDetail /> },
+
       { path: "order-success", element: <OrderSuccessPage /> },
       { path: "payment-result", element: <PaymentSuccessPage /> },
+      { path: "payment-fail", element: <PaymentFailPage /> },
     ],
+  },
+
+  {
+    path: "/feedbacked-staff",
+    element: (
+      <PrivateRoute requiredRole="feedbacked-staff">
+        <FeedbackStaffLayout />
+      </PrivateRoute>
+    ),
+    children: [{ index: true, element: <ChatForStaffPage /> }],
   },
 
   // Khu vực Admin
