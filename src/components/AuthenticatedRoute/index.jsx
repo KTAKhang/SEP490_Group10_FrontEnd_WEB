@@ -16,7 +16,7 @@ const AuthenticatedRoute = ({ children }) => {
   // Nếu component cần authentication
   if (!isAuthenticated) {
     // Redirect to login and save the location they were trying to visit
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/login"/>;
   }
 
   return children;
