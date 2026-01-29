@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { X, Package, ChevronLeft, ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Package, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   orderHistoryRequest,
-  orderDetailRequest,
   orderCancelRequest,
   clearOrderMessages,
 } from "../../redux/actions/orderActions";
@@ -44,12 +44,11 @@ const formatDate = (value) =>
 
 const OrderHistory = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const {
     orders,
     ordersPagination,
-    orderDetail,
     historyLoading,
-    detailLoading,
     message,
   } = useSelector((state) => state.order || {});
 
@@ -58,8 +57,6 @@ const OrderHistory = () => {
   const [sortOrder, setSortOrder] = useState("desc");
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
-  const [showDetail, setShowDetail] = useState(false);
-  const [selectedOrderId, setSelectedOrderId] = useState(null);
   const cancelingRef = useRef(null);
 
   const queryParams = useMemo(
@@ -83,18 +80,13 @@ const OrderHistory = () => {
   useEffect(() => {
     if (message && cancelingRef.current) {
       dispatch(orderHistoryRequest(queryParams));
-      if (selectedOrderId) {
-        dispatch(orderDetailRequest(selectedOrderId));
-      }
       cancelingRef.current = null;
       dispatch(clearOrderMessages());
     }
-  }, [message, dispatch, queryParams, selectedOrderId]);
+  }, [message, dispatch, queryParams]);
 
   const handleViewDetail = (orderId) => {
-    setSelectedOrderId(orderId);
-    setShowDetail(true);
-    dispatch(orderDetailRequest(orderId));
+    navigate(`/customer/orders/${orderId}`);
   };
 
   const handleCancelOrder = (orderId) => {
@@ -105,9 +97,6 @@ const OrderHistory = () => {
     dispatch(orderCancelRequest(orderId));
   };
 
-  const handleCloseDetail = () => {
-    setShowDetail(false);
-  };
 
   const canCancelOrder = (order) => {
     const statusName = order?.order_status_id?.name;
@@ -296,126 +285,6 @@ const OrderHistory = () => {
           </div>
         )}
       </div>
-
-      {showDetail && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-5 border-b">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Chi tiết đơn hàng
-              </h2>
-              <button
-                onClick={handleCloseDetail}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="p-5">
-              {detailLoading || !orderDetail ? (
-                <div className="py-10 text-center text-gray-600">
-                  Đang tải chi tiết đơn hàng...
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div className="space-y-2 text-sm text-gray-700">
-                      <div>Mã đơn: {orderDetail.order?._id}</div>
-                      <div>Ngày đặt: {formatDate(orderDetail.order?.createdAt)}</div>
-                      <div>
-                        Trạng thái:{" "}
-                        {renderStatusBadge(
-                          orderDetail.order?.order_status_id?.name
-                        )}
-                      </div>
-                    </div>
-                    <div className="space-y-2 text-sm text-gray-700">
-                      <div>Người nhận: {orderDetail.order?.receiver_name}</div>
-                      <div>Điện thoại: {orderDetail.order?.receiver_phone}</div>
-                      <div>Địa chỉ: {orderDetail.order?.receiver_address}</div>
-                    </div>
-                  </div>
-
-                  <div className="mb-6">
-                    <h3 className="text-sm font-semibold text-gray-800 mb-3">
-                      Sản phẩm
-                    </h3>
-                    <div className="space-y-3">
-                      {orderDetail.details?.map((item) => (
-                        <div
-                          key={item._id}
-                          className="flex items-center justify-between border rounded-lg p-3"
-                        >
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={
-                                item.product_image ||
-                                "https://via.placeholder.com/60?text=No+Image"
-                              }
-                              alt={item.product_name}
-                              className="w-14 h-14 object-cover rounded-lg border"
-                            />
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">
-                                {item.product_name}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {item.product_category_name || "N/A"}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right text-sm text-gray-700">
-                            <div>Số lượng: {item.quantity}</div>
-                            <div>{formatCurrency(item.price)}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between border-t pt-4 text-sm text-gray-700">
-                    <span>Tổng tiền</span>
-                    <span className="text-lg font-semibold text-gray-900">
-                      {formatCurrency(orderDetail.order?.total_price)}
-                    </span>
-                  </div>
-
-                  {orderDetail.order?.status_history?.length > 0 && (
-                    <div className="mt-6">
-                      <h3 className="text-sm font-semibold text-gray-800 mb-3">
-                        Lịch sử trạng thái
-                      </h3>
-                      <div className="space-y-2 text-sm text-gray-700">
-                        {orderDetail.order.status_history.map((history, idx) => (
-                          <div
-                            key={idx}
-                            className="border rounded-lg p-3 bg-gray-50"
-                          >
-                            <div>
-                              {history.from_status?.name || "N/A"} →{" "}
-                              {history.to_status?.name || "N/A"}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {formatDate(history.changed_at)} •{" "}
-                              {history.changed_by_role}
-                            </div>
-                            {history.note && (
-                              <div className="text-xs text-gray-600 mt-1">
-                                {history.note}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
