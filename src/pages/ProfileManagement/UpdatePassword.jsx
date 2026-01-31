@@ -65,19 +65,19 @@ export default function UpdatePassword() {
     const newErrors = {};
 
     if (!formData.oldPassword) {
-      newErrors.oldPassword = 'Vui lòng nhập mật khẩu hiện tại!';
+      newErrors.oldPassword = 'Please enter your current password!';
     }
 
     if (!formData.newPassword) {
-      newErrors.newPassword = 'Vui lòng nhập mật khẩu mới!';
+      newErrors.newPassword = 'Please enter your current password!';
     } else if (formData.newPassword.length !== 8) {
-      newErrors.newPassword = 'Mật khẩu phải có 8 ký tự!';
+      newErrors.newPassword = 'The password must have 8 characters!';
     }
 
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Vui lòng xác nhận mật khẩu mới!';
+      newErrors.confirmPassword = 'Please confirm your new password!';
     } else if (formData.newPassword !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp!';
+      newErrors.confirmPassword = 'The verification password does not match!';
     }
 
     setErrors(newErrors);
@@ -345,18 +345,19 @@ export default function UpdatePassword() {
     }
   `;
 
-  const securityTips = [
-    "Không sử dụng thông tin cá nhân dễ đoán như tên, ngày sinh",
-    "Thay đổi mật khẩu định kỳ để đảm bảo an toàn tài khoản",
-    "Sử dụng ký tự đặc biệt để tăng độ bảo mật"
-  ];
+ const securityTips = [
+  "Avoid using easily guessable personal information such as your name or date of birth",
+  "Change your password regularly to keep your account secure",
+  "Use special characters to increase password strength"
+];
 
-  const passwordRules = [
-    "Mật khẩu phải có 8 ký tự",
-    "Chứa ít nhất một chữ cái viết hoa (A-Z)",
-    "Chứa ít nhất một chữ cái viết thường (a-z)",
-    "Chứa ít nhất một số (0-9)"
-  ];
+const passwordRules = [
+  "Password must be at least 8 characters long",
+  "Include at least one uppercase letter (A–Z)",
+  "Include at least one lowercase letter (a–z)",
+  "Include at least one number (0–9)"
+];
+
 
   return (
     <>
@@ -374,9 +375,9 @@ export default function UpdatePassword() {
                     </div>
                   </div>
                   <Title level={2} className="custom-title" style={{ marginBottom: 0 }}>
-                    Đổi mật khẩu
+                    Change Password
                   </Title>
-                  <Text type="secondary">Bảo vệ tài khoản của bạn bằng mật khẩu mạnh</Text>
+                  <Text type="secondary">Protect your account with a password.</Text>
                 </div>
                 <Divider />
                 <form
@@ -387,13 +388,13 @@ export default function UpdatePassword() {
                   autoComplete="off"
                 >
                   <div className="form-item">
-                    <label className="form-label" htmlFor="oldPassword">Mật khẩu hiện tại</label>
+                    <label className="form-label" htmlFor="oldPassword">Current password</label>
                     <div className="input-container">
                       <span className="input-prefix"><LockOutlined /></span>
                       <Input.Password
                         id="oldPassword"
                         className="password-input"
-                        placeholder="Nhập mật khẩu hiện tại"
+                        placeholder="Current password"
                         value={formData.oldPassword}
                         onChange={e => handleInputChange('oldPassword', e.target.value)}
                         autoComplete="current-password"
@@ -402,13 +403,13 @@ export default function UpdatePassword() {
                     {errors.oldPassword && <div className="error-message">{errors.oldPassword}</div>}
                   </div>
                   <div className="form-item">
-                    <label className="form-label" htmlFor="newPassword">Mật khẩu mới</label>
+                    <label className="form-label" htmlFor="newPassword">New password</label>
                     <div className="input-container">
                       <span className="input-prefix"><KeyOutlined /></span>
                       <Input.Password
                         id="newPassword"
                         className="password-input"
-                        placeholder="Nhập mật khẩu mới"
+                        placeholder="New password"
                         value={formData.newPassword}
                         onChange={e => handleInputChange('newPassword', e.target.value)}
                         autoComplete="new-password"
@@ -417,13 +418,13 @@ export default function UpdatePassword() {
                     {errors.newPassword && <div className="error-message">{errors.newPassword}</div>}
                   </div>
                   <div className="form-item">
-                    <label className="form-label" htmlFor="confirmPassword">Xác nhận mật khẩu mới</label>
+                    <label className="form-label" htmlFor="confirmPassword">Confirm new password</label>
                     <div className="input-container">
                       <span className="input-prefix"><LockOutlined /></span>
                       <Input.Password
                         id="confirmPassword"
                         className="password-input"
-                        placeholder="Xác nhận mật khẩu mới"
+                        placeholder="Confirm new password"
                         value={formData.confirmPassword}
                         onChange={e => handleInputChange('confirmPassword', e.target.value)}
                         autoComplete="new-password"
@@ -439,7 +440,7 @@ export default function UpdatePassword() {
                     icon={<SafetyOutlined />}
                     disabled={changePasswordLoading}
                   >
-                    Đổi mật khẩu
+                    Change password
                   </Button>
                 </form>
               </Card>
@@ -447,7 +448,7 @@ export default function UpdatePassword() {
             {/* Right: Mẹo bảo mật */}
             <div className="flex-1 flex items-stretch">
               <Card className="security-tips w-full flex flex-col justify-between" style={{ minHeight: '100%' }}>
-                <Title level={4} className="section-title">Quy tắc bắt buộc</Title>
+                <Title level={4} className="section-title">Mandatory rule</Title>
                 <div className="tips-grid mb-6">
                   {passwordRules.map((rule, idx) => (
                     <div className="tip-item" key={idx}>
@@ -457,7 +458,7 @@ export default function UpdatePassword() {
                   ))}
                 </div>
                 <Divider />
-                <Title level={4} className="section-title">Mẹo bảo mật</Title>
+                <Title level={4} className="section-title">Security tips</Title>
                 <div className="tips-grid">
                   {securityTips.map((tip, idx) => (
                     <div className="tip-item" key={idx}>
