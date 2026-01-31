@@ -8,6 +8,20 @@
   font-weight: 400;
 }
 
+/* CKEditor Wrapper Styles */
+.ckeditor-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.ckeditor-toolbar-container {
+  min-height: 40px;
+}
+
+.ckeditor-content-container {
+  flex: 1;
+}
+
 /* CKEditor Styles */
 .ck-editor__editable {
   min-height: 400px;
@@ -171,4 +185,11 @@ figure.image.image-style-align-left {
 figure.image.image-style-align-right {
   margin-left: auto;
   margin-right: 0;
+}
+.ck-editor {
+  width: 100%;
+}
+
+.ck-editor__main {
+  width: 100%;
 }

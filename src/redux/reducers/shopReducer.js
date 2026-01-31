@@ -54,6 +54,7 @@ const shopReducer = (state = initialState, action) => {
       return {
         ...state,
         getShopInfoLoading: false,
+        shopInfo: null, // Tránh hiển thị data cũ (vd: logo) khi request lỗi (403, 500...)
         error: action.payload,
       };
 

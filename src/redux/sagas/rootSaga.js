@@ -17,6 +17,7 @@ import publicProductSaga from "./publicProductSaga";
 import publicCategorySaga from "./publicCategorySaga";
 import { productBatchSaga } from "./productBatchSaga";
 import favoriteSaga from "./favoriteSaga";
+import homepageAssetsSaga from "./homepageAssetsSaga";
 
 
 
@@ -38,6 +39,7 @@ export default function* rootSaga() {
       publicCategorySaga(),
       productBatchSaga(),
       favoriteSaga(),
+      homepageAssetsSaga(),
     ]);
   } catch (error) {
     console.error("🔴 rootSaga ERROR:", error);
