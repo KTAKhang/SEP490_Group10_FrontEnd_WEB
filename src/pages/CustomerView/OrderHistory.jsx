@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { Package, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   orderHistoryRequest,
   orderCancelRequest,
   clearOrderMessages,
 } from "../../redux/actions/orderActions";
+import { OrderHistoryDetailContent } from "./OrderHistoryDetail";
 
 const STATUS_OPTIONS = [
   { value: "ALL", label: "Tất cả" },
@@ -15,6 +16,7 @@ const STATUS_OPTIONS = [
   { value: "READY-TO-SHIP", label: "Sẵn sàng giao" },
   { value: "SHIPPING", label: "Đang giao" },
   { value: "COMPLETED", label: "Hoàn thành" },
+  { value: "RETURNED", label: "Trả hàng" },
   { value: "CANCELLED", label: "Đã hủy" },
 ];
 
@@ -28,6 +30,7 @@ const STATUS_BADGE = {
   "READY-TO-SHIP": "bg-purple-100 text-purple-800",
   SHIPPING: "bg-indigo-100 text-indigo-800",
   COMPLETED: "bg-green-100 text-green-800",
+  RETURNED: "bg-amber-100 text-amber-800",
   CANCELLED: "bg-red-100 text-red-800",
 };
 
@@ -44,7 +47,7 @@ const formatDate = (value) =>
 
 const OrderHistory = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const {
     orders,
     ordersPagination,
@@ -57,7 +60,12 @@ const OrderHistory = () => {
   const [sortOrder, setSortOrder] = useState("desc");
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
+  const [detailOrderId, setDetailOrderId] = useState(null);
   const cancelingRef = useRef(null);
+
+  // Mở popup từ URL ?orderId= (deep link)
+  const orderIdFromUrl = searchParams.get("orderId");
+  const effectiveDetailId = detailOrderId ?? orderIdFromUrl;
 
   const queryParams = useMemo(
     () => ({
@@ -86,7 +94,15 @@ const OrderHistory = () => {
   }, [message, dispatch, queryParams]);
 
   const handleViewDetail = (orderId) => {
-    navigate(`/customer/orders/${orderId}`);
+    setDetailOrderId(orderId);
+  };
+
+  const handleCloseDetailModal = () => {
+    setDetailOrderId(null);
+    if (orderIdFromUrl) {
+      searchParams.delete("orderId");
+      setSearchParams(searchParams, { replace: true });
+    }
   };
 
   const handleCancelOrder = (orderId) => {
@@ -98,9 +114,11 @@ const OrderHistory = () => {
   };
 
 
+  // Backend: chỉ đơn COD và trạng thái PENDING mới được khách hủy
   const canCancelOrder = (order) => {
-    const statusName = order?.order_status_id?.name;
-    return statusName === "PENDING" || statusName === "PAID";
+    const statusName = normalizeStatus(order?.order_status_id?.name);
+    const paymentMethod = (order?.payment_method || "").toString().trim().toUpperCase();
+    return statusName === "PENDING" && paymentMethod === "COD";
   };
 
   const renderStatusBadge = (statusName) => {
@@ -285,6 +303,14 @@ const OrderHistory = () => {
           </div>
         )}
       </div>
+
+      {/* Popup chi tiết đơn hàng (nội dung nằm ở OrderHistoryDetail.jsx) */}
+      {effectiveDetailId && (
+        <OrderHistoryDetailContent
+          orderId={effectiveDetailId}
+          onClose={handleCloseDetailModal}
+        />
+      )}
     </div>
   );
 };
