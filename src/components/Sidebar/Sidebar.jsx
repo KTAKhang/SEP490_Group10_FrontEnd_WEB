@@ -12,6 +12,7 @@ import {
   History,
   ClipboardList,
   Users,
+  Image,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -49,6 +50,11 @@ const Sidebar = () => {
       icon: Building2,
       label: "Shop Information",
       path: "/admin/shop",
+    },
+    {
+      icon: Image,
+      label: "Homepage Assets",
+      path: "/admin/homepage-assets",
     },
     {
       icon: Users,

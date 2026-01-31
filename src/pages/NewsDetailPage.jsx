@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Calendar, Eye, User, ArrowLeft, Share2 } from 'lucide-react';
 import Header from '../components/Header/Header';
 import Footer from '../components/Footer/Footer';
+import CommentSection from '../components/Comments/CommentSection';
 import { newsGetNewsByIdRequest } from '../redux/actions/newsActions';
 
 const NewsDetailPage = () => {
@@ -200,6 +201,13 @@ const NewsDetailPage = () => {
           </div>
         </div>
       </article>
+
+      {/* Comments Section */}
+      <section className="py-12 bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <CommentSection newsId={id} />
+        </div>
+      </section>
 
       <Footer />
     </div>

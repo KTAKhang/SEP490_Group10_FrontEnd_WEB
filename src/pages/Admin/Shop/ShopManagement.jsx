@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getShopInfoRequest,
+  getShopInfoPublicRequest,
   updateShopBasicInfoRequest,
   updateShopDescriptionRequest,
   updateShopWorkingHoursRequest,
@@ -92,7 +93,10 @@ const ShopManagement = () => {
     address: "",
     email: "",
     phone: "",
+    logo: "",
   });
+  const [logoFile, setLogoFile] = useState(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [description, setDescription] = useState("");
   const [workingHours, setWorkingHours] = useState("");
   const [images, setImages] = useState([]);
@@ -100,13 +104,15 @@ const ShopManagement = () => {
   const [uploadingImages, setUploadingImages] = useState(false);
   const [errors, setErrors] = useState({});
   const editorRef = useRef(null);
+  // Theo dõi khi user nhấn "Lưu thông tin" để hiện thông báo "Đã cập nhật thông tin thành công"
+  const [lastBasicInfoAction, setLastBasicInfoAction] = useState(null); // 'save_form'
 
   // Load shop info on mount
   useEffect(() => {
     dispatch(getShopInfoRequest());
   }, [dispatch]);
 
-  // Populate form when shop info is loaded
+  // Populate form when shop info is loaded; reset form khi shopInfo = null (vd: lỗi 403)
   useEffect(() => {
     if (shopInfo) {
       setFormData({
@@ -114,27 +120,54 @@ const ShopManagement = () => {
         address: shopInfo.address || "",
         email: shopInfo.email || "",
         phone: shopInfo.phone || "",
+        logo: shopInfo.logo || "",
       });
       setDescription(shopInfo.description || "");
       setWorkingHours(shopInfo.workingHours || "");
       setImages(shopInfo.images || []);
       setImagePublicIds(shopInfo.imagePublicIds || []);
+    } else if (!getShopInfoLoading) {
+      // Request xong mà không có data (403, 500...) → tránh hiển thị data cũ
+      setFormData({
+        shopName: "",
+        address: "",
+        email: "",
+        phone: "",
+        logo: "",
+      });
+      setDescription("");
+      setWorkingHours("");
+      setImages([]);
+      setImagePublicIds([]);
     }
-  }, [shopInfo]);
+  }, [shopInfo, getShopInfoLoading]);
 
-  // Handle success/error messages
+  // Handle success/error messages - chỉ khi user nhấn "Lưu thông tin" mới gọi API, nên success chỉ từ save_form
   useEffect(() => {
     if (success) {
-      toast.success(success);
+      if (lastBasicInfoAction === 'save_form') {
+        toast.success('Đã cập nhật thông tin thành công');
+      } else {
+        toast.success(success);
+      }
+      setLastBasicInfoAction(null);
       dispatch(clearShopMessages());
-      // Refresh shop info
+      // Refresh shop info (admin view)
       dispatch(getShopInfoRequest());
+      // Force refresh public shop info (for Header/Footer) - always refresh to ensure sync
+      setTimeout(() => {
+        dispatch(getShopInfoPublicRequest());
+      }, 500);
+      setTimeout(() => {
+        dispatch(getShopInfoPublicRequest());
+      }, 1500);
     }
     if (error) {
       toast.error(error);
+      setLastBasicInfoAction(null);
       dispatch(clearShopMessages());
     }
-  }, [success, error, dispatch]);
+  }, [success, error, dispatch, lastBasicInfoAction]);
 
   // Validate basic info form
   const validateBasicInfo = () => {
@@ -162,13 +195,86 @@ const ShopManagement = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle basic info update
+  // Handle logo upload
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Chỉ chấp nhận file ảnh (JPG, PNG, GIF, WEBP)');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error('Kích thước file không được vượt quá 5MB');
+      return;
+    }
+
+    try {
+      setUploadingLogo(true);
+      const uploadFormData = new FormData();
+      uploadFormData.append('image', file);
+
+      // Use the same endpoint as shop images: /upload/shop-image
+      const response = await apiClient.post('/upload/shop-image', uploadFormData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      // Check response format
+      if (response.data?.status === 'OK') {
+        // Handle different response formats
+        const data = response.data.data || response.data;
+        const imageUrl = data.url || data.imageUrl || data.secure_url;
+        
+        if (imageUrl) {
+          // Chỉ cập nhật form (hiện logo mới), chưa lưu backend. User phải nhấn "Lưu thông tin" để lưu.
+          const updatedFormData = { ...formData, logo: imageUrl };
+          setFormData(updatedFormData);
+          setLogoFile(null);
+          toast.info('Đã chọn logo mới. Nhấn "Lưu thông tin" để lưu thay đổi.');
+        } else {
+          throw new Error('Response không chứa URL hình ảnh');
+        }
+      } else {
+        throw new Error(response.data?.message || 'Upload logo thất bại');
+      }
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      
+      let errorMessage = 'Có lỗi xảy ra khi upload logo';
+      
+      if (error.response?.status === 404) {
+        errorMessage = 'Endpoint /upload/shop-image không tồn tại. Vui lòng kiểm tra backend.';
+      } else if (error.response?.status === 400) {
+        errorMessage = error.response.data?.message || 'File không hợp lệ. Vui lòng kiểm tra định dạng và kích thước.';
+      } else if (error.response?.status === 401 || error.response?.status === 403) {
+        errorMessage = 'Không có quyền truy cập. Vui lòng đăng nhập lại.';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  // Handle basic info update (nút "Lưu thông tin")
   const handleBasicInfoSubmit = (e) => {
     e.preventDefault();
     if (!validateBasicInfo()) {
       toast.error("Vui lòng kiểm tra lại thông tin");
       return;
     }
+    setLastBasicInfoAction('save_form'); // Để khi success hiện "Đã cập nhật thông tin thành công"
     dispatch(updateShopBasicInfoRequest(formData));
   };
 
@@ -390,6 +496,92 @@ const ShopManagement = () => {
             {/* Basic Info Tab */}
             {activeTab === "basic" && (
               <form onSubmit={handleBasicInfoSubmit} className="space-y-6">
+                {/* Logo Upload */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    Logo Shop
+                  </label>
+                  <div className="flex items-start space-x-6">
+                    {/* Logo Preview */}
+                    <div className="flex-shrink-0">
+                      <div className="w-32 h-32 border-2 border-gray-300 rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center relative group">
+                        {formData.logo ? (
+                          <>
+                            <img
+                              src={formData.logo}
+                              alt="Logo"
+                              className="w-full h-full object-contain p-2"
+                              onError={(e) => {
+                                e.target.src = 'https://public.readdy.ai/ai/img_res/5bde7704-1cb0-4365-9e92-f123696b11d9.png';
+                              }}
+                            />
+                            {/* Hover overlay to show full URL */}
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                              <span className="text-white text-xs text-center px-2 break-all">
+                                {formData.logo.length > 50 ? formData.logo.substring(0, 50) + '...' : formData.logo}
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="text-center text-gray-400">
+                            <ImageIcon className="w-8 h-8 mx-auto mb-2" />
+                            <span className="text-xs">Chưa có logo</span>
+                          </div>
+                        )}
+                      </div>
+                      {/* Logo URL display */}
+                      {formData.logo && (
+                        <div className="mt-2 text-xs text-gray-500 max-w-[128px] truncate" title={formData.logo}>
+                          {formData.logo.length > 30 ? formData.logo.substring(0, 30) + '...' : formData.logo}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Upload Controls */}
+                    <div className="flex-1">
+                      <div className="space-y-3">
+                        <div>
+                          <label
+                            htmlFor="logo-upload"
+                            className={`inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
+                              uploadingLogo ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                          >
+                            <Upload className="w-4 h-4 mr-2" />
+                            {uploadingLogo ? 'Đang upload...' : 'Chọn logo'}
+                          </label>
+                          <input
+                            id="logo-upload"
+                            type="file"
+                            accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                            onChange={handleLogoUpload}
+                            disabled={uploadingLogo}
+                            className="hidden"
+                          />
+                        </div>
+                        {formData.logo && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updatedFormData = { ...formData, logo: "" };
+                              setFormData(updatedFormData);
+                              setLogoFile(null);
+                              toast.info('Đã xóa logo trong form. Nhấn "Lưu thông tin" để lưu thay đổi.');
+                            }}
+                            className="text-sm text-red-600 hover:text-red-700 flex items-center"
+                          >
+                            <X className="w-4 h-4 mr-1" />
+                            Xóa logo
+                          </button>
+                        )}
+                        <p className="text-xs text-gray-500">
+                          Định dạng: JPG, PNG, GIF, WEBP. Kích thước tối đa: 5MB
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Tên shop <span className="text-red-500">*</span>

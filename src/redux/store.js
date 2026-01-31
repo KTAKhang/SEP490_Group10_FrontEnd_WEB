@@ -16,6 +16,7 @@ import publicProductReducer from "./reducers/publicProductReducer";
 import publicCategoryReducer from "./reducers/publicCategoryReducer";
 import productBatchReducer from "./reducers/productBatchReducer";
 import favoriteReducer from "./reducers/favoriteReducer";
+import homepageAssetsReducer from "./reducers/homepageAssetsReducer";
 
 import rootSaga from "./sagas/rootSaga";
 
@@ -35,6 +36,7 @@ const rootReducer = combineReducers({
   publicCategory: publicCategoryReducer,
   productBatch: productBatchReducer,
   favorite: favoriteReducer,
+  homepageAssets: homepageAssetsReducer,
 });
 
 const sagaMiddleware = createSagaMiddleware();

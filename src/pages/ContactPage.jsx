@@ -9,6 +9,7 @@ import {
   contactCreateContactRequest,
   contactClearMessages,
 } from '../redux/actions/contactActions';
+import { getShopInfoPublicRequest } from '../redux/actions/shopActions';
 
 export default function Contact() {
   const navigate = useNavigate();
@@ -23,6 +24,8 @@ export default function Contact() {
     createContactError,
   } = useSelector((state) => state.contact || {});
 
+  const { publicShopInfo } = useSelector((state) => state.shop || {});
+
   /* ================= LOCAL STATE ================= */
   const [formData, setFormData] = useState({
     subject: '',
@@ -33,10 +36,14 @@ export default function Contact() {
   const [files, setFiles] = useState([]);
   const [errors, setErrors] = useState({});
 
-  /* ================= FETCH CATEGORIES ================= */
+  /* ================= FETCH CATEGORIES & SHOP INFO ================= */
   useEffect(() => {
     dispatch(contactGetCategoriesRequest());
-  }, [dispatch]);
+    // Load shop info for contact information
+    if (!publicShopInfo) {
+      dispatch(getShopInfoPublicRequest());
+    }
+  }, [dispatch, publicShopInfo]);
 
   /* ================= HANDLE SUCCESS ================= */
   useEffect(() => {
@@ -160,29 +167,30 @@ export default function Contact() {
     );
   };
 
+  // Build contact info from shop data
   const contactInfo = [
     {
       icon: '📍',
       title: 'Address',
-      content: '123 Nong Nghiep Street, District 1, Ho Chi Minh City',
-      link: 'https://maps.google.com'
+      content: publicShopInfo?.address || '123 Nong Nghiep Street, District 1, Ho Chi Minh City',
+      link: publicShopInfo?.address ? `https://maps.google.com/search?q=${encodeURIComponent(publicShopInfo.address)}` : 'https://maps.google.com'
     },
     {
       icon: '📞',
       title: 'Phone',
-      content: '0123 456 789',
-      link: 'tel:0123456789'
+      content: publicShopInfo?.phone || '0123 456 789',
+      link: publicShopInfo?.phone ? `tel:${publicShopInfo.phone.replace(/\s/g, '')}` : 'tel:0123456789'
     },
     {
       icon: '✉️',
       title: 'Email',
-      content: 'info@nongsansach.vn',
-      link: 'mailto:info@nongsansach.vn'
+      content: publicShopInfo?.email || 'info@nongsansach.vn',
+      link: publicShopInfo?.email ? `mailto:${publicShopInfo.email}` : 'mailto:info@nongsansach.vn'
     },
     {
       icon: '🕐',
       title: 'Working Hours',
-      content: 'Monday - Sunday: 8:00 AM - 8:00 PM',
+      content: publicShopInfo?.workingHours || 'Monday - Sunday: 8:00 AM - 8:00 PM',
       link: null
     },
   ];
