@@ -10,6 +10,8 @@ import {
   Upload,
   message,
   Switch,
+  DatePicker,
+  Modal,
 } from "antd";
 import {
   UserOutlined,
@@ -24,14 +26,17 @@ import {
   PhoneOutlined,
   HomeOutlined,
 } from "@ant-design/icons";
+import dayjs from "dayjs";
+import { Users, CalendarDays } from "lucide-react";
 import { useState, useEffect } from "react";
+import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import {
   clearProfileMessages,
   getProfileRequest,
   updateProfileRequest,
 } from "../../redux/actions/profileAction";
-
+const API_BASE = "https://provinces.open-api.vn/api/v2";
 const { Option } = Select;
 
 const ProfileManager = () => {
@@ -49,9 +54,90 @@ const ProfileManager = () => {
   const [editMode, setEditMode] = useState(false);
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [wards, setWards] = useState([]);
+  const [provinces, setProvinces] = useState([]);
+  const [icity, setIcity] = useState("");
+  const [form] = Form.useForm();
+  const [cityCode, setCityCode] = useState(null);
+  useEffect(() => {
+    axios
+      .get(`${API_BASE}/p/`)
+      .then((res) => setProvinces(res.data))
+      .catch((err) => console.error("Error loading provinces:", err));
+  }, []);
+
+  // Load wards when selected cityCode changes
+  useEffect(() => {
+    if (!cityCode) {
+      setWards([]);
+      return;
+    }
+
+    axios
+      .get(`${API_BASE}/w/`)
+      .then((res) => {
+        const filtered = res.data.filter(
+          (ward) => ward.province_code === Number(cityCode),
+        );
+        setWards(filtered);
+      })
+      .catch((err) => console.error(err));
+  }, [cityCode]);
+
+  // When user & provinces available, parse user.address into fields
+  useEffect(() => {
+    if (!user || provinces.length === 0) return;
+
+    const parts = user.address
+      ? user.address.split(",").map((p) => p.trim())
+      : [];
+    const addr = parts[0] || "";
+    const ward = parts[1] || "";
+    const provinceName = parts[2] || "";
+
+    // Try to find province by exact or partial name
+    const byName = provinces.find(
+      (p) =>
+        p.name === provinceName ||
+        p.name_with_type === provinceName ||
+        (provinceName && p.name.includes(provinceName)) ||
+        (provinceName && provinceName.includes(p.name)),
+    );
+
+    // Try to find by code (user.city might already be a code)
+    const byCode = provinces.find(
+      (p) =>
+        String(p.code) === String(user.city) ||
+        String(p.code) === String(parts[2]),
+    );
+
+    const province = byName || byCode;
+    const code = province
+      ? province.code
+      : Number(user.city)
+        ? Number(user.city)
+        : null;
+
+    if (code) {
+      setCityCode(Number(code));
+      setIcity(province ? province.name : provinceName);
+    }
+
+    // Fill form fields only when form is mounted (editMode true) so Select shows value
+    if (form) {
+      form.setFieldsValue({
+        address: addr,
+        ward: ward,
+        city: code || (user.city ? Number(user.city) || user.city : undefined),
+        user_name: user.user_name,
+        phone: user.phone,
+        gender: user.gender,
+        birthday: user.birthday ? dayjs(user.birthday) : null,
+      });
+    }
+  }, [user, provinces, form, editMode]);
 
   useEffect(() => {
-    console.log("alo");
     dispatch(getProfileRequest());
     dispatch(clearProfileMessages());
   }, [dispatch]);
@@ -81,14 +167,11 @@ const ProfileManager = () => {
   };
 
   // Role display mapping
-  const getRoleDisplayName = (roleName) => {
-    const roleMap = {
-      admin: "Quản trị viên",
-      customer: "Khách hàng",
-      "sales-staff": "Nhân viên bán hàng",
-      "repair-staff": "Nhân viên sửa chữa",
-    };
-    return roleMap[roleName] || roleName;
+  const getRoleDisplayName = (roleName = "") => {
+    if (roleName === "admin") return "ADMIN";
+    if (roleName === "customer") return "CUSTOMER";
+
+    return roleName.toUpperCase();
   };
 
   // Handle avatar upload
@@ -149,8 +232,9 @@ const ProfileManager = () => {
     formData.append("userId", userId);
     formData.append("user_name", values.user_name);
     formData.append("phone", values.phone);
-    formData.append("address", values.address);
-
+    formData.append("address", `${values.address}, ${values.ward}, ${icity}`);
+    formData.append("birthday", values.birthday);
+    formData.append("gender", values.gender);
     if (avatarFile) {
       formData.append("avatar", avatarFile);
     }
@@ -164,7 +248,7 @@ const ProfileManager = () => {
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#13C2C2]"></div>
-          <p className="mt-4 text-gray-600">Đang tải thông tin...</p>
+          <p className="mt-4 text-gray-600">Loading Profile...</p>
         </div>
       </div>
     );
@@ -174,14 +258,14 @@ const ProfileManager = () => {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
-          <p className="text-red-500 text-lg">Có lỗi xảy ra: {error}</p>
+          <p className="text-red-500 text-lg">Errors: {error}</p>
           <Button
             onClick={() => {
               dispatch(getProfileRequest());
             }}
             className="mt-4"
           >
-            Thử lại
+            Try again
           </Button>
         </div>
       </div>
@@ -192,7 +276,7 @@ const ProfileManager = () => {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
-          <p className="text-gray-600">Không tìm thấy thông tin người dùng</p>
+          <p className="text-gray-600">User information not found.</p>
         </div>
       </div>
     );
@@ -203,7 +287,6 @@ const ProfileManager = () => {
       <div className="flex-1 bg-white">
         <div className="p-8">
           <div className="max-w-7xl mx-auto space-y-8">
-
             <Row gutter={[24, 24]} className="items-start">
               <Col xs={{ span: 24, order: 2 }} md={{ span: 16, order: 1 }}>
                 <div>
@@ -214,7 +297,7 @@ const ProfileManager = () => {
                         <div className="flex items-center space-x-3 py-2">
                           <div className="w-1 h-8 bg-gradient-to-b from-green-700 via-green-500 to-green-700 rounded-full"></div>
                           <h3 className="text-2xl font-bold bg-gradient-to-r from-green-700 to-green-500 bg-clip-text text-transparent">
-                            Thông tin tài khoản
+                            Account Information
                           </h3>
                         </div>
                       }
@@ -222,7 +305,7 @@ const ProfileManager = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {[
                           {
-                            label: "Tên người dùng",
+                            label: "User Name",
                             value: user.user_name,
                             icon: <UserOutlined className="text-green-700" />,
                           },
@@ -232,38 +315,40 @@ const ProfileManager = () => {
                             icon: <MailOutlined className="text-green-500" />,
                           },
                           {
-                            label: "Số điện thoại",
-                            value: user.phone || "Chưa cập nhật",
+                            label: "Phone",
+                            value: user.phone || "Not yet updated",
                             icon: <PhoneOutlined className="text-green-700" />,
                           },
                           {
-                            label: "Địa chỉ",
-                            value: user.address || "Chưa cập nhật",
+                            label: "Address",
+                            value: user.address || "Not yet updated",
                             icon: <HomeOutlined className="text-green-500" />,
                           },
                           {
-                            label: "Vai trò",
-                            value: getRoleDisplayName(user.role_name),
+                            label: "Gender",
+                            value: user.gender
+                              ? user.gender.toUpperCase()
+                              : "N/A",
                             icon: <TeamOutlined className="text-green-700" />,
                           },
                           {
-                            label: "Trạng thái",
-                            value: user.status
-                              ? "Hoạt động"
-                              : "Không hoạt động",
-                            icon: (
-                              <CheckCircleOutlined className="text-green-500" />
-                            ),
+                            label: "Birthday",
+                            value: user.birthday
+                              ? new Date(user.birthday).toLocaleDateString(
+                                  "vi-VN",
+                                )
+                              : "N/A",
+                            icon: <CalendarDays className="text-green-700" />,
                           },
                           {
-                            label: "Ngày tạo",
+                            label: "Create At",
                             value: formatDate(user.createdAt),
-                            icon: <UserOutlined className="text-green-700" />,
+                            icon: <CalendarDays className="text-green-700" />,
                           },
                           {
-                            label: "Cập nhật lần cuối",
+                            label: "Update At",
                             value: formatDate(user.updatedAt),
-                            icon: <UserOutlined className="text-green-500" />,
+                            icon: <CalendarDays className="text-green-500" />,
                           },
                         ].map((item, index) => (
                           <div
@@ -298,7 +383,7 @@ const ProfileManager = () => {
                         <div className="flex items-center space-x-3 py-2">
                           <div className="w-1 h-8 bg-gradient-to-b from-green-700 via-green-500 to-green-700 rounded-full"></div>
                           <h3 className="text-2xl font-bold bg-gradient-to-r from-green-700 to-green-500 bg-clip-text text-transparent">
-                            Chỉnh sửa thông tin
+                            Update Profile
                           </h3>
                         </div>
                       }
@@ -326,24 +411,24 @@ const ProfileManager = () => {
                       )}
 
                       <Form
+                        form={form}
                         layout="vertical"
                         onFinish={handleSubmit}
                         autoComplete="off"
                       >
                         {/* User name */}
                         <Form.Item
-                          label="Tên người dùng"
+                          label="User Name"
                           name="user_name"
-                          initialValue={user.user_name}
                           rules={[
                             {
                               required: true,
-                              message: "Vui lòng nhập tên người dùng!",
+                              message: "Please enter your username!",
                             },
                             {
                               min: 2,
                               message:
-                                "Tên người dùng phải có ít nhất 2 ký tự!",
+                                "Usernames must have at least 2 characters!",
                             },
                           ]}
                         >
@@ -355,32 +440,83 @@ const ProfileManager = () => {
 
                         {/* Phone */}
                         <Form.Item
-                          label="Số điện thoại"
+                          label="Phone Number"
                           name="phone"
-                          initialValue={user.phone}
                           rules={[
                             {
                               required: true,
-                              message: "Vui lòng nhập số điện thoại!",
+                              message: "Please enter your phone number!",
                             },
                             {
                               pattern: /^[0-9]{9,11}$/,
-                              message: "Số điện thoại không hợp lệ!",
+                              message: "The phone number is invalid!",
                             },
                           ]}
                         >
                           <Input
                             size="large"
-                            placeholder="Nhập số điện thoại"
+                            placeholder="Enter phone number"
                             className="rounded-xl border-2 hover:border-green-500 focus:border-green-500 transition-colors"
                           />
                         </Form.Item>
 
+                        <Form.Item
+                          label="City / Province"
+                          name="city"
+                          rules={[
+                            {
+                              required: true,
+                              message: "Please select city/province!",
+                            },
+                          ]}
+                        >
+                          <Select
+                            size="large"
+                            placeholder="Select city/province"
+                            className="rounded-xl"
+                            onChange={(value) => {
+                              const province = provinces.find(
+                                (p) => p.code === Number(value),
+                              );
+                              setIcity(province ? province.name : "");
+                              setCityCode(Number(value));
+                              form.setFieldsValue({ ward: "" });
+                            }}
+                          >
+                            {provinces.map((p) => (
+                              <Select.Option key={p.code} value={p.code}>
+                                {p.name}
+                              </Select.Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+
+                        {/* Ward */}
+                        <Form.Item
+                          label="Ward"
+                          name="ward"
+                          rules={[
+                            { required: true, message: "Please select ward!" },
+                          ]}
+                        >
+                          <Select
+                            size="large"
+                            placeholder="Select ward"
+                            disabled={!cityCode}
+                            className="rounded-xl"
+                          >
+                            {wards.map((w) => (
+                              <Select.Option key={w.code} value={w.name}>
+                                {w.name}
+                              </Select.Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+
                         {/* Address */}
                         <Form.Item
-                          label="Địa chỉ"
+                          label="Address"
                           name="address"
-                          initialValue={user.address}
                           rules={[
                             {
                               required: true,
@@ -398,29 +534,81 @@ const ProfileManager = () => {
                             className="rounded-xl border-2 hover:border-green-500 focus:border-green-500 transition-colors"
                           />
                         </Form.Item>
+                        {/* Birthday */}
+                        <Form.Item
+                          label="Birthday"
+                          name="birthday"
+                          rules={[
+                            {
+                              required: true,
+                              message: "Please select your birthday!",
+                            },
+                          ]}
+                        >
+                          <DatePicker
+                            size="large"
+                            className="w-full rounded-xl"
+                            disabledDate={(current) =>
+                              current && current > dayjs().endOf("day")
+                            }
+                          />
+                        </Form.Item>
+
+                        {/* Gender */}
+                        <Form.Item
+                          label="Gender"
+                          name="gender"
+                          rules={[
+                            {
+                              required: true,
+                              message: "Please select gender!",
+                            },
+                          ]}
+                        >
+                          <Select
+                            size="large"
+                            placeholder="Select gender"
+                            className="rounded-xl"
+                          >
+                            <Select.Option value="male">Male</Select.Option>
+                            <Select.Option value="female">Female</Select.Option>
+                            <Select.Option value="other">Other</Select.Option>
+                          </Select>
+                        </Form.Item>
 
                         <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-100">
                           <Button
                             size="large"
-                            className="px-8 py-2 h-auto rounded-xl border-2 border-gray-300 hover:border-gray-400 transition-colors"
+                            danger
+                            ghost
                             onClick={() => {
-                              setEditMode(false);
-                              setAvatarFile(null);
-                              setAvatarUrl(user.avatar || "");
-                              dispatch(clearProfileMessages());
+                              Modal.confirm({
+                                title: "Discard changes?",
+                                content: "Your changes will not be saved.",
+                                okText: "Discard",
+                                cancelText: "Continue editing",
+                                onOk: () => {
+                                  setEditMode(false);
+                                  form.resetFields();
+                                  setAvatarFile(null);
+                                  setAvatarUrl(user.avatar || "");
+                                  dispatch(clearProfileMessages());
+                                },
+                              });
                             }}
                           >
-                            Hủy
+                            Cancel
                           </Button>
+
                           <Button
-                            type="primary"
+                            type="text"
                             size="large"
                             loading={updateLoading}
                             icon={<SaveOutlined />}
-                            className="px-8 py-2 h-auto rounded-xl bg-gradient-to-r from-green-700 via-green-500 to-green-700 border-0 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                            className="px-8 py-2 h-auto rounded-xl text-white bg-gradient-to-r from-green-500 via-green-600 to-green-700 border-0 hover:!text-white hover:!bg-green-800 focus:!bg-green-800 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
                             htmlType="submit"
                           >
-                            {updateLoading ? "Đang lưu..." : "Lưu thay đổi"}
+                            {updateLoading ? "Saving..." : "Save Updated"}
                           </Button>
                         </div>
                       </Form>
@@ -428,10 +616,14 @@ const ProfileManager = () => {
                   )}
                 </div>
               </Col>
-              <Col xs={{ span: 24, order: 1 }} md={{ span: 8, order: 2 }}>
+              <Col
+                xs={{ span: 24, order: 1 }}
+                md={{ span: 8, order: 2 }}
+                className="sticky top-20"
+              >
                 <div className="sticky top-24 space-y-6">
-                  <Card className="rounded-3xl border-0 shadow-2xl hover:shadow-2xl transition-all duration-500 bg-white/90 backdrop-blur-lg overflow-visible">
-                    <div className="text-center relative">
+                  <Card className="rounded-3xl border-0 shadow-2xl hover:shadow-2xl transition-all duration-500 bg-white/90 backdrop-blur-lg overflow-visible ">
+                    <div className="text-center relative sticky top-8">
                       {/* Avatar Container with animation */}
                       <div className="relative inline-block group">
                         {/* Animated rings */}
@@ -482,11 +674,12 @@ const ProfileManager = () => {
                       {/* Nút chỉnh sửa */}
                       {!editMode && (
                         <Button
+                          type="text"
                           icon={<EditOutlined />}
-                          className="mt-6 border-2 border-green-500 text-green-700 hover:bg-green-500 focus:border-green-500 hover:text-white hover:border-green-600 transition-all duration-300 rounded-xl px-6 py-2 h-auto font-medium"
+                          className="mt-6 border-2 border-green-500 text-green-700 hover:!bg-green-600 hover:!text-white hover:!border-green-600 focus:!border-green-500 transition-all duration-300 rounded-xl px-6 py-2 h-auto font-medium "
                           onClick={() => setEditMode(true)}
                         >
-                          Chỉnh sửa
+                          Edit
                         </Button>
                       )}
                     </div>
