@@ -22,6 +22,7 @@ import favoriteReducer from "./reducers/favoriteReducer";
 import supplierReducer from "./reducers/supplierReducer";
 import fruitBasketReducer from "./reducers/fruitBasketReducer";
 import publicFruitBasketReducer from "./reducers/publicFruitBasketReducer";
+import reviewReducer from "./reducers/reviewReducer";
 import rootSaga from "./sagas/rootSaga";
 
 const rootReducer = combineReducers({
@@ -46,6 +47,7 @@ const rootReducer = combineReducers({
   favorite: favoriteReducer,
   supplier: supplierReducer,
   fruitBasket: fruitBasketReducer,
+  review: reviewReducer,
 });
 
 const sagaMiddleware = createSagaMiddleware();
