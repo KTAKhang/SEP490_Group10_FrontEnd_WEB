@@ -56,7 +56,11 @@ import PaymentSuccessPage from "../pages/CustomerView/PaymentSuccessPage";
 import PaymentFailPage from "../pages/CustomerView/PaymentFailPage";
 import VoucherPage from "../pages/CustomerView/VoucherPage";
 import OrderHistory from "../pages/CustomerView/OrderHistory";
+import OrderHistoryDetail from "../pages/CustomerView/OrderHistoryDetail";
 import OrderManagement from "../pages/Admin/OrderManagement/OrderManagement";
+import ReviewManagement from "../pages/Admin/Review/ReviewManagement";
+import CreateReview from "../pages/CustomerView/ReviewProduct/CreateReview";
+import EditReview from "../pages/CustomerView/ReviewProduct/EditReview";
 
 
 export const routes = [
@@ -125,6 +129,8 @@ export const routes = [
     children: [
       { path: "profile", element: <ProfileManagement /> },
       { path: "change-password", element: <UpdatePassword /> },
+      { path: "reviews/create", element: <CreateReview /> },
+      { path: "reviews/:reviewId/edit", element: <EditReview /> },
       { path: "contact", element: <ContactPage /> },
       { path: "contact-history", element: <ContactHistoryPage /> },
       { path: "cart", element: <CartPage /> },
@@ -133,6 +139,8 @@ export const routes = [
       { path: "vouchers", element: <VoucherPage /> },
 
       { path: "orders", element: <OrderHistory /> },
+
+      { path: "orders/:orderId", element: <OrderHistoryDetail /> },
 
       { path: "order-success", element: <OrderSuccessPage /> },
       { path: "payment-result", element: <PaymentSuccessPage /> },
@@ -176,6 +184,7 @@ export const routes = [
       { path: "customers", element: <CustomerManagement /> },
       { path: "discounts", element: <AdminDiscountManagement /> },
       { path: "orders", element: <OrderManagement /> },
+      { path: "reviews", element: <ReviewManagement /> },
       { path: "news", element: <NewsListPage /> },
       { path: "news/create", element: <NewsFormPage /> },
       { path: "news/edit/:id", element: <NewsFormPage /> },

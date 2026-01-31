@@ -3,11 +3,12 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   Search,
   Package,
-  X,
   ChevronLeft,
   ChevronRight,
   ArrowRightLeft,
 } from "lucide-react";
+import ReadOrderDetail from "./ReadOrderDetail";
+import UpdateOrderStatus from "./UpdateOrderStatus";
 import {
   orderAdminListRequest,
   orderAdminUpdateRequest,
@@ -22,6 +23,7 @@ const STATUS_OPTIONS = [
   { value: "READY-TO-SHIP", label: "Sẵn sàng giao" },
   { value: "SHIPPING", label: "Đang giao" },
   { value: "COMPLETED", label: "Hoàn thành" },
+  { value: "RETURNED", label: "Trả hàng" },
   { value: "CANCELLED", label: "Đã hủy" },
 ];
 
@@ -31,6 +33,7 @@ const STATUS_BADGE = {
   "READY-TO-SHIP": "bg-purple-100 text-purple-800",
   SHIPPING: "bg-indigo-100 text-indigo-800",
   COMPLETED: "bg-green-100 text-green-800",
+  RETURNED: "bg-amber-100 text-amber-800",
   CANCELLED: "bg-red-100 text-red-800",
 };
 
@@ -62,6 +65,7 @@ const STATS_ORDER = [
   "READY-TO-SHIP",
   "SHIPPING",
   "COMPLETED",
+  "RETURNED",
   "CANCELLED",
 ];
 
@@ -71,6 +75,10 @@ const normalizeStatus = (value) =>
 const getNextStatuses = (paymentMethod, currentStatus) => {
   const method = normalizeStatus(paymentMethod);
   const current = normalizeStatus(currentStatus);
+  // Chỉ đơn COMPLETED mới được admin chuyển sang RETURNED (backend kiểm tra role admin)
+  if (current === "COMPLETED") {
+    return ["RETURNED"];
+  }
   const transitions = {
     COD: {
       PENDING: ["READY-TO-SHIP", "CANCELLED"],
@@ -244,6 +252,14 @@ const OrderManagement = () => {
         ))}
       </div>
     );
+  };
+
+  // Ẩn nút "Cập nhật trạng thái" khi đơn VNPAY + Chờ xử lý + payment Chờ thanh toán
+  const shouldHideUpdateStatusButton = (order) => {
+    const method = (order?.payment_method || "").toString().trim().toUpperCase();
+    const orderStatus = normalizeStatus(order?.order_status_id?.name);
+    const paymentStatus = (order?.payment?.status || "").toString().trim().toUpperCase();
+    return method === "VNPAY" && orderStatus === "PENDING" && paymentStatus === "PENDING";
   };
 
   const renderPaymentBadge = (payment) => {
@@ -460,13 +476,15 @@ const OrderManagement = () => {
                     >
                       Xem chi tiết
                     </button>
-                    <button
-                      onClick={() => handleOpenUpdate(order)}
-                      className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
-                    >
-                      <ArrowRightLeft size={16} />
-                      Cập nhật trạng thái
-                    </button>
+                    {!shouldHideUpdateStatusButton(order) && (
+                      <button
+                        onClick={() => handleOpenUpdate(order)}
+                        className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
+                      >
+                        <ArrowRightLeft size={16} />
+                        Cập nhật trạng thái
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -497,225 +515,31 @@ const OrderManagement = () => {
         </div>
       )}
 
-      {showUpdateModal && selectedOrder && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full max-w-lg">
-            <div className="flex items-center justify-between p-5 border-b">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Cập nhật trạng thái đơn hàng
-              </h2>
-              <button
-                onClick={() => setShowUpdateModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div className="p-5 space-y-4">
-              <div className="text-sm text-gray-700">
-                Mã đơn: <span className="font-medium">{selectedOrder._id}</span>
-              </div>
-              <div className="text-sm text-gray-700">
-                Trạng thái hiện tại:{" "}
-                {renderStatusBadge(selectedOrder.order_status_id?.name)}
-              </div>
+      <UpdateOrderStatus
+        isOpen={showUpdateModal}
+        selectedOrder={selectedOrder}
+        nextStatus={nextStatus}
+        note={note}
+        onChangeNextStatus={setNextStatus}
+        onChangeNote={setNote}
+        onClose={() => setShowUpdateModal(false)}
+        onSubmit={handleSubmitUpdate}
+        adminUpdateLoading={adminUpdateLoading}
+        getNextStatuses={getNextStatuses}
+        statusOptions={STATUS_OPTIONS}
+        renderStatusBadge={renderStatusBadge}
+      />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Trạng thái mới
-                </label>
-                <select
-                  value={nextStatus}
-                  onChange={(e) => setNextStatus(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                >
-                  {getNextStatuses(
-                    selectedOrder.payment_method,
-                    selectedOrder.order_status_id?.name
-                  ).map((status) => (
-                    <option key={status} value={status}>
-                      {STATUS_OPTIONS.find((opt) => opt.value === status)?.label ||
-                        status}
-                    </option>
-                  ))}
-                </select>
-                {getNextStatuses(
-                  selectedOrder.payment_method,
-                  selectedOrder.order_status_id?.name
-                ).length === 0 && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Không có trạng thái hợp lệ để chuyển tiếp.
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Ghi chú (tuỳ chọn)
-                </label>
-                <textarea
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  rows={3}
-                  maxLength={200}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Ghi chú cho lần cập nhật trạng thái"
-                />
-              </div>
-            </div>
-            <div className="flex items-center justify-end gap-2 p-5 border-t">
-              <button
-                onClick={() => setShowUpdateModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleSubmitUpdate}
-                disabled={!nextStatus || adminUpdateLoading}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {adminUpdateLoading ? "Đang cập nhật..." : "Cập nhật"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showDetailModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full max-w-5xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-5 border-b">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Chi tiết đơn hàng
-              </h2>
-              <button
-                onClick={handleCloseDetail}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div className="p-5">
-              {adminDetailLoading || !adminDetail ? (
-                <div className="py-10 text-center text-gray-600">
-                  Đang tải chi tiết đơn hàng...
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div className="space-y-2 text-sm text-gray-700">
-                      <div>Mã đơn: {adminDetail.order?._id}</div>
-                      <div>Ngày đặt: {formatDate(adminDetail.order?.createdAt)}</div>
-                      <div>
-                        Trạng thái:{" "}
-                        {renderStatusBadge(
-                          adminDetail.order?.order_status_id?.name
-                        )}
-                      </div>
-                      <div>
-                        Thanh toán: {adminDetail.order?.payment_method || "N/A"}
-                      </div>
-                    </div>
-                    <div className="space-y-2 text-sm text-gray-700">
-                      <div>Người nhận: {adminDetail.order?.receiver_name}</div>
-                      <div>Điện thoại: {adminDetail.order?.receiver_phone}</div>
-                      <div>Địa chỉ: {adminDetail.order?.receiver_address}</div>
-                    </div>
-                  </div>
-
-                  <div className="mb-6">
-                    <h3 className="text-sm font-semibold text-gray-800 mb-3">
-                      Sản phẩm
-                    </h3>
-                    <div className="space-y-3">
-                      {adminDetail.details?.map((item) => (
-                        <div
-                          key={item._id}
-                          className="flex items-center justify-between border rounded-lg p-3"
-                        >
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={
-                                item.product_image ||
-                                "https://via.placeholder.com/60?text=No+Image"
-                              }
-                              alt={item.product_name}
-                              className="w-14 h-14 object-cover rounded-lg border"
-                            />
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">
-                                {item.product_name}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {item.product_category_name || "N/A"}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right text-sm text-gray-700">
-                            <div>Số lượng: {item.quantity}</div>
-                            <div>{formatCurrency(item.price)}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="mb-6">
-                    <h3 className="text-sm font-semibold text-gray-800 mb-3">
-                      Thanh toán
-                    </h3>
-                    <div className="text-sm text-gray-700 flex items-center gap-3">
-                      {renderPaymentBadge(adminDetail.payment)}
-                      <span>
-                        {adminDetail.payment?.method || "N/A"} •{" "}
-                        {formatCurrency(adminDetail.payment?.amount)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between border-t pt-4 text-sm text-gray-700">
-                    <span>Tổng tiền</span>
-                    <span className="text-lg font-semibold text-gray-900">
-                      {formatCurrency(adminDetail.order?.total_price)}
-                    </span>
-                  </div>
-
-                  {adminDetail.order?.status_history?.length > 0 && (
-                    <div className="mt-6">
-                      <h3 className="text-sm font-semibold text-gray-800 mb-3">
-                        Lịch sử trạng thái
-                      </h3>
-                      <div className="space-y-2 text-sm text-gray-700">
-                        {adminDetail.order.status_history.map((history, idx) => (
-                          <div
-                            key={idx}
-                            className="border rounded-lg p-3 bg-gray-50"
-                          >
-                            <div>
-                              {history.from_status?.name || "N/A"} →{" "}
-                              {history.to_status?.name || "N/A"}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {formatDate(history.changed_at)} •{" "}
-                              {history.changed_by_role}
-                            </div>
-                            {history.note && (
-                              <div className="text-xs text-gray-600 mt-1">
-                                {history.note}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <ReadOrderDetail
+        isOpen={showDetailModal}
+        adminDetailLoading={adminDetailLoading}
+        adminDetail={adminDetail}
+        onClose={handleCloseDetail}
+        formatDate={formatDate}
+        renderStatusBadge={renderStatusBadge}
+        renderPaymentBadge={renderPaymentBadge}
+        formatCurrency={formatCurrency}
+      />
     </div>
   );
 };
