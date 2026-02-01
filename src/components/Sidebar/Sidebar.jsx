@@ -16,6 +16,8 @@ import {
   Users,
   Gift,
   ShoppingCart,
+  Apple,
+  BarChart3,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -58,6 +60,11 @@ const Sidebar = () => {
       icon: ShoppingCart,
       label: "Orders",
       path: "/admin/orders",
+    },
+    {
+      icon: Apple,
+      label: "Pre-order management",
+      path: "/admin/preorder",
     },
     {
       icon: MessageSquare,

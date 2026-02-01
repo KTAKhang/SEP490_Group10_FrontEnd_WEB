@@ -108,8 +108,9 @@ export const discountValidateRequest = (code, orderValue) => ({
     payload: { code, orderValue },
 });
 
-export const discountGetValidRequest = () => ({
+export const discountGetValidRequest = (orderValue = null) => ({
     type: DISCOUNT_GET_VALID_REQUEST,
+    payload: orderValue != null ? { orderValue } : {},
 });
 
 export const discountApplyRequest = (discountId, orderValue, orderId) => ({

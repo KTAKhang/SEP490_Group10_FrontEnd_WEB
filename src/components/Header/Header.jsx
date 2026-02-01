@@ -67,6 +67,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
             {[
               { label: "Home", path: "/" },
               { label: "Product", path: "/products" },
+              { label: "Pre-order", path: "/customer/pre-orders" },
               { label: "Categories", path: "/categories" },
               { label: "Fruit Baskets", path: "/fruit-baskets" },
               { label: "About Us", path: "/about" },
@@ -139,6 +140,11 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                           onClick={() => navigate("/customer/orders")}
                         />
                         <DropdownItem
+                          icon={<Package size={18} />}
+                          label="My Pre-orders"
+                          onClick={() => navigate("/customer/my-pre-orders")}
+                        />
+                        <DropdownItem
                           icon={<Clock size={18} />}
                           label="Contact History"
                           onClick={() => navigate("/customer/contact-history")}
@@ -190,6 +196,7 @@ className="text-sm text-gray-700 hover:text-green-600"
             {[
               { label: "Home", path: "/" },
               { label: "Product", path: "/products" },
+              { label: "Pre-order", path: "/customer/pre-orders" },
               { label: "Categories", path: "/categories" },
               { label: "Fruit Baskets", path: "/fruit-baskets" },
               { label: "About Us", path: "/about" },
