@@ -13,6 +13,7 @@ const CustomerManagement = () => {
     list = [], 
     loading, 
     pagination: pageMeta = { page: 1, limit: 10, total: 0 },
+    statistics: statsFromApi,
     orders = [],
     ordersLoading = false,
   } = useSelector((state) => state.customer || {});
@@ -106,12 +107,21 @@ const CustomerManagement = () => {
   const isActive = (status) => status === true || status === "active";
   const toDisplayStatusText = (status) => (isActive(status) ? "Active" : "Inactive");
 
-  // Calculate stats from current list (filtered/paginated)
-  const displayStats = {
-    total: pageMeta.total || 0,
-    active: customers.filter(c => isActive(c.status)).length,
-    inactive: customers.filter(c => !isActive(c.status)).length,
-  };
+  // Statistics từ API (toàn bộ theo bộ lọc), fallback tính từ list nếu API chưa trả về
+  const displayStats = useMemo(() => {
+    if (statsFromApi && typeof statsFromApi.total === "number") {
+      return {
+        total: statsFromApi.total,
+        active: statsFromApi.active ?? 0,
+        inactive: statsFromApi.inactive ?? 0,
+      };
+    }
+    return {
+      total: pageMeta.total || 0,
+      active: customers.filter(c => isActive(c.status)).length,
+      inactive: customers.filter(c => !isActive(c.status)).length,
+    };
+  }, [statsFromApi, pageMeta.total, customers]);
 
   const handleRefresh = useCallback(() => {
     setLoadingRefresh(true);

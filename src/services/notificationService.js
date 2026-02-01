@@ -104,6 +104,12 @@ export const handleNotificationClick = (notificationData) => {
       window.location.href = path;
     }
   }
+
+  if (notificationData?.type === 'preorder') {
+    if (notificationData?.action === 'view_my_preorders') {
+      window.location.href = '/customer/my-pre-orders';
+    }
+  }
   
   // Add more notification types as needed
 };
