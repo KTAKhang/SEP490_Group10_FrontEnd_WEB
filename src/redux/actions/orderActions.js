@@ -43,10 +43,11 @@ export const ORDER_CLEAR_MESSAGES = "ORDER_CLEAR_MESSAGES";
 export const orderCreateRequest = (
   selected_product_ids,
   receiverInfo,
-  payment_method
+  payment_method,
+  icity
 ) => ({
   type: ORDER_CREATE_REQUEST,
-  payload: { selected_product_ids, receiverInfo, payment_method },
+  payload: { selected_product_ids, receiverInfo, payment_method,icity },
 });
 
 export const orderCreateSuccess = (data) => ({
