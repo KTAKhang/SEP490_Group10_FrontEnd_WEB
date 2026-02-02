@@ -49,6 +49,7 @@ const initialState = {
     list: [],
     validDiscounts: [],
     pagination: { page: 1, limit: 10, total: 0 },
+    statistics: null,
     loading: false,
     error: null,
     detail: null,
@@ -76,6 +77,7 @@ export default function discountReducer(state = initialState, action) {
                 loading: false,
                 list: action.payload?.data || [],
                 pagination: action.payload?.pagination || { page: 1, limit: 10, total: 0 },
+                statistics: action.payload?.statistics || null,
             };
 
         case DISCOUNT_LIST_FAILURE:

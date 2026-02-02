@@ -1,15 +1,62 @@
 import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Upload, X, AlertCircle, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Upload, X, AlertCircle } from 'lucide-react';
+import CustomCKEditor from '../../../components/CustomCKEditor/CustomCKEditor';
 import {
   newsCreateNewsRequest,
   newsUpdateNewsRequest,
   newsGetNewsByIdRequest,
   newsClearMessages,
-  newsUploadContentImageRequest,
 } from '../../../redux/actions/newsActions';
 import { toast } from 'react-toastify';
+
+// Custom Upload Adapter để xử lý response format từ backend
+class Adapter {
+  constructor(loader, editor) {
+    this.loader = loader;
+    this.editor = editor;
+  }
+
+  upload() {
+    return this.loader.file.then(
+      (file) =>
+        new Promise((resolve, reject) => {
+          const token = localStorage.getItem('token');
+          const uploadFormData = new FormData();
+          uploadFormData.append('image', file);
+
+          fetch('http://localhost:3001/news/upload-content-image', {
+            method: 'POST',
+            headers: {
+              'Authorization': token ? `Bearer ${token}` : ''
+            },
+            body: uploadFormData,
+            credentials: 'include'
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              // Backend trả về: { status: "OK", data: { url: "...", publicId: "..." } }
+              // CKEditor cần: { url: "..." }
+              if (data.status === 'OK' && data.data?.url) {
+                resolve({ default: data.data.url });
+              } else {
+                reject(new Error(data.message || 'Upload failed'));
+                toast.error(data.message || 'Failed to upload image');
+              }
+            })
+            .catch((error) => {
+              reject(error);
+              toast.error('Failed to upload image: ' + error.message);
+            });
+        })
+    );
+  }
+
+  abort() {
+    // Handle abort if needed
+  }
+}
 
 const NewsFormPage = () => {
   const { id } = useParams();
@@ -26,14 +73,9 @@ const NewsFormPage = () => {
     updateNewsLoading,
     updateNewsSuccess,
     updateNewsError,
-    uploadContentImageLoading,
-    uploadContentImageSuccess,
-    uploadContentImageUrl,
-    uploadContentImageError,
   } = useSelector((state) => state.news || {});
 
-  const contentTextareaRef = useRef(null);
-  const imageInputRef = useRef(null);
+  const editorRef = useRef(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -85,33 +127,6 @@ const NewsFormPage = () => {
     }
   }, [createNewsError, updateNewsError, dispatch]);
 
-  // Handle image upload success - insert into content
-  useEffect(() => {
-    if (uploadContentImageSuccess && uploadContentImageUrl && contentTextareaRef.current) {
-      const textarea = contentTextareaRef.current;
-      const currentContent = textarea.value || formData.content;
-      const cursorPos = textarea.selectionStart || currentContent.length;
-      const textBefore = currentContent.substring(0, cursorPos);
-      const textAfter = currentContent.substring(cursorPos);
-      
-      // Insert image tag at cursor position
-      const imgTag = `<img src="${uploadContentImageUrl}" alt="Image" style="max-width: 100%; height: auto;" />\n`;
-      const newContent = textBefore + imgTag + textAfter;
-      
-      setFormData((prev) => ({ ...prev, content: newContent }));
-      
-      // Set cursor position after inserted image tag
-      setTimeout(() => {
-        textarea.focus();
-        const newCursorPos = cursorPos + imgTag.length;
-        textarea.setSelectionRange(newCursorPos, newCursorPos);
-      }, 0);
-      
-      // Clear upload state
-      dispatch(newsClearMessages());
-    }
-  }, [uploadContentImageSuccess, uploadContentImageUrl, dispatch]);
-
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
@@ -157,33 +172,68 @@ const NewsFormPage = () => {
     }));
   };
 
-  const handleImageUpload = () => {
-    imageInputRef.current?.click();
+  // CKEditor configuration
+  const getEditorConfig = () => {
+    const token = localStorage.getItem('token');
+    return {
+      toolbar: [
+        'heading', '|',
+        'bold', 'italic', 'underline', 'strikethrough', '|',
+        'link', 'blockQuote', 'insertTable', '|',
+        'bulletedList', 'numberedList', '|',
+        'outdent', 'indent', '|',
+        'imageUpload', '|',
+        'undo', 'redo'
+      ],
+      heading: {
+        options: [
+          { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+          { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+          { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+          { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
+          { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' },
+        ]
+      },
+      simpleUpload: {
+        uploadUrl: 'http://localhost:3001/news/upload-content-image',
+        withCredentials: true,
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : ''
+        }
+      },
+      image: {
+        toolbar: [
+          'imageTextAlternative',
+          'toggleImageCaption',
+          'imageStyle:inline',
+          'imageStyle:block',
+          'imageStyle:side'
+        ],
+        // Tự động wrap ảnh trong paragraph để có thể căn giữa
+        insert: {
+          integrations: ['upload', 'url', 'assetManager']
+        }
+      },
+      // Cho phép style text-align trong paragraph
+      htmlSupport: {
+        allow: [
+          {
+            name: /.*/,
+            attributes: true,
+            classes: true,
+            styles: {
+              'text-align': true
+            }
+          }
+        ]
+      }
+    };
   };
-
-  const handleImageFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error('Only JPG, PNG, and WebP images are allowed');
-      return;
-    }
-
-    // Validate file size (5MB)
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      toast.error('Image size must be less than 5MB');
-      return;
-    }
-
-    // Dispatch upload action
-    dispatch(newsUploadContentImageRequest(file));
     
-    // Reset input
-    e.target.value = '';
+  // Handle CKEditor change
+  const handleEditorChange = (event, editor) => {
+    const html = editor.getData();
+    handleInputChange('content', html);
   };
 
   const validateForm = () => {
@@ -342,51 +392,40 @@ const NewsFormPage = () => {
 
           {/* Content */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-semibold text-gray-900">
+            <label className="block text-sm font-semibold text-gray-900 mb-2">
                 Content <span className="text-red-500">*</span>
                 <span className="text-gray-500 font-normal text-xs ml-2">
-                  (HTML format, minimum 100 characters)
+                (Rich text editor, minimum 100 characters)
                 </span>
               </label>
-              <button
-                type="button"
-                onClick={handleImageUpload}
-                disabled={uploadContentImageLoading}
-                className="flex items-center space-x-2 px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ImageIcon className="w-4 h-4" />
-                <span>
-                  {uploadContentImageLoading ? 'Uploading...' : 'Insert Image'}
-                </span>
-              </button>
-              <input
-                ref={imageInputRef}
-                type="file"
-                accept="image/jpeg,image/jpg,image/png,image/webp"
-                onChange={handleImageFileChange}
-                className="hidden"
+            <div className={`border rounded-lg ${errors.content ? 'border-red-500' : 'border-gray-300'}`}>
+              <CustomCKEditor
+                config={getEditorConfig()}
+                data={formData.content}
+                onReady={(editor) => {
+                  editorRef.current = editor;
+                  
+                  // Override SimpleUploadAdapter để xử lý response format từ backend
+                  const fileRepository = editor.plugins.get('FileRepository');
+                  if (fileRepository) {
+                    fileRepository.createUploadAdapter = (loader) => {
+                      return new Adapter(loader, editor);
+                    };
+                  }
+                }}
+                onChange={handleEditorChange}
+                onError={(error, { willEditorRestart }) => {
+                  console.error('CKEditor error:', error);
+                  if (willEditorRestart) {
+                    editorRef.current?.setData(formData.content);
+                  }
+                }}
               />
             </div>
-            <textarea
-              ref={contentTextareaRef}
-              rows={15}
-              value={formData.content}
-              onChange={(e) => handleInputChange('content', e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none font-mono text-sm ${
-                errors.content ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
-              }`}
-              placeholder="Enter news content in HTML format..."
-            />
             <div className="flex items-center justify-between mt-1">
               <div className="text-xs text-gray-500">
                 {formData.content.replace(/<[^>]*>/g, '').length} characters (excluding HTML tags)
               </div>
-              {uploadContentImageError && (
-                <div className="text-xs text-red-500">
-                  {uploadContentImageError}
-                </div>
-              )}
             </div>
             {errors.content && (
               <div className="flex items-center mt-1 text-red-500 text-sm">

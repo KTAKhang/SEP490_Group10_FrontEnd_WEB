@@ -39,15 +39,22 @@ export const ORDER_CLEAR_MESSAGES = "ORDER_CLEAR_MESSAGES";
 
 // ===== ACTION CREATORS =====
 
-// Create order
+// Create order (discountInfo dùng cho VNPAY: áp discount trước khi redirect, giống flow COD)
 export const orderCreateRequest = (
   selected_product_ids,
   receiverInfo,
   payment_method,
-  icity
+  discountInfo = null,
+  icity,
 ) => ({
   type: ORDER_CREATE_REQUEST,
-  payload: { selected_product_ids, receiverInfo, payment_method,icity },
+  payload: {
+    selected_product_ids,
+    receiverInfo,
+    payment_method,
+    icity,
+    discountInfo,
+  },
 });
 
 export const orderCreateSuccess = (data) => ({

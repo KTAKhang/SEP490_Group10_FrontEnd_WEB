@@ -54,6 +54,34 @@ const VoucherCard = ({ voucher, onApply }) => {
         </p>
       </div>
 
+      {/* Thanh progress số lượt đã sử dụng */}
+      <div className="space-y-1.5">
+        <div className="flex justify-between text-xs">
+          <span className="font-medium text-gray-600">Used Count</span>
+          <span className="font-semibold text-gray-900">
+            {voucher.usedCount ?? 0}
+            {voucher.usageLimit != null ? ` / ${voucher.usageLimit}` : " (unlimited)"}
+          </span>
+        </div>
+        {voucher.usageLimit != null ? (
+          <div className="h-2.5 w-full bg-gray-200 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-green-500 rounded-full transition-all duration-300"
+              style={{
+                width: `${Math.min(100, ((voucher.usedCount ?? 0) / voucher.usageLimit) * 100)}%`,
+              }}
+            />
+          </div>
+        ) : (
+          <div className="h-2.5 w-full bg-gray-200 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-green-400 rounded-full opacity-60"
+              style={{ width: "100%" }}
+            />
+          </div>
+        )}
+      </div>
+
       <button
         onClick={() => onApply(voucher)}
         className="mt-2 w-full bg-gray-900 text-white rounded-full px-6 py-3 font-bold hover:bg-gray-800 transition-colors duration-200"
