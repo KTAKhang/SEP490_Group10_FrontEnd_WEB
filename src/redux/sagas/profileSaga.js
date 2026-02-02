@@ -17,63 +17,89 @@ const API_BASE_URL = "http://localhost:3001";
 
 // ===== API CALLS CƠ BẢN =====
 const apiCall = async (method, url, data = null, isForm = false) => {
-    const token = localStorage.getItem("token");
-    try {
-        const res = await axios({
+  const token = localStorage.getItem("token");
+
+  try {
+    const res = await axios({
+      method,
+      url: `${API_BASE_URL}${url}`,
+      data,
+      withCredentials: true,
+      headers: {
+        "Content-Type": isForm ? "multipart/form-data" : "application/json",
+        Authorization: token ? `Bearer ${token}` : undefined,
+      },
+    });
+
+    return res.data;
+  } catch (error) {
+    const status = error.response?.status;
+    const message = error.response?.data?.message;
+
+    /* =======================
+       401 – TOKEN EXPIRED / INVALID
+    ======================== */
+    if (status === 401) {
+      try {
+        const refreshRes = await axios.post(
+          `${API_BASE_URL}/auth/refresh-token`,
+          {},
+          { withCredentials: true }
+        );
+
+        const newToken = refreshRes.data?.token?.access_token;
+
+        if (newToken) {
+          localStorage.setItem("token", newToken);
+
+          // retry request
+          const retryRes = await axios({
             method,
             url: `${API_BASE_URL}${url}`,
             data,
             withCredentials: true,
             headers: {
-                "Content-Type": isForm ? "multipart/form-data" : "application/json",
-                Authorization: `Bearer ${token}`,
+              "Content-Type": isForm
+                ? "multipart/form-data"
+                : "application/json",
+              Authorization: `Bearer ${newToken}`,
             },
-        });
-        return res.data;
-    } catch (error) {
-        // Nếu access token hết hạn → gọi refresh
-        if (error.response?.status === 401) {
-            console.log("401");
-            try {
-                const refreshRes = await axios.post(
-                    `${API_BASE_URL}/auth/refresh-token`,
-                    {},
-                    { withCredentials: true }
-                );
-                const newToken = refreshRes.data?.token?.access_token;
-                if (newToken) {
-                    localStorage.setItem("token", newToken);
-                    // thử gọi lại request với token mới
-                    const retryRes = await axios({
-                        method,
-                        url: `${API_BASE_URL}${url}`,
-                        data,
-                        withCredentials: true,
-                        headers: {
-                            "Content-Type": isForm ? "multipart/form-data" : "application/json",
-                            Authorization: `Bearer ${newToken}`,
-                        },
-                    });
-                    return retryRes.data;
-                }
-            } catch (refreshError) {
-                localStorage.removeItem("token");
-                localStorage.removeItem("user");
-                window.location.href = "/login";
-            }
-        }
+          });
 
-        // ✅ Nếu tài khoản bị block (403)
-        if (error.response?.status === 403) {
-            alert("Tài khoản của bạn đã bị khóa bởi admin.");
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
-            window.location.href = "/login";
+          return retryRes.data;
         }
-
-        throw error;
+      } catch (refreshError) {
+        clearAuthAndRedirect();
+      }
     }
+
+    /* =======================
+       403 – ACCOUNT LOCKED
+    ======================== */
+    if (status === 403 && message === "Account is locked") {
+      alert("🚫 Your account has been locked by the admin");
+      clearAuthAndRedirect();
+      return;
+    }
+
+    /* =======================
+       403 – ACCESS DENIED
+    ======================== */
+    if (status === 403 && message === "Access denied") {
+      alert("⛔ You do not have permission to access this function");
+      return;
+    }
+
+    throw error;
+  }
 };
+
+const clearAuthAndRedirect = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  window.location.href = "/login";
+};
+
 
 
 // ===== SAGAS =====

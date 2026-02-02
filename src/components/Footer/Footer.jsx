@@ -6,16 +6,21 @@ const Footer = () => {
   const dispatch = useDispatch();
   const { publicShopInfo } = useSelector((state) => state.shop);
 
+  // Log when publicShopInfo changes
   useEffect(() => {
-    // Load shop info once when component mounts
-    if (!publicShopInfo) {
-      dispatch(getShopInfoPublicRequest());
-    }
-  }, [dispatch, publicShopInfo]);
+    console.log('🔄 Footer - publicShopInfo updated:', publicShopInfo);
+    console.log('📸 Footer - Logo URL:', publicShopInfo?.logo);
+  }, [publicShopInfo]);
+
+  useEffect(() => {
+    // Always load/refresh shop info to ensure logo is up to date
+    dispatch(getShopInfoPublicRequest());
+  }, [dispatch]);
 
   // Use shop info or fallback to default values
   const shop = publicShopInfo || {
     shopName: "Smart fruit shop",
+    logo: "https://public.readdy.ai/ai/img_res/5bde7704-1cb0-4365-9e92-f123696b11d9.png",
     address: "123 Nong Nghiep Street, District 1, Ho Chi Minh City",
     email: "info@nongsansach.vn",
     phone: "0123 456 789",
@@ -28,13 +33,19 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
 
-          {/* Logo & description */}
+          {/* Logo & description: chỉ hiện ảnh khi có logo từ API, admin xóa logo thì không hiện ảnh nữa */}
           <div>
-            <img
-              src="https://public.readdy.ai/ai/img_res/5bde7704-1cb0-4365-9e92-f123696b11d9.png"
-              alt="Nông Sản Sạch"
-              className="h-12 w-auto mb-4"
-            />
+            {shop.logo ? (
+              <img
+                key={`logo-${shop.logo}`}
+                src={shop.logo}
+                alt={shop.shopName || "Nông Sản Sạch"}
+                className="h-12 w-auto mb-4 object-contain"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
+              />
+            ) : null}
             <p className="text-gray-300 text-sm leading-relaxed mb-6">
               Providing clean, organic agricultural products from farm to table.
               Committed to quality and food safety.
