@@ -2,21 +2,24 @@ import LoginPage from "../pages/LoginPage";
 import ForgotPassword from "../pages/ForgotPassword";
 import NotFoundPage from "../pages/NotFoundPage";
 import Register from "../pages/Register";
-import HomePage from "../pages/HomePage";
+import HomePage from "../pages/CustomerView/HomePage";
 import ContactPage from "../pages/ContactPage";
 import ContactHistoryPage from "../pages/CustomerView/ContactHistoryPage";
 import AuthenticatedRoute from "../components/AuthenticatedRoute";
-import ProdcutPage from "../pages/ProductPage";
-import ProductDetailPage from "../pages/ProductDetailPage";
-import Categories from "../pages/CategoryPage";
-import WishlistPage from "../pages/WishlistPage";
+import ProdcutPage from "../pages/CustomerView/ProductPage";
+import ProductDetailPage from "../pages/CustomerView/ProductDetailPage";
+import Categories from "../pages/CustomerView/CategoryPage";
+import WishlistPage from "../pages/CustomerView/WishlistPage";
+import FruitBasketPage from "../pages/CustomerView/FruitBasketPage";
+import FruitBasketDetail from "../pages/CustomerView/FruitBasketDetail";
 import CustomerLayout from "../layout/CustomerLayout";
+import FeedbackStaffLayout from "../layout/FeedbackStaffLayout";
 import AdminLayout from "../layout/AdminLayout";
 import AdminPage from "../pages/Admin/AdminPage/AdminPage";
 import WareHouse from "../pages/Admin/Warehouse/WareHouse";
 import CategoryManagement from "../pages/Admin/Category/CategoryManagement";
-import BatchHistoryPage from "../pages/Admin/Warehouse/BatchHistoryPage";
-import ReceiptHistoryPage from "../pages/Admin/Warehouse/ReceiptHistoryPage";
+import BatchHistoryPage from "../pages/Admin/BatchHistory/BatchHistoryPage";
+import ReceiptHistoryPage from "../pages/Admin/ReceiptHistory/ReceiptHistoryPage";
 import WarehouseStaffLayout from "../layout/WarehouseStaffLayout";
 import WarehouseStaffPage from "../pages/WarehouseStaff/WarehouseStaffPage";
 import WarehouseStaffWareHouse from "../pages/WarehouseStaff/Warehouse/WareHouse";
@@ -26,6 +29,15 @@ import PrivateRoute from "../components/PrivateRouter/index";
 import ContactListPage from "../pages/ContactManagement/ContactListPage";
 import ContactDetailPage from "../pages/ContactManagement/ContactDetailPage";
 import ContactEditPage from "../pages/ContactManagement/ContactEditPage";
+import ChatForStaffPage from "../pages/FeedbackStaff/ChatForStaffPage";
+// Admin Supplier Management
+import AdminSupplierManagement from "../pages/Admin/Supplier/SupplierManagement";
+// Admin Harvest Batch Management
+import AdminHarvestBatchManagement from "../pages/Admin/HarvestBatch/HarvestBatchManagement";
+import AdminFruitBasketPage from "../pages/Admin/FruitBasket/FruitBasketPage";
+
+import CartPage from "../pages/CustomerView/CartPage";
+import CheckoutPage from "../pages/CustomerView/CheckoutPage";
 import StaffManagement from "../pages/StaffManagement/StaffManagement";
 import CustomerManagement from "../pages/customerManagement/customerManagementPage";
 import AdminDiscountManagement from "../pages/discountManagement/AdminManagementPage";
@@ -40,6 +52,16 @@ import AdminNewsDetailPage from "../pages/Admin/News/NewsDetailPage";
 import ShopManagement from "../pages/Admin/Shop/ShopManagement";
 import HomepageAssetsManagement from "../pages/Admin/HomepageAssets/HomepageAssetsManagement";
 import AboutUsPage from "../pages/AboutUsPage";
+import OrderSuccessPage from "../pages/CustomerView/OrderSuccessPage";
+import PaymentSuccessPage from "../pages/CustomerView/PaymentSuccessPage";
+import PaymentFailPage from "../pages/CustomerView/PaymentFailPage";
+import VoucherPage from "../pages/CustomerView/VoucherPage";
+import OrderHistory from "../pages/CustomerView/OrderHistory";
+import OrderHistoryDetail from "../pages/CustomerView/OrderHistoryDetail";
+import OrderManagement from "../pages/Admin/OrderManagement/OrderManagement";
+import ReviewManagement from "../pages/Admin/Review/ReviewManagement";
+import CreateReview from "../pages/CustomerView/ReviewProduct/CreateReview";
+import EditReview from "../pages/CustomerView/ReviewProduct/EditReview";
 
 
 export const routes = [
@@ -66,6 +88,14 @@ export const routes = [
     element: <Categories />,
   },
   {
+    path: "/fruit-baskets",
+    element: <FruitBasketPage />,
+  },
+  {
+    path: "/fruit-baskets/:id",
+    element: <FruitBasketDetail />,
+  },
+  {
     path: "/news",
     element: <NewsPage />,
   },
@@ -90,7 +120,6 @@ export const routes = [
   //   element: <ContactPage1 />,
   // },
 
-  // Khu vực quản trị
   {
     path: "/customer",
     element: (
@@ -99,11 +128,35 @@ export const routes = [
       </PrivateRoute>
     ),
     children: [
-{ path: "profile", element: <ProfileManagement /> },
+      { path: "profile", element: <ProfileManagement /> },
       { path: "change-password", element: <UpdatePassword /> },
+      { path: "reviews/create", element: <CreateReview /> },
+      { path: "reviews/:reviewId/edit", element: <EditReview /> },
       { path: "contact", element: <ContactPage /> },
       { path: "contact-history", element: <ContactHistoryPage /> },
+      { path: "cart", element: <CartPage /> },
+      { path: "checkout", element: <CheckoutPage /> },
+
+      { path: "vouchers", element: <VoucherPage /> },
+
+      { path: "orders", element: <OrderHistory /> },
+
+      { path: "orders/:orderId", element: <OrderHistoryDetail /> },
+
+      { path: "order-success", element: <OrderSuccessPage /> },
+      { path: "payment-result", element: <PaymentSuccessPage /> },
+      { path: "payment-fail", element: <PaymentFailPage /> },
     ],
+  },
+
+  {
+    path: "/feedbacked-staff",
+    element: (
+      <PrivateRoute requiredRole="feedbacked-staff">
+        <FeedbackStaffLayout />
+      </PrivateRoute>
+    ),
+    children: [{ index: true, element: <ChatForStaffPage /> }],
   },
 
   // Khu vực Admin
@@ -116,8 +169,13 @@ export const routes = [
     ),
     children: [
       { index: true, element: <AdminPage /> },
+      { path: "profile", element: <ProfileManagement /> },
+      { path: "change-password", element: <UpdatePassword /> },
       { path: "warehouse", element: <WareHouse /> },
       { path: "category", element: <CategoryManagement /> },
+      { path: "suppliers", element: <AdminSupplierManagement /> },
+      { path: "harvest-batches", element: <AdminHarvestBatchManagement /> },
+      { path: "fruit-baskets", element: <AdminFruitBasketPage /> },
       { path: "batch-history", element: <BatchHistoryPage /> },
       { path: "receipt-history", element: <ReceiptHistoryPage /> },
       { path: "contacts", element: <ContactListPage /> },
@@ -126,6 +184,8 @@ export const routes = [
       { path: "staff", element: <StaffManagement /> },
       { path: "customers", element: <CustomerManagement /> },
       { path: "discounts", element: <AdminDiscountManagement /> },
+      { path: "orders", element: <OrderManagement /> },
+      { path: "reviews", element: <ReviewManagement /> },
       { path: "news", element: <NewsListPage /> },
       { path: "news/create", element: <NewsFormPage /> },
       { path: "news/edit/:id", element: <NewsFormPage /> },
@@ -145,6 +205,8 @@ export const routes = [
     ),
     children: [
       { index: true, element: <WarehouseStaffPage /> },
+      { path: "profile", element: <ProfileManagement /> },
+      { path: "change-password", element: <UpdatePassword /> },
       { path: "warehouse", element: <WarehouseStaffWareHouse /> },
     ],
   },

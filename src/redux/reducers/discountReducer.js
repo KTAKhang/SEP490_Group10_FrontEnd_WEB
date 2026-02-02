@@ -37,6 +37,12 @@ import {
     DISCOUNT_GET_VALID_REQUEST,
     DISCOUNT_GET_VALID_SUCCESS,
     DISCOUNT_GET_VALID_FAILURE,
+    DISCOUNT_APPLY_REQUEST,
+    DISCOUNT_APPLY_SUCCESS,
+    DISCOUNT_APPLY_FAILURE,
+    DISCOUNT_SET_SELECTED,
+    DISCOUNT_CLEAR_SELECTED,
+    DISCOUNT_CLEAR_FEEDBACK,
 } from "../actions/discountActions";
 
 const initialState = {
@@ -47,6 +53,10 @@ const initialState = {
     error: null,
     detail: null,
     validationResult: null,
+    validationError: null,
+    applyResult: null,
+    applyError: null,
+    selectedDiscount: null,
     params: { page: 1, limit: 10 },
 };
 
@@ -85,10 +95,13 @@ export default function discountReducer(state = initialState, action) {
         case DISCOUNT_DETAIL_REQUEST:
         case DISCOUNT_VALIDATE_REQUEST:
         case DISCOUNT_GET_VALID_REQUEST:
+        case DISCOUNT_APPLY_REQUEST:
             return {
                 ...state,
                 loading: true,
                 error: null,
+                validationError: null,
+                applyError: null,
             };
 
         case DISCOUNT_CREATE_SUCCESS:
@@ -115,6 +128,7 @@ export default function discountReducer(state = initialState, action) {
                 ...state,
                 loading: false,
                 validationResult: action.payload,
+                validationError: null,
             };
 
         case DISCOUNT_GET_VALID_SUCCESS:
@@ -122,6 +136,43 @@ export default function discountReducer(state = initialState, action) {
                 ...state,
                 loading: false,
                 validDiscounts: action.payload?.data || [],
+            };
+
+        case DISCOUNT_APPLY_SUCCESS:
+            return {
+                ...state,
+                loading: false,
+                applyResult: action.payload,
+                applyError: null,
+            };
+
+        case DISCOUNT_SET_SELECTED:
+            return {
+                ...state,
+                selectedDiscount: action.payload,
+                validationResult: null,
+                validationError: null,
+                applyResult: null,
+                applyError: null,
+            };
+
+        case DISCOUNT_CLEAR_SELECTED:
+            return {
+                ...state,
+                selectedDiscount: null,
+                validationResult: null,
+                validationError: null,
+                applyResult: null,
+                applyError: null,
+            };
+
+        case DISCOUNT_CLEAR_FEEDBACK:
+            return {
+                ...state,
+                validationResult: null,
+                validationError: null,
+                applyResult: null,
+                applyError: null,
             };
 
         case DISCOUNT_CREATE_FAILURE:
@@ -134,10 +185,19 @@ export default function discountReducer(state = initialState, action) {
         case DISCOUNT_DETAIL_FAILURE:
         case DISCOUNT_VALIDATE_FAILURE:
         case DISCOUNT_GET_VALID_FAILURE:
+        case DISCOUNT_APPLY_FAILURE:
             return {
                 ...state,
                 loading: false,
                 error: action.payload,
+                validationError:
+                    action.type === DISCOUNT_VALIDATE_FAILURE
+                        ? action.payload
+                        : state.validationError,
+                applyError:
+                    action.type === DISCOUNT_APPLY_FAILURE
+                        ? action.payload
+                        : state.applyError,
             };
 
         default:

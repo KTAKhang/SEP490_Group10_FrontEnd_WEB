@@ -13,6 +13,9 @@ import {
   CUSTOMER_DETAIL_REQUEST,
   CUSTOMER_DETAIL_SUCCESS,
   CUSTOMER_DETAIL_FAILURE,
+  CUSTOMER_ORDERS_REQUEST,
+  CUSTOMER_ORDERS_SUCCESS,
+  CUSTOMER_ORDERS_FAILURE,
 } from "../actions/customerActions";
 
 const initialState = {
@@ -21,6 +24,9 @@ const initialState = {
   loading: false,
   error: null,
   detail: null,
+  orders: [],
+  ordersLoading: false,
+  ordersError: null,
   params: { page: 1, limit: 10 }, 
 };
 
@@ -60,6 +66,25 @@ export default function customerReducer(state = initialState, action) {
 
     case CUSTOMER_DETAIL_SUCCESS:
       return { ...state, loading: false, detail: action.payload };
+
+    case CUSTOMER_ORDERS_REQUEST:
+      return { ...state, ordersLoading: true, ordersError: null };
+
+    case CUSTOMER_ORDERS_SUCCESS:
+      return { 
+        ...state, 
+        ordersLoading: false, 
+        orders: action.payload || [],
+        ordersError: null,
+      };
+
+    case CUSTOMER_ORDERS_FAILURE:
+      return { 
+        ...state, 
+        ordersLoading: false, 
+        ordersError: action.payload,
+        orders: [],
+      };
 
     default:
       return state;
