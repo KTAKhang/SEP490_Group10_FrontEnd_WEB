@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logoutRequest } from "../../redux/actions/authActions";
+import { getShopInfoPublicRequest } from "../../redux/actions/shopActions";
 import { LogOut, Settings, User, Clock, Package, Menu, X } from "lucide-react";
 import PropTypes from "prop-types";
 import { fetchCartRequest } from "../../redux/actions/cartActions";
@@ -24,9 +25,31 @@ const Header = ({ searchTerm, setSearchTerm }) => {
 }, [dispatch, tokenFromStorage]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const  cart  = useSelector((state) => state.cart || {});
+  const { cart } = useSelector((state) => state.cart || {});
+  const { publicShopInfo } = useSelector((state) => state.shop || {});
   const cartItems = cart?.items?.length || 0;
+  // Log when publicShopInfo changes
+  useEffect(() => {
+    console.log('🔄 Header - publicShopInfo updated:', publicShopInfo);
+    console.log('📸 Header - Logo URL:', publicShopInfo?.logo);
+  }, [publicShopInfo]);
+
+  // Load shop info for shop name and logo
+  useEffect(() => {
+    // Always load/refresh shop info to ensure logo is up to date
+    dispatch(getShopInfoPublicRequest());
+  }, [dispatch]);
+  
+  // Also refresh when component mounts or when navigating
+  useEffect(() => {
+    const handleFocus = () => {
+      // Refresh when window regains focus (user switches tabs)
+      dispatch(getShopInfoPublicRequest());
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [dispatch]);
 
   const storedUser = JSON.parse(localStorage.getItem("user") || "null");
 
@@ -50,15 +73,21 @@ const Header = ({ searchTerm, setSearchTerm }) => {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          {/* LOGO */}
+          {/* LOGO: chỉ hiện ảnh khi có logo từ API, admin xóa logo thì không hiện ảnh nữa */}
           <Link to="/" className="flex items-center space-x-3">
-            <img
-              src="https://public.readdy.ai/ai/img_res/5bde7704-1cb0-4365-9e92-f123696b11d9.png"
-              alt="Nông Sản Sạch"
-              className="h-10 md:h-12"
-            />
+            {publicShopInfo?.logo ? (
+              <img
+                key={`logo-${publicShopInfo.logo}`}
+                src={publicShopInfo.logo}
+                alt={publicShopInfo?.shopName || "Nông Sản Sạch"}
+                className="h-10 md:h-12 object-contain"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
+              />
+            ) : null}
             <span className="text-xl font-bold text-green-700">
-              Smart fruit shop
+              {publicShopInfo?.shopName || "Smart fruit shop"}
             </span>
           </Link>
 
@@ -67,6 +96,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
             {[
               { label: "Home", path: "/" },
               { label: "Product", path: "/products" },
+              { label: "Pre-order", path: "/customer/pre-orders" },
               { label: "Categories", path: "/categories" },
               { label: "Fruit Baskets", path: "/fruit-baskets" },
               { label: "About Us", path: "/about" },
@@ -139,6 +169,11 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                           onClick={() => navigate("/customer/orders")}
                         />
                         <DropdownItem
+                          icon={<Package size={18} />}
+                          label="My Pre-orders"
+                          onClick={() => navigate("/customer/my-pre-orders")}
+                        />
+                        <DropdownItem
                           icon={<Clock size={18} />}
                           label="Contact History"
                           onClick={() => navigate("/customer/contact-history")}
@@ -190,6 +225,7 @@ className="text-sm text-gray-700 hover:text-green-600"
             {[
               { label: "Home", path: "/" },
               { label: "Product", path: "/products" },
+              { label: "Pre-order", path: "/customer/pre-orders" },
               { label: "Categories", path: "/categories" },
               { label: "Fruit Baskets", path: "/fruit-baskets" },
               { label: "About Us", path: "/about" },

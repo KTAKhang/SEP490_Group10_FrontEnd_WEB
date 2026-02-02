@@ -22,6 +22,7 @@ import {
   newsClearMessages,
 } from '../../../redux/actions/newsActions';
 import { toast } from 'react-toastify';
+import AdminCommentSection from '../../../components/Comments/AdminCommentSection';
 
 const NewsDetailPage = () => {
   const { id } = useParams();
@@ -378,6 +379,11 @@ const NewsDetailPage = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Comments Section - Admin View */}
+      <div className="mt-8">
+        <AdminCommentSection newsId={id} />
       </div>
     </div>
   );

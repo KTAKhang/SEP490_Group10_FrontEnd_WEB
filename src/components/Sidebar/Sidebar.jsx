@@ -14,8 +14,12 @@ import {
   History,
   ClipboardList,
   Users,
+  Image,
   Gift,
   ShoppingCart,
+  Apple,
+  BarChart3,
+  Star,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -60,6 +64,14 @@ const Sidebar = () => {
       path: "/admin/orders",
     },
     {
+      icon: Apple,
+      label: "Pre-order management",
+      path: "/admin/preorder",
+      icon: Star,
+      label: "Reviews",
+      path: "/admin/reviews",
+    },
+    {
       icon: MessageSquare,
       label: "Contact",
       path: "/admin/contacts",
@@ -73,6 +85,11 @@ const Sidebar = () => {
       icon: Building2,
       label: "Shop Information",
       path: "/admin/shop",
+    },
+    {
+      icon: Image,
+      label: "Homepage Assets",
+      path: "/admin/homepage-assets",
     },
     {
       icon: Users,

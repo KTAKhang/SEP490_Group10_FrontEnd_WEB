@@ -7,6 +7,7 @@ import {
   getShopInfoSuccess,
   getShopInfoFailure,
   GET_SHOP_INFO_PUBLIC_REQUEST,
+  getShopInfoPublicRequest,
   getShopInfoPublicSuccess,
   getShopInfoPublicFailure,
   UPDATE_SHOP_BASIC_INFO_REQUEST,
@@ -85,7 +86,12 @@ function* getShopInfoPublicSaga() {
   try {
     const response = yield call(apiGetShopInfoPublic);
     if (response.status === "OK") {
-      yield put(getShopInfoPublicSuccess(response.data));
+      console.log('✅ Public shop info loaded:', response.data);
+      console.log('📸 Logo URL:', response.data?.logo);
+      // Dùng đúng data từ public API, không gọi GET /admin/shop (chỉ dành cho admin).
+      // Nếu public API không trả logo (vd: đã xóa logo) thì logo để trống, tránh 403 khi user là customer.
+      const publicData = response.data;
+      yield put(getShopInfoPublicSuccess(publicData));
     } else {
       throw new Error(response.message || "Không thể tải thông tin shop");
     }
@@ -101,9 +107,36 @@ function* getShopInfoPublicSaga() {
 function* updateShopBasicInfoSaga(action) {
   try {
     const formData = action.payload;
+    console.log('🔄 Updating shop basic info:', formData);
     const response = yield call(apiUpdateShopBasicInfo, formData);
     if (response.status === "OK") {
-      yield put(updateShopBasicInfoSuccess(response.data));
+      console.log('✅ Shop info updated successfully:', response.data);
+      console.log('📸 Logo in response:', response.data?.logo);
+      
+      // WORKAROUND: Nếu backend không trả về logo, thêm logo từ request vào response
+      let updatedData = response.data;
+      if (!updatedData.logo && formData.logo) {
+        console.warn('⚠️ Backend không trả về logo, sử dụng logo từ request:', formData.logo);
+        updatedData = {
+          ...updatedData,
+          logo: formData.logo
+        };
+      }
+      
+      yield put(updateShopBasicInfoSuccess(updatedData));
+      
+      // Also update public shop info với logo nếu có
+      if (formData.logo) {
+        yield put(getShopInfoPublicSuccess({
+          ...updatedData,
+          logo: formData.logo
+        }));
+      }
+      
+      // Also refresh public shop info to sync Header/Footer
+      // Add small delay to ensure backend has processed the update
+      yield new Promise(resolve => setTimeout(resolve, 300));
+      yield put(getShopInfoPublicRequest());
       // Toast is handled in component
     } else {
       throw new Error(response.message || "Không thể cập nhật thông tin shop");
