@@ -17,6 +17,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
   const dispatch = useDispatch();
 
   const tokenFromStorage = localStorage.getItem("token");
+  
 
   useEffect(() => {
   if (tokenFromStorage) {
@@ -25,8 +26,9 @@ const Header = ({ searchTerm, setSearchTerm }) => {
 }, [dispatch, tokenFromStorage]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { cart } = useSelector((state) => state.cart || {});
+  const cart = useSelector((state) => state.cart || {});
   const { publicShopInfo } = useSelector((state) => state.shop || {});
+  console.log("cart",cart)
   const cartItems = cart?.items?.length || 0;
   // Log when publicShopInfo changes
   useEffect(() => {
