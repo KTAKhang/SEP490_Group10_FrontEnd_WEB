@@ -50,6 +50,7 @@ import NewsListPage from "../pages/Admin/News/NewsListPage";
 import NewsFormPage from "../pages/Admin/News/NewsFormPage";
 import AdminNewsDetailPage from "../pages/Admin/News/NewsDetailPage";
 import ShopManagement from "../pages/Admin/Shop/ShopManagement";
+import HomepageAssetsManagement from "../pages/Admin/HomepageAssets/HomepageAssetsManagement";
 import AboutUsPage from "../pages/AboutUsPage";
 import OrderSuccessPage from "../pages/CustomerView/OrderSuccessPage";
 import PaymentSuccessPage from "../pages/CustomerView/PaymentSuccessPage";
@@ -190,6 +191,7 @@ export const routes = [
       { path: "news/edit/:id", element: <NewsFormPage /> },
       { path: "news/:id", element: <AdminNewsDetailPage /> },
       { path: "shop", element: <ShopManagement /> },
+      { path: "homepage-assets", element: <HomepageAssetsManagement /> },
     ],
   },
 
