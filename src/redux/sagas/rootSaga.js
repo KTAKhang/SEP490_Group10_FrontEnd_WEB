@@ -17,9 +17,11 @@ import publicProductSaga from "./publicProductSaga";
 import publicCategorySaga from "./publicCategorySaga";
 import { productBatchSaga } from "./productBatchSaga";
 import favoriteSaga from "./favoriteSaga";
+import homepageAssetsSaga from "./homepageAssetsSaga";
 import supplierSaga from "./supplierSaga";
 import fruitBasketSaga from "./fruitBasketSaga";
 import publicFruitBasketSaga from "./publicFruitBasketSaga";
+import reviewSaga from "./reviewSaga";
 
 export default function* rootSaga() {
   try {
@@ -43,8 +45,10 @@ export default function* rootSaga() {
       publicFruitBasketSaga(),
       productBatchSaga(),
       favoriteSaga(),
+      homepageAssetsSaga(),
       supplierSaga(),
       fruitBasketSaga(),
+      reviewSaga(),
     ]);
   } catch (error) {
     console.error("🔴 rootSaga ERROR:", error);

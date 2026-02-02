@@ -52,12 +52,14 @@ import NewsListPage from "../pages/Admin/News/NewsListPage";
 import NewsFormPage from "../pages/Admin/News/NewsFormPage";
 import AdminNewsDetailPage from "../pages/Admin/News/NewsDetailPage";
 import ShopManagement from "../pages/Admin/Shop/ShopManagement";
+import HomepageAssetsManagement from "../pages/Admin/HomepageAssets/HomepageAssetsManagement";
 import AboutUsPage from "../pages/AboutUsPage";
 import OrderSuccessPage from "../pages/CustomerView/OrderSuccessPage";
 import PaymentSuccessPage from "../pages/CustomerView/PaymentSuccessPage";
 import PaymentFailPage from "../pages/CustomerView/PaymentFailPage";
 import VoucherPage from "../pages/CustomerView/VoucherPage";
 import OrderHistory from "../pages/CustomerView/OrderHistory";
+import OrderHistoryDetail from "../pages/CustomerView/OrderHistoryDetail";
 import OrderManagement from "../pages/Admin/OrderManagement/OrderManagement";
 import FruitTypeManagement from "../pages/Admin/PreOrder/FruitTypeManagement";
 import PreOrderDemandPage from "../pages/Admin/PreOrder/PreOrderDemandPage";
@@ -69,6 +71,9 @@ import PreOrderDetailPage from "../pages/CustomerView/PreOrderDetailPage";
 import PreOrderCheckoutPage from "../pages/CustomerView/PreOrderCheckoutPage";
 import MyPreOrdersPage from "../pages/CustomerView/MyPreOrdersPage";
 import PreOrderPaymentResultPage from "../pages/CustomerView/PreOrderPaymentResultPage";
+import ReviewManagement from "../pages/Admin/Review/ReviewManagement";
+import CreateReview from "../pages/CustomerView/ReviewProduct/CreateReview";
+import EditReview from "../pages/CustomerView/ReviewProduct/EditReview";
 
 
 export const routes = [
@@ -137,6 +142,8 @@ export const routes = [
     children: [
       { path: "profile", element: <ProfileManagement /> },
       { path: "change-password", element: <UpdatePassword /> },
+      { path: "reviews/create", element: <CreateReview /> },
+      { path: "reviews/:reviewId/edit", element: <EditReview /> },
       { path: "contact", element: <ContactPage /> },
       { path: "contact-history", element: <ContactHistoryPage /> },
       { path: "cart", element: <CartPage /> },
@@ -150,6 +157,8 @@ export const routes = [
       { path: "preorder-checkout", element: <PreOrderCheckoutPage /> },
       { path: "my-pre-orders", element: <MyPreOrdersPage /> },
       { path: "preorder-payment-result", element: <PreOrderPaymentResultPage /> },
+
+      { path: "orders/:orderId", element: <OrderHistoryDetail /> },
 
       { path: "order-success", element: <OrderSuccessPage /> },
       { path: "payment-result", element: <PaymentSuccessPage /> },
@@ -204,11 +213,13 @@ export const routes = [
           { path: "orders", element: <PreOrderListPage /> },
         ],
       },
+      { path: "reviews", element: <ReviewManagement /> },
       { path: "news", element: <NewsListPage /> },
       { path: "news/create", element: <NewsFormPage /> },
       { path: "news/edit/:id", element: <NewsFormPage /> },
       { path: "news/:id", element: <AdminNewsDetailPage /> },
       { path: "shop", element: <ShopManagement /> },
+      { path: "homepage-assets", element: <HomepageAssetsManagement /> },
     ],
   },
 
