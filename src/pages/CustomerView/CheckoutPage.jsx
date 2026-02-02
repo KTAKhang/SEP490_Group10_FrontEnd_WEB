@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { shippingCheckRequest } from "../../redux/actions/cartActions";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { checkoutCancelRequest } from "../../redux/actions/checkoutActions";
@@ -44,12 +45,12 @@ export default function CheckoutPage() {
       ? checkout.items
       : cart.items || [];
 
-  const shippingCost = formData.shipping === "standard" ? 50000 : 100000;
+  const shippingCost = cart.shippingFee || 0;
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
-  const total = subtotal;
+  const total = subtotal + shippingCost;
 
   const {
     selectedDiscount,
@@ -89,7 +90,21 @@ export default function CheckoutPage() {
         setWards(filtered);
       })
       .catch((err) => console.error(err));
-  }, [formData.city]);
+ }, [formData.city]);
+
+  useEffect(() => {
+    // existing ward-loading logic preserved above (omitted in snippet)
+
+    // When city changes, call shipping check to compute fee
+    const selected_product_ids = cartItems.map((item) =>
+      // support multiple item shapes
+      (item.product_id && item.product_id._id) || item.product_id || item.productId || item._id
+    );
+
+    if (formData.city && selected_product_ids.length > 0) {
+      dispatch(shippingCheckRequest(selected_product_ids, icity));
+    }
+  }, [formData.city, cartItems, dispatch]);
 
   useEffect(() => {
     if (order.order_id || order.payment_url) {
@@ -125,12 +140,14 @@ export default function CheckoutPage() {
     const selected_product_ids = cartItems.map(
       (item) => item.product_id || item._id,
     );
+    console.log("orderCreateRequest",icity)
 
     dispatch(
       orderCreateRequest(
         selected_product_ids,
         buildReceiverInfo(),
         formData.payment, // COD | VNPAY
+        icity
       ),
     );
   };
@@ -177,11 +194,11 @@ export default function CheckoutPage() {
       checkout.checkout_session_id ||
       localStorage.getItem("checkout_session_id");
     if (!sessionId) {
-      alert("Không có phiên thanh toán nào để hủy.");
+      alert("There are no payments that can be canceled");
       return;
     }
 
-    if (!window.confirm("Bạn có chắc muốn hủy phiên thanh toán này?")) return;
+    if (!window.confirm("Are you sure you want to cancel this payment session?")) return;
 
     dispatch(checkoutCancelRequest(sessionId));
     navigate("/customer/cart");
@@ -196,7 +213,7 @@ export default function CheckoutPage() {
 
   const handleValidateDiscount = () => {
     if (!selectedDiscount?.code) {
-      alert("Vui lòng chọn voucher trước khi kiểm tra.");
+      alert("Please select your voucher before checking out.");
       return;
     }
 
@@ -208,7 +225,6 @@ export default function CheckoutPage() {
     dispatch(clearDiscountFeedback());
   };
 
-  console.log("provinces", provinces);
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
@@ -224,12 +240,12 @@ export default function CheckoutPage() {
               {/* Shipping Information */}
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <span>📍</span> Thông tin giao hàng
+                  <span>📍</span> Delivery information
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Họ và tên <span className="text-red-500">*</span>
+                      Full name <span className="text-red-500">*</span>
                     </label>
                     <input
                       required
@@ -237,13 +253,13 @@ export default function CheckoutPage() {
                       value={formData.fullName}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Nhập họ và tên"
+                      placeholder="Enter your first and last name"
                       type="text"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Số điện thoại <span className="text-red-500">*</span>
+                      Phone number <span className="text-red-500">*</span>
                     </label>
                     <input
                       required
@@ -251,7 +267,7 @@ export default function CheckoutPage() {
                       value={formData.phone}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Nhập số điện thoại"
+                      placeholder="Enter phone number"
                       type="tel"
                     />
                   </div>
@@ -264,13 +280,13 @@ export default function CheckoutPage() {
                       value={formData.email}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Nhập email"
+                      placeholder="Enter email"
                       type="email"
                     />
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Địa chỉ <span className="text-red-500">*</span>
+                      Address <span className="text-red-500">*</span>
                     </label>
                     <input
                       required
@@ -278,13 +294,13 @@ export default function CheckoutPage() {
                       value={formData.address}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Số nhà, tên đường"
+                      placeholder="House number, street name"
                       type="text"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Tỉnh/Thành phố <span className="text-red-500">*</span>
+                      Province/City <span className="text-red-500">*</span>
                     </label>
                     <select
                       name="city"
@@ -293,7 +309,7 @@ export default function CheckoutPage() {
                       required
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
-                      <option value="">Chọn Tỉnh/Thành phố</option>
+                      <option value="">Select Province/City</option>
                       {provinces.map((p) => (
                         <option key={p.code} value={p.code}>
                           {p.name}
@@ -304,7 +320,7 @@ export default function CheckoutPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Phường/Xã <span className="text-red-500">*</span>
+                      Ward <span className="text-red-500">*</span>
                     </label>
                     <select
                       name="ward"
@@ -314,7 +330,7 @@ export default function CheckoutPage() {
                       disabled={!formData.city}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                     >
-                      <option value="">Chọn Phường/Xã</option>
+                      <option value="">Select Ward</option>
                       {wards.map((w) => (
                         <option key={w.code} value={w.name}>
                           {w.name}
@@ -324,7 +340,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Ghi chú đơn hàng
+                      Order notes
                     </label>
                     <textarea
                       name="note"
@@ -332,7 +348,7 @@ export default function CheckoutPage() {
                       onChange={handleInputChange}
                       rows="3"
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                      placeholder="Ghi chú về đơn hàng, ví dụ: thời gian hay chỉ dẫn địa điểm giao hàng chi tiết hơn"
+                      placeholder="Add notes about the order, for example, more detailed delivery times or delivery location instructions"
                     />
                   </div>
                 </div>
@@ -341,19 +357,19 @@ export default function CheckoutPage() {
               {/* Payment Method */}
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <span>💳</span> Phương thức thanh toán
+                  <span>💳</span> Payment methods
                 </h2>
                 <div className="space-y-3">
                   {[
                     {
                       value: "COD",
-                      label: "Thanh toán khi nhận hàng (COD)",
-                      desc: "Thanh toán bằng tiền mặt khi nhận hàng",
+                      label: "Cash on delivery (COD)",
+                      desc: "Payment in cash upon delivery.",
                     },
                     {
                       value: "VNPAY",
-                      label: "Ví điện tử VNPAY",
-                      desc: "Thanh toán qua VNPAY",
+                      label: "VNPAY e-wallet",
+                      desc: "Payment via VNPAY",
                     },
                   ].map((method) => (
                     <label
@@ -386,7 +402,7 @@ export default function CheckoutPage() {
             <div className="lg:col-span-1">
               <div className="bg-white rounded-xl shadow-sm p-6 sticky top-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-6">
-                  Đơn hàng của bạn
+                 Your order
                 </h2>
                 <div className="space-y-4 mb-6 max-h-80 overflow-y-auto">
                   {cartItems?.map((item) => (
@@ -397,13 +413,14 @@ export default function CheckoutPage() {
                           className="w-16 h-16 object-cover rounded-lg"
                           src={item.image}
                         />
-                        <span className="absolute top-1 -right-2 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                          {item.quantity}
-                        </span>
+                       
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-gray-900 text-sm mb-1 line-clamp-2">
+                        <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">
                           {item.name}
+                        </h3>
+                        <h3 className="font-medium text-green-900 text-sm mb-1 line-clamp-2">
+                         {item.quantity} KG
                         </h3>
                         <div className="flex flex-wrap gap-1 mb-1">
                           {item.specs?.map((spec, idx) => (
@@ -427,7 +444,7 @@ export default function CheckoutPage() {
                     <div>
                       <p className="text-sm text-gray-600">Voucher</p>
                       <p className="font-semibold text-gray-900">
-                        {selectedDiscount?.code || "Chưa chọn"}
+                        {selectedDiscount?.code || "Not selected"}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -437,7 +454,7 @@ export default function CheckoutPage() {
                           onClick={handleRemoveVoucher}
                           className="text-xs text-red-600 hover:text-red-700"
                         >
-                          Gỡ
+                          Remove
                         </button>
                       )}
                       <button
@@ -445,7 +462,7 @@ export default function CheckoutPage() {
                         onClick={() => navigate("/customer/vouchers")}
                         className="text-sm font-semibold text-blue-600 hover:text-blue-700"
                       >
-                        Chọn voucher
+                        Select voucher
                       </button>
                     </div>
                   </div>
@@ -453,10 +470,10 @@ export default function CheckoutPage() {
                   {selectedDiscount && (
                     <div className="text-xs text-gray-600 space-y-1 mb-3">
                       <p>
-                        Giảm {selectedDiscount.discountPercent}% tối đa{" "}
+                        Reduce {selectedDiscount.discountPercent}% maximum{" "}
                         {formatPrice(selectedDiscount.maxDiscountAmount)}
                       </p>
-                      <p>Đơn tối thiểu: {formatPrice(selectedDiscount.minOrderValue)}</p>
+                      <p>Minimum order: {formatPrice(selectedDiscount.minOrderValue)}</p>
                     </div>
                   )}
 
@@ -467,7 +484,7 @@ export default function CheckoutPage() {
                       disabled={discountLoading || !selectedDiscount}
                       className="flex-1 bg-green-50 text-green-700 border border-green-200 rounded-lg py-2 text-sm font-semibold hover:bg-green-100 disabled:opacity-60"
                     >
-                      Kiểm tra mã
+                      Check the code
                     </button>
                     {discountAmount > 0 && (
                       <span className="text-sm text-green-700 font-semibold">
@@ -478,15 +495,15 @@ export default function CheckoutPage() {
                   {discountData && (
                     <div className="mt-3 text-sm text-gray-700 space-y-1">
                       <div className="flex justify-between">
-                        <span>Giá gốc</span>
+                        <span>Original price</span>
                         <span>{formatPrice(total)}</span>
                       </div>
                       <div className="flex justify-between text-green-700">
-                        <span>Giảm giá</span>
+                        <span>Discount</span>
                         <span>- {formatPrice(discountAmount)}</span>
                       </div>
                       <div className="flex justify-between font-semibold">
-                        <span>Tạm tính sau giảm</span>
+                        <span>Estimated price after discount</span>
                         <span>{formatPrice(finalAmount)}</span>
                       </div>
                     </div>
@@ -494,13 +511,17 @@ export default function CheckoutPage() {
                 </div>
                 <div className="border-t border-gray-200 pt-4 space-y-3 mb-6">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Tạm tính:</span>
+                    <span className="text-gray-600">Estimated:</span>
                     <span className="font-medium">{formatPrice(subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Shipping fee:</span>
+                    <span className="font-medium">{formatPrice(shippingCost)}</span>
                   </div>
                   <div className="border-t border-gray-200 pt-3">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold text-gray-900">
-                        Tổng cộng:
+                        Total:
                       </span>
                       <span className="text-2xl font-bold text-red-600">
                         {formatPrice(finalAmount)}
@@ -522,15 +543,15 @@ export default function CheckoutPage() {
                     onClick={handleCancel}
                     className="w-full mt-3 bg-red-50 text-red-600 py-2 rounded-lg hover:bg-red-100 transition-colors font-medium"
                   >
-                    Hủy thanh toán
+                    Cancel payment
                   </button>
                 )}
                 <div className="mt-4 text-center text-xs text-gray-500">
-                  Bằng việc đặt hàng, bạn đồng ý với{" "}
+                  By placing an order, you agree to{" "}
                   <a href="#" className="text-blue-600 hover:underline">
-                    Điều khoản sử dụng
+                    Terms of Use
                   </a>{" "}
-                  của chúng tôi
+                  our
                 </div>
               </div>
             </div>

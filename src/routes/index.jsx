@@ -53,6 +53,7 @@ import ShopManagement from "../pages/Admin/Shop/ShopManagement";
 import AboutUsPage from "../pages/AboutUsPage";
 import OrderSuccessPage from "../pages/CustomerView/OrderSuccessPage";
 import PaymentSuccessPage from "../pages/CustomerView/PaymentSuccessPage";
+import PaymentSuccessNoStockPage from "../pages/CustomerView/PaymentSuccessNoStockPage";
 import PaymentFailPage from "../pages/CustomerView/PaymentFailPage";
 import VoucherPage from "../pages/CustomerView/VoucherPage";
 import OrderHistory from "../pages/CustomerView/OrderHistory";
@@ -133,7 +134,7 @@ export const routes = [
       { path: "vouchers", element: <VoucherPage /> },
 
       { path: "orders", element: <OrderHistory /> },
-
+      { path: "payment-success-nostock", element: <PaymentSuccessNoStockPage /> },
       { path: "order-success", element: <OrderSuccessPage /> },
       { path: "payment-result", element: <PaymentSuccessPage /> },
       { path: "payment-fail", element: <PaymentFailPage /> },

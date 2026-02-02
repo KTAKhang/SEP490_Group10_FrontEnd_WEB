@@ -21,6 +21,11 @@ const initialState = {
   sum: 0,
   item_count: 0,
 
+  // Shipping info
+  shippingType: null,
+  shippingFee: 0,
+  totalWeight: 0,
+
   loading: false,
   error: null,
   message: null,
@@ -82,6 +87,22 @@ const cartReducer = (state = initialState, action) => {
       };
 
     case CART_REMOVE_ITEM_FAILURE:
+      return { ...state, loading: false, error: action.payload };
+
+    // ===== SHIPPING CHECK =====
+    case "SHIPPING_CHECK_REQUEST":
+      return { ...state, loading: true, error: null };
+
+    case "SHIPPING_CHECK_SUCCESS":
+      return {
+        ...state,
+        loading: false,
+        shippingType: action.payload.shippingType,
+        totalWeight: action.payload.totalWeight,
+        shippingFee: action.payload.shippingFee,
+      };
+
+    case "SHIPPING_CHECK_FAILURE":
       return { ...state, loading: false, error: action.payload };
 
     // ===== CLEAR =====

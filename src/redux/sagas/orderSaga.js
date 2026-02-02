@@ -44,11 +44,12 @@ const authHeader = () => {
 const apiCreateOrder = async (
   selected_product_ids,
   receiverInfo,
-  payment_method
+  payment_method,
+  city
 ) => {
   const res = await axios.post(
     `${API_BASE_URL}/order/create`,
-    { selected_product_ids, receiverInfo, payment_method },
+    { selected_product_ids, receiverInfo, payment_method,city },
     {
       withCredentials: true,
       headers: authHeader(),
@@ -164,14 +165,15 @@ const apiGetAdminOrderStats = async () => {
 // CREATE ORDER
 function* orderCreateSaga(action) {
   try {
-    const { selected_product_ids, receiverInfo, payment_method } =
+    const { selected_product_ids, receiverInfo, payment_method, icity } =
       action.payload;
 
     const res = yield call(
       apiCreateOrder,
       selected_product_ids,
       receiverInfo,
-      payment_method
+      payment_method,
+      icity
     );
 
     if (res.success) {

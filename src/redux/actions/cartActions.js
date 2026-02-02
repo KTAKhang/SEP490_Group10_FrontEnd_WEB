@@ -18,6 +18,11 @@ export const CART_REMOVE_ITEM_REQUEST = "CART_REMOVE_ITEM_REQUEST";
 export const CART_REMOVE_ITEM_SUCCESS = "CART_REMOVE_ITEM_SUCCESS";
 export const CART_REMOVE_ITEM_FAILURE = "CART_REMOVE_ITEM_FAILURE";
 
+// ===== SHIPPING =====
+export const SHIPPING_CHECK_REQUEST = "SHIPPING_CHECK_REQUEST";
+export const SHIPPING_CHECK_SUCCESS = "SHIPPING_CHECK_SUCCESS";
+export const SHIPPING_CHECK_FAILURE = "SHIPPING_CHECK_FAILURE";
+
 export const CLEAR_CART_MESSAGES = "CLEAR_CART_MESSAGES";
 
 // ===== ACTION CREATORS =====
@@ -85,6 +90,22 @@ export const removeCartItemSuccess = (data) => ({
 
 export const removeCartItemFailure = (error) => ({
   type: CART_REMOVE_ITEM_FAILURE,
+  payload: error,
+});
+
+// Shipping check
+export const shippingCheckRequest = (selected_product_ids, city) => ({
+  type: SHIPPING_CHECK_REQUEST,
+  payload: { selected_product_ids, city },
+});
+
+export const shippingCheckSuccess = (data) => ({
+  type: SHIPPING_CHECK_SUCCESS,
+  payload: data,
+});
+
+export const shippingCheckFailure = (error) => ({
+  type: SHIPPING_CHECK_FAILURE,
   payload: error,
 });
 
