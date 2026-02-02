@@ -17,7 +17,7 @@ import {
 
 const StaffManagementPage = () => {
     const dispatch = useDispatch();
-    const { list = [], loading, pagination: pageMeta = { page: 1, limit: 10, total: 0 } } = useSelector(
+    const { list = [], loading, pagination: pageMeta = { page: 1, limit: 10, total: 0 }, statistics: statsFromApi } = useSelector(
         (state) => state.discount || {}
     );
 
@@ -40,24 +40,25 @@ const StaffManagementPage = () => {
     });
     const [formErrors, setFormErrors] = useState({});
 
-    // Calculate statistics
+    // Statistics từ API (toàn bộ theo bộ lọc), fallback tính từ list nếu API chưa trả về
     const statistics = useMemo(() => {
-        const stats = {
-            pending: 0,
-            approved: 0,
-            rejected: 0,
-            expired: 0
-        };
-        
+        if (statsFromApi && typeof statsFromApi.total === "number") {
+            return {
+                pending: statsFromApi.pending ?? 0,
+                approved: statsFromApi.approved ?? 0,
+                rejected: statsFromApi.rejected ?? 0,
+                expired: statsFromApi.expired ?? 0,
+            };
+        }
+        const stats = { pending: 0, approved: 0, rejected: 0, expired: 0 };
         list.forEach(discount => {
             if (discount.status === "PENDING") stats.pending++;
             else if (discount.status === "APPROVED") stats.approved++;
             else if (discount.status === "REJECTED") stats.rejected++;
             else if (discount.status === "EXPIRED") stats.expired++;
         });
-        
         return stats;
-    }, [list]);
+    }, [statsFromApi, list]);
 
     // Load discounts with current filters
     const loadDiscounts = useCallback(

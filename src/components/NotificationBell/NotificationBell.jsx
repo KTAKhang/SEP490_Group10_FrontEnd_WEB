@@ -312,7 +312,10 @@ const NotificationBell = () => {
                         {notification.type === 'news' && (
                           <i className="ri-newspaper-line text-xl"></i>
                         )}
-                        {!['discount', 'order', 'contact', 'product', 'news'].includes(notification.type) && (
+                        {notification.type === 'preorder' && (
+                          <i className="ri-shopping-cart-line text-xl"></i>
+                        )}
+                        {!['discount', 'order', 'contact', 'product', 'news', 'preorder'].includes(notification.type) && (
                           <i className="ri-notification-line text-xl"></i>
                         )}
                       </div>

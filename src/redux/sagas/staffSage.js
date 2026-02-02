@@ -76,16 +76,19 @@ function* fetchStaffList(action) {
       payload = {
         data: payload.data || [],
         pagination: payload.pagination || { page: 1, limit: 10, total: 0 },
+        statistics: payload.statistics || null,
       };
     } else if (Array.isArray(payload)) {
       payload = {
         data: payload,
         pagination: { page: 1, limit: payload.length, total: payload.length },
+        statistics: null,
       };
     } else {
       payload = {
         data: [],
         pagination: { page: 1, limit: 10, total: 0 },
+        statistics: null,
       };
     }
     yield put({ type: STAFF_LIST_SUCCESS, payload });

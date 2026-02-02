@@ -17,6 +17,8 @@ import {
   Image,
   Gift,
   ShoppingCart,
+  Apple,
+  BarChart3,
   Star,
 } from "lucide-react";
 
@@ -62,6 +64,9 @@ const Sidebar = () => {
       path: "/admin/orders",
     },
     {
+      icon: Apple,
+      label: "Pre-order management",
+      path: "/admin/preorder",
       icon: Star,
       label: "Reviews",
       path: "/admin/reviews",

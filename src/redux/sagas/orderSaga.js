@@ -57,6 +57,24 @@ const apiCreateOrder = async (
   return res.data;
 };
 
+const apiApplyDiscount = async (orderId, discountId, orderValue) => {
+  const res = await axios.post(
+    `${API_BASE_URL}/discounts/customer/apply`,
+    { discountId, orderValue, orderId },
+    { withCredentials: true, headers: authHeader() }
+  );
+  return res.data;
+};
+
+const apiGetVnpayUrl = async (order_id) => {
+  const res = await axios.post(
+    `${API_BASE_URL}/payment/vnpay/create`,
+    { order_id },
+    { withCredentials: true, headers: authHeader() }
+  );
+  return res.data;
+};
+
 const apiRetryPayment = async (order_id) => {
   const res = await axios.put(
     `${API_BASE_URL}/order/retry-payment/${order_id}`,
@@ -164,7 +182,7 @@ const apiGetAdminOrderStats = async () => {
 // CREATE ORDER
 function* orderCreateSaga(action) {
   try {
-    const { selected_product_ids, receiverInfo, payment_method } =
+    const { selected_product_ids, receiverInfo, payment_method, discountInfo } =
       action.payload;
 
     const res = yield call(
@@ -177,14 +195,29 @@ function* orderCreateSaga(action) {
     if (res.success) {
       yield put(orderCreateSuccess(res));
 
-       if (res.redirect_url) {
+      if (res.redirect_url) {
         window.location.href = res.redirect_url;
-      } else {
-        toast.success("Đặt hàng thành công");
+        return;
       }
 
-      // 🔥 VNPAY → redirect
+      // VNPAY: nếu có discount thì áp discount trước (giống flow COD), lấy URL mới rồi mới redirect
       if (res.payment_url) {
+        if (discountInfo && res.order_id) {
+          const applyRes = yield call(
+            apiApplyDiscount,
+            res.order_id,
+            discountInfo.discountId,
+            discountInfo.orderValue
+          );
+          if (applyRes?.status !== "OK") {
+            throw new Error(applyRes?.message || "Áp dụng mã giảm giá thất bại");
+          }
+          const urlRes = yield call(apiGetVnpayUrl, res.order_id);
+          if (urlRes?.success && urlRes?.payUrl) {
+            window.location.href = urlRes.payUrl;
+            return;
+          }
+        }
         window.location.href = res.payment_url;
       } else {
         toast.success("Đặt hàng thành công");

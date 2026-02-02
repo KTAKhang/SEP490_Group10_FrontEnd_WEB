@@ -459,7 +459,7 @@ receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undef
                               <p className="text-xs text-gray-500">
                                 Planned: {product.plannedQuantity || 0} | Received:{" "}
                                 {product.receivedQuantity || 0}
-</p>
+                              </p>
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
