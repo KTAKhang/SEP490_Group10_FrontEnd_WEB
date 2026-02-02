@@ -56,6 +56,7 @@ import HomepageAssetsManagement from "../pages/Admin/HomepageAssets/HomepageAsse
 import AboutUsPage from "../pages/AboutUsPage";
 import OrderSuccessPage from "../pages/CustomerView/OrderSuccessPage";
 import PaymentSuccessPage from "../pages/CustomerView/PaymentSuccessPage";
+import PaymentSuccessNoStockPage from "../pages/CustomerView/PaymentSuccessNoStockPage";
 import PaymentFailPage from "../pages/CustomerView/PaymentFailPage";
 import VoucherPage from "../pages/CustomerView/VoucherPage";
 import OrderHistory from "../pages/CustomerView/OrderHistory";
@@ -148,18 +149,15 @@ export const routes = [
       { path: "contact-history", element: <ContactHistoryPage /> },
       { path: "cart", element: <CartPage /> },
       { path: "checkout", element: <CheckoutPage /> },
-
       { path: "vouchers", element: <VoucherPage /> },
-
       { path: "orders", element: <OrderHistory /> },
+      { path: "payment-success-nostock", element: <PaymentSuccessNoStockPage /> },
       { path: "pre-orders", element: <PreOrdersPage /> },
       { path: "pre-orders/:id", element: <PreOrderDetailPage /> },
       { path: "preorder-checkout", element: <PreOrderCheckoutPage /> },
       { path: "my-pre-orders", element: <MyPreOrdersPage /> },
       { path: "preorder-payment-result", element: <PreOrderPaymentResultPage /> },
-
       { path: "orders/:orderId", element: <OrderHistoryDetail /> },
-
       { path: "order-success", element: <OrderSuccessPage /> },
       { path: "payment-result", element: <PaymentSuccessPage /> },
       { path: "payment-fail", element: <PaymentFailPage /> },
