@@ -23,8 +23,9 @@ const CartPage = () => {
   const cart = useSelector((state) => state.cart || {});
   const items = cart.items || [];
 
-  const [selectedItems, setSelectedItems] = useState([]);
-  const [editingQuantity, setEditingQuantity] = useState({}); 
+  const [selectedProductIds, setSelectedProductIds] = useState([]);
+  const [selectedBasketIds, setSelectedBasketIds] = useState([]);
+  const [editingQuantity, setEditingQuantity] = useState({});
 
   const navigate = useNavigate();
 
@@ -37,36 +38,58 @@ const CartPage = () => {
     dispatch(fetchCartRequest());
   }, [dispatch]);
 
+  const getItemId = (item) => {
+    if (item.item_type === "FRUIT_BASKET") return item.fruit_basket_id?._id ?? item.fruit_basket_id;
+    return item.product_id?._id ?? item.product_id ?? item.productId;
+  };
+
+  const isItemSelected = (item) => {
+    const id = getItemId(item);
+    if (item.item_type === "FRUIT_BASKET") return selectedBasketIds.includes(id);
+    return selectedProductIds.includes(id);
+  };
+
   useEffect(() => {
     if (!items || items.length === 0) {
-      setSelectedItems([]);
+      setSelectedProductIds([]);
+      setSelectedBasketIds([]);
       return;
     }
+    const pIds = items.filter((it) => it.item_type === "PRODUCT").map((it) => getItemId(it));
+    const bIds = items.filter((it) => it.item_type === "FRUIT_BASKET").map((it) => getItemId(it));
+    setSelectedProductIds((prev) => {
+      const next = prev.filter((id) => pIds.includes(id));
+      return next.length > 0 ? next : pIds;
+    });
+    setSelectedBasketIds((prev) => {
+      const next = prev.filter((id) => bIds.includes(id));
+      return next.length > 0 ? next : bIds;
+    });
+  }, [items?.length]);
 
-    const preselected = items
-      .filter((it) => it.selected === true)
-      .map((it) => it.product_id ?? it.productId);
-
-    if (preselected.length > 0) {
-      setSelectedItems(preselected);
+  const toggleSelectItem = (item) => {
+    const id = getItemId(item);
+    if (item.item_type === "FRUIT_BASKET") {
+      setSelectedBasketIds((prev) =>
+        prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+      );
     } else {
-      setSelectedItems(items.map((it) => it.product_id ?? it.productId));
+      setSelectedProductIds((prev) =>
+        prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+      );
     }
-  }, [JSON.stringify(items)]);
-
-  const toggleSelectItem = (productId) => {
-    setSelectedItems((prev) =>
-      prev.includes(productId)
-        ? prev.filter((id) => id !== productId)
-        : [...prev, productId],
-    );
   };
 
   const toggleSelectAll = () => {
-    if (selectedItems.length === items.length) {
-      setSelectedItems([]);
+    const pIds = items.filter((it) => it.item_type === "PRODUCT").map((it) => getItemId(it));
+    const bIds = items.filter((it) => it.item_type === "FRUIT_BASKET").map((it) => getItemId(it));
+    const allSelected = selectedProductIds.length === pIds.length && selectedBasketIds.length === bIds.length && (pIds.length > 0 || bIds.length > 0);
+    if (allSelected) {
+      setSelectedProductIds([]);
+      setSelectedBasketIds([]);
     } else {
-      setSelectedItems(items.map((it) => it.product_id ?? it.productId));
+      setSelectedProductIds(pIds);
+      setSelectedBasketIds(bIds);
     }
   };
 
@@ -78,36 +101,39 @@ const CartPage = () => {
     }));
   };
 
-  // Handle quantity input blur (when user clicks away)
-  const handleQuantityBlur = (productId, currentQty) => {
-    const newQty = editingQuantity[productId];
-    
-    if (newQty !== undefined && newQty !== '') {
+  // Handle quantity input blur (when user clicks away) – dùng cho cả sản phẩm và giỏ trái cây
+  const handleQuantityBlur = (itemId, currentQty, isBasket) => {
+    const newQty = editingQuantity[itemId];
+
+    if (newQty !== undefined && newQty !== "") {
       const parsedQty = parseInt(newQty, 10);
-      
-      // Validate quantity
-      if (!isNaN(parsedQty) && parsedQty > 0 && parsedQty !== currentQty) {
-        dispatch(updateCartItemRequest(productId, parsedQty));
+
+      if (!isNaN(parsedQty) && parsedQty >= 0 && parsedQty !== currentQty) {
+        if (isBasket) {
+          dispatch(updateCartItemRequest({ fruit_basket_id: itemId, quantity: parsedQty }));
+        } else {
+          dispatch(updateCartItemRequest(itemId, parsedQty));
+        }
       }
     }
-    
-    // Clear editing state
-    setEditingQuantity(prev => {
+
+    setEditingQuantity((prev) => {
       const newState = { ...prev };
-      delete newState[productId];
+      delete newState[itemId];
       return newState;
     });
   };
 
   // Handle Enter key press in quantity input
-  const handleQuantityKeyPress = (e, productId, currentQty) => {
-    if (e.key === 'Enter') {
-      e.target.blur(); // Trigger blur event
+  const handleQuantityKeyPress = (e, itemId, currentQty) => {
+    if (e.key === "Enter") {
+      e.target.blur();
     }
   };
 
+  const selectedCount = selectedProductIds.length + selectedBasketIds.length;
   const isAllSelected =
-    selectedItems.length === cart.items?.length && cart.items?.length > 0;
+    selectedCount === cart.items?.length && cart.items?.length > 0;
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN").format(price) + "₫";
@@ -115,16 +141,9 @@ const CartPage = () => {
 
   const calculateSubtotal = () => {
     return items
-      .filter((item) =>
-        selectedItems.includes(item.product_id ?? item.productId),
-      )
-      .reduce((total, item) => {
-        const price = item.product?.price ?? item.price ?? item.unit_price ?? 0;
-        return total + price * (item.quantity || 0);
-      }, 0);
+      .filter((item) => isItemSelected(item))
+      .reduce((total, item) => total + (item.subtotal ?? (item.price || 0) * (item.quantity || 0)), 0);
   };
-
-  const selectedCount = selectedItems.length;
 
   // If user previously started a checkout, automatically go to checkout page
   useEffect(() => {
@@ -150,17 +169,14 @@ const CartPage = () => {
       alert("Giỏ hàng đang trống");
       return;
     }
-
-    if (!selectedItems || selectedItems.length === 0) {
-      alert("Vui lòng chọn ít nhất một sản phẩm để thanh toán");
+    if (selectedCount === 0) {
+      alert("Vui lòng chọn ít nhất một sản phẩm hoặc giỏ trái cây để thanh toán");
       return;
     }
-
     const sessionId = (window.crypto && crypto.randomUUID)
       ? crypto.randomUUID()
       : `cs_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-
-    dispatch(checkoutHoldRequest(selectedItems, sessionId));
+    dispatch(checkoutHoldRequest(selectedProductIds, selectedBasketIds, sessionId));
   };
 
   return (
@@ -191,32 +207,31 @@ const CartPage = () => {
               </div>
               <div className="divide-y divide-gray-100">
                 {items.map((item) => {
-                  const pid = item.product_id ?? item.productId;
-                  const name = item.product?.name ?? item.name ?? "Sản phẩm";
+                  const itemId = getItemId(item);
+                  const isBasket = item.item_type === "FRUIT_BASKET";
+                  const name = item.product?.name ?? item.name ?? (isBasket ? "Giỏ trái cây" : "Sản phẩm");
                   const warning = item?.warning;
                   const image =
                     item.product?.image ??
                     item.image ??
                     "../../../public/a1.png";
-                  const price =
-                    item.product?.price ?? item.price ?? item.unit_price ?? 0;
+                  const price = item.price ?? item.unit_price ?? 0;
                   const qty = item.quantity || 0;
-                  const displayQty = editingQuantity[pid] !== undefined ? editingQuantity[pid] : qty;
+                  const subtotalItem = item.subtotal ?? price * qty;
+                  const displayQty = editingQuantity[itemId] !== undefined ? editingQuantity[itemId] : qty;
 
                   return (
                     <div
-                      key={pid}
+                      key={isBasket ? `b_${itemId}` : `p_${itemId}`}
                       className={`p-6 transition-colors ${
-                        selectedItems.includes(pid)
-                          ? "bg-blue-50/30"
-                          : "bg-white"
+                        isItemSelected(item) ? "bg-blue-50/30" : "bg-white"
                       }`}
                     >
                       <div className="flex items-start gap-4">
                         <input
                           type="checkbox"
-                          checked={selectedItems.includes(pid)}
-                          onChange={() => toggleSelectItem(pid)}
+                          checked={isItemSelected(item)}
+                          onChange={() => toggleSelectItem(item)}
                           className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer mt-1"
                         />
                         <div className="flex-shrink-0">
@@ -229,17 +244,28 @@ const CartPage = () => {
                         <div className="flex-1 min-w-0">
                           <h3 className="font-bold text-gray-900 mb-2">
                             {name}
+                            {isBasket && (
+                              <span className="ml-2 text-xs font-normal text-gray-500">
+                                (Giỏ trái cây)
+                              </span>
+                            )}
                           </h3>
-
+                          {isBasket && item.total_weight_gram != null && (
+                            <p className="text-xs text-gray-500 mb-1">
+                              Khối lượng: {Number(item.total_weight_gram).toLocaleString()} g
+                            </p>
+                          )}
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <div className="flex items-center border border-gray-200 rounded-lg">
                                 <button
                                   onClick={() => {
-                                    const newQty = Math.max(1, Number(qty) - 1);
-                                    dispatch(
-                                      updateCartItemRequest(pid, newQty),
-                                    );
+                                    const newQty = Math.max(0, Number(qty) - 1);
+                                    if (isBasket) {
+                                      dispatch(updateCartItemRequest({ fruit_basket_id: itemId, quantity: newQty }));
+                                    } else {
+                                      dispatch(updateCartItemRequest(itemId, newQty));
+                                    }
                                   }}
                                   className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 transition-colors"
                                 >
@@ -247,19 +273,21 @@ const CartPage = () => {
                                 </button>
                                 <input
                                   type="number"
-                                  min="1"
+                                  min={isBasket ? "0" : "1"}
                                   value={displayQty}
-                                  onChange={(e) => handleQuantityChange(pid, e.target.value)}
-                                  onBlur={() => handleQuantityBlur(pid, qty)}
-                                  onKeyPress={(e) => handleQuantityKeyPress(e, pid, qty)}
+                                  onChange={(e) => handleQuantityChange(itemId, e.target.value)}
+                                  onBlur={() => handleQuantityBlur(itemId, qty, isBasket)}
+                                  onKeyPress={(e) => handleQuantityKeyPress(e, itemId, qty)}
                                   className="w-12 text-center font-medium border-0 focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                                 <button
                                   onClick={() => {
                                     const newQty = Math.max(1, Number(qty) + 1);
-                                    dispatch(
-                                      updateCartItemRequest(pid, newQty),
-                                    );
+                                    if (isBasket) {
+                                      dispatch(updateCartItemRequest({ fruit_basket_id: itemId, quantity: newQty }));
+                                    } else {
+                                      dispatch(updateCartItemRequest(itemId, newQty));
+                                    }
                                   }}
                                   className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 transition-colors"
                                 >
@@ -268,12 +296,12 @@ const CartPage = () => {
                               </div>
                               <button
                                 onClick={() => {
-                                  if (
-                                    window.confirm(
-                                      "Xóa sản phẩm này khỏi giỏ hàng?",
-                                    )
-                                  ) {
-                                    dispatch(removeCartItemRequest(pid));
+                                  if (window.confirm("Xóa khỏi giỏ hàng?")) {
+                                    dispatch(
+                                      isBasket
+                                        ? removeCartItemRequest([], [itemId])
+                                        : removeCartItemRequest([itemId], [])
+                                    );
                                   }
                                 }}
                                 className="w-10 h-10 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -285,7 +313,7 @@ const CartPage = () => {
                               {warning && (
                                 <div
                                   className={`inline-block px-3 py-1 rounded-full text-sm font-medium mb-2 ${
-                                    warning === "Sản phẩm đã ngừng bán"
+                                    warning === "Sản phẩm đã ngừng bán" || warning === "Giỏ trái cây đã ngừng bán"
                                       ? "bg-red-100 text-red-700"
                                       : warning === "Sản phẩm tạm hết hàng"
                                         ? "bg-red-100 text-red-700"
@@ -296,7 +324,7 @@ const CartPage = () => {
                                 </div>
                               )}
                               <div className="font-bold text-red-600 text-lg">
-                                {formatPrice(price * qty)}
+                                {formatPrice(subtotalItem)}
                               </div>
                             </div>
                           </div>
@@ -322,11 +350,13 @@ const CartPage = () => {
                   if (
                     window.confirm("Bạn có chắc muốn xóa toàn bộ giỏ hàng?")
                   ) {
-                    const allProductIds = cart.items.map(
-                      (item) => item.product_id._id || item.product_id,
-                    );
-
-                    dispatch(removeCartItemRequest(allProductIds));
+                    const productIds = (cart.items || [])
+                      .filter((i) => i.item_type === "PRODUCT")
+                      .map((i) => i.product_id?._id ?? i.product_id);
+                    const basketIds = (cart.items || [])
+                      .filter((i) => i.item_type === "FRUIT_BASKET")
+                      .map((i) => i.fruit_basket_id?._id ?? i.fruit_basket_id);
+                    dispatch(removeCartItemRequest(productIds, basketIds));
                   }
                 }}
                 className="flex items-center gap-2 text-red-600 hover:text-red-700 transition-colors"

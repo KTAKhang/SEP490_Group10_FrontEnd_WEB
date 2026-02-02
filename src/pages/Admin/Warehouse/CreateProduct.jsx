@@ -231,14 +231,14 @@ formDataToSend.append("category", formData.category);
               </label>
               <input
                 type="number"
-                value={formData.plannedQuantity}
-                onChange={(e) =>
-                  setFormData({ ...formData, plannedQuantity: parseInt(e.target.value) || 0 })
-                }
-
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-
+                step="0.01"
                 min="0"
+                value={formData.plannedQuantity}
+                onChange={(e) => {
+                  const v = parseFloat(e.target.value);
+                  setFormData({ ...formData, plannedQuantity: !Number.isNaN(v) && v >= 0 ? v : 0 });
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 required
               />
             </div>

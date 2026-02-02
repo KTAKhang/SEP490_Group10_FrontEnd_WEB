@@ -6,6 +6,7 @@ import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
 import Loading from "../../components/Loading/Loading";
 import { getPublicFruitBasketByIdRequest } from "../../redux/actions/publicFruitBasketActions";
+import { addFruitBasketToCartRequest } from "../../redux/actions/cartActions";
 
 const FruitBasketDetail = () => {
   const { id } = useParams();
@@ -101,6 +102,11 @@ const FruitBasketDetail = () => {
               </div>
 
               <div className="space-y-6">
+                {basket.totalWeightGram != null && (
+                  <p className="text-sm text-gray-600">
+                    Tổng khối lượng: <strong>{Number(basket.totalWeightGram).toLocaleString()} g</strong>
+                  </p>
+                )}
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="text-2xl font-bold text-orange-600">
                     {formatCurrency(basket.totalPrice)}
@@ -112,8 +118,17 @@ const FruitBasketDetail = () => {
                         : "bg-red-100 text-red-700"
                     }`}
                   >
-                    {basket.stockStatus === "IN_STOCK" ? "In stock" : "Out of stock"}
+                    {basket.stockStatus === "IN_STOCK" ? "Còn hàng" : "Hết hàng"}
                   </span>
+                  {basket.stockStatus === "IN_STOCK" && basket._id && (
+                    <button
+                      type="button"
+                      onClick={() => dispatch(addFruitBasketToCartRequest(basket._id))}
+                      className="px-5 py-2.5 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors"
+                    >
+                      Thêm vào giỏ hàng
+                    </button>
+                  )}
                 </div>
 
                 {basket.description && (
@@ -123,16 +138,18 @@ const FruitBasketDetail = () => {
                 <div className="rounded-2xl border border-gray-200 p-5">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4">Sản phẩm trong giỏ</h2>
                   <div className="space-y-3">
-                    {(basket.items || []).map((item) => {
+                    {(basket.items || []).map((item, index) => {
                       const productImages = Array.isArray(item.product?.images)
                         ? item.product.images
                         : [];
                       const productImage =
                         productImages[0] ||
                         "https://via.placeholder.com/80x80?text=No+Image";
+                      const weightGram = item.weightGram != null ? Number(item.weightGram) : 0;
+                      const lineTotal = item.price ?? item.lineTotal ?? 0;
                       return (
                       <div
-                        key={item._id || `${item.product?._id}-${item.quantity}`}
+                        key={item._id || `${item.product?._id}-${weightGram}-${index}`}
                         className="flex items-center justify-between gap-3 border-b border-gray-100 pb-3 last:border-b-0 last:pb-0"
                       >
                         <div className="flex items-center gap-3">
@@ -148,12 +165,12 @@ const FruitBasketDetail = () => {
                             {item.product?.name || "Sản phẩm không tồn tại"}
                           </div>
                           <div className="text-xs text-gray-500">
-                            {item.quantity || 0} x {formatCurrency(item.product?.price || 0)}
+                            {weightGram > 0 ? `${weightGram.toLocaleString()} g` : "—"} · Giá/kg: {formatCurrency(item.product?.price || 0)}
                           </div>
                         </div>
                         </div>
                         <div className="text-sm font-semibold text-gray-800">
-                          {formatCurrency(item.lineTotal)}
+                          {formatCurrency(lineTotal)}
                         </div>
                       </div>
                     );

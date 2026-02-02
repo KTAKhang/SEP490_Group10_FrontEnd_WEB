@@ -42,11 +42,12 @@ export const ORDER_CLEAR_MESSAGES = "ORDER_CLEAR_MESSAGES";
 // Create order
 export const orderCreateRequest = (
   selected_product_ids,
+  selected_fruit_basket_ids,
   receiverInfo,
   payment_method
 ) => ({
   type: ORDER_CREATE_REQUEST,
-  payload: { selected_product_ids, receiverInfo, payment_method },
+  payload: { selected_product_ids, selected_fruit_basket_ids, receiverInfo, payment_method },
 });
 
 export const orderCreateSuccess = (data) => ({
@@ -138,10 +139,10 @@ export const orderAdminListFailure = (error) => ({
   payload: error,
 });
 
-// Admin update order status
-export const orderAdminUpdateRequest = (order_id, status_name, note) => ({
+// Admin update order status (role gửi kèm để backend ghi status_history.changed_by_role)
+export const orderAdminUpdateRequest = (order_id, status_name, note, role) => ({
   type: ORDER_ADMIN_UPDATE_REQUEST,
-  payload: { order_id, status_name, note },
+  payload: { order_id, status_name, note, role },
 });
 
 export const orderAdminUpdateSuccess = (message) => ({

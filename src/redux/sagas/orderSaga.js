@@ -43,12 +43,13 @@ const authHeader = () => {
 // ===== API =====
 const apiCreateOrder = async (
   selected_product_ids,
+  selected_fruit_basket_ids,
   receiverInfo,
   payment_method
 ) => {
   const res = await axios.post(
     `${API_BASE_URL}/order/create`,
-    { selected_product_ids, receiverInfo, payment_method },
+    { selected_product_ids: selected_product_ids || [], selected_fruit_basket_ids: selected_fruit_basket_ids || [], receiverInfo, payment_method },
     {
       withCredentials: true,
       headers: authHeader(),
@@ -131,10 +132,15 @@ const apiGetAdminOrders = async (params = {}) => {
   return res.data;
 };
 
-const apiUpdateOrderAdmin = async (order_id, status_name, note) => {
+const apiUpdateOrderAdmin = async (order_id, status_name, note, role) => {
+  const body = {
+    status_name,
+    note,
+    changed_by_role: role != null && role !== "" ? role : "admin",
+  };
   const res = await axios.put(
     `${API_BASE_URL}/order/update/${order_id}`,
-    { status_name, note },
+    body,
     {
       withCredentials: true,
       headers: authHeader(),
@@ -164,12 +170,13 @@ const apiGetAdminOrderStats = async () => {
 // CREATE ORDER
 function* orderCreateSaga(action) {
   try {
-    const { selected_product_ids, receiverInfo, payment_method } =
+    const { selected_product_ids, selected_fruit_basket_ids, receiverInfo, payment_method } =
       action.payload;
 
     const res = yield call(
       apiCreateOrder,
-      selected_product_ids,
+      selected_product_ids || [],
+      selected_fruit_basket_ids || [],
       receiverInfo,
       payment_method
     );
@@ -293,8 +300,8 @@ function* orderAdminListSaga(action) {
 // ADMIN UPDATE ORDER STATUS
 function* orderAdminUpdateSaga(action) {
   try {
-    const { order_id, status_name, note } = action.payload;
-    const res = yield call(apiUpdateOrderAdmin, order_id, status_name, note);
+    const { order_id, status_name, note, role } = action.payload;
+    const res = yield call(apiUpdateOrderAdmin, order_id, status_name, note, role);
     if (res.success) {
       yield put(orderAdminUpdateSuccess(res.message));
       toast.success(res.message);

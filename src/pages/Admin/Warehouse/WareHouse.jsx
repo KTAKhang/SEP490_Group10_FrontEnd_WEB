@@ -25,6 +25,7 @@ import CreateProduct from "./CreateProduct";
 import UpdateProduct from "./UpdateProduct";
 import DetailProduct from "./DetailProduct";
 import Loading from "../../../components/Loading/Loading";
+import { formatQuantityKg } from "../../../utils/formatQuantity";
 
 // Simple Card component
 const Card = ({ children, className = "" }) => (
@@ -454,12 +455,11 @@ receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undef
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm">
                               <p className="font-medium text-gray-900">
-                                Stock: {product.onHandQuantity || 0}
+                                Stock: {formatQuantityKg(product.onHandQuantity)} kg
                               </p>
                               <p className="text-xs text-gray-500">
-                                Planned: {product.plannedQuantity || 0} | Received:{" "}
-                                {product.receivedQuantity || 0}
-</p>
+                                Planned: {formatQuantityKg(product.plannedQuantity)} | Received: {formatQuantityKg(product.receivedQuantity)} kg
+                              </p>
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">

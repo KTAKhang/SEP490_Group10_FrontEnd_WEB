@@ -14,10 +14,11 @@ export const CLEAR_CHECKOUT_MESSAGES = "CLEAR_CHECKOUT_MESSAGES";
 // Hold checkout
 export const checkoutHoldRequest = (
   selected_product_ids,
+  selected_fruit_basket_ids,
   checkout_session_id
 ) => ({
   type: CHECKOUT_HOLD_REQUEST,
-  payload: { selected_product_ids, checkout_session_id },
+  payload: { selected_product_ids, selected_fruit_basket_ids, checkout_session_id },
 });
 
 export const checkoutHoldSuccess = (data) => ({

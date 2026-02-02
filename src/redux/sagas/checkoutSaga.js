@@ -20,10 +20,10 @@ const authHeader = () => {
 };
 
 // ===== API =====
-const apiCheckoutHold = async (selected_product_ids, checkout_session_id) => {
+const apiCheckoutHold = async (selected_product_ids, selected_fruit_basket_ids, checkout_session_id) => {
   const res = await axios.post(
     `${API_BASE_URL}/checkout/hold`,
-    { selected_product_ids, checkout_session_id },
+    { selected_product_ids: selected_product_ids || [], selected_fruit_basket_ids: selected_fruit_basket_ids || [], checkout_session_id },
     {
       withCredentials: true,
       headers: authHeader(),
@@ -47,15 +47,18 @@ const apiCheckoutCancel = async (checkout_session_id) => {
 // ===== SAGAS =====
 function* checkoutHoldSaga(action) {
   try {
-    const { selected_product_ids, checkout_session_id } = action.payload;
+    const { selected_product_ids, selected_fruit_basket_ids, checkout_session_id } = action.payload;
+    const productIds = selected_product_ids || [];
+    const basketIds = selected_fruit_basket_ids || [];
 
-    if (!selected_product_ids || selected_product_ids.length === 0) {
-      throw new Error("Vui lòng chọn ít nhất một sản phẩm");
+    if (productIds.length === 0 && basketIds.length === 0) {
+      throw new Error("Vui lòng chọn ít nhất một sản phẩm hoặc giỏ trái cây");
     }
 
     const res = yield call(
       apiCheckoutHold,
-      selected_product_ids,
+      productIds,
+      basketIds,
       checkout_session_id,
     );
 

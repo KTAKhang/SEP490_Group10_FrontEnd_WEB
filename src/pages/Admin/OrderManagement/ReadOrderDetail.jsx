@@ -52,35 +52,43 @@ const ReadOrderDetail = ({
                   Sản phẩm
                 </h3>
                 <div className="space-y-3">
-                  {adminDetail.details?.map((item) => (
-                    <div
-                      key={item._id}
-                      className="flex items-center justify-between border rounded-lg p-3"
-                    >
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={
-                            item.product_image ||
-                            "https://via.placeholder.com/60?text=No+Image"
-                          }
-                          alt={item.product_name}
-                          className="w-14 h-14 object-cover rounded-lg border"
-                        />
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {item.product_name}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {item.product_category_name || "N/A"}
+                  {adminDetail.details?.map((item) => {
+                    const isFruitBasket = item.fruit_basket_id != null && !item.product_id;
+                    return (
+                      <div
+                        key={item._id}
+                        className="flex items-center justify-between border rounded-lg p-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={
+                              item.product_image ||
+                              "https://via.placeholder.com/60?text=No+Image"
+                            }
+                            alt={item.product_name}
+                            className="w-14 h-14 object-cover rounded-lg border"
+                          />
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {item.product_name}
+                              {isFruitBasket && (
+                                <span className="ml-1 text-xs text-gray-500">(Giỏ trái cây)</span>
+                              )}
+                            </div>
+                            {!isFruitBasket && (
+                              <div className="text-xs text-gray-500">
+                                {item.product_category_name || "N/A"}
+                              </div>
+                            )}
                           </div>
                         </div>
+                        <div className="text-right text-sm text-gray-700">
+                          <div>Số lượng: {(Number(item.quantity) || 0).toLocaleString("vi-VN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</div>
+                          <div>{formatCurrency(item.price)}</div>
+                        </div>
                       </div>
-                      <div className="text-right text-sm text-gray-700">
-                        <div>Số lượng: {item.quantity}</div>
-                        <div>{formatCurrency(item.price)}</div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 

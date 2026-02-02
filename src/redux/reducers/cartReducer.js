@@ -6,6 +6,9 @@ import {
   CART_ADD_ITEM_REQUEST,
   CART_ADD_ITEM_SUCCESS,
   CART_ADD_ITEM_FAILURE,
+  CART_ADD_BASKET_REQUEST,
+  CART_ADD_BASKET_SUCCESS,
+  CART_ADD_BASKET_FAILURE,
   CART_UPDATE_ITEM_REQUEST,
   CART_UPDATE_ITEM_SUCCESS,
   CART_UPDATE_ITEM_FAILURE,
@@ -53,6 +56,13 @@ const cartReducer = (state = initialState, action) => {
       return { ...state, loading: false, message: action.payload };
 
     case CART_ADD_ITEM_FAILURE:
+      return { ...state, loading: false, error: action.payload };
+
+    case CART_ADD_BASKET_REQUEST:
+      return { ...state, loading: true, error: null };
+    case CART_ADD_BASKET_SUCCESS:
+      return { ...state, loading: false, message: action.payload };
+    case CART_ADD_BASKET_FAILURE:
       return { ...state, loading: false, error: action.payload };
 
     // ===== UPDATE ITEM =====

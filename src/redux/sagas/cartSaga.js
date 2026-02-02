@@ -9,6 +9,9 @@ import {
   CART_ADD_ITEM_REQUEST,
   addItemToCartSuccess,
   addItemToCartFailure,
+  CART_ADD_BASKET_REQUEST,
+  addFruitBasketToCartSuccess,
+  addFruitBasketToCartFailure,
   CART_UPDATE_ITEM_REQUEST,
   updateCartItemSuccess,
   updateCartItemFailure,
@@ -46,13 +49,14 @@ const apiAddItem = async (product_id, quantity) => {
   return res.data;
 };
 
-const apiUpdateItem = async (product_id, quantity) => {
+const apiUpdateItem = async (payload) => {
+  const body = {};
+  if (payload.product_id != null) body.product_id = payload.product_id;
+  if (payload.fruit_basket_id != null) body.fruit_basket_id = payload.fruit_basket_id;
+  body.quantity = payload.quantity;
   const res = await axios.put(
     `${API_BASE_URL}/cart/update`,
-    {
-      product_id,
-      quantity, // ✅ FIX: gửi đúng key backend cần
-    },
+    body,
     {
       withCredentials: true,
       headers: authHeader(),
@@ -61,12 +65,21 @@ const apiUpdateItem = async (product_id, quantity) => {
   return res.data;
 };
 
-const apiRemoveItem = async (product_ids) => {
+const apiRemoveItem = async (product_ids, fruit_basket_ids) => {
   const res = await axios.delete(`${API_BASE_URL}/cart/remove`, {
-    data: { product_ids },
+    data: { product_ids: product_ids || [], fruit_basket_ids: fruit_basket_ids || [] },
     withCredentials: true,
     headers: authHeader(),
   });
+  return res.data;
+};
+
+const apiAddFruitBasket = async (fruit_basket_id) => {
+  const res = await axios.post(
+    `${API_BASE_URL}/cart/add-basket`,
+    { fruit_basket_id },
+    { withCredentials: true, headers: authHeader() }
+  );
   return res.data;
 };
 
@@ -106,16 +119,19 @@ function* addItemSaga(action) {
 
 function* updateItemSaga(action) {
   try {
-    const { product_id, quantity } = action.payload;
-
-    if (!quantity || quantity < 1) {
-      throw new Error("Số lượng phải >= 1");
+    const payload = action.payload;
+    const quantity = Number(payload.quantity);
+    if (payload.product_id == null && payload.fruit_basket_id == null) {
+      throw new Error("Cần truyền product_id hoặc fruit_basket_id");
+    }
+    if (quantity < 0 || !Number.isInteger(quantity)) {
+      throw new Error("Số lượng phải là số nguyên không âm");
     }
 
-    const res = yield call(apiUpdateItem, product_id, quantity);
+    const res = yield call(apiUpdateItem, payload);
 
     yield put(updateCartItemSuccess(res));
-    toast.success(res.message);
+    toast.success(res.message || "Cập nhật giỏ hàng thành công");
 
     yield put({ type: CART_FETCH_REQUEST });
   } catch (error) {
@@ -127,8 +143,8 @@ function* updateItemSaga(action) {
 
 function* removeItemSaga(action) {
   try {
-    const { product_ids } = action.payload;
-    const res = yield call(apiRemoveItem, product_ids);
+    const { product_ids, fruit_basket_ids } = action.payload;
+    const res = yield call(apiRemoveItem, product_ids || [], fruit_basket_ids || []);
 
     if (res.status === "OK") {
       yield put(removeCartItemSuccess(res));
@@ -145,9 +161,24 @@ function* removeItemSaga(action) {
   }
 }
 
+function* addFruitBasketSaga(action) {
+  try {
+    const { fruit_basket_id } = action.payload;
+    const res = yield call(apiAddFruitBasket, fruit_basket_id);
+    yield put(addFruitBasketToCartSuccess(res.message));
+    toast.success(res.message);
+    yield put({ type: CART_FETCH_REQUEST });
+  } catch (error) {
+    const msg = error.response?.data?.message || error.message;
+    yield put(addFruitBasketToCartFailure(msg));
+    toast.error(msg);
+  }
+}
+
 export default function* cartSaga() {
   yield takeLatest(CART_FETCH_REQUEST, fetchCartSaga);
   yield takeLatest(CART_ADD_ITEM_REQUEST, addItemSaga);
+  yield takeLatest(CART_ADD_BASKET_REQUEST, addFruitBasketSaga);
   yield takeLatest(CART_UPDATE_ITEM_REQUEST, updateItemSaga);
   yield takeLatest(CART_REMOVE_ITEM_REQUEST, removeItemSaga);
 }

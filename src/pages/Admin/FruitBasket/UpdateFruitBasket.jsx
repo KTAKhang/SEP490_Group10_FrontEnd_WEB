@@ -18,7 +18,7 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
     detail_desc: "",
     status: true,
   });
-  const [items, setItems] = useState([{ productId: "", quantity: 1 }]);
+  const [items, setItems] = useState([{ productId: "", weightGram: 500 }]);
   const [images, setImages] = useState([]);
   const [uploadFiles, setUploadFiles] = useState([]);
   const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -42,9 +42,9 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
       });
       const mappedItems = (basket.items || []).map((item) => ({
         productId: item.product?._id || item.product || "",
-        quantity: Number(item.quantity || 1),
+        weightGram: Number(item.weightGram) || 500,
       }));
-      setItems(mappedItems.length > 0 ? mappedItems : [{ productId: "", quantity: 1 }]);
+      setItems(mappedItems.length > 0 ? mappedItems : [{ productId: "", weightGram: 500 }]);
       const imageList = [];
       const urls = Array.isArray(basket.images) ? basket.images : [];
       const publicIds = Array.isArray(basket.imagePublicIds) ? basket.imagePublicIds : [];
@@ -83,7 +83,7 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
       toast.error("Giỏ trái cây chỉ được tối đa 5 loại trái cây");
       return;
     }
-    setItems((prev) => [...prev, { productId: "", quantity: 1 }]);
+    setItems((prev) => [...prev, { productId: "", weightGram: 500 }]);
   };
 
   const handleRemoveItem = (index) => {
@@ -138,22 +138,28 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
     }
 
     const productSet = new Set();
+    let totalWeight = 0;
     for (const item of normalized) {
       if (productSet.has(item.productId)) {
         toast.error("Không được chọn trùng sản phẩm trong giỏ trái cây");
         return null;
       }
       productSet.add(item.productId);
-      const qty = Number(item.quantity);
-      if (!Number.isInteger(qty) || qty < 1 || qty > 10) {
-        toast.error("Số lượng mỗi trái cây phải là số nguyên từ 1 đến 10");
+      const w = Number(item.weightGram);
+      if (!Number.isInteger(w) || w < 100 || w > 2000) {
+        toast.error("Khối lượng mỗi loại trái cây phải là số nguyên (gram) từ 100 đến 2000");
         return null;
       }
+      totalWeight += w;
+    }
+    if (totalWeight > 5000) {
+      toast.error("Tổng cân nặng giỏ trái cây không được vượt quá 5000g (5kg)");
+      return null;
     }
 
     return normalized.map((item) => ({
       product: item.productId,
-      quantity: Number(item.quantity),
+      weightGram: Number(item.weightGram),
     }));
   };
 
@@ -195,7 +201,7 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
     payload.append("detail_desc", formData.detail_desc || "");
     itemsPayload.forEach((item, index) => {
       payload.append(`items[${index}][product]`, item.product);
-      payload.append(`items[${index}][quantity]`, String(item.quantity));
+      payload.append(`items[${index}][weightGram]`, String(item.weightGram));
     });
     payload.append("status", formData.status ? "true" : "false");
     payload.append(
@@ -298,12 +304,15 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
                   <div className="md:col-span-2">
                     <input
                       type="number"
-                      min={1}
-                      max={10}
-                      value={item.quantity}
-                      onChange={(e) => handleItemChange(index, "quantity", e.target.value)}
+                      min={100}
+                      max={2000}
+                      step={1}
+                      value={item.weightGram}
+                      onChange={(e) => handleItemChange(index, "weightGram", e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="Gram (100–2000)"
                     />
+                    <p className="text-xs text-gray-500 mt-0.5">gram (100–2000)</p>
                   </div>
                   <div className="md:col-span-1 flex justify-end">
                     {items.length > 1 && (

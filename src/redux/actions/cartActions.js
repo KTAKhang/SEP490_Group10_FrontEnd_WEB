@@ -43,6 +43,15 @@ export const addItemToCartRequest = (product_id, quantity) => ({
   payload: { product_id, quantity },
 });
 
+export const CART_ADD_BASKET_REQUEST = "CART_ADD_BASKET_REQUEST";
+export const CART_ADD_BASKET_SUCCESS = "CART_ADD_BASKET_SUCCESS";
+export const CART_ADD_BASKET_FAILURE = "CART_ADD_BASKET_FAILURE";
+
+export const addFruitBasketToCartRequest = (fruit_basket_id) => ({
+  type: CART_ADD_BASKET_REQUEST,
+  payload: { fruit_basket_id },
+});
+
 export const addItemToCartSuccess = (message) => ({
   type: CART_ADD_ITEM_SUCCESS,
   payload: message,
@@ -53,10 +62,23 @@ export const addItemToCartFailure = (error) => ({
   payload: error,
 });
 
-// Update item
-export const updateCartItemRequest = (product_id, quantity) => ({
+export const addFruitBasketToCartSuccess = (message) => ({
+  type: CART_ADD_BASKET_SUCCESS,
+  payload: message,
+});
+
+export const addFruitBasketToCartFailure = (error) => ({
+  type: CART_ADD_BASKET_FAILURE,
+  payload: error,
+});
+
+// Update item: updateCartItemRequest(product_id, quantity) hoặc updateCartItemRequest({ fruit_basket_id, quantity })
+export const updateCartItemRequest = (productIdOrPayload, quantity) => ({
   type: CART_UPDATE_ITEM_REQUEST,
-  payload: { product_id, quantity },
+  payload:
+    typeof productIdOrPayload === "object" && productIdOrPayload !== null
+      ? productIdOrPayload
+      : { product_id: productIdOrPayload, quantity },
 });
 
 export const updateCartItemSuccess = (data) => ({
@@ -69,12 +91,11 @@ export const updateCartItemFailure = (error) => ({
   payload: error,
 });
 
-export const removeCartItemRequest = (product_ids) => ({
+export const removeCartItemRequest = (product_ids, fruit_basket_ids = []) => ({
   type: CART_REMOVE_ITEM_REQUEST,
   payload: {
-    product_ids: Array.isArray(product_ids)
-      ? product_ids
-      : [product_ids],
+    product_ids: Array.isArray(product_ids) ? product_ids : product_ids != null ? [product_ids] : [],
+    fruit_basket_ids: Array.isArray(fruit_basket_ids) ? fruit_basket_ids : fruit_basket_ids != null ? [fruit_basket_ids] : [],
   },
 });
 

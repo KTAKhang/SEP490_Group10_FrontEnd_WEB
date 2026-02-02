@@ -1,4 +1,5 @@
 import { X, Package, CheckCircle, AlertCircle, TrendingDown, Eye } from "lucide-react";
+import { formatQuantityKg } from "../../../utils/formatQuantity";
 
 const DetailProduct = ({ isOpen, onClose, product }) => {
   if (!isOpen || !product) return null;
@@ -165,26 +166,26 @@ const DetailProduct = ({ isOpen, onClose, product }) => {
             <div className="grid grid-cols-5 gap-4">
               <div className="bg-blue-50 p-4 rounded-lg">
                 <p className="text-xs text-gray-600 mb-1">Planned</p>
-                <p className="text-2xl font-bold text-blue-600">{product.plannedQuantity || 0}</p>
+                <p className="text-2xl font-bold text-blue-600">{formatQuantityKg(product.plannedQuantity)}</p>
               </div>
               <div className="bg-purple-50 p-4 rounded-lg">
                 <p className="text-xs text-gray-600 mb-1">Received</p>
-                <p className="text-2xl font-bold text-purple-600">{product.receivedQuantity || 0}</p>
+                <p className="text-2xl font-bold text-purple-600">{formatQuantityKg(product.receivedQuantity)}</p>
               </div>
               <div className="bg-green-50 p-4 rounded-lg">
                 <p className="text-xs text-gray-600 mb-1">On-hand</p>
-                <p className="text-2xl font-bold text-green-600">{product.onHandQuantity || 0}</p>
+                <p className="text-2xl font-bold text-green-600">{formatQuantityKg(product.onHandQuantity)}</p>
               </div>
               <div className="bg-orange-50 p-4 rounded-lg">
                 <p className="text-xs text-gray-600 mb-1">Reserved</p>
-                <p className="text-2xl font-bold text-orange-600">{product.reservedQuantity || 0}</p>
+                <p className="text-2xl font-bold text-orange-600">{formatQuantityKg(product.reservedQuantity)}</p>
               </div>
               <div className="bg-teal-50 p-4 rounded-lg">
                 <p className="text-xs text-gray-600 mb-1">Available</p>
                 <p className="text-2xl font-bold text-teal-600">
                   {product.availableQuantity !== undefined 
-                    ? product.availableQuantity 
-                    : Math.max(0, (product.onHandQuantity || 0) - (product.reservedQuantity || 0))}
+                    ? formatQuantityKg(product.availableQuantity) 
+                    : formatQuantityKg(Math.max(0, (product.onHandQuantity || 0) - (product.reservedQuantity || 0)))}
                 </p>
               </div>
             </div>

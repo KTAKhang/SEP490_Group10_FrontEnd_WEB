@@ -116,6 +116,7 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
                 <div className="space-y-2">
                   {orderDetail.details?.map((item) => {
                     const productId = item.product_id?._id || item.product_id;
+                    const isFruitBasket = item.fruit_basket_id != null && !productId;
                     const rawReview =
                       item.review ||
                       orderDetail.reviews?.find((r) => {
@@ -164,16 +165,21 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
                           <div>
                             <div className="text-sm font-medium text-gray-900">
                               {item.product_name}
+                              {isFruitBasket && (
+                                <span className="ml-1 text-xs text-gray-500">(Giỏ trái cây)</span>
+                              )}
                             </div>
-                            <div className="text-xs text-gray-500">
-                              {item.product_category_name || "N/A"}
-                            </div>
+                            {!isFruitBasket && (
+                              <div className="text-xs text-gray-500">
+                                {item.product_category_name || "N/A"}
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div className="text-right text-sm text-gray-700">
-                          <div>Số lượng: {item.quantity}</div>
+                          <div>Số lượng: {(Number(item.quantity) || 0).toLocaleString("vi-VN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</div>
                           <div>{formatCurrency(item.price)}</div>
-                          {isCompleted && productId && (
+                          {isCompleted && productId && !isFruitBasket && (
                             <div className="mt-1 flex flex-col gap-0.5">
                               {review ? (
                                 canEditReview ? (

@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { X, Package, User, Calendar, FileText, Info } from "lucide-react";
 import { getReceiptByIdRequest } from "../../../redux/actions/inventoryActions";
 import Loading from "../../../components/Loading/Loading";
+import { formatQuantityKg } from "../../../utils/formatQuantity";
 
 const ReceiptDetailModal = ({ isOpen, onClose, receiptId }) => {
   const dispatch = useDispatch();
@@ -271,18 +272,18 @@ const ReceiptDetailModal = ({ isOpen, onClose, receiptId }) => {
                   )}
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Số lượng kế hoạch</label>
-                    <p className="text-base text-gray-900">{receiptDetail.product?.plannedQuantity || 0}</p>
+                    <p className="text-base text-gray-900">{formatQuantityKg(receiptDetail.product?.plannedQuantity)} kg</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Số lượng đã nhận</label>
                     <p className="text-base text-gray-900 font-medium text-green-600">
-                      {receiptDetail.product?.receivedQuantity || 0}
+                      {formatQuantityKg(receiptDetail.product?.receivedQuantity)} kg
                     </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Tồn kho hiện tại</label>
                     <p className="text-base text-gray-900 font-medium text-blue-600">
-                      {receiptDetail.product?.onHandQuantity || 0}
+                      {formatQuantityKg(receiptDetail.product?.onHandQuantity)} kg
                     </p>
                   </div>
                   <div>

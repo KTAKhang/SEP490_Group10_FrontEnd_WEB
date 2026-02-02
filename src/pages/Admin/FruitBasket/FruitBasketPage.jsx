@@ -70,6 +70,12 @@ const FruitBasketDetailModal = ({ isOpen, onClose, basket, loading }) => {
               </div>
               <div className="space-y-4">
                 <div>
+                  <p className="text-sm text-gray-500">Tổng khối lượng</p>
+                  <p className="text-lg font-semibold text-gray-800">
+                    {basket.totalWeightGram != null ? `${Number(basket.totalWeightGram).toLocaleString()} g` : "—"}
+                  </p>
+                </div>
+                <div>
                   <p className="text-sm text-gray-500">Total price</p>
                   <p className="text-lg font-semibold text-green-700">
                     {formatCurrency(basket.totalPrice)}
@@ -121,10 +127,10 @@ const FruitBasketDetailModal = ({ isOpen, onClose, basket, loading }) => {
                     <div className="flex-1">
                       <p className="font-medium text-gray-900">{item.product?.name || "N/A"}</p>
                       <p className="text-sm text-gray-600">
-                        Qty: {item.quantity} | Price: {formatCurrency(item.product?.price || 0)}
+                        Khối lượng: {item.weightGram != null ? `${Number(item.weightGram).toLocaleString()} g` : "—"} · Giá/kg: {formatCurrency(item.product?.price || 0)}
                       </p>
                       <p className="text-sm text-gray-800 font-semibold">
-                        Line total: {formatCurrency(item.lineTotal)}
+                        Thành tiền: {formatCurrency(item.price ?? item.lineTotal)}
                       </p>
                     </div>
                   </div>
@@ -411,6 +417,9 @@ const FruitBasketPage = () => {
                         Items
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Tổng KL
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Total price
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -464,6 +473,11 @@ const FruitBasketPage = () => {
                               .join(", ")}
                             {(basket.items || []).length > 2 ? "..." : ""}
                           </p>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="text-sm text-gray-700">
+                            {basket.totalWeightGram != null ? `${Number(basket.totalWeightGram).toLocaleString()} g` : "—"}
+                          </span>
                         </td>
                         <td className="px-4 py-3">
                           <span className="text-sm font-semibold text-green-700">

@@ -46,7 +46,7 @@ export default function CheckoutPage() {
 
   const shippingCost = formData.shipping === "standard" ? 50000 : 100000;
   const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) => sum + (item.subtotal ?? item.price * (item.quantity || 0)),
     0,
   );
   const total = subtotal;
@@ -122,13 +122,17 @@ export default function CheckoutPage() {
       return;
     }
 
-    const selected_product_ids = cartItems.map(
-      (item) => item.product_id || item._id,
-    );
+    const selected_product_ids = cartItems
+      .filter((item) => item.product_id != null)
+      .map((item) => item.product_id?._id ?? item.product_id);
+    const selected_fruit_basket_ids = cartItems
+      .filter((item) => item.fruit_basket_id != null)
+      .map((item) => item.fruit_basket_id?._id ?? item.fruit_basket_id);
 
     dispatch(
       orderCreateRequest(
         selected_product_ids,
+        selected_fruit_basket_ids,
         buildReceiverInfo(),
         formData.payment, // COD | VNPAY
       ),
@@ -389,38 +393,50 @@ export default function CheckoutPage() {
                   Đơn hàng của bạn
                 </h2>
                 <div className="space-y-4 mb-6 max-h-80 overflow-y-auto">
-                  {cartItems?.map((item) => (
-                    <div key={item.id} className="flex gap-3">
-                      <div className="relative flex-shrink-0">
-                        <img
-                          alt={item.name}
-                          className="w-16 h-16 object-cover rounded-lg"
-                          src={item.image}
-                        />
-                        <span className="absolute top-1 -right-2 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                          {item.quantity}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-gray-900 text-sm mb-1 line-clamp-2">
-                          {item.name}
-                        </h3>
-                        <div className="flex flex-wrap gap-1 mb-1">
-                          {item.specs?.map((spec, idx) => (
-                            <span
-                              key={idx}
-                              className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded"
-                            >
-                              {spec}
-                            </span>
-                          ))}
+                  {cartItems?.map((item, idx) => {
+                    const itemKey = item.product_id?._id ?? item.product_id ?? item.fruit_basket_id?._id ?? item.fruit_basket_id ?? idx;
+                    const lineTotal = item.subtotal ?? item.price * (item.quantity || 0);
+                    return (
+                      <div key={itemKey} className="flex gap-3">
+                        <div className="relative flex-shrink-0">
+                          <img
+                            alt={item.name}
+                            className="w-16 h-16 object-cover rounded-lg"
+                            src={item.image}
+                          />
+                          <span className="absolute top-1 -right-2 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                            {item.quantity}
+                          </span>
                         </div>
-                        <div className="font-bold text-red-600 text-sm">
-                          {formatPrice(item.price * item.quantity)}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-gray-900 text-sm mb-1 line-clamp-2">
+                            {item.name}
+                            {item.item_type === "FRUIT_BASKET" && (
+                              <span className="text-gray-500 font-normal"> (Giỏ trái cây)</span>
+                            )}
+                          </h3>
+                          {item.total_weight_gram != null && (
+                            <p className="text-xs text-gray-500 mb-1">
+                              Khối lượng: {Number(item.total_weight_gram).toLocaleString()} g
+                            </p>
+                          )}
+                          <div className="flex flex-wrap gap-1 mb-1">
+                            {item.specs?.map((spec, i) => (
+                              <span
+                                key={i}
+                                className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded"
+                              >
+                                {spec}
+                              </span>
+                            ))}
+                          </div>
+                          <div className="font-bold text-red-600 text-sm">
+                            {formatPrice(lineTotal)}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 <div className="border border-dashed border-gray-200 rounded-lg p-4 mb-6">
                   <div className="flex items-center justify-between mb-3">

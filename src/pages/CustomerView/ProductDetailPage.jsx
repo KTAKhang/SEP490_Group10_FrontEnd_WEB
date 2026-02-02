@@ -312,7 +312,7 @@ export default function ProductDetailPage() {
                   <div className="flex items-center justify-between py-3 border-b border-gray-200">
                     <span className="text-gray-600">Tồn kho</span>
                     <span className={`font-semibold ${product.onHandQuantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {product.onHandQuantity || 0}
+                      {(Number(product.onHandQuantity) || 0).toLocaleString('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} kg
                     </span>
                   </div>
                 )}

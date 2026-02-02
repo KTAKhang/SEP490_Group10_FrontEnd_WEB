@@ -113,6 +113,7 @@ const OrderManagement = () => {
     adminStats,
     message,
   } = useSelector((state) => state.order || {});
+  const role = useSelector((state) => state.auth?.role) ?? "";
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilters, setStatusFilters] = useState([]);
@@ -201,7 +202,7 @@ const OrderManagement = () => {
 
   const handleSubmitUpdate = () => {
     if (!selectedOrder || !nextStatus) return;
-    dispatch(orderAdminUpdateRequest(selectedOrder._id, nextStatus, note));
+    dispatch(orderAdminUpdateRequest(selectedOrder._id, nextStatus, note, role));
   };
 
   const renderStatusBadge = (statusName) => {

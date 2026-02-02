@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { X, Package, CheckCircle, AlertCircle, TrendingDown, Eye, Edit } from "lucide-react";
 import { toast } from "react-toastify";
 import { updateProductExpiryDateRequest } from "../../../redux/actions/warehouseActions";
+import { formatQuantityKg } from "../../../utils/formatQuantity";
 
 const ReadProduct = ({ isOpen, onClose, product }) => {
   const dispatch = useDispatch();
@@ -187,25 +188,25 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
             <div className="grid grid-cols-4 gap-4">
               <div className="bg-blue-50 p-4 rounded-lg">
                 <p className="text-xs text-gray-600 mb-1">Kế hoạch</p>
-                <p className="text-2xl font-bold text-blue-600">{product.plannedQuantity || 0}</p>
+                <p className="text-2xl font-bold text-blue-600">{formatQuantityKg(product.plannedQuantity)}</p>
               </div>
               <div className="bg-purple-50 p-4 rounded-lg">
                 <p className="text-xs text-gray-600 mb-1">Đã nhập</p>
-                <p className="text-2xl font-bold text-purple-600">{product.receivedQuantity || 0}</p>
+                <p className="text-2xl font-bold text-purple-600">{formatQuantityKg(product.receivedQuantity)}</p>
               </div>
               <div className="bg-green-50 p-4 rounded-lg">
                 <p className="text-xs text-gray-600 mb-1">Tồn thực tế</p>
-                <p className="text-2xl font-bold text-green-600">{product.onHandQuantity || 0}</p>
+                <p className="text-2xl font-bold text-green-600">{formatQuantityKg(product.onHandQuantity)}</p>
               </div>
               <div className="bg-orange-50 p-4 rounded-lg">
                 <p className="text-xs text-gray-600 mb-1">Đã giữ hàng</p>
-                <p className="text-2xl font-bold text-orange-600">{product.reservedQuantity || 0}</p>
+                <p className="text-2xl font-bold text-orange-600">{formatQuantityKg(product.reservedQuantity)}</p>
               </div>
             </div>
             <div className="mt-4 bg-gray-50 p-4 rounded-lg">
               <p className="text-sm text-gray-600 mb-1">Số lượng có sẵn (có thể bán)</p>
               <p className="text-xl font-bold text-gray-900">
-                {Math.max(0, (product.onHandQuantity || 0) - (product.reservedQuantity || 0))}
+                {formatQuantityKg(Math.max(0, (product.onHandQuantity || 0) - (product.reservedQuantity || 0)))}
               </p>
             </div>
 

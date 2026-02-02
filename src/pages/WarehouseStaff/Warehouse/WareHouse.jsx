@@ -18,6 +18,7 @@ import { getCategoriesRequest } from "../../../redux/actions/categoryActions";
 import ReadProduct from "./ReadProduct";
 import CreateReceipt from "./CreateReceipt";
 import Loading from "../../../components/Loading/Loading";
+import { formatQuantityKg } from "../../../utils/formatQuantity";
 
 // Simple Card component
 const Card = ({ children, className = "" }) => (
@@ -390,17 +391,17 @@ const WareHouse = () => {
                             </td>
                             <td className="py-3 px-4">
                               <span className="font-medium text-gray-800">
-                                {product.onHandQuantity || 0}
+                                {formatQuantityKg(product.onHandQuantity)}
                               </span>
                             </td>
                             <td className="py-3 px-4">
                               <span className="font-medium text-gray-800">
-                                {product.receivedQuantity || 0}
+                                {formatQuantityKg(product.receivedQuantity)}
                               </span>
                             </td>
                             <td className="py-3 px-4">
                               <span className="font-medium text-gray-800">
-                                {product.plannedQuantity || 0}
+                                {formatQuantityKg(product.plannedQuantity)}
                               </span>
                             </td>
                             <td className="py-3 px-4">

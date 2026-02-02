@@ -129,7 +129,9 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
     }
 
     // ✅ Block updating plannedQuantity if onHandQuantity > 0
-    if (product.onHandQuantity > 0 && formData.plannedQuantity !== product.plannedQuantity) {
+    const plannedNum = Number(formData.plannedQuantity);
+    const currentPlanned = Number(product.plannedQuantity);
+    if (product.onHandQuantity > 0 && Math.abs(plannedNum - currentPlanned) > 0.001) {
       toast.error("Cannot update planned quantity while product has stock. Please wait until stock is sold out or expired.");
       return;
     }
@@ -284,10 +286,12 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
               </label>
               <input
                 type="number"
+                step="0.01"
                 value={formData.plannedQuantity}
-                onChange={(e) =>
-                  setFormData({ ...formData, plannedQuantity: parseInt(e.target.value) || 0 })
-                }
+                onChange={(e) => {
+                  const v = parseFloat(e.target.value);
+                  setFormData({ ...formData, plannedQuantity: !Number.isNaN(v) && v >= 0 ? v : 0 });
+                }}
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
                   product.onHandQuantity > 0 
                     ? "bg-gray-100 border-gray-300 cursor-not-allowed" 
@@ -299,8 +303,8 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
               />
               <p className="text-xs text-gray-500 mt-1">
                 {product.onHandQuantity > 0 
-                  ? `Cannot update planned quantity while product has stock (onHand: ${product.onHandQuantity}). Please wait until stock is sold out or expired.`
-                  : `Received: ${product.receivedQuantity || 0} | Cannot reduce below received amount`}
+                  ? `Cannot update planned quantity while product has stock (onHand: ${(Number(product.onHandQuantity) || 0).toLocaleString("vi-VN", { maximumFractionDigits: 2 })} kg). Please wait until stock is sold out or expired.`
+                  : `Received: ${(Number(product.receivedQuantity) || 0).toLocaleString("vi-VN", { maximumFractionDigits: 2 })} kg | Cannot reduce below received amount`}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
