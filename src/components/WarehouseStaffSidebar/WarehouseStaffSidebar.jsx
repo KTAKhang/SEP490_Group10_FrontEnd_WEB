@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   Package,
   X,
+  PackageCheck,
 } from "lucide-react";
 
 const WarehouseStaffSidebar = () => {
@@ -21,6 +22,11 @@ const WarehouseStaffSidebar = () => {
       icon: Package,
       label: "Sản phẩm",
       path: "/warehouse-staff/warehouse",
+    },
+    {
+      icon: PackageCheck,
+      label: "Pre-order stock",
+      path: "/warehouse-staff/preorder-stock",
     },
   ];
 

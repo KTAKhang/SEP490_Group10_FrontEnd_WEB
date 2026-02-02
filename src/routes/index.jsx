@@ -1,3 +1,4 @@
+import { Navigate } from "react-router-dom";
 import LoginPage from "../pages/LoginPage";
 import ForgotPassword from "../pages/ForgotPassword";
 import NotFoundPage from "../pages/NotFoundPage";
@@ -23,6 +24,7 @@ import ReceiptHistoryPage from "../pages/Admin/ReceiptHistory/ReceiptHistoryPage
 import WarehouseStaffLayout from "../layout/WarehouseStaffLayout";
 import WarehouseStaffPage from "../pages/WarehouseStaff/WarehouseStaffPage";
 import WarehouseStaffWareHouse from "../pages/WarehouseStaff/Warehouse/WareHouse";
+import PreOrderStockPage from "../pages/WarehouseStaff/PreOrderStock/PreOrderStockPage";
 import ProfileManagement from "../pages/ProfileManagement/ProfileManagerment";
 import UpdatePassword from "../pages/ProfileManagement/UpdatePassword";
 import PrivateRoute from "../components/PrivateRouter/index";
@@ -59,6 +61,16 @@ import VoucherPage from "../pages/CustomerView/VoucherPage";
 import OrderHistory from "../pages/CustomerView/OrderHistory";
 import OrderHistoryDetail from "../pages/CustomerView/OrderHistoryDetail";
 import OrderManagement from "../pages/Admin/OrderManagement/OrderManagement";
+import FruitTypeManagement from "../pages/Admin/PreOrder/FruitTypeManagement";
+import PreOrderDemandPage from "../pages/Admin/PreOrder/PreOrderDemandPage";
+import PreOrderListPage from "../pages/Admin/PreOrder/PreOrderListPage";
+import PreOrderImportPage from "../pages/Admin/PreOrder/PreOrderImportPage";
+import AdminPreOrderLayout from "../layout/AdminPreOrderLayout";
+import PreOrdersPage from "../pages/CustomerView/PreOrdersPage";
+import PreOrderDetailPage from "../pages/CustomerView/PreOrderDetailPage";
+import PreOrderCheckoutPage from "../pages/CustomerView/PreOrderCheckoutPage";
+import MyPreOrdersPage from "../pages/CustomerView/MyPreOrdersPage";
+import PreOrderPaymentResultPage from "../pages/CustomerView/PreOrderPaymentResultPage";
 import ReviewManagement from "../pages/Admin/Review/ReviewManagement";
 import CreateReview from "../pages/CustomerView/ReviewProduct/CreateReview";
 import EditReview from "../pages/CustomerView/ReviewProduct/EditReview";
@@ -140,6 +152,11 @@ export const routes = [
       { path: "vouchers", element: <VoucherPage /> },
 
       { path: "orders", element: <OrderHistory /> },
+      { path: "pre-orders", element: <PreOrdersPage /> },
+      { path: "pre-orders/:id", element: <PreOrderDetailPage /> },
+      { path: "preorder-checkout", element: <PreOrderCheckoutPage /> },
+      { path: "my-pre-orders", element: <MyPreOrdersPage /> },
+      { path: "preorder-payment-result", element: <PreOrderPaymentResultPage /> },
 
       { path: "orders/:orderId", element: <OrderHistoryDetail /> },
 
@@ -185,6 +202,17 @@ export const routes = [
       { path: "customers", element: <CustomerManagement /> },
       { path: "discounts", element: <AdminDiscountManagement /> },
       { path: "orders", element: <OrderManagement /> },
+      {
+        path: "preorder",
+        element: <AdminPreOrderLayout />,
+        children: [
+          { index: true, element: <Navigate to="fruits" replace /> },
+          { path: "fruits", element: <FruitTypeManagement /> },
+          { path: "demand", element: <PreOrderDemandPage /> },
+          { path: "import", element: <PreOrderImportPage /> },
+          { path: "orders", element: <PreOrderListPage /> },
+        ],
+      },
       { path: "reviews", element: <ReviewManagement /> },
       { path: "news", element: <NewsListPage /> },
       { path: "news/create", element: <NewsFormPage /> },
@@ -208,6 +236,7 @@ export const routes = [
       { path: "profile", element: <ProfileManagement /> },
       { path: "change-password", element: <UpdatePassword /> },
       { path: "warehouse", element: <WarehouseStaffWareHouse /> },
+      { path: "preorder-stock", element: <PreOrderStockPage /> },
     ],
   },
 

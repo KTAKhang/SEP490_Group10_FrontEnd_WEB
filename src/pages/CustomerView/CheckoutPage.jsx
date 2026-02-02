@@ -9,7 +9,9 @@ import {
   clearDiscountFeedback,
   clearSelectedDiscount,
   discountApplyRequest,
+  discountGetValidRequest,
   discountValidateRequest,
+  setSelectedDiscount,
 } from "../../redux/actions/discountActions";
 const API_BASE = "https://provinces.open-api.vn/api/v2";
 
@@ -53,6 +55,7 @@ export default function CheckoutPage() {
 
   const {
     selectedDiscount,
+    validDiscounts = [],
     validationResult,
     validationError,
     applyResult,
@@ -126,11 +129,20 @@ export default function CheckoutPage() {
       (item) => item.product_id || item._id,
     );
 
+    // VNPAY + có voucher đã validate: truyền discountInfo để saga áp discount trước khi redirect (giống flow COD)
+    const discountInfo =
+      formData.payment === "VNPAY" &&
+      selectedDiscount?.discountId &&
+      discountData?.finalAmount != null
+        ? { discountId: selectedDiscount.discountId, orderValue: total }
+        : null;
+
     dispatch(
       orderCreateRequest(
         selected_product_ids,
         buildReceiverInfo(),
-        formData.payment, // COD | VNPAY
+        formData.payment,
+        discountInfo,
       ),
     );
   };
@@ -164,13 +176,25 @@ export default function CheckoutPage() {
     dispatch(clearDiscountFeedback());
   }, [total, dispatch]);
 
+  // Load mã giảm giá phù hợp đơn hàng (minOrderValue <= total, chưa dùng)
   useEffect(() => {
-    if (order.order_id && selectedDiscount?.discountId) {
+    if (total > 0) {
+      dispatch(discountGetValidRequest(total));
+    }
+  }, [total, dispatch]);
+
+  // COD: áp discount sau khi tạo order (flow hiện tại). VNPAY áp trong saga trước khi redirect.
+  useEffect(() => {
+    if (
+      order.order_id &&
+      selectedDiscount?.discountId &&
+      !order.payment_url
+    ) {
       dispatch(
         discountApplyRequest(selectedDiscount.discountId, total, order.order_id),
       );
     }
-  }, [order.order_id, selectedDiscount, total, dispatch]);
+  }, [order.order_id, order.payment_url, selectedDiscount, total, dispatch]);
 
   const handleCancel = () => {
     const sessionId =
@@ -194,13 +218,25 @@ export default function CheckoutPage() {
     }).format(price);
   };
 
-  const handleValidateDiscount = () => {
-    if (!selectedDiscount?.code) {
-      alert("Vui lòng chọn voucher trước khi kiểm tra.");
+  const handleSelectVoucher = (voucher) => {
+    if (!voucher) {
+      dispatch(clearSelectedDiscount());
+      dispatch(clearDiscountFeedback());
       return;
     }
-
-    dispatch(discountValidateRequest(selectedDiscount.code, total));
+    dispatch(
+      setSelectedDiscount({
+        discountId: voucher._id,
+        code: voucher.code,
+        discountPercent: voucher.discountPercent,
+        minOrderValue: voucher.minOrderValue,
+        maxDiscountAmount: voucher.maxDiscountAmount,
+        endDate: voucher.endDate,
+        description: voucher.description,
+      }),
+    );
+    dispatch(clearDiscountFeedback());
+    dispatch(discountValidateRequest(voucher.code, total));
   };
 
   const handleRemoveVoucher = () => {
@@ -208,7 +244,6 @@ export default function CheckoutPage() {
     dispatch(clearDiscountFeedback());
   };
 
-  console.log("provinces", provinces);
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
@@ -422,75 +457,106 @@ export default function CheckoutPage() {
                     </div>
                   ))}
                 </div>
-                <div className="border border-dashed border-gray-200 rounded-lg p-4 mb-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <p className="text-sm text-gray-600">Voucher</p>
-                      <p className="font-semibold text-gray-900">
-                        {selectedDiscount?.code || "Chưa chọn"}
-                      </p>
-                    </div>
+                {/* Cửa sổ mã giảm giá */}
+                <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden mb-6">
+                  <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-gray-100">
                     <div className="flex items-center gap-2">
-                      {selectedDiscount && (
-                        <button
-                          type="button"
-                          onClick={handleRemoveVoucher}
-                          className="text-xs text-red-600 hover:text-red-700"
-                        >
-                          Gỡ
-                        </button>
-                      )}
+                      <span className="text-emerald-600">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                      </span>
+                      <span className="font-semibold text-gray-800">Mã giảm giá</span>
+                    </div>
+                    {selectedDiscount && (
                       <button
                         type="button"
-                        onClick={() => navigate("/customer/vouchers")}
-                        className="text-sm font-semibold text-blue-600 hover:text-blue-700"
+                        onClick={handleRemoveVoucher}
+                        className="text-sm text-red-600 hover:text-red-700 font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
                       >
-                        Chọn voucher
+                        Gỡ mã
                       </button>
-                    </div>
-                  </div>
-
-                  {selectedDiscount && (
-                    <div className="text-xs text-gray-600 space-y-1 mb-3">
-                      <p>
-                        Giảm {selectedDiscount.discountPercent}% tối đa{" "}
-                        {formatPrice(selectedDiscount.maxDiscountAmount)}
-                      </p>
-                      <p>Đơn tối thiểu: {formatPrice(selectedDiscount.minOrderValue)}</p>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={handleValidateDiscount}
-                      disabled={discountLoading || !selectedDiscount}
-                      className="flex-1 bg-green-50 text-green-700 border border-green-200 rounded-lg py-2 text-sm font-semibold hover:bg-green-100 disabled:opacity-60"
-                    >
-                      Kiểm tra mã
-                    </button>
-                    {discountAmount > 0 && (
-                      <span className="text-sm text-green-700 font-semibold">
-                        -{formatPrice(discountAmount)}
-                      </span>
                     )}
                   </div>
-                  {discountData && (
-                    <div className="mt-3 text-sm text-gray-700 space-y-1">
-                      <div className="flex justify-between">
-                        <span>Giá gốc</span>
-                        <span>{formatPrice(total)}</span>
+
+                  <div className="p-4">
+                    {discountLoading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="w-8 h-8 border-2 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />
                       </div>
-                      <div className="flex justify-between text-green-700">
-                        <span>Giảm giá</span>
-                        <span>- {formatPrice(discountAmount)}</span>
+                    ) : !validDiscounts?.length ? (
+                      <div className="text-center py-8 px-4">
+                        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 text-gray-400 mb-3">
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                          </svg>
+                        </div>
+                        <p className="text-sm font-medium text-gray-600">
+                          {total < 1 ? "Thêm sản phẩm để xem mã giảm giá" : "Không có mã phù hợp đơn hàng"}
+                        </p>
                       </div>
-                      <div className="flex justify-between font-semibold">
-                        <span>Tạm tính sau giảm</span>
-                        <span>{formatPrice(finalAmount)}</span>
+                    ) : (
+                      <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                        {validDiscounts.map((v) => {
+                          const isSelected = selectedDiscount?.discountId === v._id;
+                          return (
+                            <button
+                              key={v._id}
+                              type="button"
+                              onClick={() => handleSelectVoucher(isSelected ? null : v)}
+                              className={`w-full text-left rounded-lg border-2 p-3 transition-all duration-200 ${
+                                isSelected
+                                  ? "border-emerald-500 bg-emerald-50 shadow-sm"
+                                  : "border-gray-100 bg-gray-50/50 hover:border-emerald-200 hover:bg-emerald-50/50"
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-bold text-emerald-700 tracking-wide">{v.code}</span>
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                                      Giảm {v.discountPercent}%
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    Tối đa {formatPrice(v.maxDiscountAmount)} · Đơn tối thiểu {formatPrice(v.minOrderValue)}
+                                  </p>
+                                </div>
+                                <div className="flex-shrink-0">
+                                  {isSelected ? (
+                                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500 text-white">
+                                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                      </svg>
+                                    </span>
+                                  ) : (
+                                    <span className="text-sm font-medium text-emerald-600">Áp dụng</span>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
                       </div>
-                    </div>
-                  )}
+                    )}
+
+                    {selectedDiscount && discountData && (
+                      <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>Giá gốc</span>
+                          <span>{formatPrice(total)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm text-emerald-700">
+                          <span>Giảm giá ({selectedDiscount.code})</span>
+                          <span>- {formatPrice(discountAmount)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm font-semibold text-gray-900 pt-1">
+                          <span>Tạm tính sau giảm</span>
+                          <span>{formatPrice(finalAmount)}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="border-t border-gray-200 pt-4 space-y-3 mb-6">
                   <div className="flex justify-between text-sm">
