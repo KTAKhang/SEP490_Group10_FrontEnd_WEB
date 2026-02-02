@@ -49,6 +49,14 @@ export const DISCOUNT_GET_VALID_REQUEST = "DISCOUNT_GET_VALID_REQUEST";
 export const DISCOUNT_GET_VALID_SUCCESS = "DISCOUNT_GET_VALID_SUCCESS";
 export const DISCOUNT_GET_VALID_FAILURE = "DISCOUNT_GET_VALID_FAILURE";
 
+export const DISCOUNT_APPLY_REQUEST = "DISCOUNT_APPLY_REQUEST";
+export const DISCOUNT_APPLY_SUCCESS = "DISCOUNT_APPLY_SUCCESS";
+export const DISCOUNT_APPLY_FAILURE = "DISCOUNT_APPLY_FAILURE";
+
+export const DISCOUNT_SET_SELECTED = "DISCOUNT_SET_SELECTED";
+export const DISCOUNT_CLEAR_SELECTED = "DISCOUNT_CLEAR_SELECTED";
+export const DISCOUNT_CLEAR_FEEDBACK = "DISCOUNT_CLEAR_FEEDBACK";
+
 // Action Creators for discount management
 export const discountListRequest = (params) => ({
     type: DISCOUNT_LIST_REQUEST,
@@ -102,4 +110,22 @@ export const discountValidateRequest = (code, orderValue) => ({
 
 export const discountGetValidRequest = () => ({
     type: DISCOUNT_GET_VALID_REQUEST,
+});
+
+export const discountApplyRequest = (discountId, orderValue, orderId) => ({
+    type: DISCOUNT_APPLY_REQUEST,
+    payload: { discountId, orderValue, orderId },
+});
+
+export const setSelectedDiscount = (discount) => ({
+    type: DISCOUNT_SET_SELECTED,
+    payload: discount,
+});
+
+export const clearSelectedDiscount = () => ({
+    type: DISCOUNT_CLEAR_SELECTED,
+});
+
+export const clearDiscountFeedback = () => ({
+    type: DISCOUNT_CLEAR_FEEDBACK,
 });

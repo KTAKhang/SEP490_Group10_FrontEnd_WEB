@@ -1,14 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import Header from '../components/Header/Header';
-import Footer from '../components/Footer/Footer';
-import Loading from '../components/Loading/Loading';
-import { getFavoritesRequest, addFavoriteRequest, removeFavoriteRequest, checkFavoriteRequest } from '../redux/actions/favoriteActions';
-import { getPublicCategoriesRequest } from '../redux/actions/publicCategoryActions';
+import Header from '../../components/Header/Header';
+import Footer from '../../components/Footer/Footer';
+import Loading from '../../components/Loading/Loading';
+import { getPublicProductsRequest } from '../../redux/actions/publicProductActions';
+import { getPublicCategoriesRequest } from '../../redux/actions/publicCategoryActions';
+import { addFavoriteRequest, removeFavoriteRequest, getFavoritesRequest } from '../../redux/actions/favoriteActions';
+import { addItemToCartRequest } from '../../redux/actions/cartActions';
 import { Search, Package, Heart } from 'lucide-react';
 
-export default function WishlistPage() {
+export default function ProductPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -16,19 +18,22 @@ export default function WishlistPage() {
   // Get categories for filter
   const { publicCategories } = useSelector((state) => state.publicCategory);
   
-  // Get favorites
+  // Get products
   const { 
-    favorites, 
-    favoritesPagination, 
-    favoritesLoading,
-    favoriteStatus,
-  } = useSelector((state) => state.favorite);
+    publicProducts, 
+    publicProductsPagination, 
+    publicProductsLoading 
+  } = useSelector((state) => state.publicProduct);
+  const { favoriteStatus, favoritesLoading } = useSelector((state) => state.favorite);
 
   // Check if user is logged in
   const storedUser = JSON.parse(localStorage.getItem("user") || "null");
 
-  // Track which products have been checked for favorite status
-  const checkedProductsRef = useRef(new Set());
+  // Track previous URL params to avoid infinite loop
+  const prevUrlParamsRef = useRef('');
+  // Track if favorites have been loaded for current user
+  const favoritesLoadedRef = useRef(false);
+  const prevUserRef = useRef(null);
 
   // State for filters and search
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
@@ -42,18 +47,38 @@ export default function WishlistPage() {
     dispatch(getPublicCategoriesRequest({ page: 1, limit: 100 }));
   }, [dispatch]);
 
-  // Check if user is logged in, redirect if not
+  // Load favorites list when user logs in (to populate favoriteStatus)
   useEffect(() => {
-    if (!storedUser) {
-      navigate('/login');
+    const currentUserId = storedUser?._id || storedUser?.id || null;
+    const prevUserId = prevUserRef.current?._id || prevUserRef.current?.id || null;
+    
+    // User changed (logged in or logged out)
+    if (currentUserId !== prevUserId) {
+      if (currentUserId) {
+        // User logged in - load favorites list to populate favoriteStatus
+        // Use a reasonable limit (500) instead of 1000 to avoid server overload
+        favoritesLoadedRef.current = false;
+        dispatch(getFavoritesRequest({ page: 1, limit: 500 }));
+      } else {
+        // User logged out - reset
+        favoritesLoadedRef.current = false;
+      }
+      prevUserRef.current = storedUser;
+    } else if (storedUser && !favoritesLoadedRef.current && !favoritesLoading) {
+      // User already logged in but favorites not loaded yet (only if not already loading)
+      dispatch(getFavoritesRequest({ page: 1, limit: 500 }));
     }
-  }, [storedUser, navigate]);
-
-  // Track previous filter values to avoid unnecessary updates
-  const prevFiltersRef = useRef('');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storedUser, dispatch]);
   
-  // Update URL params separately to avoid loop (only when filters change, not when searchParams change)
-  const prevUrlParamsRef = useRef('');
+  // Mark favorites as loaded after successful fetch
+  useEffect(() => {
+    if (!favoritesLoading && storedUser) {
+      favoritesLoadedRef.current = true;
+    }
+  }, [favoritesLoading, storedUser]);
+
+  // Update URL params separately to avoid loop
   useEffect(() => {
     const newSearchParams = new URLSearchParams();
     if (searchTerm) newSearchParams.set('search', searchTerm);
@@ -74,10 +99,8 @@ export default function WishlistPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, searchTerm, selectedCategory, sortBy, sortOrder]);
 
-  // Fetch favorites when filters change
+  // Fetch products when filters change
   useEffect(() => {
-    if (!storedUser) return;
-
     const params = {
       page: currentPage,
       limit: 12,
@@ -87,24 +110,8 @@ export default function WishlistPage() {
       sortOrder: sortOrder,
     };
 
-    // Create a string representation of filters to compare
-    const filtersString = `${currentPage}-${searchTerm}-${selectedCategory}-${sortBy}-${sortOrder}`;
-    
-    // Only proceed if filters actually changed
-    if (filtersString === prevFiltersRef.current) {
-      return;
-    }
-    
-    prevFiltersRef.current = filtersString;
-
-    dispatch(getFavoritesRequest(params));
-    // Reset checked products when filters change (new products will be loaded)
-    checkedProductsRef.current.clear();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, currentPage, searchTerm, selectedCategory, sortBy, sortOrder, storedUser]);
-
-  // Note: Favorites in WishlistPage are already favorites, so we don't need to check status
-  // The favoriteStatus will be automatically set to true when favorites are loaded in the reducer
+    dispatch(getPublicProductsRequest(params));
+  }, [dispatch, currentPage, searchTerm, selectedCategory, sortBy, sortOrder]);
 
   // Handle search
   const handleSearch = (e) => {
@@ -141,20 +148,14 @@ export default function WishlistPage() {
     navigate(`/products/${productId}`);
   };
 
-  // Handle favorite toggle
-  const handleFavoriteToggle = (e, productId) => {
+  const handleAddToCart = (e, productId, inStock) => {
     e.stopPropagation();
     if (!storedUser) {
       navigate('/login');
       return;
     }
-
-    const isFavorite = favoriteStatus[productId];
-    if (isFavorite) {
-      dispatch(removeFavoriteRequest(productId));
-    } else {
-      dispatch(addFavoriteRequest(productId));
-    }
+    if (!inStock) return;
+    dispatch(addItemToCartRequest(productId, 1));
   };
 
   // Handle pagination
@@ -169,23 +170,19 @@ export default function WishlistPage() {
     sortBy === 'price' && sortOrder === 'desc' ? 'price-high' :
     sortBy === 'name' && sortOrder === 'asc' ? 'name' : 'default';
 
-  if (!storedUser) {
-    return null; // Will redirect
-  }
-
   return (
     <div className="min-h-screen bg-white">
       <Header />
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 bg-gradient-to-br from-red-50 to-white">
+      <section className="relative pt-32 pb-20 bg-gradient-to-br from-green-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-5xl md:text-6xl font-black text-gray-900 mb-6">
-              Favorite product
+              Our Products
             </h1>
             <p className="text-xl text-gray-600 leading-relaxed">
-              Danh sách các sản phẩm bạn đã yêu thích
+              Explore a collection of fresh organic agricultural products, carefully selected from reputable farms
             </p>
           </div>
         </div>
@@ -202,7 +199,7 @@ export default function WishlistPage() {
                 placeholder="Search by product name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             </form>
@@ -242,9 +239,9 @@ export default function WishlistPage() {
               <select
                 value={sortValue}
                 onChange={(e) => handleSortChange(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-600 cursor-pointer"
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-600 cursor-pointer"
               >
-                <option value="default">Default (Newest first)</option>
+                <option value="default">Default</option>
                 <option value="price-low">Price: Low to High</option>
                 <option value="price-high">Price: High to Low</option>
                 <option value="name">Name: A-Z</option>
@@ -257,17 +254,14 @@ export default function WishlistPage() {
       {/* Products Grid */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {favoritesLoading ? (
+          {publicProductsLoading ? (
             <div className="flex justify-center py-12">
-              <Loading message="Loading favorites..." />
+              <Loading message="Loading products..." />
             </div>
-          ) : favorites.length === 0 ? (
+          ) : publicProducts.length === 0 ? (
             <div className="text-center py-12">
-              <Heart className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 text-lg">No favorite products found</p>
-              <p className="text-gray-500 text-sm mt-2">
-                Start adding products to your wishlist!
-              </p>
+              <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 text-lg">No products found</p>
             </div>
           ) : (
             <>
@@ -275,23 +269,23 @@ export default function WishlistPage() {
                 <p className="text-gray-600">
                   Showing{' '}
                   <span className="font-semibold">
-                    {favoritesPagination 
-                      ? favoritesPagination.page * favoritesPagination.limit - favoritesPagination.limit + 1
+                    {publicProductsPagination 
+                      ? publicProductsPagination.page * publicProductsPagination.limit - publicProductsPagination.limit + 1
                       : 0}{' '}
                     -{' '}
-                    {favoritesPagination
+                    {publicProductsPagination
                       ? Math.min(
-                          favoritesPagination.page * favoritesPagination.limit,
-                          favoritesPagination.total
+                          publicProductsPagination.page * publicProductsPagination.limit,
+                          publicProductsPagination.total
                         )
                       : 0}{' '}
-                    of {favoritesPagination?.total || 0} products
+                    of {publicProductsPagination?.total || 0} products
                   </span>
                 </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                {favorites.map((product) => (
+                {publicProducts.map((product) => (
                   <div
                     key={product._id}
                     onClick={() => handleProductClick(product._id)}
@@ -312,20 +306,30 @@ export default function WishlistPage() {
                           </span>
                         </div>
                       )}
-                      <button
-                        onClick={(e) => handleFavoriteToggle(e, product._id)}
-                        className={`absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full transition-opacity shadow-lg cursor-pointer ${
-                          favoriteStatus[product._id]
-                            ? 'bg-red-500 text-white opacity-100'
-                            : 'bg-white opacity-0 group-hover:opacity-100'
-                        }`}
-                        aria-label="Remove from wishlist"
-                      >
-                        <Heart 
-                          size={20} 
-                          fill={favoriteStatus[product._id] ? 'currentColor' : 'none'}
-                        />
-                      </button>
+                      {storedUser && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const isFavorite = favoriteStatus[product._id];
+                            if (isFavorite) {
+                              dispatch(removeFavoriteRequest(product._id));
+                            } else {
+                              dispatch(addFavoriteRequest(product._id));
+                            }
+                          }}
+                          className={`absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full transition-opacity shadow-lg cursor-pointer ${
+                            favoriteStatus[product._id]
+                              ? 'bg-red-500 text-white opacity-100'
+                              : 'bg-white opacity-0 group-hover:opacity-100'
+                          }`}
+                          aria-label={favoriteStatus[product._id] ? "Remove from wishlist" : "Add to wishlist"}
+                        >
+                          <Heart 
+                            size={18} 
+                            fill={favoriteStatus[product._id] ? 'currentColor' : 'none'}
+                          />
+                        </button>
+                      )}
                     </div>
 
                     {/* Product Info */}
@@ -337,22 +341,19 @@ export default function WishlistPage() {
                         {product.name}
                       </h3>
                       <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                        {product.description || product.short_desc || ''}
+                        {product.description || ''}
                       </p>
 
                       <div className="flex items-center justify-between">
                         <div>
                           <span className="text-xl font-bold text-gray-900">
-                            {product.price?.toLocaleString('vi-VN') || '0'}đ
+                            {product.price?.toLocaleString('vi-VN') || '0'}đ/Kg
                           </span>
                         </div>
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (product.onHandQuantity > 0) {
-                              // Handle add to cart logic here
-                            }
-                          }}
+                          onClick={(e) =>
+                            handleAddToCart(e, product._id, product.onHandQuantity > 0)
+                          }
                           disabled={product.onHandQuantity === 0}
                           className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
                             product.onHandQuantity === 0
@@ -370,7 +371,7 @@ export default function WishlistPage() {
               </div>
 
               {/* Pagination */}
-              {favoritesPagination && favoritesPagination.totalPages > 1 && (
+              {publicProductsPagination && publicProductsPagination.totalPages > 1 && (
                 <div className="mt-12 flex items-center justify-center space-x-2">
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
@@ -379,12 +380,12 @@ export default function WishlistPage() {
                   >
                     Previous
                   </button>
-                  {[...Array(favoritesPagination.totalPages)].map((_, index) => {
+                  {[...Array(publicProductsPagination.totalPages)].map((_, index) => {
                     const page = index + 1;
                     // Show first page, last page, current page, and pages around current
                     if (
                       page === 1 ||
-                      page === favoritesPagination.totalPages ||
+                      page === publicProductsPagination.totalPages ||
                       (page >= currentPage - 1 && page <= currentPage + 1)
                     ) {
                       return (
@@ -410,7 +411,7 @@ export default function WishlistPage() {
                   })}
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === favoritesPagination.totalPages}
+                    disabled={currentPage === publicProductsPagination.totalPages}
                     className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 cursor-pointer"
                   >
                     Next

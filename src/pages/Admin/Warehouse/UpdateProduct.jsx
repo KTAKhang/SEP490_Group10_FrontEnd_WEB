@@ -4,16 +4,19 @@ import { X } from "lucide-react";
 import { toast } from "react-toastify";
 import { updateProductRequest } from "../../../redux/actions/productActions";
 import { getCategoriesRequest } from "../../../redux/actions/categoryActions";
+import { getSuppliersForBrandRequest } from "../../../redux/actions/supplierActions";
 
 const UpdateProduct = ({ isOpen, onClose, product }) => {
   const dispatch = useDispatch();
   const { categories } = useSelector((state) => state.category);
+  const { suppliersForBrand, suppliersForBrandLoading } = useSelector((state) => state.supplier);
   const { updateProductLoading, updateProductError } = useSelector((state) => state.product);
 
   const [formData, setFormData] = useState({
     name: "",
     short_desc: "",
     price: 0,
+    purchasePrice: 0,
     plannedQuantity: 0,
     category: "",
     brand: "",
@@ -25,36 +28,30 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
   const [newImageFiles, setNewImageFiles] = useState([]);
   const [newImagePreviews, setNewImagePreviews] = useState([]);
 
-  // Fetch categories when modal opens if not loaded (only active categories)
+  // Fetch categories and suppliers when modal opens
   useEffect(() => {
     if (isOpen) {
       dispatch(getCategoriesRequest({ page: 1, limit: 100, status: true }));
+      dispatch(getSuppliersForBrandRequest());
     }
   }, [dispatch, isOpen]);
 
   // Track if we submitted the form
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  const [hasShownToast, setHasShownToast] = useState(false);
 
   // Close modal after successful update
   useEffect(() => {
-    if (hasSubmitted && !updateProductLoading && !updateProductError && !hasShownToast) {
-      // Update was successful, show toast and close modal
-      toast.success("Product updated successfully!");
-      setHasShownToast(true);
+    if (hasSubmitted && !updateProductLoading && !updateProductError) {
       setHasSubmitted(false);
       onClose();
+    } else if (hasSubmitted && !updateProductLoading && updateProductError) {
+      setHasSubmitted(false);
     }
-    if (hasSubmitted && updateProductError && !hasShownToast) {
-      toast.error(updateProductError);
-      setHasShownToast(true);
-    }
-  }, [hasSubmitted, updateProductLoading, updateProductError, hasShownToast, onClose]);
+  }, [hasSubmitted, updateProductLoading, updateProductError, onClose]);
 
-  // Reset toast flag when modal opens
+  // Reset submit flag when modal opens
   useEffect(() => {
     if (isOpen) {
-      setHasShownToast(false);
       setHasSubmitted(false);
     }
   }, [isOpen]);
@@ -66,6 +63,7 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
         name: product.name || "",
         short_desc: product.short_desc || "",
         price: product.price || 0,
+        purchasePrice: product.purchasePrice || 0,
         plannedQuantity: product.plannedQuantity || 0,
         category: product.category?._id || product.category || "",
         brand: product.brand || "",
@@ -119,6 +117,11 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
       toast.error("Please fill in all required fields (name, category, brand, price, planned quantity)");
       return;
     }
+    
+    if (formData.purchasePrice < 0) {
+      toast.error("Purchase price must be >= 0");
+      return;
+    }
 
     if (!product?._id) {
       toast.error("Product not found");
@@ -136,6 +139,7 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
     formDataToSend.append("name", formData.name);
     formDataToSend.append("short_desc", formData.short_desc || "");
     formDataToSend.append("price", formData.price);
+    formDataToSend.append("purchasePrice", formData.purchasePrice || 0);
     formDataToSend.append("plannedQuantity", formData.plannedQuantity);
     formDataToSend.append("category", formData.category);
     formDataToSend.append("brand", formData.brand || "");
@@ -165,6 +169,7 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
         name: product.name || "",
         short_desc: product.short_desc || "",
         price: product.price || 0,
+        purchasePrice: product.purchasePrice || 0,
         plannedQuantity: product.plannedQuantity || 0,
         category: product.category?._id || product.category || "",
         brand: product.brand || "",
@@ -259,43 +264,70 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Planned quantity <span className="text-red-500">*</span>
+                  Purchase Price (VND)
                 </label>
                 <input
                   type="number"
-                  value={formData.plannedQuantity}
-                  onChange={(e) =>
-                    setFormData({ ...formData, plannedQuantity: parseInt(e.target.value) || 0 })
-                  }
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                    product.onHandQuantity > 0 
-                      ? "bg-gray-100 border-gray-300 cursor-not-allowed" 
-                      : "border-gray-300"
-                  }`}
+                  value={formData.purchasePrice}
+                  onChange={(e) => setFormData({ ...formData, purchasePrice: parseFloat(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   min="0"
-                  required
-                  disabled={product.onHandQuantity > 0}
+                  step="1000"
+                  placeholder="Enter purchase price"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  {product.onHandQuantity > 0 
-                    ? `Cannot update planned quantity while product has stock (onHand: ${product.onHandQuantity}). Please wait until stock is sold out or expired.`
-                    : `Received: ${product.receivedQuantity || 0} | Cannot reduce below received amount`}
-                </p>
+                <p className="text-xs text-gray-500 mt-1">Giá nhập hàng từ supplier</p>
               </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Planned quantity <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                value={formData.plannedQuantity}
+                onChange={(e) =>
+                  setFormData({ ...formData, plannedQuantity: parseInt(e.target.value) || 0 })
+                }
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
+                  product.onHandQuantity > 0 
+                    ? "bg-gray-100 border-gray-300 cursor-not-allowed" 
+                    : "border-gray-300"
+                }`}
+                min="0"
+                required
+                disabled={product.onHandQuantity > 0}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {product.onHandQuantity > 0 
+                  ? `Cannot update planned quantity while product has stock (onHand: ${product.onHandQuantity}). Please wait until stock is sold out or expired.`
+                  : `Received: ${product.receivedQuantity || 0} | Cannot reduce below received amount`}
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Brand <span className="text-red-500">*</span>
+                  Supplier (Brand) <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  value={formData.brand}
-                  onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Enter brand"
-                  required
-                />
+                {suppliersForBrandLoading ? (
+                  <div className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-500">
+                    Loading suppliers...
+                  </div>
+                ) : (
+                  <select
+                    value={formData.brand}
+                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    required
+                  >
+                    <option value="">Select supplier (brand)</option>
+                    {suppliersForBrand?.map((supplier) => (
+                      <option key={supplier._id} value={supplier.name}>
+                        {supplier.name} ({supplier.type === "FARM" ? "Farm" : "Cooperative"})
+                      </option>
+                    ))}
+                  </select>
+                )}
+                <p className="text-xs text-gray-500 mt-1">Select a supplier to assign as brand</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">

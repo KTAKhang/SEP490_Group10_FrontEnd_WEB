@@ -4,7 +4,9 @@ import { X } from "lucide-react";
 import { toast } from "react-toastify";
 import { createProductRequest } from "../../../redux/actions/productActions";
 import { getCategoriesRequest } from "../../../redux/actions/categoryActions";
-// import { getSuppliersForBrandRequest } from "../../../redux/actions/supplierActions";
+
+import { getSuppliersForBrandRequest } from "../../../redux/actions/supplierActions";
+
 
 const CreateProduct = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
@@ -233,7 +235,9 @@ formDataToSend.append("category", formData.category);
                 onChange={(e) =>
                   setFormData({ ...formData, plannedQuantity: parseInt(e.target.value) || 0 })
                 }
-className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+
                 min="0"
                 required
               />

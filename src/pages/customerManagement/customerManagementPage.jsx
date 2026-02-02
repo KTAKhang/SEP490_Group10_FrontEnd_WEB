@@ -5,11 +5,17 @@
  */
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { customerListRequest, updateCustomerStatusRequest, customerDetailRequest } from "../../redux/actions/customerActions";
+import { customerListRequest, updateCustomerStatusRequest, customerDetailRequest, customerOrdersRequest } from "../../redux/actions/customerActions";
 
 const CustomerManagement = () => {
   const dispatch = useDispatch();
-  const { list = [], loading, pagination: pageMeta = { page: 1, limit: 10, total: 0 } } = useSelector((state) => state.customer || {});
+  const { 
+    list = [], 
+    loading, 
+    pagination: pageMeta = { page: 1, limit: 10, total: 0 },
+    orders = [],
+    ordersLoading = false,
+  } = useSelector((state) => state.customer || {});
 
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -146,6 +152,8 @@ const CustomerManagement = () => {
   const handleViewDetail = (record) => {
     setSelectedCustomer(record);
     setIsDetailOpen(true);
+    // Fetch orders for this customer
+    dispatch(customerOrdersRequest(record._id || record.id));
   };
 
   const handleTableChange = (newPage) => {
@@ -233,7 +241,7 @@ const CustomerManagement = () => {
                   <i className="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                   <input
                     type="text"
-                    placeholder="Search by name, email, or phone number..."
+                    placeholder="Search by name, email, phone number, or address..."
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
                     className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
@@ -681,6 +689,83 @@ const CustomerManagement = () => {
                     {selectedCustomer._id || selectedCustomer.id}
                   </button>
                 </div>
+              </div>
+              
+              {/* Orders Section */}
+              <div className="mt-8 border-t border-gray-200 pt-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <i className="ri-shopping-cart-line text-green-600"></i>
+                  Order History ({orders.length})
+                </h3>
+                
+                {ordersLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <i className="ri-loader-4-line text-2xl text-green-600 animate-spin"></i>
+                    <span className="ml-2 text-gray-600">Loading orders...</span>
+                  </div>
+                ) : orders.length === 0 ? (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg">
+                    <i className="ri-shopping-cart-line text-4xl text-gray-300 mb-2"></i>
+                    <p className="text-gray-600">No orders found for this customer</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {orders.map((order) => (
+                      <div
+                        key={order._id || order.id}
+                        className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-green-300 transition-colors"
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-semibold text-gray-900">
+                                Order #{order._id?.toString().slice(-8) || order.id?.toString().slice(-8)}
+                              </span>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                order.status_name === 'COMPLETED' ? 'bg-green-100 text-green-700' :
+                                order.status_name === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
+                                order.status_name === 'CANCELLED' ? 'bg-red-100 text-red-700' :
+                                order.status_name === 'RETURNED' ? 'bg-amber-100 text-amber-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {order.status_name === 'RETURNED' ? 'Trả hàng' : (order.status_name || 'UNKNOWN')}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600">
+                              {order.receiver_name} • {order.receiver_phone}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {order.receiver_address}
+                            </p>
+                          </div>
+                          <div className="text-right ml-4">
+                            <p className="font-bold text-green-600">
+                              {new Intl.NumberFormat('vi-VN', {
+                                style: 'currency',
+                                currency: 'VND'
+                              }).format(order.total_price || 0)}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-US', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              }) : 'N/A'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-200">
+                          <span className="text-xs text-gray-600">
+                            <i className="ri-money-dollar-circle-line mr-1"></i>
+                            Payment: {order.payment_method || 'N/A'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

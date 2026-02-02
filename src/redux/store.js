@@ -4,6 +4,9 @@ import createSagaMiddleware from "redux-saga";
 import authReducer from "./reducers/authReducer";
 import contactReducer from "./reducers/contactReducer";
 import profileReducer from "./reducers/profileReducer";
+import cartReducer from "./reducers/cartReducer";
+import checkoutReducer from "./reducers/checkoutReducer";
+import orderReducer from "./reducers/orderReducer";
 import newsReducer from "./reducers/newsReducer";
 import shopReducer from "./reducers/shopReducer";
 import staffReducer from "./reducers/staffReducer";
@@ -17,13 +20,19 @@ import publicCategoryReducer from "./reducers/publicCategoryReducer";
 import productBatchReducer from "./reducers/productBatchReducer";
 import favoriteReducer from "./reducers/favoriteReducer";
 import homepageAssetsReducer from "./reducers/homepageAssetsReducer";
-
+import supplierReducer from "./reducers/supplierReducer";
+import fruitBasketReducer from "./reducers/fruitBasketReducer";
+import publicFruitBasketReducer from "./reducers/publicFruitBasketReducer";
+import reviewReducer from "./reducers/reviewReducer";
 import rootSaga from "./sagas/rootSaga";
 
 const rootReducer = combineReducers({
   auth: authReducer,
   contact: contactReducer,
   profile: profileReducer,
+  cart: cartReducer,
+  checkout: checkoutReducer,
+  order: orderReducer,
   news: newsReducer,
   shop: shopReducer,
   staff: staffReducer,
@@ -34,9 +43,14 @@ const rootReducer = combineReducers({
   inventory: inventoryReducer,
   publicProduct: publicProductReducer,
   publicCategory: publicCategoryReducer,
+  publicFruitBasket: publicFruitBasketReducer,
   productBatch: productBatchReducer,
   favorite: favoriteReducer,
   homepageAssets: homepageAssetsReducer,
+  supplier: supplierReducer,
+  fruitBasket: fruitBasketReducer,
+  review: reviewReducer,
+
 });
 
 const sagaMiddleware = createSagaMiddleware();

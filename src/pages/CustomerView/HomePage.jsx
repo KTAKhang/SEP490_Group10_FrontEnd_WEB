@@ -6,16 +6,14 @@ import Footer from '../components/Footer/Footer';
 import Loading from '../components/Loading/Loading';
 import { getFeaturedProductsRequest } from '../redux/actions/publicProductActions';
 import { getHomepageAssetsPublicRequest } from '../redux/actions/homepageAssetsActions';
-
+import { addItemToCartRequest } from "../../redux/actions/cartActions";
 const HomePage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { featuredProducts, featuredProductsLoading } = useSelector((state) => state.publicProduct);
   const { publicAssets } = useSelector((state) => state.homepageAssets || {});
-  
-  // State for testimonial carousel
+    // State for testimonial carousel
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
-
   useEffect(() => {
     dispatch(getFeaturedProductsRequest());
     // Load homepage assets
@@ -168,7 +166,6 @@ const HomePage = () => {
               </div>
               <p className="text-white text-base font-semibold drop-shadow-lg">More than 5,000+ customers trust us</p>
             </div>
-
             {/* Main Heading */}
             <h1 className="text-6xl md:text-7xl lg:text-8xl font-black text-white mb-6 leading-tight">
               Clean Agricultural Products
@@ -179,7 +176,7 @@ const HomePage = () => {
 
             {/* CTA Button */}
             <button
-              onClick={() => navigate('/products')}
+              onClick={() => navigate("/products")}
               className="inline-flex items-center space-x-3 bg-white text-gray-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transition-all transform hover:scale-105 shadow-xl whitespace-nowrap cursor-pointer"
             >
               <span>Explore Now</span>
@@ -190,8 +187,8 @@ const HomePage = () => {
           {/* Description - Bottom Right */}
           <div className="absolute bottom-20 right-8 max-w-md hidden lg:block">
             <p className="text-white/90 text-lg leading-relaxed">
-              Committed to delivering the freshest, safest organic agricultural products.
-              Directly from the farm to your hands.
+              Committed to delivering the freshest, safest organic agricultural
+              products. Directly from the farm to your hands.
             </p>
           </div>
         </div>
@@ -287,7 +284,8 @@ const HomePage = () => {
               WHY CHOOSE US
             </p>
             <h2 className="text-5xl md:text-6xl font-black text-gray-900 leading-tight">
-              Quality Commitment<br />
+              Quality Commitment
+              <br />
               From the Source
             </h2>
           </div>
@@ -299,9 +297,12 @@ const HomePage = () => {
               <div className="w-14 h-14 flex items-center justify-center mb-6">
                 <i className="ri-leaf-line text-4xl text-gray-900"></i>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">100% Organic</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                100% Organic
+              </h3>
               <p className="text-gray-600 leading-relaxed">
-                No chemicals or pesticides used. Certified by international organic farming organizations.
+                No chemicals or pesticides used. Certified by international
+                organic farming organizations.
               </p>
             </div>
 
@@ -310,9 +311,12 @@ const HomePage = () => {
               <div className="w-14 h-14 flex items-center justify-center mb-6">
                 <i className="ri-truck-line text-4xl text-gray-900"></i>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Fast Delivery</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                Fast Delivery
+              </h3>
               <p className="text-gray-600 leading-relaxed">
-                Delivery within 24 hours in the inner city. Ensuring freshness and quality of products when they reach you.
+                Delivery within 24 hours in the inner city. Ensuring freshness
+                and quality of products when they reach you.
               </p>
             </div>
 
@@ -321,9 +325,12 @@ const HomePage = () => {
               <div className="w-14 h-14 flex items-center justify-center mb-6">
                 <i className="ri-shield-check-line text-4xl text-gray-900"></i>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Clear Origin</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                Clear Origin
+              </h3>
               <p className="text-gray-600 leading-relaxed">
-                Traceability of each product. Transparency from the farm, ensuring absolute food safety.  
+                Traceability of each product. Transparency from the farm,
+                ensuring absolute food safety.
               </p>
             </div>
           </div>
@@ -339,7 +346,8 @@ const HomePage = () => {
               Featured Products
             </h2>
             <p className="text-gray-600 max-w-md">
-              The most popular products, fresh and guaranteed to have the highest organic quality.
+              The most popular products, fresh and guaranteed to have the
+              highest organic quality.
             </p>
           </div>
 
@@ -363,7 +371,10 @@ const HomePage = () => {
                   {/* Product Image */}
                   <div className="relative h-72 bg-gray-100 overflow-hidden">
                     <img
-                      src={product.featuredImage || 'https://via.placeholder.com/400x400?text=No+Image'}
+                      src={
+                        product.featuredImage ||
+                        "https://via.placeholder.com/400x400?text=No+Image"
+                      }
                       alt={product.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
@@ -372,21 +383,24 @@ const HomePage = () => {
                   {/* Product Info */}
                   <div className="p-6">
                     <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
-                      {product.category?.name || 'N/A'}
+                      {product.category?.name || "N/A"}
                     </p>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">{product.name}</h3>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{product.description || ''}</p>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      {product.name}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                      {product.description || ""}
+                    </p>
 
                     <div className="flex items-center justify-between">
                       <div>
                         <span className="text-2xl font-bold text-gray-900">
-                          {product.price?.toLocaleString('vi-VN') || '0'}đ
+                          {product.price?.toLocaleString("vi-VN") || "0"}đ
                         </span>
                       </div>
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Handle add to cart logic here
+                      <button
+                        onClick={() => {
+                          dispatch(addItemToCartRequest(product._id, 1));
                         }}
                         className="bg-gray-900 text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-gray-800 transition-colors whitespace-nowrap cursor-pointer"
                       >
@@ -402,7 +416,7 @@ const HomePage = () => {
           {/* View All Button */}
           <div className="text-center mt-12">
             <button
-              onClick={() => navigate('/products')}
+              onClick={() => navigate("/products")}
               className="inline-flex items-center space-x-2 text-gray-900 font-semibold hover:text-green-600 transition-colors cursor-pointer"
             >
               <span>View All Products</span>
@@ -449,9 +463,11 @@ const HomePage = () => {
                 {/* Current Testimonial */}
                 <div className="min-h-[200px] transition-all duration-300">
                   <p className="text-gray-700 text-lg leading-relaxed mb-4">
+
                     "{testimonials[currentTestimonialIndex].text}"
                   </p>
                   <p className="text-gray-900 font-bold">— {testimonials[currentTestimonialIndex].author}</p>
+
                 </div>
               </div>
 
@@ -464,7 +480,7 @@ const HomePage = () => {
                 >
                   <i className="ri-arrow-left-line text-xl"></i>
                 </button>
-                
+              
                 {/* Dots indicator */}
                 <div className="flex items-center space-x-2">
                   {testimonials.map((_, index) => (
@@ -484,6 +500,7 @@ const HomePage = () => {
                 <button 
                   onClick={handleNextTestimonial}
                   className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-900 text-white hover:bg-gray-800 transition-colors cursor-pointer" 
+
                   aria-label="Next"
                 >
                   <i className="ri-arrow-right-line text-xl"></i>
@@ -502,8 +519,10 @@ const HomePage = () => {
           </p>
 
           <h2 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-8">
-            Green Farm<br />
-            Over 10 Years of Experience<br />
+            Green Farm
+            <br />
+            Over 10 Years of Experience
+            <br />
             Bringing Health to Every Home
           </h2>
 
@@ -525,11 +544,11 @@ const HomePage = () => {
           {/* Feature Tags */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-20">
             {[
-              { icon: 'ri-leaf-line', text: 'Hữu Cơ' },
-              { icon: 'ri-truck-line', text: 'Giao Nhanh' },
-              { icon: 'ri-shield-check-line', text: 'Chứng Nhận' },
-              { icon: 'ri-heart-line', text: 'Tận Tâm' },
-              { icon: 'ri-star-line', text: 'Chất Lượng' },
+              { icon: "ri-leaf-line", text: "Hữu Cơ" },
+              { icon: "ri-truck-line", text: "Giao Nhanh" },
+              { icon: "ri-shield-check-line", text: "Chứng Nhận" },
+              { icon: "ri-heart-line", text: "Tận Tâm" },
+              { icon: "ri-star-line", text: "Chất Lượng" },
             ].map((item, index) => (
               <div
                 key={index}
@@ -575,7 +594,7 @@ const HomePage = () => {
 
           {/* Button */}
           <button
-            onClick={() => navigate('/products')}
+            onClick={() => navigate("/products")}
             className="inline-block bg-gray-900 text-white px-12 py-4 rounded-full text-lg font-semibold hover:bg-gray-800 transition-all transform hover:scale-105 shadow-xl whitespace-nowrap cursor-pointer"
           >
             Shop Now
@@ -585,5 +604,5 @@ const HomePage = () => {
       <Footer />
     </div>
   );
-}
+};
 export default HomePage;
