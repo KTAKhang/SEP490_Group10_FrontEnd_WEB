@@ -3,7 +3,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { checkoutCancelRequest } from "../../redux/actions/checkoutActions";
-import { fetchCartRequest } from "../../redux/actions/cartActions";
+import {
+  fetchCartRequest,
+  shippingCheckRequest,
+} from "../../redux/actions/cartActions";
 import { orderCreateRequest } from "../../redux/actions/orderActions";
 import {
   clearDiscountFeedback,
@@ -46,12 +49,12 @@ export default function CheckoutPage() {
       ? checkout.items
       : cart.items || [];
 
-  const shippingCost = formData.shipping === "standard" ? 50000 : 100000;
+  const shippingCost = cart.shippingFee || 0;
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
-  const total = subtotal;
+  const total = subtotal + shippingCost;
 
   const {
     selectedDiscount,
@@ -62,8 +65,7 @@ export default function CheckoutPage() {
     loading: discountLoading,
   } = discount;
 
-  const discountData =
-    applyResult?.data || validationResult?.data || null;
+  const discountData = applyResult?.data || validationResult?.data || null;
   const discountAmount = discountData?.discountAmount || 0;
   const finalAmount = discountData?.finalAmount || total;
 
@@ -95,6 +97,24 @@ export default function CheckoutPage() {
   }, [formData.city]);
 
   useEffect(() => {
+    // existing ward-loading logic preserved above (omitted in snippet)
+
+    // When city changes, call shipping check to compute fee
+    const selected_product_ids = cartItems.map(
+      (item) =>
+        // support multiple item shapes
+        (item.product_id && item.product_id._id) ||
+        item.product_id ||
+        item.productId ||
+        item._id,
+    );
+
+    if (formData.city && selected_product_ids.length > 0) {
+      dispatch(shippingCheckRequest(selected_product_ids, icity));
+    }
+  }, [formData.city, cartItems, dispatch]);
+
+  useEffect(() => {
     if (order.order_id || order.payment_url) {
       localStorage.removeItem("checkout_session_id");
       dispatch(fetchCartRequest());
@@ -103,10 +123,10 @@ export default function CheckoutPage() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-     if (name === "city") {
-    const selectedProvince = provinces.find(p => p.code === Number(value));
-    setIcity(selectedProvince ? selectedProvince.name : "");
-  }
+    if (name === "city") {
+      const selectedProvince = provinces.find((p) => p.code === Number(value));
+      setIcity(selectedProvince ? selectedProvince.name : "");
+    }
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -185,13 +205,13 @@ export default function CheckoutPage() {
 
   // COD: áp discount sau khi tạo order (flow hiện tại). VNPAY áp trong saga trước khi redirect.
   useEffect(() => {
-    if (
-      order.order_id &&
-      selectedDiscount?.discountId &&
-      !order.payment_url
-    ) {
+    if (order.order_id && selectedDiscount?.discountId && !order.payment_url) {
       dispatch(
-        discountApplyRequest(selectedDiscount.discountId, total, order.order_id),
+        discountApplyRequest(
+          selectedDiscount.discountId,
+          total,
+          order.order_id,
+        ),
       );
     }
   }, [order.order_id, order.payment_url, selectedDiscount, total, dispatch]);
@@ -259,12 +279,12 @@ export default function CheckoutPage() {
               {/* Shipping Information */}
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <span>📍</span> Thông tin giao hàng
+                  <span>📍</span> Delivery information
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Họ và tên <span className="text-red-500">*</span>
+                      Full name <span className="text-red-500">*</span>
                     </label>
                     <input
                       required
@@ -278,7 +298,7 @@ export default function CheckoutPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Số điện thoại <span className="text-red-500">*</span>
+                      Phone number <span className="text-red-500">*</span>
                     </label>
                     <input
                       required
@@ -305,7 +325,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Địa chỉ <span className="text-red-500">*</span>
+                      Address <span className="text-red-500">*</span>
                     </label>
                     <input
                       required
@@ -319,7 +339,7 @@ export default function CheckoutPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Tỉnh/Thành phố <span className="text-red-500">*</span>
+                      Province/City <span className="text-red-500">*</span>
                     </label>
                     <select
                       name="city"
@@ -328,7 +348,7 @@ export default function CheckoutPage() {
                       required
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
-                      <option value="">Chọn Tỉnh/Thành phố</option>
+                      <option value="">Select Province/City</option>
                       {provinces.map((p) => (
                         <option key={p.code} value={p.code}>
                           {p.name}
@@ -339,7 +359,7 @@ export default function CheckoutPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Phường/Xã <span className="text-red-500">*</span>
+                      Ward <span className="text-red-500">*</span>
                     </label>
                     <select
                       name="ward"
@@ -349,7 +369,7 @@ export default function CheckoutPage() {
                       disabled={!formData.city}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                     >
-                      <option value="">Chọn Phường/Xã</option>
+                      <option value="">Select Ward</option>
                       {wards.map((w) => (
                         <option key={w.code} value={w.name}>
                           {w.name}
@@ -359,7 +379,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Ghi chú đơn hàng
+                      Order notes
                     </label>
                     <textarea
                       name="note"
@@ -376,19 +396,19 @@ export default function CheckoutPage() {
               {/* Payment Method */}
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <span>💳</span> Phương thức thanh toán
+                  <span>💳</span> Payment methods
                 </h2>
                 <div className="space-y-3">
                   {[
                     {
                       value: "COD",
-                      label: "Thanh toán khi nhận hàng (COD)",
-                      desc: "Thanh toán bằng tiền mặt khi nhận hàng",
+                      label: "Cash on delivery (COD)",
+                      desc: "Payment in cash upon delivery.",
                     },
                     {
                       value: "VNPAY",
-                      label: "Ví điện tử VNPAY",
-                      desc: "Thanh toán qua VNPAY",
+                      label: "VNPAY e-wallet",
+                      desc: "Payment via VNPAY",
                     },
                   ].map((method) => (
                     <label
@@ -421,7 +441,7 @@ export default function CheckoutPage() {
             <div className="lg:col-span-1">
               <div className="bg-white rounded-xl shadow-sm p-6 sticky top-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-6">
-                  Đơn hàng của bạn
+                  Your order
                 </h2>
                 <div className="space-y-4 mb-6 max-h-80 overflow-y-auto">
                   {cartItems?.map((item) => (
@@ -462,11 +482,23 @@ export default function CheckoutPage() {
                   <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-gray-100">
                     <div className="flex items-center gap-2">
                       <span className="text-emerald-600">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                          />
                         </svg>
                       </span>
-                      <span className="font-semibold text-gray-800">Mã giảm giá</span>
+                      <span className="font-semibold text-gray-800">
+                        Voucher
+                      </span>
                     </div>
                     {selectedDiscount && (
                       <button
@@ -474,7 +506,7 @@ export default function CheckoutPage() {
                         onClick={handleRemoveVoucher}
                         className="text-sm text-red-600 hover:text-red-700 font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
                       >
-                        Gỡ mã
+                       Remove
                       </button>
                     )}
                   </div>
@@ -487,23 +519,38 @@ export default function CheckoutPage() {
                     ) : !validDiscounts?.length ? (
                       <div className="text-center py-8 px-4">
                         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 text-gray-400 mb-3">
-                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                          <svg
+                            className="w-6 h-6"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                            />
                           </svg>
                         </div>
                         <p className="text-sm font-medium text-gray-600">
-                          {total < 1 ? "Thêm sản phẩm để xem mã giảm giá" : "Không có mã phù hợp đơn hàng"}
+                          {total < 1
+                            ? "Thêm sản phẩm để xem mã giảm giá"
+                            : "Không có mã phù hợp đơn hàng"}
                         </p>
                       </div>
                     ) : (
                       <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
                         {validDiscounts.map((v) => {
-                          const isSelected = selectedDiscount?.discountId === v._id;
+                          const isSelected =
+                            selectedDiscount?.discountId === v._id;
                           return (
                             <button
                               key={v._id}
                               type="button"
-                              onClick={() => handleSelectVoucher(isSelected ? null : v)}
+                              onClick={() =>
+                                handleSelectVoucher(isSelected ? null : v)
+                              }
                               className={`w-full text-left rounded-lg border-2 p-3 transition-all duration-200 ${
                                 isSelected
                                   ? "border-emerald-500 bg-emerald-50 shadow-sm"
@@ -513,24 +560,37 @@ export default function CheckoutPage() {
                               <div className="flex items-start justify-between gap-3">
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="font-bold text-emerald-700 tracking-wide">{v.code}</span>
+                                    <span className="font-bold text-emerald-700 tracking-wide">
+                                      {v.code}
+                                    </span>
                                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
                                       Giảm {v.discountPercent}%
                                     </span>
                                   </div>
                                   <p className="text-xs text-gray-500 mt-1">
-                                    Tối đa {formatPrice(v.maxDiscountAmount)} · Đơn tối thiểu {formatPrice(v.minOrderValue)}
+                                    Tối đa {formatPrice(v.maxDiscountAmount)} ·
+                                    Đơn tối thiểu {formatPrice(v.minOrderValue)}
                                   </p>
                                 </div>
                                 <div className="flex-shrink-0">
                                   {isSelected ? (
                                     <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500 text-white">
-                                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                      <svg
+                                        className="w-5 h-5"
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                      >
+                                        <path
+                                          fillRule="evenodd"
+                                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                          clipRule="evenodd"
+                                        />
                                       </svg>
                                     </span>
                                   ) : (
-                                    <span className="text-sm font-medium text-emerald-600">Áp dụng</span>
+                                    <span className="text-sm font-medium text-emerald-600">
+                                      Áp dụng
+                                    </span>
                                   )}
                                 </div>
                               </div>
@@ -543,15 +603,15 @@ export default function CheckoutPage() {
                     {selectedDiscount && discountData && (
                       <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
                         <div className="flex justify-between text-sm text-gray-600">
-                          <span>Giá gốc</span>
+                          <span>Original price</span>
                           <span>{formatPrice(total)}</span>
                         </div>
                         <div className="flex justify-between text-sm text-emerald-700">
-                          <span>Giảm giá ({selectedDiscount.code})</span>
+                          <span>Discount ({selectedDiscount.code})</span>
                           <span>- {formatPrice(discountAmount)}</span>
                         </div>
                         <div className="flex justify-between text-sm font-semibold text-gray-900 pt-1">
-                          <span>Tạm tính sau giảm</span>
+                          <span>Estimated price after discount</span>
                           <span>{formatPrice(finalAmount)}</span>
                         </div>
                       </div>
@@ -560,13 +620,17 @@ export default function CheckoutPage() {
                 </div>
                 <div className="border-t border-gray-200 pt-4 space-y-3 mb-6">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Tạm tính:</span>
+                    <span className="text-gray-600">Estimated:</span>
                     <span className="font-medium">{formatPrice(subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Shipping fee:</span>
+                    <span className="font-medium">{formatPrice(shippingCost)}</span>
                   </div>
                   <div className="border-t border-gray-200 pt-3">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold text-gray-900">
-                        Tổng cộng:
+                       Total:
                       </span>
                       <span className="text-2xl font-bold text-red-600">
                         {formatPrice(finalAmount)}
@@ -588,15 +652,15 @@ export default function CheckoutPage() {
                     onClick={handleCancel}
                     className="w-full mt-3 bg-red-50 text-red-600 py-2 rounded-lg hover:bg-red-100 transition-colors font-medium"
                   >
-                    Hủy thanh toán
+                   Cancel payment
                   </button>
                 )}
                 <div className="mt-4 text-center text-xs text-gray-500">
-                  Bằng việc đặt hàng, bạn đồng ý với{" "}
+                  By placing an order, you agree to{" "}
                   <a href="#" className="text-blue-600 hover:underline">
-                    Điều khoản sử dụng
+                    Terms of Use
                   </a>{" "}
-                  của chúng tôi
+                 our
                 </div>
               </div>
             </div>

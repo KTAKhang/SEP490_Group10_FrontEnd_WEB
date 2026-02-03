@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getShopInfoRequest,
+  getShopInfoPublicRequest,
   updateShopBasicInfoRequest,
   updateShopDescriptionRequest,
   updateShopWorkingHoursRequest,
@@ -23,7 +24,55 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
+import CustomCKEditor from "../../../components/CustomCKEditor/CustomCKEditor";
 import apiClient from "../../../utils/axiosConfig";
+
+// Custom Upload Adapter để xử lý response format từ backend cho shop description
+class ShopDescriptionImageAdapter {
+  constructor(loader, editor) {
+    this.loader = loader;
+    this.editor = editor;
+  }
+
+  upload() {
+    return this.loader.file.then(
+      (file) =>
+        new Promise((resolve, reject) => {
+          const token = localStorage.getItem('token');
+          const uploadFormData = new FormData();
+          uploadFormData.append('image', file);
+
+          fetch('http://localhost:3001/shop/upload-description-image', {
+            method: 'POST',
+            headers: {
+              'Authorization': token ? `Bearer ${token}` : ''
+            },
+            body: uploadFormData,
+            credentials: 'include'
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              // Backend trả về: { status: "OK", data: { url: "...", publicId: "..." } }
+              // CKEditor cần: { url: "..." }
+              if (data.status === 'OK' && data.data?.url) {
+                resolve({ default: data.data.url });
+              } else {
+                reject(new Error(data.message || 'Upload failed'));
+                toast.error(data.message || 'Failed to upload image');
+              }
+            })
+            .catch((error) => {
+              reject(error);
+              toast.error('Failed to upload image: ' + error.message);
+            });
+        })
+    );
+  }
+
+  abort() {
+    // Handle abort if needed
+  }
+}
 
 const ShopManagement = () => {
   const dispatch = useDispatch();
@@ -44,20 +93,26 @@ const ShopManagement = () => {
     address: "",
     email: "",
     phone: "",
+    logo: "",
   });
+  const [logoFile, setLogoFile] = useState(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [description, setDescription] = useState("");
   const [workingHours, setWorkingHours] = useState("");
   const [images, setImages] = useState([]);
   const [imagePublicIds, setImagePublicIds] = useState([]);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [errors, setErrors] = useState({});
+  const editorRef = useRef(null);
+  // Theo dõi khi user nhấn "Lưu thông tin" để hiện thông báo "Đã cập nhật thông tin thành công"
+  const [lastBasicInfoAction, setLastBasicInfoAction] = useState(null); // 'save_form'
 
   // Load shop info on mount
   useEffect(() => {
     dispatch(getShopInfoRequest());
   }, [dispatch]);
 
-  // Populate form when shop info is loaded
+  // Populate form when shop info is loaded; reset form khi shopInfo = null (vd: lỗi 403)
   useEffect(() => {
     if (shopInfo) {
       setFormData({
@@ -65,27 +120,54 @@ const ShopManagement = () => {
         address: shopInfo.address || "",
         email: shopInfo.email || "",
         phone: shopInfo.phone || "",
+        logo: shopInfo.logo || "",
       });
       setDescription(shopInfo.description || "");
       setWorkingHours(shopInfo.workingHours || "");
       setImages(shopInfo.images || []);
       setImagePublicIds(shopInfo.imagePublicIds || []);
+    } else if (!getShopInfoLoading) {
+      // Request xong mà không có data (403, 500...) → tránh hiển thị data cũ
+      setFormData({
+        shopName: "",
+        address: "",
+        email: "",
+        phone: "",
+        logo: "",
+      });
+      setDescription("");
+      setWorkingHours("");
+      setImages([]);
+      setImagePublicIds([]);
     }
-  }, [shopInfo]);
+  }, [shopInfo, getShopInfoLoading]);
 
-  // Handle success/error messages
+  // Handle success/error messages - chỉ khi user nhấn "Lưu thông tin" mới gọi API, nên success chỉ từ save_form
   useEffect(() => {
     if (success) {
-      toast.success(success);
+      if (lastBasicInfoAction === 'save_form') {
+        toast.success('Đã cập nhật thông tin thành công');
+      } else {
+        toast.success(success);
+      }
+      setLastBasicInfoAction(null);
       dispatch(clearShopMessages());
-      // Refresh shop info
+      // Refresh shop info (admin view)
       dispatch(getShopInfoRequest());
+      // Force refresh public shop info (for Header/Footer) - always refresh to ensure sync
+      setTimeout(() => {
+        dispatch(getShopInfoPublicRequest());
+      }, 500);
+      setTimeout(() => {
+        dispatch(getShopInfoPublicRequest());
+      }, 1500);
     }
     if (error) {
       toast.error(error);
+      setLastBasicInfoAction(null);
       dispatch(clearShopMessages());
     }
-  }, [success, error, dispatch]);
+  }, [success, error, dispatch, lastBasicInfoAction]);
 
   // Validate basic info form
   const validateBasicInfo = () => {
@@ -113,21 +195,160 @@ const ShopManagement = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle basic info update
+  // Handle logo upload
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Chỉ chấp nhận file ảnh (JPG, PNG, GIF, WEBP)');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error('Kích thước file không được vượt quá 5MB');
+      return;
+    }
+
+    try {
+      setUploadingLogo(true);
+      const uploadFormData = new FormData();
+      uploadFormData.append('image', file);
+
+      // Use the same endpoint as shop images: /upload/shop-image
+      const response = await apiClient.post('/upload/shop-image', uploadFormData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      // Check response format
+      if (response.data?.status === 'OK') {
+        // Handle different response formats
+        const data = response.data.data || response.data;
+        const imageUrl = data.url || data.imageUrl || data.secure_url;
+        
+        if (imageUrl) {
+          // Chỉ cập nhật form (hiện logo mới), chưa lưu backend. User phải nhấn "Lưu thông tin" để lưu.
+          const updatedFormData = { ...formData, logo: imageUrl };
+          setFormData(updatedFormData);
+          setLogoFile(null);
+          toast.info('Đã chọn logo mới. Nhấn "Lưu thông tin" để lưu thay đổi.');
+        } else {
+          throw new Error('Response không chứa URL hình ảnh');
+        }
+      } else {
+        throw new Error(response.data?.message || 'Upload logo thất bại');
+      }
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      
+      let errorMessage = 'Có lỗi xảy ra khi upload logo';
+      
+      if (error.response?.status === 404) {
+        errorMessage = 'Endpoint /upload/shop-image không tồn tại. Vui lòng kiểm tra backend.';
+      } else if (error.response?.status === 400) {
+        errorMessage = error.response.data?.message || 'File không hợp lệ. Vui lòng kiểm tra định dạng và kích thước.';
+      } else if (error.response?.status === 401 || error.response?.status === 403) {
+        errorMessage = 'Không có quyền truy cập. Vui lòng đăng nhập lại.';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  // Handle basic info update (nút "Lưu thông tin")
   const handleBasicInfoSubmit = (e) => {
     e.preventDefault();
     if (!validateBasicInfo()) {
       toast.error("Vui lòng kiểm tra lại thông tin");
       return;
     }
+    setLastBasicInfoAction('save_form'); // Để khi success hiện "Đã cập nhật thông tin thành công"
     dispatch(updateShopBasicInfoRequest(formData));
+  };
+
+  // CKEditor configuration cho shop description
+  const getEditorConfig = () => {
+    const token = localStorage.getItem('token');
+    return {
+      toolbar: [
+        'heading', '|',
+        'bold', 'italic', 'underline', 'strikethrough', '|',
+        'link', 'blockQuote', 'insertTable', '|',
+        'bulletedList', 'numberedList', '|',
+        'outdent', 'indent', '|',
+        'imageUpload', '|',
+        'undo', 'redo'
+      ],
+      heading: {
+        options: [
+          { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+          { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+          { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+          { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
+          { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' },
+        ]
+      },
+      simpleUpload: {
+        uploadUrl: 'http://localhost:3001/shop/upload-description-image',
+        withCredentials: true,
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : ''
+        }
+      },
+      image: {
+        toolbar: [
+          'imageTextAlternative',
+          'toggleImageCaption',
+          'imageStyle:inline',
+          'imageStyle:block',
+          'imageStyle:side'
+        ]
+      },
+      // Cho phép style text-align trong paragraph
+      htmlSupport: {
+        allow: [
+          {
+            name: /.*/,
+            attributes: true,
+            classes: true,
+            styles: {
+              'text-align': true
+            }
+          }
+        ]
+      }
+    };
+  };
+
+  // Handle CKEditor change
+  const handleEditorChange = (event, editor) => {
+    const html = editor.getData();
+    setDescription(html);
   };
 
   // Handle description update
   const handleDescriptionSubmit = (e) => {
     e.preventDefault();
-    if (description && description.length > 5000) {
-      toast.error("Nội dung mô tả không được vượt quá 5000 ký tự");
+    // Validate content length (excluding HTML tags)
+    const textContent = description.replace(/<[^>]*>/g, '').trim();
+    if (textContent.length > 5000) {
+      toast.error("Nội dung mô tả không được vượt quá 5000 ký tự (không tính HTML tags)");
+      return;
+    }
+    if (textContent.length < 10) {
+      toast.error("Nội dung mô tả phải có ít nhất 10 ký tự");
       return;
     }
     dispatch(updateShopDescriptionRequest(description));
@@ -275,6 +496,92 @@ const ShopManagement = () => {
             {/* Basic Info Tab */}
             {activeTab === "basic" && (
               <form onSubmit={handleBasicInfoSubmit} className="space-y-6">
+                {/* Logo Upload */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    Logo Shop
+                  </label>
+                  <div className="flex items-start space-x-6">
+                    {/* Logo Preview */}
+                    <div className="flex-shrink-0">
+                      <div className="w-32 h-32 border-2 border-gray-300 rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center relative group">
+                        {formData.logo ? (
+                          <>
+                            <img
+                              src={formData.logo}
+                              alt="Logo"
+                              className="w-full h-full object-contain p-2"
+                              onError={(e) => {
+                                e.target.src = 'https://public.readdy.ai/ai/img_res/5bde7704-1cb0-4365-9e92-f123696b11d9.png';
+                              }}
+                            />
+                            {/* Hover overlay to show full URL */}
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                              <span className="text-white text-xs text-center px-2 break-all">
+                                {formData.logo.length > 50 ? formData.logo.substring(0, 50) + '...' : formData.logo}
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="text-center text-gray-400">
+                            <ImageIcon className="w-8 h-8 mx-auto mb-2" />
+                            <span className="text-xs">Chưa có logo</span>
+                          </div>
+                        )}
+                      </div>
+                      {/* Logo URL display */}
+                      {formData.logo && (
+                        <div className="mt-2 text-xs text-gray-500 max-w-[128px] truncate" title={formData.logo}>
+                          {formData.logo.length > 30 ? formData.logo.substring(0, 30) + '...' : formData.logo}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Upload Controls */}
+                    <div className="flex-1">
+                      <div className="space-y-3">
+                        <div>
+                          <label
+                            htmlFor="logo-upload"
+                            className={`inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
+                              uploadingLogo ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                          >
+                            <Upload className="w-4 h-4 mr-2" />
+                            {uploadingLogo ? 'Đang upload...' : 'Chọn logo'}
+                          </label>
+                          <input
+                            id="logo-upload"
+                            type="file"
+                            accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                            onChange={handleLogoUpload}
+                            disabled={uploadingLogo}
+                            className="hidden"
+                          />
+                        </div>
+                        {formData.logo && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updatedFormData = { ...formData, logo: "" };
+                              setFormData(updatedFormData);
+                              setLogoFile(null);
+                              toast.info('Đã xóa logo trong form. Nhấn "Lưu thông tin" để lưu thay đổi.');
+                            }}
+                            className="text-sm text-red-600 hover:text-red-700 flex items-center"
+                          >
+                            <X className="w-4 h-4 mr-1" />
+                            Xóa logo
+                          </button>
+                        )}
+                        <p className="text-xs text-gray-500">
+                          Định dạng: JPG, PNG, GIF, WEBP. Kích thước tối đa: 5MB
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Tên shop <span className="text-red-500">*</span>
@@ -412,26 +719,35 @@ const ShopManagement = () => {
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Mô tả shop
                     <span className="text-gray-500 font-normal text-xs ml-2">
-                      (Hỗ trợ HTML, tối đa 5000 ký tự)
+                      (Rich text editor, tối đa 5000 ký tự, tối thiểu 10 ký tự)
                     </span>
                   </label>
-                  <textarea
-                    rows={12}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none font-mono text-sm"
-                    placeholder="Nhập mô tả shop (có thể sử dụng HTML)..."
-                    maxLength={5000}
-                  />
-                  <div className="text-xs text-gray-500 mt-1">
-                    {description.length}/5000 ký tự
+                  <div className="border rounded-lg border-gray-300">
+                    <CustomCKEditor
+                      config={getEditorConfig()}
+                      data={description}
+                      onReady={(editor) => {
+                        editorRef.current = editor;
+                        
+                        // Override SimpleUploadAdapter để xử lý response format từ backend
+                        const fileRepository = editor.plugins.get('FileRepository');
+                        if (fileRepository) {
+                          fileRepository.createUploadAdapter = (loader) => {
+                            return new ShopDescriptionImageAdapter(loader, editor);
+                          };
+                        }
+                      }}
+                      onChange={handleEditorChange}
+                      onError={(error, { willEditorRestart }) => {
+                        console.error('CKEditor error:', error);
+                        if (willEditorRestart) {
+                          editorRef.current?.setData(description);
+                        }
+                      }}
+                    />
                   </div>
-                  <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-800">
-                      <strong>Lưu ý:</strong> Bạn có thể sử dụng HTML để định dạng nội dung. Ví dụ:
-                      &lt;p&gt;Đoạn văn&lt;/p&gt;, &lt;strong&gt;In đậm&lt;/strong&gt;,
-                      &lt;img src="url" alt="mô tả" /&gt;
-                    </p>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {description.replace(/<[^>]*>/g, '').length}/5000 ký tự (không tính HTML tags)
                   </div>
                 </div>
 

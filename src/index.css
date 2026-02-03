@@ -7,3 +7,189 @@
   line-height: 1.5;
   font-weight: 400;
 }
+
+/* CKEditor Wrapper Styles */
+.ckeditor-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.ckeditor-toolbar-container {
+  min-height: 40px;
+}
+
+.ckeditor-content-container {
+  flex: 1;
+}
+
+/* CKEditor Styles */
+.ck-editor__editable {
+  min-height: 400px;
+}
+
+.ck-editor__editable_inline {
+  min-height: 400px;
+}
+
+/* CKEditor toolbar styling */
+.ck-toolbar {
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+  border-bottom: none;
+}
+
+.ck-editor__main > .ck-editor__editable {
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  border-top: none;
+}
+
+/* CKEditor Image Alignment Styles */
+.ck-editor__editable img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  /* KHÔNG force margin: 0 auto - để CKEditor tự quản lý alignment */
+}
+
+/* Căn giữa ảnh khi có style text-align: center */
+.ck-editor__editable p[style*="text-align: center"],
+.ck-editor__editable div[style*="text-align: center"] {
+  text-align: center;
+}
+
+.ck-editor__editable p[style*="text-align: center"] img,
+.ck-editor__editable div[style*="text-align: center"] img {
+  margin: 0 auto;
+  display: block;
+}
+
+/* Căn trái ảnh */
+.ck-editor__editable p[style*="text-align: left"],
+.ck-editor__editable div[style*="text-align: left"] {
+  text-align: left;
+}
+
+.ck-editor__editable p[style*="text-align: left"] img,
+.ck-editor__editable div[style*="text-align: left"] img {
+  margin-left: 0;
+  margin-right: auto;
+  display: block;
+}
+
+/* Căn phải ảnh */
+.ck-editor__editable p[style*="text-align: right"],
+.ck-editor__editable div[style*="text-align: right"] {
+  text-align: right;
+}
+
+.ck-editor__editable p[style*="text-align: right"] img,
+.ck-editor__editable div[style*="text-align: right"] img {
+  margin-left: auto;
+  margin-right: 0;
+  display: block;
+}
+
+/* Căn giữa ảnh mặc định khi không có style */
+.ck-editor__editable figure.image {
+  text-align: center;
+  margin: 1em auto;
+}
+
+.ck-editor__editable figure.image img {
+  margin: 0 auto;
+  display: block;
+}
+
+/* CSS cho ảnh trong news content khi hiển thị (không chỉ trong editor) */
+.prose img,
+[class*="prose"] img,
+div[class*="content"] img,
+article img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  /* KHÔNG force margin - chỉ căn giữa khi có style text-align: center */
+}
+
+/* Căn giữa ảnh trong paragraph có text-align: center */
+p[style*="text-align: center"],
+div[style*="text-align: center"] {
+  text-align: center;
+}
+
+p[style*="text-align: center"] img,
+div[style*="text-align: center"] img {
+  margin: 0 auto;
+  display: block;
+}
+
+/* Căn trái ảnh trong paragraph có text-align: left */
+p[style*="text-align: left"],
+div[style*="text-align: left"] {
+  text-align: left;
+}
+
+p[style*="text-align: left"] img,
+div[style*="text-align: left"] img {
+  margin-left: 0;
+  margin-right: auto;
+  display: block;
+}
+
+/* Căn phải ảnh trong paragraph có text-align: right */
+p[style*="text-align: right"],
+div[style*="text-align: right"] {
+  text-align: right;
+}
+
+p[style*="text-align: right"] img,
+div[style*="text-align: right"] img {
+  margin-left: auto;
+  margin-right: 0;
+  display: block;
+}
+
+/* Căn giữa ảnh trong figure (chỉ khi figure có text-align: center) */
+figure[style*="text-align: center"] img {
+  margin: 0 auto;
+  display: block;
+}
+
+/* ===== CKEditor 5 Image Alignment FIX ===== */
+
+/* Center image */
+.ck-editor__editable figure.image.image-style-align-center,
+figure.image.image-style-align-center {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.ck-editor__editable figure.image.image-style-align-center img,
+figure.image.image-style-align-center img {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+/* Align left */
+.ck-editor__editable figure.image.image-style-align-left,
+figure.image.image-style-align-left {
+  margin-right: auto;
+  margin-left: 0;
+}
+
+/* Align right */
+.ck-editor__editable figure.image.image-style-align-right,
+figure.image.image-style-align-right {
+  margin-left: auto;
+  margin-right: 0;
+}
+.ck-editor {
+  width: 100%;
+}
+
+.ck-editor__main {
+  width: 100%;
+}

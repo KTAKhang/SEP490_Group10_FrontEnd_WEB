@@ -11,6 +11,8 @@ import {
   Eye,
   EyeOff,
   ArrowLeft,
+  MapPinned,
+  CalendarDays,
 } from "lucide-react";
 import {
   registerSendOTPRequest,
@@ -18,7 +20,8 @@ import {
   clearAuthMessages,
 } from "../redux/actions/authActions";
 import Header from "../components/Header/Header";
-
+import axios from "axios";
+const API_BASE = "https://provinces.open-api.vn/api/v2";
 const RegisterPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -42,10 +45,52 @@ const RegisterPage = () => {
     password: "",
     phone: "",
     address: "",
+    city: "",
+    ward: "",
     otp: "",
+    birthday: "",
+    gender: "",
   });
 
   const [errors, setErrors] = useState({});
+  const [wards, setWards] = useState([]);
+  const [provinces, setProvinces] = useState([]);
+  const [icity, setIcity] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get(`${API_BASE}/p/`)
+      .then((res) => setProvinces(res.data))
+      .catch((err) => console.error("Error loading provinces:", err));
+  }, []);
+
+  // Load wards when province changes
+  useEffect(() => {
+    if (!formData.city) {
+      setWards([]);
+      setFormData((prev) => ({ ...prev, ward: "" }));
+      return;
+    }
+
+    axios
+      .get(`${API_BASE}/w/`)
+      .then((res) => {
+        const filtered = res.data.filter(
+          (ward) => ward.province_code === Number(formData.city),
+        );
+        setWards(filtered);
+      })
+      .catch((err) => console.error(err));
+  }, [formData.city]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "city") {
+      const selectedProvince = provinces.find((p) => p.code === Number(value));
+      setIcity(selectedProvince ? selectedProvince.name : "");
+    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   useEffect(() => {
     dispatch(clearAuthMessages());
@@ -73,19 +118,40 @@ const RegisterPage = () => {
     e.preventDefault();
     const err = {};
 
-    if (!formData.user_name) err.user_name = "Vui lòng nhập tên";
-    if (!formData.email) err.email = "Vui lòng nhập email";
-    else if (!validateEmail(formData.email)) err.email = "Email không hợp lệ";
-    if (!formData.password) err.password = "Vui lòng nhập mật khẩu";
-    if (!formData.phone) err.phone = "Vui lòng nhập số điện thoại";
-    if (!formData.address) err.address = "Vui lòng nhập địa chỉ";
+    if (!formData.user_name) err.user_name = "Please, enter user name!";
+    if (!formData.email) err.email = "Please, enter email!";
+    else if (!validateEmail(formData.email)) err.email = "Email invalid";
+    if (!formData.password) err.password = "Please, enter password!";
+    if (!formData.phone) err.phone = "Please, enter phone number!";
+    if (!formData.address) err.address = "Please, enter address!";
+    if (!formData.city) err.city = "Please, chose city or province!";
+    if (!formData.ward) err.ward = "Please, chose ward!";
+
+    if (!formData.birthday) err.birthday = "Please, chose your birthday!";
+    else {
+      const dob = new Date(formData.birthday);
+      if (isNaN(dob.getTime())) err.birthday = "Birthday invalid!";
+      else if (dob > new Date())
+        err.birthday = "A birth date cannot be in the future!";
+    }
+    if (!formData.gender) err.gender = "Please, chose your gender!";
 
     if (Object.keys(err).length) {
       setErrors(err);
       return;
     }
 
-    dispatch(registerSendOTPRequest(formData));
+    const buildRegisterInfo = () => ({
+      user_name: formData.user_name,
+      email: formData.email,
+      password: formData.password,
+      phone: formData.phone,
+      address: `${formData.address}, ${formData.ward}, ${icity}`,
+      birthday: formData.birthday,
+      gender: formData.gender,
+    });
+
+    dispatch(registerSendOTPRequest(buildRegisterInfo()));
   };
 
   const handleConfirmOTP = (e) => {
@@ -99,7 +165,7 @@ const RegisterPage = () => {
       registerConfirmOTPRequest({
         email: formData.email,
         otp: formData.otp,
-      })
+      }),
     );
   };
 
@@ -108,8 +174,6 @@ const RegisterPage = () => {
       {/* <Header /> */}
       <div className="min-h-screen flex items-center justify-center bg-[#F9FEFB] px-5">
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-
-
           {/* Fruits */}
           <img
             src="/a1.png"
@@ -152,7 +216,9 @@ const RegisterPage = () => {
               {step === 1 ? "Sign Up" : "OTP Verification"}
             </h1>
             <p className="text-gray-500 mt-1">
-              {step === 1 ? "Create a new account" : "Enter the OTP sent to your email"}
+              {step === 1
+                ? "Create a new account"
+                : "Enter the OTP sent to your email"}
             </p>
           </div>
 
@@ -167,11 +233,7 @@ const RegisterPage = () => {
           {/* STEP 1 */}
           {step === 1 && (
             <form onSubmit={handleSendOTP} className="space-y-4">
-              <Input
-                label="Username"
-                icon={<User />}
-                error={errors.user_name}
-              >
+              <Input label="Username" icon={<User />} error={errors.user_name}>
                 <input
                   value={formData.user_name}
                   onChange={(e) => handleChange("user_name", e.target.value)}
@@ -184,6 +246,7 @@ const RegisterPage = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleChange("email", e.target.value)}
+                  placeholder="example@email.com"
                   className={inputClass}
                 />
               </Input>
@@ -204,16 +267,45 @@ const RegisterPage = () => {
                 </button>
               </Input>
 
-              <Input
-                label="Phone Number"
-                icon={<Phone />}
-                error={errors.phone}
-              >
+              <Input label="Phone Number" icon={<Phone />} error={errors.phone}>
                 <input
                   value={formData.phone}
                   onChange={(e) => handleChange("phone", e.target.value)}
                   className={inputClass}
                 />
+              </Input>
+
+              <Input label="city" icon={<MapPinned />} error={errors.city}>
+                <select
+                  name="city"
+                  value={formData.city}
+                  onChange={handleInputChange}
+                  className={inputClass}
+                >
+                  <option value="">Select city/province</option>
+                  {provinces.map((p) => (
+                    <option key={p.code} value={p.code}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </Input>
+
+              <Input label="ward" icon={<MapPinned />} error={errors.ward}>
+                <select
+                  name="ward"
+                  value={formData.ward}
+                  onChange={handleInputChange}
+                  disabled={!formData.city}
+                  className={inputClass}
+                >
+                  <option value="">Select ward</option>
+                  {wards.map((w) => (
+                    <option key={w.code} value={w.name}>
+                      {w.name}
+                    </option>
+                  ))}
+                </select>
               </Input>
 
               <Input label="Address" icon={<Home />} error={errors.address}>
@@ -222,6 +314,33 @@ const RegisterPage = () => {
                   onChange={(e) => handleChange("address", e.target.value)}
                   className={inputClass}
                 />
+              </Input>
+
+              <Input
+                label="Birthday"
+                icon={<CalendarDays />}
+                error={errors.birthday}
+              >
+                <input
+                  type="date"
+                  value={formData.birthday}
+                  max={new Date().toISOString().split("T")[0]}
+                  onChange={(e) => handleChange("birthday", e.target.value)}
+                  className={inputClass}
+                />
+              </Input>
+
+              <Input label="Gender" icon={<User />} error={errors.gender}>
+                <select
+                  value={formData.gender}
+                  onChange={(e) => handleChange("gender", e.target.value)}
+                  className={inputClass}
+                >
+                  <option value="">Select gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
               </Input>
 
               <Submit
@@ -241,7 +360,7 @@ const RegisterPage = () => {
                   onChange={(e) =>
                     handleChange(
                       "otp",
-                      e.target.value.replace(/\D/g, "").slice(0, 6)
+                      e.target.value.replace(/\D/g, "").slice(0, 6),
                     )
                   }
                   className={inputClass}
