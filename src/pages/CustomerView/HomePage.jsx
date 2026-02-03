@@ -1,24 +1,121 @@
-import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import Header from "../../components/Header/Header";
-import Footer from "../../components/Footer/Footer";
-import Loading from "../../components/Loading/Loading";
-import { getFeaturedProductsRequest } from "../../redux/actions/publicProductActions";
+import React, { useEffect, useMemo, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import Header from '../../components/Header/Header';
+import Footer from '../../components/Footer/Footer';
+import Loading from '../../components/Loading/Loading';
+import { getFeaturedProductsRequest } from '../../redux/actions/publicProductActions';
+import { getHomepageAssetsPublicRequest } from '../../redux/actions/homepageAssetsActions';
 import { addItemToCartRequest } from "../../redux/actions/cartActions";
 const HomePage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { featuredProducts, featuredProductsLoading } = useSelector(
-    (state) => state.publicProduct,
-  );
-
+  const { featuredProducts, featuredProductsLoading } = useSelector((state) => state.publicProduct);
+  const { publicAssets } = useSelector((state) => state.homepageAssets || {});
+    // State for testimonial carousel
+  const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
   useEffect(() => {
     dispatch(getFeaturedProductsRequest());
-  }, [dispatch]);
+    // Load homepage assets
+    if (!publicAssets) {
+      dispatch(getHomepageAssetsPublicRequest());
+    }
+  }, [dispatch, publicAssets]);
+
+  // Helper function to get asset URL by key
+  const getAssetUrl = (key, fallbackUrl) => {
+    if (!publicAssets || !Array.isArray(publicAssets)) return fallbackUrl;
+    const asset = publicAssets.find(a => a.key === key);
+    return asset?.imageUrl || fallbackUrl;
+  };
+
+  // Helper function to get asset alt text by key
+  const getAssetAlt = (key, fallbackAlt) => {
+    if (!publicAssets || !Array.isArray(publicAssets)) return fallbackAlt;
+    const asset = publicAssets.find(a => a.key === key);
+    return asset?.altText || fallbackAlt;
+  };
+
+  // Fallback image URL (static, no API call - avoids failed requests in Network tab)
+  const FALLBACK_IMAGE_URL = 'https://public.readdy.ai/ai/img_res/5bde7704-1cb0-4365-9e92-f123696b11d9.png';
+
+  // Memoize asset URLs for performance
+  const assets = useMemo(() => ({
+    heroBackground: getAssetUrl('heroBackground', FALLBACK_IMAGE_URL),
+    trustAvatar1: getAssetUrl('trustAvatar1', FALLBACK_IMAGE_URL),
+    trustAvatar2: getAssetUrl('trustAvatar2', FALLBACK_IMAGE_URL),
+    trustAvatar3: getAssetUrl('trustAvatar3', FALLBACK_IMAGE_URL),
+    testimonialImage: getAssetUrl('testimonialImage', FALLBACK_IMAGE_URL),
+    ctaImage: getAssetUrl('ctaImage', FALLBACK_IMAGE_URL),
+  }), [publicAssets]);
+
+  const assetAlts = useMemo(() => ({
+    heroBackground: getAssetAlt('heroBackground', 'Organic farm field'),
+    trustAvatar1: getAssetAlt('trustAvatar1', 'Customer'),
+    trustAvatar2: getAssetAlt('trustAvatar2', 'Customer'),
+    trustAvatar3: getAssetAlt('trustAvatar3', 'Customer'),
+    testimonialImage: getAssetAlt('testimonialImage', 'Khách hàng hài lòng'),
+    ctaImage: getAssetAlt('ctaImage', 'Đặt hàng ngay'),
+  }), [publicAssets]);
 
   const handleProductClick = (productId) => {
     navigate(`/products/${productId}`);
+  };
+
+  // Testimonials data with corresponding images
+  const testimonials = [
+    {
+      text: "The vegetables are very fresh, delivered on time. My family is very satisfied with the product quality. Especially the mustard greens and cherry tomatoes, naturally sweet without needing much seasoning. Will continue to support!",
+      author: "Ms. Nguyen Thi Mai, Hanoi",
+      imageKey: 'testimonialImage', // Use testimonialImage for first testimonial
+      fallbackImage: FALLBACK_IMAGE_URL
+    },
+    {
+      text: "I have tried many places selling organic agricultural products, but only here are the freshest and most delicious. Reasonable prices, good customer care service. Very reliable!",
+      author: "Mr. Tran Van Hung, Ho Chi Minh City",
+      imageKey: 'testimonialImage2', // Use testimonialImage2 for second testimonial (or fallback to testimonialImage)
+      fallbackImage: FALLBACK_IMAGE_URL
+    }
+  ];
+
+  // Get testimonial image URL based on current index
+  const getCurrentTestimonialImage = () => {
+    const currentTestimonial = testimonials[currentTestimonialIndex];
+    // Try to get image from assets using imageKey, fallback to testimonialImage if not found
+    const imageUrl = getAssetUrl(currentTestimonial.imageKey, null);
+    if (imageUrl && imageUrl !== currentTestimonial.fallbackImage) {
+      return imageUrl;
+    }
+    // If imageKey doesn't exist in assets, try testimonialImage
+    if (currentTestimonial.imageKey === 'testimonialImage2') {
+      const testimonialImageUrl = getAssetUrl('testimonialImage', null);
+      if (testimonialImageUrl && testimonialImageUrl !== testimonials[0].fallbackImage) {
+        return testimonialImageUrl;
+      }
+    }
+    // Use fallback image
+    return currentTestimonial.fallbackImage;
+  };
+
+  const getCurrentTestimonialAlt = () => {
+    const currentTestimonial = testimonials[currentTestimonialIndex];
+    if (currentTestimonial.imageKey === 'testimonialImage2') {
+      return getAssetAlt('testimonialImage2', getAssetAlt('testimonialImage', 'Khách hàng hài lòng'));
+    }
+    return getAssetAlt('testimonialImage', 'Khách hàng hài lòng');
+  };
+
+  // Handle testimonial navigation
+  const handlePrevTestimonial = () => {
+    setCurrentTestimonialIndex((prev) => 
+      prev === 0 ? testimonials.length - 1 : prev - 1
+    );
+  };
+
+  const handleNextTestimonial = () => {
+    setCurrentTestimonialIndex((prev) => 
+      prev === testimonials.length - 1 ? 0 : prev + 1
+    );
   };
   return (
     <div className="min-h-screen bg-white">
@@ -30,8 +127,7 @@ const HomePage = () => {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage:
-              "url(https://readdy.ai/api/search-image?query=Beautiful%20lush%20green%20organic%20farm%20field%20with%20fresh%20vegetables%20growing%20under%20bright%20natural%20sunlight%20wide%20landscape%20view%20peaceful%20countryside%20agricultural%20scene%20with%20vibrant%20green%20colors%20and%20natural%20lighting&width=1920&height=1080&seq=hero1&orientation=landscape)",
+            backgroundImage: `url(${assets.heroBackground})`,
           }}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/40"></div>
@@ -41,29 +137,35 @@ const HomePage = () => {
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className="flex flex-col items-start max-w-3xl">
             {/* Trust Badge */}
-            <div className="flex items-center space-x-3 mb-8">
-              <div className="flex -space-x-2">
+            <div className="flex items-center space-x-4 mb-8">
+              <div className="flex -space-x-3">
                 <img
-                  src="https://readdy.ai/api/search-image?query=Happy%20smiling%20asian%20woman%20customer%20portrait%20on%20clean%20white%20background%20professional%20photography&width=100&height=100&seq=avatar1&orientation=squarish"
-                  alt="Customer"
-                  className="w-10 h-10 rounded-full border-2 border-white object-cover"
+                  src={assets.trustAvatar1}
+                  alt={assetAlts.trustAvatar1}
+                  className="w-16 h-16 rounded-full border-4 border-white object-cover shadow-lg hover:scale-110 transition-transform duration-300"
+                  onError={(e) => {
+                    e.target.src = 'https://ui-avatars.com/api/?name=Customer&background=random';
+                  }}
                 />
                 <img
-                  src="https://readdy.ai/api/search-image?query=Happy%20smiling%20asian%20man%20customer%20portrait%20on%20clean%20white%20background%20professional%20photography&width=100&height=100&seq=avatar2&orientation=squarish"
-                  alt="Customer"
-                  className="w-10 h-10 rounded-full border-2 border-white object-cover"
+                  src={assets.trustAvatar2}
+                  alt={assetAlts.trustAvatar2}
+                  className="w-16 h-16 rounded-full border-4 border-white object-cover shadow-lg hover:scale-110 transition-transform duration-300"
+                  onError={(e) => {
+                    e.target.src = 'https://ui-avatars.com/api/?name=Customer&background=random';
+                  }}
                 />
                 <img
-                  src="https://readdy.ai/api/search-image?query=Happy%20smiling%20asian%20woman%20customer%20portrait%20on%20clean%20white%20background%20professional%20photography&width=100&height=100&seq=avatar3&orientation=squarish"
-                  alt="Customer"
-                  className="w-10 h-10 rounded-full border-2 border-white object-cover"
+                  src={assets.trustAvatar3}
+                  alt={assetAlts.trustAvatar3}
+                  className="w-16 h-16 rounded-full border-4 border-white object-cover shadow-lg hover:scale-110 transition-transform duration-300"
+                  onError={(e) => {
+                    e.target.src = 'https://ui-avatars.com/api/?name=Customer&background=random';
+                  }}
                 />
               </div>
-              <p className="text-white text-sm font-medium">
-                More than 5,000+ customers trust us
-              </p>
+              <p className="text-white text-base font-semibold drop-shadow-lg">More than 5,000+ customers trust us</p>
             </div>
-
             {/* Main Heading */}
             <h1 className="text-6xl md:text-7xl lg:text-8xl font-black text-white mb-6 leading-tight">
               Clean Agricultural Products
@@ -87,6 +189,87 @@ const HomePage = () => {
             <p className="text-white/90 text-lg leading-relaxed">
               Committed to delivering the freshest, safest organic agricultural
               products. Directly from the farm to your hands.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* TRUST AVATARS SECTION */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <p className="text-gray-500 text-sm font-medium uppercase tracking-wider mb-3">
+              TRUSTED BY CUSTOMERS
+            </p>
+            <h2 className="text-4xl md:text-5xl font-black text-gray-900">
+              Our Happy Customers
+            </h2>
+          </div>
+
+          {/* Trust Avatars Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            {/* Avatar 1 */}
+            <div className="flex flex-col items-center text-center p-6 rounded-2xl hover:bg-gray-50 transition-colors">
+              <div className="relative mb-4">
+                <img
+                  src={assets.trustAvatar1}
+                  alt={assetAlts.trustAvatar1}
+                  className="w-32 h-32 rounded-full border-4 border-gray-200 object-cover shadow-xl hover:scale-105 transition-transform duration-300"
+                  onError={(e) => {
+                    e.target.src = 'https://ui-avatars.com/api/?name=Customer+1&background=random&size=128';
+                  }}
+                />
+                <div className="absolute -bottom-2 -right-2 bg-green-500 rounded-full p-2 shadow-lg">
+                  <i className="ri-check-line text-white text-lg"></i>
+                </div>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Satisfied Customer</h3>
+              <p className="text-gray-600 text-sm">Verified Purchase</p>
+            </div>
+
+            {/* Avatar 2 */}
+            <div className="flex flex-col items-center text-center p-6 rounded-2xl hover:bg-gray-50 transition-colors">
+              <div className="relative mb-4">
+                <img
+                  src={assets.trustAvatar2}
+                  alt={assetAlts.trustAvatar2}
+                  className="w-32 h-32 rounded-full border-4 border-gray-200 object-cover shadow-xl hover:scale-105 transition-transform duration-300"
+                  onError={(e) => {
+                    e.target.src = 'https://ui-avatars.com/api/?name=Customer+2&background=random&size=128';
+                  }}
+                />
+                <div className="absolute -bottom-2 -right-2 bg-green-500 rounded-full p-2 shadow-lg">
+                  <i className="ri-check-line text-white text-lg"></i>
+                </div>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Happy Customer</h3>
+              <p className="text-gray-600 text-sm">Verified Purchase</p>
+            </div>
+
+            {/* Avatar 3 */}
+            <div className="flex flex-col items-center text-center p-6 rounded-2xl hover:bg-gray-50 transition-colors">
+              <div className="relative mb-4">
+                <img
+                  src={assets.trustAvatar3}
+                  alt={assetAlts.trustAvatar3}
+                  className="w-32 h-32 rounded-full border-4 border-gray-200 object-cover shadow-xl hover:scale-105 transition-transform duration-300"
+                  onError={(e) => {
+                    e.target.src = 'https://ui-avatars.com/api/?name=Customer+3&background=random&size=128';
+                  }}
+                />
+                <div className="absolute -bottom-2 -right-2 bg-green-500 rounded-full p-2 shadow-lg">
+                  <i className="ri-check-line text-white text-lg"></i>
+                </div>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Loyal Customer</h3>
+              <p className="text-gray-600 text-sm">Verified Purchase</p>
+            </div>
+          </div>
+
+          {/* Trust Stats */}
+          <div className="mt-12 text-center">
+            <p className="text-gray-600 text-lg">
+              Join <span className="font-bold text-gray-900">5,000+</span> satisfied customers who trust our quality products
             </p>
           </div>
         </div>
@@ -251,10 +434,16 @@ const HomePage = () => {
             <div className="lg:col-span-2">
               <div className="relative h-96 lg:h-[500px] rounded-3xl overflow-hidden">
                 <img
-                  src="https://readdy.ai/api/search-image?query=Happy%20smiling%20asian%20woman%20holding%20fresh%20organic%20vegetables%20in%20modern%20kitchen%20natural%20lighting%20lifestyle%20photography%20professional%20high%20quality&width=600&height=800&seq=testimonial1&orientation=portrait"
-                  alt="Khách hàng hài lòng"
-                  className="w-full h-full object-cover"
+                  key={currentTestimonialIndex} // Force re-render when index changes
+                  src={getCurrentTestimonialImage()}
+                  alt={getCurrentTestimonialAlt()}
+                  className="w-full h-full object-cover transition-opacity duration-500"
+                  onError={(e) => {
+                    e.target.src = testimonials[currentTestimonialIndex].fallbackImage;
+                  }}
                 />
+                {/* Fade transition overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
               </div>
             </div>
 
@@ -270,44 +459,48 @@ const HomePage = () => {
                 <span className="text-gray-400">From Customers</span>
               </h2>
 
-              <div className="mt-12 space-y-8">
-                {/* Testimonial 1 */}
-                <div>
+              <div className="mt-12">
+                {/* Current Testimonial */}
+                <div className="min-h-[200px] transition-all duration-300">
                   <p className="text-gray-700 text-lg leading-relaxed mb-4">
-                    "The vegetables are very fresh, delivered on time. My family
-                    is very satisfied with the product quality. Especially the
-                    mustard greens and cherry tomatoes, naturally sweet without
-                    needing much seasoning. Will continue to support!"
-                  </p>
-                  <p className="text-gray-900 font-bold">
-                    — Ms. Nguyen Thi Mai, Hanoi
-                  </p>
-                </div>
 
-                {/* Testimonial 2 */}
-                <div>
-                  <p className="text-gray-700 text-lg leading-relaxed mb-4">
-                    "I have tried many places selling organic agricultural
-                    products, but only here are the freshest and most delicious.
-                    Reasonable prices, good customer care service. Very
-                    reliable!"
+                    "{testimonials[currentTestimonialIndex].text}"
                   </p>
-                  <p className="text-gray-900 font-bold">
-                    — Mr. Tran Van Hung, Ho Chi Minh City
-                  </p>
+                  <p className="text-gray-900 font-bold">— {testimonials[currentTestimonialIndex].author}</p>
+
                 </div>
               </div>
 
               {/* Navigation Buttons */}
               <div className="flex items-center space-x-4 mt-12">
-                <button
-                  className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors cursor-pointer"
+                <button 
+                  onClick={handlePrevTestimonial}
+                  className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors cursor-pointer" 
                   aria-label="Previous"
                 >
                   <i className="ri-arrow-left-line text-xl"></i>
                 </button>
-                <button
-                  className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-900 text-white hover:bg-gray-800 transition-colors cursor-pointer"
+              
+                {/* Dots indicator */}
+                <div className="flex items-center space-x-2">
+                  {testimonials.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentTestimonialIndex(index)}
+                      className={`w-2 h-2 rounded-full transition-all ${
+                        index === currentTestimonialIndex 
+                          ? 'bg-gray-900 w-8' 
+                          : 'bg-gray-300 hover:bg-gray-400'
+                      }`}
+                      aria-label={`Go to testimonial ${index + 1}`}
+                    />
+                  ))}
+                </div>
+                
+                <button 
+                  onClick={handleNextTestimonial}
+                  className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-900 text-white hover:bg-gray-800 transition-colors cursor-pointer" 
+
                   aria-label="Next"
                 >
                   <i className="ri-arrow-right-line text-xl"></i>
@@ -376,9 +569,12 @@ const HomePage = () => {
           <div className="mb-12">
             <div className="relative h-80 rounded-3xl overflow-hidden">
               <img
-                src="https://readdy.ai/api/search-image?query=Beautiful%20organic%20farm%20with%20fresh%20vegetables%20and%20fruits%20harvest%20scene%20natural%20lighting%20peaceful%20countryside%20agricultural%20landscape%20with%20vibrant%20colors%20and%20natural%20textures&width=1200&height=600&seq=cta1&orientation=landscape"
-                alt="Đặt hàng ngay"
+                src={assets.ctaImage}
+                alt={assetAlts.ctaImage}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.src = FALLBACK_IMAGE_URL;
+                }}
               />
             </div>
           </div>

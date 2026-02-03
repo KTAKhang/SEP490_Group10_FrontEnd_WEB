@@ -62,7 +62,7 @@ const ForgotPassword = () => {
   const handleSendOTP = (e) => {
     e.preventDefault();
     if (!formData.email) {
-      setErrors({ email: "Vui lòng nhập email" });
+      setErrors({ email: "Please, enter email!" });
       return;
     }
     dispatch(forgotPasswordRequest(formData.email));
@@ -73,13 +73,13 @@ const ForgotPassword = () => {
 
     const newErrors = {};
     if (!formData.otp || formData.otp.length !== 6)
-      newErrors.otp = "OTP gồm 6 số";
+      newErrors.otp = "The OTP consists of 6 numbers.";
 
     if (!formData.newPassword || formData.newPassword.length < 8)
-      newErrors.newPassword = "Mật khẩu tối thiểu 8 ký tự";
+      newErrors.newPassword = "Password must be at least 8 characters.";
 
     if (formData.newPassword !== formData.confirmPassword)
-      newErrors.confirmPassword = "Mật khẩu không khớp";
+      newErrors.confirmPassword = "Password doesn't match.";
 
     if (Object.keys(newErrors).length) {
       setErrors(newErrors);
@@ -138,12 +138,12 @@ const ForgotPassword = () => {
               )}
             </div>
             <h1 className="text-2xl font-bold text-gray-900">
-              {step === 1 ? "Quên mật khẩu" : "Đặt lại mật khẩu"}
+              {step === 1 ? "Forgot password" : "Reset password"}
             </h1>
             <p className="text-gray-500 mt-1">
               {step === 1
-                ? "Nhập email để nhận mã OTP"
-                : "Nhập OTP và mật khẩu mới"}
+                ? "Enter your email to receive the OTP code."
+                : "Enter the OTP and your new password."}
             </p>
           </div>
 
@@ -193,7 +193,7 @@ const ForgotPassword = () => {
                 transition disabled:opacity-50
               "
               >
-                {forgotPasswordLoading ? "Đang gửi..." : "Gửi mã OTP"}
+                {forgotPasswordLoading ? "Sending..." : "Send OTP code"}
               </button>
             </form>
           )}
@@ -231,7 +231,7 @@ const ForgotPassword = () => {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type={showNewPassword ? "text" : "password"}
-                  placeholder="Mật khẩu mới"
+                  placeholder="New password"
                   value={formData.newPassword}
                   onChange={(e) => handleChange("newPassword", e.target.value)}
                   className="
@@ -254,7 +254,7 @@ const ForgotPassword = () => {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Xác nhận mật khẩu"
+                  placeholder="Confirm password"
                   value={formData.confirmPassword}
                   onChange={(e) =>
                     handleChange("confirmPassword", e.target.value)
@@ -283,7 +283,7 @@ const ForgotPassword = () => {
                 transition disabled:opacity-50
               "
               >
-                {resetPasswordLoading ? "Đang đặt lại..." : "Đặt lại mật khẩu"}
+                {resetPasswordLoading ? "Resetting..." : "Reset password"}
               </button>
             </form>
           )}
