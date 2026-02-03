@@ -184,7 +184,7 @@ export default function FruitTypeManagement() {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Pre-order fruit types</h1>
-      {err && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{err}</div>}
+      {err && !modal && !showSaveConfirm && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-2xl border border-red-100">{err}</div>}
       <div className="mb-4 flex flex-wrap items-center gap-4">
         <button
           type="button"
@@ -316,8 +316,8 @@ export default function FruitTypeManagement() {
             </div>
           )}
         </div>
+        /* Modal for create form for pre-order fruit */
       )}
-
       {modal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
@@ -445,7 +445,7 @@ export default function FruitTypeManagement() {
               <button type="button" onClick={closeModal} className="flex-1 py-2.5 border border-gray-300 text-gray-700 rounded-full font-medium hover:bg-gray-50 transition-colors">
                 Cancel
               </button>
-              <button type="button" onClick={handleSaveClick} className="flex-1 py-2.5 bg-gray-900 text-white rounded-full font-medium hover:bg-gray-800 transition-colors">
+              <button type="button" onClick={handleSaveClick} className="flex-1 py-2.5 bg-green-600 text-white rounded-full font-medium hover:bg-green-700 transition-colors">
                 Save
               </button>
             </div>
@@ -456,6 +456,9 @@ export default function FruitTypeManagement() {
       {showSaveConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
+            {err && (
+              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-2xl border border-red-100 text-sm">{err}</div>
+            )}
             <p className="text-gray-700 text-sm mb-6">
               After creating, this fruit type cannot be edited. Please check all information carefully, then click Confirm to save.
             </p>
@@ -470,7 +473,7 @@ export default function FruitTypeManagement() {
               <button
                 type="button"
                 onClick={submit}
-                className="flex-1 py-2.5 bg-gray-900 text-white rounded-full font-medium hover:bg-gray-800 transition-colors"
+                className="flex-1 py-2.5 bg-green-600 text-white rounded-full font-medium hover:bg-gray-600 transition-colors"
               >
                 Confirm
               </button>

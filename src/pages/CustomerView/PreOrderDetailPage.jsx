@@ -63,7 +63,7 @@ export default function PreOrderDetailPage() {
         <p className="text-gray-600 text-lg mb-4">{err}</p>
         <button
           onClick={() => navigate("/customer/pre-orders")}
-          className="px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
+          className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
         >
           Back to Pre-order
         </button>
@@ -165,7 +165,7 @@ export default function PreOrderDetailPage() {
                 disabled={!validQty}
                 className={`flex items-center justify-center space-x-2 px-8 py-4 rounded-lg font-semibold w-full max-w-xs ${
                   validQty
-                    ? "bg-gray-900 text-white hover:bg-gray-800 cursor-pointer"
+                    ? "bg-green-600 text-white hover:bg-green-700 cursor-pointer"
                     : "bg-gray-400 text-white cursor-not-allowed"
                 }`}
               >

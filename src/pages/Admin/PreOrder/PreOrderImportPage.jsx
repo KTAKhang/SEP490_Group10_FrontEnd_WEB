@@ -140,7 +140,7 @@ export default function PreOrderImportPage() {
           />
         </div>
       </div>
-      {err && (
+      {err && !showForm && !showConfirmCreate && (
         <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-2xl border border-red-100 text-sm">{err}</div>
       )}
       {loading ? (
@@ -176,7 +176,7 @@ export default function PreOrderImportPage() {
                   type="button"
                   onClick={() => openForm(d)}
                   disabled={alreadyHasBatch}
-                  className="px-4 py-2 bg-gray-900 text-white rounded-full hover:bg-gray-800 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Create receive batch
                 </button>
@@ -250,12 +250,15 @@ export default function PreOrderImportPage() {
               <h3 className="font-bold text-lg text-gray-900">Create receive batch</h3>
               <button
                 type="button"
-                onClick={() => setShowForm(false)}
+                onClick={() => { setShowForm(false); setErr(""); }}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
               >
                 <i className="ri-close-line text-xl text-gray-600" />
               </button>
             </div>
+            {err && (
+              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-2xl border border-red-100 text-sm">{err}</div>
+            )}
             <div className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700">
@@ -330,7 +333,7 @@ export default function PreOrderImportPage() {
             <div className="flex gap-3 mt-6">
               <button
                 type="button"
-                onClick={() => setShowForm(false)}
+                onClick={() => { setShowForm(false); setErr(""); }}
                 className="flex-1 py-2.5 border border-gray-300 rounded-full font-medium text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Cancel
@@ -339,7 +342,7 @@ export default function PreOrderImportPage() {
                 type="button"
                 onClick={submitForm}
                 disabled={submitting}
-                className="flex-1 py-2.5 bg-gray-900 text-white rounded-full font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                className="flex-1 py-2.5 bg-green-600 text-white rounded-full font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
               >
                 {submitting ? "Creating..." : "Create batch"}
               </button>
@@ -353,13 +356,16 @@ export default function PreOrderImportPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
             <h3 className="font-bold text-gray-900 text-lg mb-3">Confirm create receive batch</h3>
+            {err && (
+              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-2xl border border-red-100 text-sm">{err}</div>
+            )}
             <p className="text-gray-700 mb-6">
               This action can be done <strong>only once</strong> per pre-order fruit type. Quantity must equal demand. After creation, warehouse staff receives once only. Are you sure?
             </p>
             <div className="flex gap-3">
               <button
                 type="button"
-                onClick={() => setShowConfirmCreate(false)}
+                onClick={() => { setShowConfirmCreate(false); setErr(""); }}
                 className="flex-1 py-2.5 border border-gray-300 rounded-full font-medium text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Cancel
@@ -368,7 +374,7 @@ export default function PreOrderImportPage() {
                 type="button"
                 onClick={doSubmitForm}
                 disabled={submitting}
-                className="flex-1 py-2.5 bg-gray-900 text-white rounded-full font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                className="flex-1 py-2.5 bg-green-600 text-white rounded-full font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
               >
                 {submitting ? "Creating..." : "Confirm create"}
               </button>

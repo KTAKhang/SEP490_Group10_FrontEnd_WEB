@@ -28,7 +28,7 @@ function filterByHarvestLock(items) {
     return harvest > cutoff;
   });
 }
-
+/*method for pagination product*/
 export default function PreOrdersPage() {
   const navigate = useNavigate();
   const [list, setList] = useState([]);
@@ -67,7 +67,7 @@ export default function PreOrdersPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero - giống Product */}
+      {/* Hero section */}
       <section className="relative pt-32 pb-20 bg-gradient-to-br from-green-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
@@ -81,7 +81,7 @@ export default function PreOrdersPage() {
         </div>
       </section>
 
-      {/* Grid - giống Product */}
+      {/* Grid section */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-6 flex flex-wrap items-center gap-4">
@@ -108,7 +108,7 @@ export default function PreOrdersPage() {
             return visibleList.length === 0 ? (
               <div className="text-center py-12">
                 <i className="ri-archive-line text-6xl text-gray-400 mx-auto mb-4 block" />
-                <p className="text-gray-600 text-lg">No fruit types open for pre-order yet.</p>
+                <p className="text-gray-600 text-lg">There is currently no fruit available for pre-order.</p>
               </div>
             ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
