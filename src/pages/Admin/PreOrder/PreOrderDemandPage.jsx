@@ -76,7 +76,7 @@ export default function PreOrderDemandPage() {
           />
         </div>
       </div>
-      {err && (
+      {err && !allocModal && !showAllocConfirm && (
         <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-2xl border border-red-100">{err}</div>
       )}
       {loading ? (
@@ -108,7 +108,7 @@ export default function PreOrderDemandPage() {
                   type="button"
                   onClick={() => canAlloc && openAlloc(d)}
                   disabled={!canAlloc}
-                  className="mt-4 px-4 py-2 text-sm font-medium bg-gray-900 text-white rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="mt-4 px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-full hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {alreadyAllocated ? "Allocated" : "Allocate from pre-order stock"}
                 </button>
@@ -179,13 +179,16 @@ export default function PreOrderDemandPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
             <h3 className="font-bold text-gray-900 text-lg mb-4">Allocate for: {allocModal.fruitTypeName}</h3>
+            {err && !showAllocConfirm && (
+              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-2xl border border-red-100 text-sm">{err}</div>
+            )}
             <p className="text-sm text-gray-600 mb-2">Available from pre-order stock: <strong>{availableKg} kg</strong></p>
             <p className="text-sm text-gray-700 mb-6">
               Allocate: <strong>{availableKg} kg</strong> (full available, one-time allocation for this fruit type).
             </p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setAllocModal(null)} className="flex-1 py-2.5 border border-gray-300 rounded-full font-medium text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
-              <button type="button" onClick={submitAlloc} className="flex-1 py-2.5 bg-gray-900 text-white rounded-full font-medium hover:bg-gray-800 transition-colors">Continue</button>
+              <button type="button" onClick={() => { setAllocModal(null); setErr(""); }} className="flex-1 py-2.5 border border-gray-300 rounded-full font-medium text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+              <button type="button" onClick={submitAlloc} className="flex-1 py-2.5 bg-green-600 text-white rounded-full font-medium hover:bg-green-700 transition-colors">Continue</button>
             </div>
           </div>
         </div>
@@ -195,6 +198,9 @@ export default function PreOrderDemandPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
             <h3 className="font-bold text-gray-900 text-lg mb-3">Confirm allocation from pre-order stock</h3>
+            {err && (
+              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-2xl border border-red-100 text-sm">{err}</div>
+            )}
             <p className="text-gray-700 mb-2">
               Allocate <strong>{availableKg} kg</strong> (full available) for <strong>{allocModal.fruitTypeName}</strong>. This action can be done <strong>only once</strong>; after allocation it cannot be changed.
             </p>
@@ -204,7 +210,7 @@ export default function PreOrderDemandPage() {
             <div className="flex gap-3">
               <button
                 type="button"
-                onClick={() => setShowAllocConfirm(false)}
+                onClick={() => { setShowAllocConfirm(false); setErr(""); }}
                 className="flex-1 py-2.5 border border-gray-300 rounded-full font-medium text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Cancel
@@ -212,7 +218,7 @@ export default function PreOrderDemandPage() {
               <button
                 type="button"
                 onClick={doSubmitAlloc}
-                className="flex-1 py-2.5 bg-gray-900 text-white rounded-full font-medium hover:bg-gray-800 transition-colors"
+                className="flex-1 py-2.5 bg-green-600 text-white rounded-full font-medium hover:bg-green-700 transition-colors"
               >
                 Confirm allocation
               </button>

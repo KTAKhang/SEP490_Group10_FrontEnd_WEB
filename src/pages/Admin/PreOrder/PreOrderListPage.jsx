@@ -51,6 +51,7 @@ export default function PreOrderListPage() {
   }, [searchText]);
 
   const openDetail = (id) => {
+    setErr("");
     apiClient
       .get(`/admin/preorder/pre-orders/${id}`)
       .then((res) => {
@@ -75,7 +76,7 @@ export default function PreOrderListPage() {
   return (
     <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Deposit orders</h1>
-      {err && (
+      {err && !detail && (
         <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-2xl border border-red-100 flex items-center justify-between">
           <span>{err}</span>
           <button type="button" className="font-medium underline hover:no-underline" onClick={() => setErr("")}>Dismiss</button>
@@ -239,10 +240,13 @@ export default function PreOrderListPage() {
           <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 flex justify-between items-start border-b border-gray-100">
               <h2 className="text-lg font-bold text-gray-900">Pre-order detail</h2>
-              <button type="button" onClick={() => setDetail(null)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+              <button type="button" onClick={() => { setDetail(null); setErr(""); }} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                 <i className="ri-close-line text-xl text-gray-600" />
               </button>
             </div>
+            {err && (
+              <div className="mx-6 mt-4 p-3 bg-red-50 text-red-700 rounded-2xl border border-red-100 text-sm">{err}</div>
+            )}
             <div className="p-6 space-y-4 text-sm">
               <div><span className="text-gray-500 font-medium">Customer:</span><br /><span className="text-gray-700">{detail.userId?.user_name || "—"} ({detail.userId?.email || "—"})</span></div>
               <div><span className="text-gray-500 font-medium">Product:</span><br /><span className="text-gray-700">{detail.fruitTypeId?.name || "—"}</span></div>
@@ -263,7 +267,7 @@ export default function PreOrderListPage() {
                   type="button"
                   onClick={() => handleMarkCompleted(detail._id)}
                   disabled={completingId === detail._id}
-                  className="px-4 py-2 bg-green-600 text-white rounded-full text-sm font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2 bg-green-600 text-white rounded-full text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {completingId === detail._id ? (
                     <><i className="ri-loader-4-line animate-spin inline-block mr-1" /> Marking…
