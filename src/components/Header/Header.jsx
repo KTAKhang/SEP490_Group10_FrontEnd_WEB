@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logoutRequest } from "../../redux/actions/authActions";
 import { getShopInfoPublicRequest } from "../../redux/actions/shopActions";
-import { LogOut, Settings, User, Clock, Package, Menu, X } from "lucide-react";
+import { LogOut, Settings, User, Clock, Package, Menu, X, Heart } from "lucide-react";
 import PropTypes from "prop-types";
 import { fetchCartRequest } from "../../redux/actions/cartActions";
 import NotificationBell from "../NotificationBell/NotificationBell";
@@ -106,7 +106,6 @@ const Header = ({ searchTerm, setSearchTerm }) => {
               { label: "News", path: "/news" },
               { label: "FAQ", path: "/faq" },
               { label: "Voucher", path: "/customer/vouchers" },
-       ...(storedUser ? [{ label: "Wishlist", path: "/wishlist" }] : []),
             ].map((item) => (
               <Link
                 key={item.path}
@@ -125,7 +124,16 @@ const Header = ({ searchTerm, setSearchTerm }) => {
               <>
                 {/* NOTIFICATIONS */}
                 <NotificationBell />
-                
+
+                {/* WISHLIST - icon trái tim */}
+                <Link
+                  to="/wishlist"
+                  className="p-2 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-700 hover:text-red-500"
+                  aria-label="Wishlist"
+                >
+                  <Heart size={22} strokeWidth={1.5} />
+                </Link>
+
                 {/* CART */}
                 <Link
                   to="/customer/cart"
@@ -234,7 +242,6 @@ className="text-sm text-gray-700 hover:text-green-600"
               { label: "Contact", path: "/customer/contact" },
               { label: "FAQ", path: "/faq" },
               { label: "Voucher", path: "/customer/vouchers" },
-             ...(storedUser ? [{ label: "Wishlist", path: "/wishlist" }] : []),
             ].map((item) => (
               <Link
                 key={item.path}

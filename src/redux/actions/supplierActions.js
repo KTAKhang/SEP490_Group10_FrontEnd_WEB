@@ -144,9 +144,10 @@ export const updateHarvestBatchRequest = (harvestBatchId, formData) => ({
   payload: { harvestBatchId, formData },
 });
 
-export const updateHarvestBatchSuccess = (data) => ({
+export const updateHarvestBatchSuccess = (data, formData = null) => ({
   type: UPDATE_HARVEST_BATCH_SUCCESS,
   payload: data,
+  formData,
 });
 
 export const updateHarvestBatchFailure = (error) => ({

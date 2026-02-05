@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Package,
@@ -9,6 +9,8 @@ import {
   Trash2,
   Filter,
   Calendar,
+  CheckCircle,
+  EyeOff,
 } from "lucide-react";
 import {
   getHarvestBatchesRequest,
@@ -18,6 +20,9 @@ import {
 import CreateHarvestBatch from "./CreateHarvestBatch";
 import ReadHarvestBatch from "./ReadHarvestBatch";
 import UpdateHarvestBatch from "./UpdateHarvestBatch";
+import UpdateEligible from "./UpdateStatus/UpdateEligible";
+import UpdateVisible from "./UpdateStatus/UpdateVisible";
+import DeleteHarvestBatch from "./DeleteHarvestBatch";
 import Loading from "../../../components/Loading/Loading";
 
 const HarvestBatchManagement = () => {
@@ -32,12 +37,17 @@ const HarvestBatchManagement = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSupplier, setFilterSupplier] = useState("all");
+  const [filterReceiptEligible, setFilterReceiptEligible] = useState("all");
+  const [filterVisibleInReceipt, setFilterVisibleInReceipt] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showReadModal, setShowReadModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [showUpdateEligibleModal, setShowUpdateEligibleModal] = useState(false);
+  const [showUpdateVisibleModal, setShowUpdateVisibleModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedBatch, setSelectedBatch] = useState(null);
 
   // Fetch harvest batches when filters change
@@ -47,11 +57,13 @@ const HarvestBatchManagement = () => {
       limit: 10,
       search: searchTerm || undefined,
       supplierId: filterSupplier !== "all" ? filterSupplier : undefined,
+      receiptEligible: filterReceiptEligible !== "all" ? filterReceiptEligible === "true" : undefined,
+      visibleInReceipt: filterVisibleInReceipt !== "all" ? filterVisibleInReceipt === "true" : undefined,
       sortBy,
       sortOrder,
     };
     dispatch(getHarvestBatchesRequest(params));
-  }, [dispatch, currentPage, searchTerm, filterSupplier, sortBy, sortOrder]);
+  }, [dispatch, currentPage, searchTerm, filterSupplier, filterReceiptEligible, filterVisibleInReceipt, sortBy, sortOrder]);
 
   const handleAddBatch = () => {
     setShowCreateModal(true);
@@ -68,119 +80,159 @@ const HarvestBatchManagement = () => {
     setShowUpdateModal(true);
   };
 
-  const handleDeleteBatch = (batch) => {
-    if (window.confirm(`Bạn có chắc muốn xóa lô thu hoạch "${batch.batchNumber}"?`)) {
-      dispatch(deleteHarvestBatchRequest(batch._id));
-    }
+  const handleUpdateEligible = (batch) => {
+    setSelectedBatch(batch);
+    setShowUpdateEligibleModal(true);
   };
 
-  // Refresh list after successful delete
-  useEffect(() => {
-    // Only refresh if delete was successful (no error and loading finished)
-    if (!deleteHarvestBatchLoading && !deleteHarvestBatchError) {
-      // This will run on mount and after successful operations
-      // We need to track if delete was actually called
-      const params = {
-        page: currentPage,
-        limit: 10,
-        search: searchTerm || undefined,
-        supplierId: filterSupplier !== "all" ? filterSupplier : undefined,
-        sortBy,
-        sortOrder,
-      };
-      // Only dispatch if not already loading
-      if (!harvestBatchesLoading) {
-        dispatch(getHarvestBatchesRequest(params));
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deleteHarvestBatchLoading, deleteHarvestBatchError]);
+  const handleUpdateVisible = (batch) => {
+    setSelectedBatch(batch);
+    setShowUpdateVisibleModal(true);
+  };
+
+  const refreshList = useCallback(() => {
+    const params = {
+      page: currentPage,
+      limit: 10,
+      search: searchTerm || undefined,
+      supplierId: filterSupplier !== "all" ? filterSupplier : undefined,
+      receiptEligible: filterReceiptEligible !== "all" ? filterReceiptEligible === "true" : undefined,
+      visibleInReceipt: filterVisibleInReceipt !== "all" ? filterVisibleInReceipt === "true" : undefined,
+      sortBy,
+      sortOrder,
+    };
+    dispatch(getHarvestBatchesRequest(params));
+  }, [dispatch, currentPage, searchTerm, filterSupplier, filterReceiptEligible, filterVisibleInReceipt, sortBy, sortOrder]);
+
+  const handleDeleteBatch = (batch) => {
+    setSelectedBatch(batch);
+    setShowDeleteModal(true);
+  };
+
+  const closeDeleteModal = useCallback(() => {
+    setShowDeleteModal(false);
+    setSelectedBatch(null);
+  }, []);
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN");
+    return date.toLocaleDateString("en-US");
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800 flex items-center space-x-2">
-            <Package size={32} />
-            <span>Harvest Batch Management</span>
-          </h1>
-          <p className="text-gray-600 mt-1">Manage harvest batches from suppliers</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+            <Package size={24} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">Harvest Batch Management</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Manage harvest batches from suppliers</p>
+          </div>
         </div>
-        <button
-          onClick={handleAddBatch}
-          className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-        >
+        <button onClick={handleAddBatch} className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-700 hover:shadow w-full sm:w-auto">
           <Plus size={18} />
-          <span>Add Harvest Batch</span>
+          Add Harvest Batch
         </button>
       </div>
 
       {/* Filters Card */}
-      <div className="bg-white rounded-lg border shadow-sm p-6">
-        <div className="flex items-center space-x-2 mb-4">
-          <Filter className="text-gray-400" size={20} />
-          <h2 className="text-lg font-semibold text-gray-800">Filters</h2>
-        </div>
+      <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm">
+        <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Search & filters</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search by batch number or code..."
-              value={searchTerm}
+          <div className="relative min-w-0">
+            <label className="block text-xs font-medium text-gray-500 mb-1">Search</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+              <input
+                type="text"
+                placeholder="Batch number or code..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50/50 pl-10 pr-4 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+              />
+            </div>
+          </div>
+
+          {/* Receipt Eligible */}
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Receipt eligible</label>
+            <select
+              value={filterReceiptEligible}
               onChange={(e) => {
-                setSearchTerm(e.target.value);
+                setFilterReceiptEligible(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
+              className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50/50 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+            >
+              <option value="all">All</option>
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
+          </div>
+
+          {/* Visible in receipt */}
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Visible in receipt</label>
+            <select
+              value={filterVisibleInReceipt}
+              onChange={(e) => {
+                setFilterVisibleInReceipt(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50/50 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+            >
+              <option value="all">All</option>
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
           </div>
 
           {/* Sort */}
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium text-gray-700">Sort by:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => {
-                setSortBy(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
-            >
-              <option value="createdAt">Created Date</option>
-              <option value="updatedAt">Updated Date</option>
-              <option value="harvestDate">Harvest Date</option>
-              <option value="batchNumber">Batch Number</option>
-              <option value="batchCode">Batch Code</option>
-              <option value="quantity">Quantity</option>
-              <option value="receivedQuantity">Received Quantity</option>
-              <option value="qualityGrade">Quality Grade</option>
-            </select>
-            <button
-              onClick={() => {
-                setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-                setCurrentPage(1);
-              }}
-              className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm"
-              title={sortOrder === "asc" ? "Ascending" : "Descending"}
-            >
-              {sortOrder === "asc" ? "↑" : "↓"}
-            </button>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Sort by</label>
+            <div className="flex gap-2">
+              <select
+                value={sortBy}
+                onChange={(e) => {
+                  setSortBy(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="flex-1 min-w-0 h-11 rounded-xl border border-gray-200 bg-gray-50/50 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+              >
+                <option value="createdAt">Created Date</option>
+                <option value="updatedAt">Updated Date</option>
+                <option value="harvestDate">Harvest Date</option>
+                <option value="batchNumber">Batch Number</option>
+                <option value="batchCode">Batch Code</option>
+                <option value="receivedQuantity">Received Quantity</option>
+              </select>
+              <button
+                type="button"
+                onClick={() => {
+                  setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                  setCurrentPage(1);
+                }}
+                className="h-11 w-11 shrink-0 rounded-xl border border-gray-200 bg-gray-50/50 text-gray-600 transition hover:bg-gray-100 hover:border-gray-300 flex items-center justify-center text-sm font-medium"
+                title={sortOrder === "asc" ? "Ascending" : "Descending"}
+              >
+                {sortOrder === "asc" ? "↑" : "↓"}
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Harvest Batches Table */}
-      <div className="bg-white rounded-lg border shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
         <div className="p-6 border-b">
           <h2 className="text-lg font-semibold text-gray-800">Harvest Batches</h2>
           {harvestBatchesPagination && (
@@ -201,14 +253,11 @@ const HarvestBatchManagement = () => {
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[640px]">
                   <thead className="bg-gray-50 border-b">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Batch Code
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Batch Number
+                        Batch
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Supplier
@@ -218,9 +267,6 @@ const HarvestBatchManagement = () => {
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Harvest Date
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Quantity
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Received
@@ -234,10 +280,10 @@ const HarvestBatchManagement = () => {
                     {harvestBatches.map((batch) => (
                       <tr key={batch._id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3">
-                          <p className="text-sm font-medium text-gray-900">{batch.batchCode || "N/A"}</p>
-                        </td>
-                        <td className="px-4 py-3">
-                          <p className="text-sm font-medium text-gray-900">{batch.batchNumber}</p>
+                          <p className="text-sm font-medium text-gray-900">{batch.batchCode || `#${batch.batchNumber}`}</p>
+                          {batch.batchCode && batch.batchNumber != null && (
+                            <p className="text-xs text-gray-500">#{batch.batchNumber}</p>
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           <p className="text-sm text-gray-900">{batch.supplier?.name || "N/A"}</p>
@@ -246,45 +292,53 @@ const HarvestBatchManagement = () => {
                           <p className="text-sm text-gray-900">{batch.product?.name || "N/A"}</p>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex items-center space-x-1">
-                            <Calendar size={14} className="text-gray-400" />
+                          <div className="flex items-center gap-1.5">
+                            <Calendar size={14} className="text-gray-400 shrink-0" />
                             <span className="text-sm text-gray-900">{formatDate(batch.harvestDate)}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <p className="text-sm text-gray-900">{batch.quantity || 0} KG</p>
+                          <p className="text-sm font-medium text-gray-900">{batch.receivedQuantity ?? 0}</p>
                         </td>
-                        <td className="px-4 py-3">
-                          <p className="text-sm text-gray-900">{batch.receivedQuantity || 0} KG</p>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
-                          <div className="flex items-center space-x-2">
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-1 flex-wrap">
                             <button
                               onClick={() => handleViewBatch(batch)}
-                              className="text-blue-600 hover:text-blue-900 flex items-center space-x-1"
-                              title="View Details"
+                              className="rounded-xl p-2 text-blue-600 transition hover:bg-blue-50 hover:text-blue-700"
+                              title="View details"
                             >
-                              <Eye size={16} />
-                              <span>View</span>
+                              <Eye size={18} />
+                            </button>
+                            <button
+                              onClick={() => handleUpdateEligible(batch)}
+                              className="rounded-xl p-2 text-green-600 transition hover:bg-green-50 hover:text-green-700"
+                              title="Receipt eligible"
+                            >
+                              <CheckCircle size={18} />
+                            </button>
+                            <button
+                              onClick={() => handleUpdateVisible(batch)}
+                              className="rounded-xl p-2 text-sky-600 transition hover:bg-sky-50 hover:text-sky-700"
+                              title="Visible in receipt"
+                            >
+                              <EyeOff size={18} />
                             </button>
                             {batch.receivedQuantity === 0 && (
                               <>
                                 <button
                                   onClick={() => handleEditBatch(batch)}
-                                  className="text-green-600 hover:text-green-900 flex items-center space-x-1"
+                                  className="rounded-xl p-2 text-emerald-600 transition hover:bg-emerald-50 hover:text-emerald-700"
                                   title="Edit"
                                 >
-                                  <Edit size={16} />
-                                  <span>Edit</span>
+                                  <Edit size={18} />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteBatch(batch)}
                                   disabled={deleteHarvestBatchLoading}
-                                  className="text-red-600 hover:text-red-900 flex items-center space-x-1 disabled:opacity-50"
+                                  className="rounded-xl p-2 text-red-600 transition hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
                                   title="Delete"
                                 >
-                                  <Trash2 size={16} />
-                                  <span>Delete</span>
+                                  <Trash2 size={18} />
                                 </button>
                               </>
                             )}
@@ -315,7 +369,7 @@ const HarvestBatchManagement = () => {
                     <button
                       onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
-                      className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition disabled:opacity-50 hover:bg-gray-50"
                     >
                       Previous
                     </button>
@@ -323,11 +377,7 @@ const HarvestBatchManagement = () => {
                       <button
                         key={index + 1}
                         onClick={() => setCurrentPage(index + 1)}
-                        className={`px-3 py-1 border rounded-lg ${
-                          currentPage === index + 1
-                            ? "bg-green-600 text-white border-green-600"
-                            : "border-gray-300 hover:bg-gray-50"
-                        }`}
+                        className={`min-w-[2.25rem] rounded-xl px-3 py-2 text-sm font-medium transition ${currentPage === index + 1 ? "bg-emerald-600 text-white shadow-sm" : "border border-gray-200 text-gray-700 hover:bg-gray-50"}`}
                       >
                         {index + 1}
                       </button>
@@ -337,7 +387,7 @@ const HarvestBatchManagement = () => {
                         setCurrentPage((prev) => Math.min(harvestBatchesPagination.totalPages, prev + 1))
                       }
                       disabled={currentPage === harvestBatchesPagination.totalPages}
-                      className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition disabled:opacity-50 hover:bg-gray-50"
                     >
                       Next
                     </button>
@@ -355,16 +405,7 @@ const HarvestBatchManagement = () => {
           isOpen={showCreateModal}
           onClose={() => {
             setShowCreateModal(false);
-            // Refresh list
-            const params = {
-              page: currentPage,
-              limit: 10,
-              search: searchTerm || undefined,
-              supplierId: filterSupplier !== "all" ? filterSupplier : undefined,
-              sortBy,
-              sortOrder,
-            };
-            dispatch(getHarvestBatchesRequest(params));
+            refreshList();
           }}
         />
       )}
@@ -386,18 +427,42 @@ const HarvestBatchManagement = () => {
           onClose={() => {
             setShowUpdateModal(false);
             setSelectedBatch(null);
-            // Refresh list
-            const params = {
-              page: currentPage,
-              limit: 10,
-              search: searchTerm || undefined,
-              supplierId: filterSupplier !== "all" ? filterSupplier : undefined,
-              sortBy,
-              sortOrder,
-            };
-            dispatch(getHarvestBatchesRequest(params));
+            refreshList();
           }}
           harvestBatchId={selectedBatch._id}
+        />
+      )}
+
+      {showUpdateEligibleModal && selectedBatch && (
+        <UpdateEligible
+          isOpen={showUpdateEligibleModal}
+          onClose={() => {
+            setShowUpdateEligibleModal(false);
+            setSelectedBatch(null);
+          }}
+          batch={selectedBatch}
+          onSuccess={refreshList}
+        />
+      )}
+
+      {showUpdateVisibleModal && selectedBatch && (
+        <UpdateVisible
+          isOpen={showUpdateVisibleModal}
+          onClose={() => {
+            setShowUpdateVisibleModal(false);
+            setSelectedBatch(null);
+          }}
+          batch={selectedBatch}
+          onSuccess={refreshList}
+        />
+      )}
+
+      {showDeleteModal && selectedBatch && (
+        <DeleteHarvestBatch
+          isOpen={showDeleteModal}
+          onClose={closeDeleteModal}
+          batch={selectedBatch}
+          onSuccess={refreshList}
         />
       )}
     </div>

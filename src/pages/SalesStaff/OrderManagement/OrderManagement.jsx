@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import {
   Search,
   Package,
-  ShoppingCart,
-  Eye,
   ChevronLeft,
   ChevronRight,
   ArrowRightLeft,
@@ -18,6 +17,14 @@ import {
   orderAdminStatsRequest,
   clearOrderMessages,
 } from "../../../redux/actions/orderActions";
+
+/** Base path cho khu vực Sales Staff (khớp với routes) */
+const SALES_STAFF_PATHS = {
+  base: "/sale-staff",
+  statistics: "/sale-staff/statistics",
+  orders: "/sale-staff/orders",
+  discounts: "/sale-staff/discounts",
+};
 
 const STATUS_OPTIONS = [
   { value: "PENDING", label: "Pending" },
@@ -215,10 +222,7 @@ const OrderManagement = () => {
 
   const renderStatusBadge = (statusName) => {
     const normalized = normalizeStatus(statusName);
-    const label =
-      STATUS_OPTIONS.find((option) => option.value === normalized)?.label ||
-      statusName ||
-      "N/A";
+    const label = getStatusLabel(statusName);
     const badgeClass =
       STATUS_BADGE[normalized] || "bg-gray-100 text-gray-800";
     return (
@@ -239,14 +243,16 @@ const OrderManagement = () => {
 
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm transition hover:shadow-md">
-          <div className="text-xs font-medium uppercase tracking-wider text-gray-500">Total orders</div>
-          <div className="mt-1 text-2xl font-bold text-gray-900">{totalOrders}</div>
+        <div className="bg-white border rounded-lg p-4 shadow-sm">
+          <div className="text-sm text-gray-500">Total orders</div>
+          <div className="text-2xl font-semibold text-gray-900">
+            {totalOrders}
+          </div>
         </div>
         {STATS_ORDER.map((status) => (
           <div
             key={status}
-            className="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm transition hover:shadow-md"
+            className="bg-white border rounded-lg p-4 shadow-sm"
           >
             <div className="text-sm text-gray-500">
               {getStatusLabel(status)}
@@ -294,20 +300,25 @@ const OrderManagement = () => {
   const totalPages = adminPagination?.totalPages || 1;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
-      <div className="flex flex-col gap-4 border-b border-gray-100 p-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
-            <ShoppingCart size={24} />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-gray-900">Order Management</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Track and update order status</p>
-          </div>
-        </div>
+    <div className="bg-white rounded-lg border shadow-sm">
+      <div className="p-6 border-b">
+        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+          <Link
+            to={SALES_STAFF_PATHS.base}
+            className="hover:text-green-600 transition-colors"
+          >
+            Sales Staff
+          </Link>
+          <ChevronRight size={16} className="text-gray-400 shrink-0" />
+          <span className="text-gray-700 font-medium">Quản lý đơn hàng</span>
+        </nav>
+        <h1 className="text-2xl font-bold text-gray-900">Quản lý đơn hàng</h1>
+        <p className="text-sm text-gray-600 mt-1">
+          Theo dõi và cập nhật trạng thái đơn hàng.
+        </p>
       </div>
 
-      <div className="border-b border-gray-100 bg-gray-50/50 p-5 space-y-4">
+      <div className="p-6 border-b bg-gray-50 space-y-4">
         <h2 className="text-sm font-semibold text-gray-700">
           Order status overview
         </h2>
@@ -318,7 +329,7 @@ const OrderManagement = () => {
         )}
       </div>
 
-      <div className="p-4 sm:p-6 border-b border-gray-200 bg-gray-50/50 space-y-4">
+      <div className="p-6 border-b bg-gray-50 space-y-4">
         <div className="flex flex-col md:flex-row gap-3 md:items-center">
           <div className="flex-1 relative">
             <Search
@@ -333,7 +344,7 @@ const OrderManagement = () => {
                 setPage(1);
               }}
               placeholder="Search by recipient name or phone"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-9 pr-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+              className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           </div>
 
@@ -344,7 +355,7 @@ const OrderManagement = () => {
                 setPaymentMethod(e.target.value);
                 setPage(1);
               }}
-              className="rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="ALL">All payment methods</option>
               <option value="COD">COD</option>
@@ -359,7 +370,7 @@ const OrderManagement = () => {
                 setPaymentStatus(e.target.value);
                 setPage(1);
               }}
-              className="rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="ALL">All payment statuses</option>
               {PAYMENT_STATUS_OPTIONS.map((opt) => (
@@ -382,10 +393,10 @@ const OrderManagement = () => {
                   setStatusFilters([]);
                   setPage(1);
                 }}
-                className={`rounded-xl border px-3 py-2 text-sm font-medium transition ${
+                className={`px-3 py-2 rounded-lg border text-sm ${
                   statusFilters.length === 0
-                    ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
-                    : "border-gray-200 text-gray-700 hover:bg-gray-50"
+                    ? "bg-green-600 text-white border-green-600"
+                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
                 }`}
               >
                 All
@@ -401,10 +412,10 @@ const OrderManagement = () => {
                       );
                       setPage(1);
                     }}
-                    className={`rounded-xl border px-3 py-2 text-sm font-medium transition ${
+                    className={`px-3 py-2 rounded-lg border text-sm ${
                       isActive
-                        ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
-                        : "border-gray-200 text-gray-700 hover:bg-gray-50"
+                        ? "bg-green-600 text-white border-green-600"
+                        : "border-gray-300 text-gray-700 hover:bg-gray-50"
                     }`}
                   >
                     {status.label}
@@ -426,7 +437,7 @@ const OrderManagement = () => {
                 setSortOrder(nextSortOrder);
                 setPage(1);
               }}
-              className="rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="createdAt:desc">Newest</option>
               <option value="createdAt:asc">Oldest</option>
@@ -452,7 +463,7 @@ const OrderManagement = () => {
             {adminOrders.map((order) => (
               <div
                 key={order._id}
-                className="rounded-xl border border-gray-200 bg-gray-50/30 p-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
+                className="border rounded-lg p-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
               >
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
@@ -480,21 +491,20 @@ const OrderManagement = () => {
                     {formatCurrency(order.total_price)}
                   </div>
                   <div>{renderPaymentBadge(order.payment)}</div>
-                  <div className="flex flex-wrap items-center gap-1">
+                  <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => handleOpenDetail(order._id)}
-                      className="rounded-xl p-2 text-blue-600 transition hover:bg-blue-50 hover:text-blue-700"
-                      title="View details"
+                      className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
                     >
-                      <Eye size={18} />
+                      View details
                     </button>
                     {!shouldHideUpdateStatusButton(order) && (
                       <button
                         onClick={() => handleOpenUpdate(order)}
-                        className="rounded-xl p-2 text-emerald-600 transition hover:bg-emerald-50 hover:text-emerald-700"
-                        title="Update status"
+                        className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
                       >
-                        <ArrowRightLeft size={18} />
+                        <ArrowRightLeft size={16} />
+                        Update status
                       </button>
                     )}
                   </div>
@@ -510,7 +520,7 @@ const OrderManagement = () => {
           <button
             onClick={() => setPage((prev) => Math.max(1, prev - 1))}
             disabled={page === 1}
-            className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition disabled:opacity-50 hover:bg-gray-50"
+            className="px-3 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
           >
             <ChevronLeft size={18} />
           </button>
@@ -520,7 +530,7 @@ const OrderManagement = () => {
           <button
             onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
             disabled={page === totalPages}
-            className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition disabled:opacity-50 hover:bg-gray-50"
+            className="px-3 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
           >
             <ChevronRight size={18} />
           </button>

@@ -37,6 +37,10 @@ export const ORDER_ADMIN_STATS_FAILURE = "ORDER_ADMIN_STATS_FAILURE";
 
 export const ORDER_CLEAR_MESSAGES = "ORDER_CLEAR_MESSAGES";
 
+export const ORDER_STATUS_LOGS_REQUEST = "ORDER_STATUS_LOGS_REQUEST";
+export const ORDER_STATUS_LOGS_SUCCESS = "ORDER_STATUS_LOGS_SUCCESS";
+export const ORDER_STATUS_LOGS_FAILURE = "ORDER_STATUS_LOGS_FAILURE";
+
 // ===== ACTION CREATORS =====
 
 // Create order (discountInfo dùng cho VNPAY: áp discount trước khi redirect, giống flow COD)
@@ -196,4 +200,20 @@ export const orderAdminStatsFailure = (error) => ({
 // Clear toast / error
 export const clearOrderMessages = () => ({
   type: ORDER_CLEAR_MESSAGES,
+});
+
+// Order status change logs (admin: list with filters, sort, pagination)
+export const orderStatusLogsRequest = (filters = {}) => ({
+  type: ORDER_STATUS_LOGS_REQUEST,
+  payload: filters,
+});
+
+export const orderStatusLogsSuccess = (data, pagination) => ({
+  type: ORDER_STATUS_LOGS_SUCCESS,
+  payload: { data, pagination },
+});
+
+export const orderStatusLogsFailure = (error) => ({
+  type: ORDER_STATUS_LOGS_FAILURE,
+  payload: error,
 });

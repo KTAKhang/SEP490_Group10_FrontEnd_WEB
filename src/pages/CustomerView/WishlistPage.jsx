@@ -185,7 +185,7 @@ export default function WishlistPage() {
               Favorite product
             </h1>
             <p className="text-xl text-gray-600 leading-relaxed">
-              Danh sách các sản phẩm bạn đã yêu thích
+              List of products you have favorited
             </p>
           </div>
         </div>
@@ -308,7 +308,7 @@ export default function WishlistPage() {
                       {product.onHandQuantity === 0 && (
                         <div className="absolute top-4 left-4">
                           <span className="inline-flex items-center px-3 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold shadow-lg">
-                            Hết hàng
+                            Out of stock
                           </span>
                         </div>
                       )}
@@ -342,8 +342,18 @@ export default function WishlistPage() {
 
                       <div className="flex items-center justify-between">
                         <div>
+                          {product.isNearExpiry && product.originalPrice != null && product.originalPrice > 0 && (
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <span className="text-xs font-medium px-2 py-0.5 rounded bg-amber-100 text-amber-800">
+                                Sắp hết hạn - Giảm {Math.round((1 - (product.price || 0) / product.originalPrice) * 100)}%
+                              </span>
+                              <span className="text-sm text-gray-500 line-through">
+                                {product.originalPrice?.toLocaleString('en-US')}
+                              </span>
+                            </div>
+                          )}
                           <span className="text-xl font-bold text-gray-900">
-                            {product.price?.toLocaleString('vi-VN') || '0'}đ
+                            {product.price?.toLocaleString('en-US') || '0'}
                           </span>
                         </div>
                         <button

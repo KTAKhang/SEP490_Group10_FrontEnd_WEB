@@ -54,8 +54,8 @@ const HomePage = () => {
     trustAvatar1: getAssetAlt('trustAvatar1', 'Customer'),
     trustAvatar2: getAssetAlt('trustAvatar2', 'Customer'),
     trustAvatar3: getAssetAlt('trustAvatar3', 'Customer'),
-    testimonialImage: getAssetAlt('testimonialImage', 'Khách hàng hài lòng'),
-    ctaImage: getAssetAlt('ctaImage', 'Đặt hàng ngay'),
+    testimonialImage: getAssetAlt('testimonialImage', 'Satisfied customer'),
+    ctaImage: getAssetAlt('ctaImage', 'Order now'),
   }), [publicAssets]);
 
   const handleProductClick = (productId) => {
@@ -100,9 +100,9 @@ const HomePage = () => {
   const getCurrentTestimonialAlt = () => {
     const currentTestimonial = testimonials[currentTestimonialIndex];
     if (currentTestimonial.imageKey === 'testimonialImage2') {
-      return getAssetAlt('testimonialImage2', getAssetAlt('testimonialImage', 'Khách hàng hài lòng'));
+      return getAssetAlt('testimonialImage2', getAssetAlt('testimonialImage', 'Satisfied customer'));
     }
-    return getAssetAlt('testimonialImage', 'Khách hàng hài lòng');
+    return getAssetAlt('testimonialImage', 'Satisfied customer');
   };
 
   // Handle testimonial navigation
@@ -394,8 +394,18 @@ const HomePage = () => {
 
                     <div className="flex items-center justify-between">
                       <div>
+                        {product.isNearExpiry && product.originalPrice != null && product.originalPrice > 0 && (
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-medium px-2 py-0.5 rounded bg-amber-100 text-amber-800">
+                              Near expiry - {Math.round((1 - (product.price || 0) / product.originalPrice) * 100)}% off
+                            </span>
+                            <span className="text-sm text-gray-500 line-through">
+                              {product.originalPrice?.toLocaleString("en-US")}
+                            </span>
+                          </div>
+                        )}
                         <span className="text-2xl font-bold text-gray-900">
-                          {product.price?.toLocaleString("vi-VN") || "0"}đ
+                          {product.price?.toLocaleString("en-US") || "0"}
                         </span>
                       </div>
                       <button
@@ -544,11 +554,11 @@ const HomePage = () => {
           {/* Feature Tags */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-20">
             {[
-              { icon: "ri-leaf-line", text: "Hữu Cơ" },
-              { icon: "ri-truck-line", text: "Giao Nhanh" },
-              { icon: "ri-shield-check-line", text: "Chứng Nhận" },
-              { icon: "ri-heart-line", text: "Tận Tâm" },
-              { icon: "ri-star-line", text: "Chất Lượng" },
+              { icon: "ri-leaf-line", text: "Organic" },
+              { icon: "ri-truck-line", text: "Fast Delivery" },
+              { icon: "ri-shield-check-line", text: "Certified" },
+              { icon: "ri-heart-line", text: "Dedicated" },
+              { icon: "ri-star-line", text: "Quality" },
             ].map((item, index) => (
               <div
                 key={index}

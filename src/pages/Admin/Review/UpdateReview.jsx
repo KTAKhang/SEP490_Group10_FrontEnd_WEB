@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 
 const STATUS_OPTIONS = [
-  { value: "VISIBLE", label: "Hiển thị" },
-  { value: "HIDDEN", label: "Ẩn" },
+  { value: "VISIBLE", label: "Visible" },
+  { value: "HIDDEN", label: "Hidden" },
 ];
 
 const UpdateReview = ({ isOpen, onClose, review, onSubmit, loading }) => {
@@ -22,7 +22,7 @@ const UpdateReview = ({ isOpen, onClose, review, onSubmit, loading }) => {
       <div className="bg-white rounded-lg w-full max-w-md">
         <div className="flex items-center justify-between p-5 border-b">
           <h2 className="text-lg font-semibold text-gray-900">
-            Cập nhật trạng thái review
+            Update review status
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X size={20} />
@@ -34,7 +34,7 @@ const UpdateReview = ({ isOpen, onClose, review, onSubmit, loading }) => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Trạng thái
+              Status
             </label>
             <select
               value={status}
@@ -54,14 +54,14 @@ const UpdateReview = ({ isOpen, onClose, review, onSubmit, loading }) => {
             onClick={onClose}
             className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
-            Hủy
+            Cancel
           </button>
           <button
             onClick={() => onSubmit(review._id, status)}
             disabled={loading}
             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Đang cập nhật..." : "Cập nhật"}
+            {loading ? "Updating..." : "Update"}
           </button>
         </div>
       </div>

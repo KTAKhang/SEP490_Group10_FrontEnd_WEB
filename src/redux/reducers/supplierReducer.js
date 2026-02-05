@@ -70,6 +70,8 @@ const initialState = {
   updatePurchaseCostError: null,
   updateCooperationStatusLoading: false,
   updateCooperationStatusError: null,
+  /** Patch visibility/eligible đã gửi lên; dùng để áp lên dữ liệu từ API khi backend chưa trả đúng */
+  lastHarvestBatchPatch: {},
 };
 
 const supplierReducer = (state = initialState, action) => {
@@ -211,14 +213,28 @@ const supplierReducer = (state = initialState, action) => {
         harvestBatchesLoading: true,
         harvestBatchesError: null,
       };
-    case GET_HARVEST_BATCHES_SUCCESS:
+    case GET_HARVEST_BATCHES_SUCCESS: {
+      const data = action.payload.data || [];
+      const hasPatch = data.some((b) => state.lastHarvestBatchPatch[b._id]);
+      const harvestBatches = hasPatch
+        ? data.map((batch) => {
+            const patch = state.lastHarvestBatchPatch[batch._id];
+            if (!patch) return batch;
+            return {
+              ...batch,
+              visibleInReceipt: patch.visibleInReceipt ?? batch.visibleInReceipt,
+              receiptEligible: patch.receiptEligible ?? batch.receiptEligible,
+            };
+          })
+        : data;
       return {
         ...state,
         harvestBatchesLoading: false,
-        harvestBatches: action.payload.data,
+        harvestBatches,
         harvestBatchesPagination: action.payload.pagination,
         harvestBatchesError: null,
       };
+    }
     case GET_HARVEST_BATCHES_FAILURE:
       return {
         ...state,
@@ -233,13 +249,24 @@ const supplierReducer = (state = initialState, action) => {
         harvestBatchDetailLoading: true,
         harvestBatchDetailError: null,
       };
-    case GET_HARVEST_BATCH_BY_ID_SUCCESS:
+    case GET_HARVEST_BATCH_BY_ID_SUCCESS: {
+      const batch = action.payload;
+      const patch = state.lastHarvestBatchPatch[batch?._id];
+      const merged =
+        patch && batch
+          ? {
+              ...batch,
+              visibleInReceipt: patch.visibleInReceipt ?? batch.visibleInReceipt,
+              receiptEligible: patch.receiptEligible ?? batch.receiptEligible,
+            }
+          : batch;
       return {
         ...state,
         harvestBatchDetailLoading: false,
-        harvestBatchDetail: action.payload,
+        harvestBatchDetail: merged,
         harvestBatchDetailError: null,
       };
+    }
     case GET_HARVEST_BATCH_BY_ID_FAILURE:
       return {
         ...state,
@@ -254,16 +281,37 @@ const supplierReducer = (state = initialState, action) => {
         updateHarvestBatchLoading: true,
         updateHarvestBatchError: null,
       };
-    case UPDATE_HARVEST_BATCH_SUCCESS:
+    case UPDATE_HARVEST_BATCH_SUCCESS: {
+      const formData = action.formData;
+      const mergedBatch = formData
+        ? {
+            ...action.payload,
+            visibleInReceipt:
+              formData.visibleInReceipt ?? formData.visible_in_receipt ?? action.payload.visibleInReceipt,
+            receiptEligible: formData.receiptEligible ?? action.payload.receiptEligible,
+          }
+        : action.payload;
+      const patch =
+        formData && (formData.visibleInReceipt !== undefined || formData.visible_in_receipt !== undefined || formData.receiptEligible !== undefined)
+          ? {
+              ...state.lastHarvestBatchPatch,
+              [mergedBatch._id]: {
+                visibleInReceipt: mergedBatch.visibleInReceipt,
+                receiptEligible: mergedBatch.receiptEligible,
+              },
+            }
+          : state.lastHarvestBatchPatch;
       return {
         ...state,
         updateHarvestBatchLoading: false,
+        lastHarvestBatchPatch: patch,
         harvestBatches: state.harvestBatches.map((batch) =>
-          batch._id === action.payload._id ? action.payload : batch
+          batch._id === mergedBatch._id ? mergedBatch : batch
         ),
-        harvestBatchDetail: action.payload,
+        harvestBatchDetail: mergedBatch,
         updateHarvestBatchError: null,
       };
+    }
     case UPDATE_HARVEST_BATCH_FAILURE:
       return {
         ...state,

@@ -37,7 +37,7 @@ const EditReview = () => {
       // Kiểm tra editedCount
       if (editedCount >= 1) {
         setCanEdit(false);
-        setEditMessage("Review chỉ được sửa 1 lần. Bạn đã sửa review này rồi.");
+        setEditMessage("Review can only be edited once. You have already edited this review.");
         return;
       }
 
@@ -47,7 +47,7 @@ const EditReview = () => {
         const diffDays = Math.floor((now - createdAt) / (1000 * 60 * 60 * 24));
         if (diffDays > 3) {
           setCanEdit(false);
-          setEditMessage("Chỉ được sửa review trong 3 ngày đầu. Thời gian chỉnh sửa đã hết hạn.");
+          setEditMessage("Reviews can only be edited within the first 3 days. Edit period has expired.");
           return;
         }
       }
@@ -61,7 +61,7 @@ const EditReview = () => {
       // Nếu không có review data từ state, có thể cần fetch từ API
       // Tạm thời hiển thị thông báo
       setCanEdit(false);
-      setEditMessage("Không tìm thấy thông tin review. Vui lòng quay lại trang đơn hàng.");
+      setEditMessage("Review information not found. Please go back to the order page.");
     }
   }, [reviewFromState, reviewId]);
 
@@ -152,10 +152,10 @@ const EditReview = () => {
             Quay lại đơn hàng
           </Link>
           <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900">
-            Chỉnh sửa đánh giá
+            Edit review
           </h1>
           <p className="text-sm text-gray-600 mt-1">
-            Bạn chỉ có thể chỉnh sửa review 1 lần trong 3 ngày đầu sau khi đánh giá.
+            You can only edit your review once within the first 3 days after posting.
           </p>
         </div>
       </section>
@@ -169,9 +169,9 @@ const EditReview = () => {
               Quy định chỉnh sửa đánh giá
             </h3>
             <ul className="text-xs text-blue-800 space-y-1 list-disc list-inside">
-              <li>Bạn chỉ được chỉnh sửa đánh giá <strong>1 lần duy nhất</strong></li>
-              <li>Thời gian chỉnh sửa: <strong>trong vòng 3 ngày</strong> kể từ ngày tạo đánh giá</li>
-              <li>Sau 3 ngày hoặc sau khi đã chỉnh sửa 1 lần, bạn sẽ không thể chỉnh sửa đánh giá này nữa</li>
+              <li>You can edit your review <strong>only once</strong></li>
+              <li>Edit window: <strong>within 3 days</strong> from the review creation date</li>
+              <li>After 3 days or after one edit, you will no longer be able to edit this review</li>
             </ul>
           </div>
         </div>
@@ -185,7 +185,7 @@ const EditReview = () => {
                 <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={20} />
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Không thể chỉnh sửa review
+                    Cannot edit review
                   </h3>
                   <p className="text-gray-700">{editMessage}</p>
                   <Link
@@ -207,7 +207,7 @@ const EditReview = () => {
               className="bg-white border rounded-2xl shadow-sm p-6 space-y-6"
             >
               <div>
-                <div className="text-sm text-gray-600 mb-2">Đánh giá sao</div>
+                <div className="text-sm text-gray-600 mb-2">Star rating</div>
                 <div className="flex items-center gap-2">
                   {[1, 2, 3, 4, 5].map((value) => (
                     <button
@@ -229,7 +229,7 @@ const EditReview = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nhận xét (tối đa 1000 ký tự)
+                  Comment (max 1000 characters)
                 </label>
                 <textarea
                   value={comment}
@@ -244,13 +244,13 @@ const EditReview = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Ảnh đánh giá (tối đa 3 ảnh)
+                  Review images (max 3)
                 </label>
                 
                 {/* ✅ Hiển thị ảnh hiện tại */}
                 {existingImages.length > 0 && (
                   <div className="mb-3">
-                    <p className="text-xs text-gray-600 mb-2">Ảnh hiện tại:</p>
+                    <p className="text-xs text-gray-600 mb-2">Current images:</p>
                     <div className="flex flex-wrap gap-2">
                       {existingImages.map((img, index) => (
                         <div key={`existing-${index}`} className="relative">
@@ -286,7 +286,7 @@ const EditReview = () => {
                 {/* ✅ Hiển thị preview ảnh mới */}
                 {newImagePreviews.length > 0 && (
                   <div className="mt-3">
-                    <p className="text-xs text-gray-600 mb-2">Ảnh mới:</p>
+                    <p className="text-xs text-gray-600 mb-2">New images:</p>
                     <div className="flex flex-wrap gap-2">
                       {newImagePreviews.map((preview, index) => (
                         <div key={`new-${index}`} className="relative">
@@ -325,7 +325,7 @@ const EditReview = () => {
                   to="/customer/orders"
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  Hủy
+                  Cancel
                 </Link>
                 <button
                   type="submit"

@@ -12,6 +12,7 @@ import {
   Package,
   Ticket,
   History,
+  ScrollText,
   ClipboardList,
   Users,
   Image,
@@ -64,9 +65,16 @@ const Sidebar = () => {
       path: "/admin/orders",
     },
     {
+      icon: ScrollText,
+      label: "Order Log History",
+      path: "/admin/order-log-history",
+    },
+    {
       icon: Apple,
       label: "Pre-order management",
       path: "/admin/preorder",
+    },
+    {
       icon: Star,
       label: "Reviews",
       path: "/admin/reviews",

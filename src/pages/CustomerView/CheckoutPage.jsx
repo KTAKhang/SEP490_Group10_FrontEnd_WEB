@@ -7,7 +7,7 @@ import {
   fetchCartRequest,
   shippingCheckRequest,
 } from "../../redux/actions/cartActions";
-import { orderCreateRequest } from "../../redux/actions/orderActions";
+import { orderCreateRequest, clearOrderMessages } from "../../redux/actions/orderActions";
 import {
   clearDiscountFeedback,
   clearSelectedDiscount,
@@ -34,7 +34,7 @@ export default function CheckoutPage() {
   // State for address API
   const [provinces, setProvinces] = useState([]);
   const [wards, setWards] = useState([]);
-  const [icity, setIcity] = useState([]);
+  const [icity, setIcity] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -141,7 +141,7 @@ export default function CheckoutPage() {
     e.preventDefault();
 
     if (!cartItems.length) {
-      alert("Giỏ hàng trống");
+      alert("Cart is empty");
       return;
     }
 
@@ -163,6 +163,7 @@ export default function CheckoutPage() {
         buildReceiverInfo(),
         formData.payment,
         discountInfo,
+        icity,
       ),
     );
   };
@@ -191,6 +192,22 @@ export default function CheckoutPage() {
       dispatch(clearDiscountFeedback());
     }
   }, [discount.applyError, selectedDiscount, dispatch]);
+
+  // When holding period expired, show message and offer to go back to cart
+  const holdingExpired =
+    order.error &&
+    String(order.error).toLowerCase().includes("holding period has expired");
+
+  useEffect(() => {
+    if (holdingExpired) {
+      dispatch(fetchCartRequest());
+    }
+  }, [holdingExpired, dispatch]);
+
+  const handleBackToCartAfterExpired = () => {
+    dispatch(clearOrderMessages());
+    navigate("/customer/cart");
+  };
 
   useEffect(() => {
     dispatch(clearDiscountFeedback());
@@ -221,11 +238,11 @@ export default function CheckoutPage() {
       checkout.checkout_session_id ||
       localStorage.getItem("checkout_session_id");
     if (!sessionId) {
-      alert("Không có phiên thanh toán nào để hủy.");
+      alert("No checkout session to cancel.");
       return;
     }
 
-    if (!window.confirm("Bạn có chắc muốn hủy phiên thanh toán này?")) return;
+    if (!window.confirm("Are you sure you want to cancel this checkout session?")) return;
 
     dispatch(checkoutCancelRequest(sessionId));
     navigate("/customer/cart");
@@ -272,6 +289,21 @@ export default function CheckoutPage() {
           <p className="text-gray-600">Please fill on all order information</p>
         </div>
 
+        {holdingExpired && (
+          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <p className="text-amber-800 font-medium">
+              The holding period has expired. Your cart items are still saved. Please return to your cart and complete checkout again.
+            </p>
+            <button
+              type="button"
+              onClick={handleBackToCartAfterExpired}
+              className="shrink-0 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-medium"
+            >
+              Back to cart
+            </button>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Form */}
@@ -292,7 +324,7 @@ export default function CheckoutPage() {
                       value={formData.fullName}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Nhập họ và tên"
+                      placeholder="Enter full name"
                       type="text"
                     />
                   </div>
@@ -306,7 +338,7 @@ export default function CheckoutPage() {
                       value={formData.phone}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Nhập số điện thoại"
+                      placeholder="Enter phone number"
                       type="tel"
                     />
                   </div>
@@ -319,7 +351,7 @@ export default function CheckoutPage() {
                       value={formData.email}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Nhập email"
+                      placeholder="Enter email"
                       type="email"
                     />
                   </div>
@@ -333,7 +365,7 @@ export default function CheckoutPage() {
                       value={formData.address}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Số nhà, tên đường"
+                      placeholder="Street address"
                       type="text"
                     />
                   </div>
@@ -460,6 +492,11 @@ export default function CheckoutPage() {
                         <h3 className="font-medium text-gray-900 text-sm mb-1 line-clamp-2">
                           {item.name}
                         </h3>
+                        {item.isNearExpiry && (
+                          <span className="inline-block text-xs font-medium px-2 py-0.5 rounded bg-amber-100 text-amber-800 mb-1">
+                            Near expiry - Special price
+                          </span>
+                        )}
                         <div className="flex flex-wrap gap-1 mb-1">
                           {item.specs?.map((spec, idx) => (
                             <span
@@ -535,8 +572,8 @@ export default function CheckoutPage() {
                         </div>
                         <p className="text-sm font-medium text-gray-600">
                           {total < 1
-                            ? "Thêm sản phẩm để xem mã giảm giá"
-                            : "Không có mã phù hợp đơn hàng"}
+                            ? "Add products to see discount codes"
+                            : "No matching discount for this order"}
                         </p>
                       </div>
                     ) : (
@@ -564,7 +601,7 @@ export default function CheckoutPage() {
                                       {v.code}
                                     </span>
                                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
-                                      Giảm {v.discountPercent}%
+                                      {v.discountPercent}% off
                                     </span>
                                   </div>
                                   <p className="text-xs text-gray-500 mt-1">
@@ -589,7 +626,7 @@ export default function CheckoutPage() {
                                     </span>
                                   ) : (
                                     <span className="text-sm font-medium text-emerald-600">
-                                      Áp dụng
+                                      Apply
                                     </span>
                                   )}
                                 </div>

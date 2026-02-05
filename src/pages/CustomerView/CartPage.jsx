@@ -150,7 +150,7 @@ const CartPage = () => {
 
   const handleCheckout = () => {
     if (!items || items.length === 0) {
-      alert("Giỏ hàng đang trống");
+      alert("Cart is empty");
       return;
     }
 
@@ -204,6 +204,8 @@ const CartPage = () => {
                     "../../../public/a1.png";
                   const price =
                     item.product?.price ?? item.price ?? item.unit_price ?? 0;
+                  const originalPrice = item.originalPrice ?? item.product?.originalPrice ?? null;
+                  const isNearExpiry = item.isNearExpiry ?? item.product?.isNearExpiry ?? false;
                   const qty = item.quantity || 0;
                   const displayQty =
                     editingQuantity[pid] !== undefined
@@ -237,7 +239,16 @@ const CartPage = () => {
                           <h3 className="font-bold text-gray-900 mb-2">
                             {name}
                           </h3>
-
+                          {isNearExpiry && (
+                            <span className="inline-block text-xs font-medium px-2 py-0.5 rounded bg-amber-100 text-amber-800 mb-2">
+                              Near expiry - Special price
+                            </span>
+                          )}
+                          {isNearExpiry && originalPrice != null && originalPrice > 0 && (
+                            <span className="text-sm text-gray-500 line-through block mb-1">
+                              Original price: {formatPrice(originalPrice)}
+                            </span>
+                          )}
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <div className="flex items-center border border-gray-200 rounded-lg">

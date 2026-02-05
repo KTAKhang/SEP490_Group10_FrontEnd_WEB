@@ -8,7 +8,7 @@ import { useSidebar } from "../../contexts/SidebarContext";
 import {
   LayoutDashboard,
   Ticket,
-  Menu,
+  ShoppingCart,
   X,
 } from "lucide-react";
 
@@ -22,6 +22,11 @@ const SalesStaffSidebar = () => {
       label: "Dashboard",
       path: "/sale-staff/statistics",
       exact: true,
+    },
+    {
+      icon: ShoppingCart,
+      label: "Quản lý đơn hàng",
+      path: "/sale-staff/orders",
     },
     {
       icon: Ticket,

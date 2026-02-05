@@ -114,11 +114,7 @@ const apiGetHarvestBatches = async (params = {}) => {
   if (params.search) queryParams.append("search", params.search);
   if (params.supplierId) queryParams.append("supplierId", params.supplierId);
   if (params.productId) queryParams.append("productId", params.productId);
-  if (params.status) queryParams.append("status", params.status);
-  // ✅ Hỗ trợ các filter mới từ backend
-  if (params.qualityGrade) queryParams.append("qualityGrade", params.qualityGrade);
-  if (params.minQuantity !== undefined) queryParams.append("minQuantity", params.minQuantity);
-  if (params.maxQuantity !== undefined) queryParams.append("maxQuantity", params.maxQuantity);
+  // ✅ Đã xóa status, quantity, qualityGrade trên HarvestBatch
   if (params.minReceivedQuantity !== undefined) queryParams.append("minReceivedQuantity", params.minReceivedQuantity);
   if (params.maxReceivedQuantity !== undefined) queryParams.append("maxReceivedQuantity", params.maxReceivedQuantity);
   if (params.harvestDateFrom) queryParams.append("harvestDateFrom", params.harvestDateFrom);
@@ -128,6 +124,8 @@ const apiGetHarvestBatches = async (params = {}) => {
   if (params.updatedFrom) queryParams.append("updatedFrom", params.updatedFrom);
   if (params.updatedTo) queryParams.append("updatedTo", params.updatedTo);
   if (params.hasInventoryTransactions !== undefined) queryParams.append("hasInventoryTransactions", params.hasInventoryTransactions);
+  if (params.receiptEligible !== undefined) queryParams.append("receiptEligible", String(params.receiptEligible));
+  if (params.visibleInReceipt !== undefined) queryParams.append("visibleInReceipt", String(params.visibleInReceipt));
   if (params.createdBy) queryParams.append("createdBy", params.createdBy);
   if (params.sortBy) queryParams.append("sortBy", params.sortBy);
   if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
@@ -329,7 +327,7 @@ function* updateHarvestBatchSaga(action) {
     const { harvestBatchId, formData } = action.payload;
     const response = yield call(apiUpdateHarvestBatch, harvestBatchId, formData);
     if (response.status === "OK") {
-      yield put(updateHarvestBatchSuccess(response.data));
+      yield put(updateHarvestBatchSuccess(response.data, formData));
       toast.success(response.message || "Cập nhật lô thu hoạch thành công");
     } else {
       const errorMessage = response.message || "Không thể cập nhật lô thu hoạch";
@@ -376,11 +374,11 @@ function* getHarvestBatchesSaga(action) {
         })
       );
     } else {
-      throw new Error(response.message || "Không thể tải danh sách lô thu hoạch");
+      throw new Error(response.message || "Failed to load harvest batch list");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải danh sách lô thu hoạch";
+      error.response?.data?.message || error.message || "Failed to load harvest batch list";
     yield put(getHarvestBatchesFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -393,11 +391,11 @@ function* getHarvestBatchByIdSaga(action) {
     if (response.status === "OK") {
       yield put(getHarvestBatchByIdSuccess(response.data));
     } else {
-      throw new Error(response.message || "Không thể tải chi tiết lô thu hoạch");
+      throw new Error(response.message || "Failed to load harvest batch details");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải chi tiết lô thu hoạch";
+      error.response?.data?.message || error.message || "Failed to load harvest batch details";
     yield put(getHarvestBatchByIdFailure(errorMessage));
     toast.error(errorMessage);
   }

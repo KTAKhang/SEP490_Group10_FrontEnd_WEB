@@ -12,6 +12,7 @@ import {
   ORDER_ADMIN_UPDATE_REQUEST,
   ORDER_ADMIN_DETAIL_REQUEST,
   ORDER_ADMIN_STATS_REQUEST,
+  ORDER_STATUS_LOGS_REQUEST,
   orderCreateSuccess,
   orderCreateFailure,
   retryPaymentSuccess,
@@ -30,6 +31,8 @@ import {
   orderAdminDetailFailure,
   orderAdminStatsSuccess,
   orderAdminStatsFailure,
+  orderStatusLogsSuccess,
+  orderStatusLogsFailure,
 } from "../actions/orderActions";
 
 const API_BASE_URL = "http://localhost:3001";
@@ -104,6 +107,9 @@ const apiGetMyOrders = async (params = {}) => {
   const queryParams = new URLSearchParams();
   if (params.page) queryParams.append("page", params.page);
   if (params.limit) queryParams.append("limit", params.limit);
+  if (params.search && String(params.search).trim()) {
+    queryParams.append("search", String(params.search).trim());
+  }
   if (Array.isArray(params.status_names) && params.status_names.length > 0) {
     queryParams.append("status_names", params.status_names.join(","));
   } else if (params.status_name && params.status_name !== "ALL") {
@@ -178,6 +184,23 @@ const apiGetAdminOrderStats = async () => {
   return res.data;
 };
 
+/** GET /order/status-logs với query: page, limit, sortBy, sortOrder, search, changed_by_role, order_id, changedAtFrom, changedAtTo */
+const apiGetOrderStatusLogsList = async (filters = {}) => {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      params.append(key, value);
+    }
+  });
+  const query = params.toString();
+  const url = `${API_BASE_URL}/order/status-logs${query ? `?${query}` : ""}`;
+  const res = await axios.get(url, {
+    withCredentials: true,
+    headers: authHeader(),
+  });
+  return res.data;
+};
+
 // ===== SAGAS =====
 
 // CREATE ORDER
@@ -228,7 +251,11 @@ function* orderCreateSaga(action) {
   } catch (error) {
     const msg = error.response?.data?.message || error.message;
     yield put(orderCreateFailure(msg));
-    toast.error(msg);
+    if (msg && String(msg).toLowerCase().includes("holding period has expired")) {
+      toast.error("The holding period has expired. Please return to your cart and complete checkout again.");
+    } else {
+      toast.error(msg);
+    }
   }
 }
 
@@ -372,6 +399,24 @@ function* orderAdminStatsSaga() {
   }
 }
 
+// ORDER STATUS LOGS (admin: list with filters, sort, pagination)
+function* orderStatusLogsSaga(action) {
+  try {
+    const filters = action.payload || {};
+    const res = yield call(apiGetOrderStatusLogsList, filters);
+    if (res.status === "OK") {
+      const data = Array.isArray(res.data) ? res.data : res.data?.data ?? [];
+      const pagination = res.pagination || null;
+      yield put(orderStatusLogsSuccess(data, pagination));
+    } else {
+      throw new Error(res.message || "Lấy lịch sử thay đổi trạng thái thất bại");
+    }
+  } catch (error) {
+    const msg = error.response?.data?.message || error.message;
+    yield put(orderStatusLogsFailure(msg));
+  }
+}
+
 export default function* orderSaga() {
   yield takeLatest(ORDER_CREATE_REQUEST, orderCreateSaga);
   yield takeLatest(ORDER_CANCEL_REQUEST, orderCancelSaga);
@@ -382,4 +427,5 @@ export default function* orderSaga() {
   yield takeLatest(ORDER_ADMIN_UPDATE_REQUEST, orderAdminUpdateSaga);
   yield takeLatest(ORDER_ADMIN_DETAIL_REQUEST, orderAdminDetailSaga);
   yield takeLatest(ORDER_ADMIN_STATS_REQUEST, orderAdminStatsSaga);
+  yield takeLatest(ORDER_STATUS_LOGS_REQUEST, orderStatusLogsSaga);
 }

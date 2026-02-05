@@ -74,7 +74,7 @@ const FruitBasketDetail = () => {
             </div>
           ) : !basket ? (
             <div className="rounded-lg border border-gray-200 bg-gray-50 p-6 text-gray-700">
-              Không tìm thấy giỏ trái cây.
+              Fruit basket not found.
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">

@@ -95,7 +95,7 @@ const CreateReview = () => {
             Đánh giá sản phẩm
           </h1>
           <p className="text-sm text-gray-600 mt-1">
-            Chỉ đơn hàng hoàn thành mới có thể đánh giá.
+            Only completed orders can be reviewed.
           </p>
         </div>
       </section>
@@ -142,7 +142,7 @@ const CreateReview = () => {
                   rows={5}
                   maxLength={1000}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."
+                  placeholder="Share your experience with this product..."
                 />
                 <div className="text-xs text-gray-500 mt-1">{comment.length}/1000</div>
               </div>
@@ -179,7 +179,7 @@ const CreateReview = () => {
                   </div>
                 )}
                 <p className="text-xs text-gray-500 mt-1">
-                  Đã chọn {imageFiles.length}/3 ảnh
+                  Selected {imageFiles.length}/3 images
                 </p>
               </div>
 

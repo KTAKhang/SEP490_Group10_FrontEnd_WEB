@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  Truck,
   Building2,
   Search,
   Plus,
@@ -161,35 +162,29 @@ const SupplierManagement = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800 flex items-center space-x-2">
-            <Building2 size={32} />
-            <span>Supplier Management</span>
-          </h1>
-          <p className="text-gray-600 mt-1">Manage suppliers (Farm / Cooperative)</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+            <Truck size={24} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">Supplier Management</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Manage suppliers (Farm / Cooperative)</p>
+          </div>
         </div>
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={handleAddSupplier}
-            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-          >
-            <Plus size={18} />
-            <span>Add Supplier</span>
-          </button>
-        </div>
+        <button onClick={handleAddSupplier} className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-700 hover:shadow w-full sm:w-auto">
+          <Plus size={18} />
+          Add Supplier
+        </button>
       </div>
 
       {/* Filters Card */}
-      <div className="bg-white rounded-lg border shadow-sm p-6">
-        <div className="flex items-center space-x-2 mb-4">
-          <Filter className="text-gray-400" size={20} />
-          <h2 className="text-lg font-semibold text-gray-800">Filters</h2>
-        </div>
+      <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm">
+        <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Search & filters</p>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Search */}
-          <div className="relative">
+          <div className="relative min-w-0">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
@@ -199,7 +194,7 @@ const SupplierManagement = () => {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-4 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
             />
           </div>
 
@@ -211,7 +206,7 @@ const SupplierManagement = () => {
                 setFilterType(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
             >
               <option value="all">All Types</option>
               <option value="FARM">Farm</option>
@@ -228,7 +223,7 @@ const SupplierManagement = () => {
                 setFilterCooperationStatus(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
             >
               <option value="all">All Status</option>
               <option value="ACTIVE">Active</option>
@@ -245,7 +240,7 @@ const SupplierManagement = () => {
                 setFilterStatus(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
             >
               <option value="all">All Status</option>
               <option value="true">Active</option>
@@ -264,7 +259,7 @@ const SupplierManagement = () => {
                 setSortBy(e.target.value);
                 setCurrentPage(1);
               }}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+              className="rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
             >
               <option value="createdAt">Created Date</option>
               <option value="updatedAt">Updated Date</option>
@@ -279,7 +274,7 @@ const SupplierManagement = () => {
                 setSortOrder(sortOrder === "asc" ? "desc" : "asc");
                 setCurrentPage(1);
               }}
-              className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm"
+              className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm transition hover:bg-gray-50"
               title={sortOrder === "asc" ? "Ascending" : "Descending"}
             >
               {sortOrder === "asc" ? "↑" : "↓"}
@@ -289,9 +284,9 @@ const SupplierManagement = () => {
       </div>
 
       {/* Suppliers Table */}
-      <div className="bg-white rounded-lg border shadow-sm">
-        <div className="p-6 border-b">
-          <h2 className="text-lg font-semibold text-gray-800">Suppliers</h2>
+      <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
+        <div className="border-b border-gray-100 px-5 py-4">
+          <h2 className="text-base font-semibold text-gray-800">Suppliers</h2>
           {suppliersPagination && (
             <p className="text-sm text-gray-500 mt-1">
               Total: {suppliersPagination.total} suppliers
@@ -299,7 +294,7 @@ const SupplierManagement = () => {
           )}
         </div>
 
-        <div className="p-6">
+        <div className="p-5">
           {suppliersLoading ? (
             <Loading message="Loading suppliers..." />
           ) : suppliers.length === 0 ? (
@@ -357,7 +352,7 @@ const SupplierManagement = () => {
                         </td>
                         <td className="px-4 py-3">
                           {supplier.status ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
                               Active
                             </span>
                           ) : (
@@ -370,27 +365,24 @@ const SupplierManagement = () => {
                           <div className="flex items-center space-x-2 flex-wrap">
                             <button
                               onClick={() => handleViewSupplier(supplier)}
-                              className="text-blue-600 hover:text-blue-900 flex items-center space-x-1"
-                              title="View Details"
+                              className="rounded-xl p-2 text-blue-600 transition hover:bg-blue-50 hover:text-blue-700"
+                              title="View"
                             >
-                              <Eye size={16} />
-                              <span>View</span>
+                              <Eye size={18} />
                             </button>
                             <button
                               onClick={() => handleEditSupplier(supplier)}
-                              className="text-green-600 hover:text-green-900 flex items-center space-x-1"
+                              className="rounded-xl p-2 text-emerald-600 transition hover:bg-emerald-50 hover:text-emerald-700"
                               title="Edit"
                             >
-                              <Edit size={16} />
-                              <span>Edit</span>
+                              <Edit size={18} />
                             </button>
                             <button
                               onClick={() => handleUpdateCooperationStatus(supplier)}
-                              className="text-orange-600 hover:text-orange-900 flex items-center space-x-1"
-                              title="Update Cooperation Status"
+                              className="rounded-xl p-2 text-amber-600 transition hover:bg-amber-50 hover:text-amber-700"
+                              title="Cooperation status"
                             >
-                              <Users size={16} />
-                              <span>Status</span>
+                              <Users size={18} />
                             </button>
                           </div>
                         </td>
@@ -419,7 +411,7 @@ const SupplierManagement = () => {
                     <button
                       onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
-                      className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition disabled:opacity-50 hover:bg-gray-50"
                     >
                       Previous
                     </button>
@@ -427,10 +419,8 @@ const SupplierManagement = () => {
                       <button
                         key={index + 1}
                         onClick={() => setCurrentPage(index + 1)}
-                        className={`px-3 py-1 border rounded-lg ${
-                          currentPage === index + 1
-                            ? "bg-green-600 text-white border-green-600"
-                            : "border-gray-300 hover:bg-gray-50"
+                        className={`min-w-[2.25rem] rounded-xl px-3 py-2 text-sm font-medium transition ${
+                          currentPage === index + 1 ? "bg-emerald-600 text-white shadow-sm" : "border border-gray-200 text-gray-700 hover:bg-gray-50"
                         }`}
                       >
                         {index + 1}
@@ -441,7 +431,7 @@ const SupplierManagement = () => {
                         setCurrentPage((prev) => Math.min(suppliersPagination.totalPages, prev + 1))
                       }
                       disabled={currentPage === suppliersPagination.totalPages}
-                      className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition disabled:opacity-50 hover:bg-gray-50"
                     >
                       Next
                     </button>

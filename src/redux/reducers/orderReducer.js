@@ -26,6 +26,9 @@ import {
   ORDER_ADMIN_STATS_REQUEST,
   ORDER_ADMIN_STATS_SUCCESS,
   ORDER_ADMIN_STATS_FAILURE,
+  ORDER_STATUS_LOGS_REQUEST,
+  ORDER_STATUS_LOGS_SUCCESS,
+  ORDER_STATUS_LOGS_FAILURE,
   ORDER_CLEAR_MESSAGES,
 } from "../actions/orderActions";
 
@@ -41,6 +44,11 @@ const initialState = {
   adminPagination: null,
   adminDetail: null,
   adminStats: null,
+
+  orderStatusLogs: null,
+  orderStatusLogsPagination: null,
+  orderStatusLogsLoading: false,
+  orderStatusLogsError: null,
 
   loading: false,
   historyLoading: false,
@@ -185,6 +193,32 @@ const orderReducer = (state = initialState, action) => {
 
     case ORDER_ADMIN_STATS_FAILURE:
       return { ...state, adminStatsLoading: false, error: action.payload };
+
+    // ===== ORDER STATUS LOGS (admin: who updated order) =====
+    case ORDER_STATUS_LOGS_REQUEST:
+      return {
+        ...state,
+        orderStatusLogsLoading: true,
+        orderStatusLogsError: null,
+        orderStatusLogs: null,
+      };
+
+    case ORDER_STATUS_LOGS_SUCCESS:
+      return {
+        ...state,
+        orderStatusLogsLoading: false,
+        orderStatusLogs: action.payload?.data ?? action.payload,
+        orderStatusLogsPagination: action.payload?.pagination ?? null,
+        orderStatusLogsError: null,
+      };
+
+    case ORDER_STATUS_LOGS_FAILURE:
+      return {
+        ...state,
+        orderStatusLogsLoading: false,
+        orderStatusLogs: null,
+        orderStatusLogsError: action.payload,
+      };
 
     // ===== CLEAR =====
     case ORDER_CLEAR_MESSAGES:
