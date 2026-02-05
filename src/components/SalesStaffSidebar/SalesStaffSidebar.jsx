@@ -8,13 +8,15 @@ import { useSidebar } from "../../contexts/SidebarContext";
 import {
   LayoutDashboard,
   Ticket,
-  Menu,
+  ShoppingCart,
   X,
 } from "lucide-react";
+
 
 const SalesStaffSidebar = () => {
   const { isOpen, toggleSidebar } = useSidebar();
   const location = useLocation();
+
 
   const menuItems = [
     {
@@ -24,11 +26,17 @@ const SalesStaffSidebar = () => {
       exact: true,
     },
     {
+      icon: ShoppingCart,
+      label: "Quản lý đơn hàng",
+      path: "/sale-staff/orders",
+    },
+    {
       icon: Ticket,
       label: "Discount Management",
       path: "/sale-staff/discounts",
     },
   ];
+
 
   const isActive = (path, exact = false) => {
     if (exact) {
@@ -36,6 +44,7 @@ const SalesStaffSidebar = () => {
     }
     return location.pathname.startsWith(path);
   };
+
 
   return (
     <>
@@ -46,6 +55,7 @@ const SalesStaffSidebar = () => {
           onClick={toggleSidebar}
         />
       )}
+
 
       {/* Sidebar */}
       <aside
@@ -73,6 +83,7 @@ const SalesStaffSidebar = () => {
               <X size={20} />
             </button>
           </div>
+
 
           {/* Menu Items */}
           <nav className="flex-1 overflow-y-auto p-4">
@@ -103,5 +114,6 @@ const SalesStaffSidebar = () => {
     </>
   );
 };
+
 
 export default SalesStaffSidebar;

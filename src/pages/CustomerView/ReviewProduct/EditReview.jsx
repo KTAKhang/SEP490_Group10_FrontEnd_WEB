@@ -6,18 +6,20 @@ import Header from "../../../components/Header/Header";
 import Footer from "../../../components/Footer/Footer";
 import { updateReviewRequest, clearReviewMessages } from "../../../redux/actions/reviewActions";
 
+
 const EditReview = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { reviewId } = useParams();
   const location = useLocation();
-  
+ 
   // ✅ Lấy review data từ location state (nếu có) hoặc từ order detail
   const reviewFromState = location.state?.review;
-  
+ 
   const { updateReviewLoading, updateReviewError, updateReviewSuccess } = useSelector(
     (state) => state.review || {}
   );
+
 
   const [rating, setRating] = useState(reviewFromState?.rating || 5);
   const [comment, setComment] = useState(reviewFromState?.comment || "");
@@ -28,18 +30,20 @@ const EditReview = () => {
   const [canEdit, setCanEdit] = useState(true);
   const [editMessage, setEditMessage] = useState("");
 
+
   // ✅ Validate: Kiểm tra editedCount và 3-day window
   useEffect(() => {
     if (reviewFromState) {
       const editedCount = reviewFromState.editedCount || 0;
       const createdAt = reviewFromState.createdAt ? new Date(reviewFromState.createdAt) : null;
-      
+     
       // Kiểm tra editedCount
       if (editedCount >= 1) {
         setCanEdit(false);
-        setEditMessage("Review chỉ được sửa 1 lần. Bạn đã sửa review này rồi.");
+        setEditMessage("Review can only be edited once. You have already edited this review.");
         return;
       }
+
 
       // Kiểm tra 3-day window
       if (createdAt) {
@@ -47,10 +51,11 @@ const EditReview = () => {
         const diffDays = Math.floor((now - createdAt) / (1000 * 60 * 60 * 24));
         if (diffDays > 3) {
           setCanEdit(false);
-          setEditMessage("Chỉ được sửa review trong 3 ngày đầu. Thời gian chỉnh sửa đã hết hạn.");
+          setEditMessage("Reviews can only be edited within the first 3 days. Edit period has expired.");
           return;
         }
       }
+
 
       // Load existing data
       setRating(reviewFromState.rating || 5);
@@ -61,9 +66,10 @@ const EditReview = () => {
       // Nếu không có review data từ state, có thể cần fetch từ API
       // Tạm thời hiển thị thông báo
       setCanEdit(false);
-      setEditMessage("Không tìm thấy thông tin review. Vui lòng quay lại trang đơn hàng.");
+      setEditMessage("Review information not found. Please go back to the order page.");
     }
   }, [reviewFromState, reviewId]);
+
 
   useEffect(() => {
     if (updateReviewSuccess) {
@@ -72,24 +78,28 @@ const EditReview = () => {
     }
   }, [updateReviewSuccess, dispatch, navigate]);
 
+
   useEffect(() => {
     return () => {
       dispatch(clearReviewMessages());
     };
   }, [dispatch]);
 
+
   const canSubmit = useMemo(() => {
     return canEdit && !!reviewId && rating >= 1 && rating <= 5;
   }, [canEdit, reviewId, rating]);
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!canSubmit) return;
 
+
     const formData = new FormData();
     formData.append("rating", rating);
     formData.append("comment", comment.trim());
-    
+   
     // ✅ Gửi existing images và imagePublicIds (để backend biết giữ lại ảnh nào)
     if (existingImages.length > 0) {
       formData.append("existingImages", JSON.stringify(existingImages));
@@ -97,23 +107,27 @@ const EditReview = () => {
     if (existingImagePublicIds.length > 0) {
       formData.append("existingImagePublicIds", JSON.stringify(existingImagePublicIds));
     }
-    
+   
     // ✅ Gửi ảnh mới (nếu có)
     newImageFiles.forEach((file) => {
       formData.append("images", file);
     });
 
+
     dispatch(updateReviewRequest(reviewId, formData));
   };
+
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
 
+
     // ✅ Tổng số ảnh (existing + new) không được vượt quá 3
     const totalImages = existingImages.length + newImageFiles.length;
     const allowed = files.slice(0, Math.max(0, 3 - totalImages));
     setNewImageFiles((prev) => [...prev, ...allowed]);
+
 
     allowed.forEach((file) => {
       const reader = new FileReader();
@@ -126,21 +140,26 @@ const EditReview = () => {
     });
   };
 
+
   const handleRemoveNewImage = (index) => {
     setNewImageFiles((prev) => prev.filter((_, i) => i !== index));
     setNewImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
+
 
   const handleRemoveExistingImage = (index) => {
     setExistingImages((prev) => prev.filter((_, i) => i !== index));
     setExistingImagePublicIds((prev) => prev.filter((_, i) => i !== index));
   };
 
+
   const totalImages = existingImages.length + newImageFiles.length;
+
 
   return (
     <div className="min-h-screen bg-white">
       <Header />
+
 
       <section className="pt-28 pb-10 bg-gradient-to-br from-green-50 to-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -152,13 +171,14 @@ const EditReview = () => {
             Quay lại đơn hàng
           </Link>
           <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900">
-            Chỉnh sửa đánh giá
+            Edit review
           </h1>
           <p className="text-sm text-gray-600 mt-1">
-            Bạn chỉ có thể chỉnh sửa review 1 lần trong 3 ngày đầu sau khi đánh giá.
+            You can only edit your review once within the first 3 days after posting.
           </p>
         </div>
       </section>
+
 
       {/* ✅ Thông báo quy định */}
       <section className="py-4">
@@ -169,13 +189,14 @@ const EditReview = () => {
               Quy định chỉnh sửa đánh giá
             </h3>
             <ul className="text-xs text-blue-800 space-y-1 list-disc list-inside">
-              <li>Bạn chỉ được chỉnh sửa đánh giá <strong>1 lần duy nhất</strong></li>
-              <li>Thời gian chỉnh sửa: <strong>trong vòng 3 ngày</strong> kể từ ngày tạo đánh giá</li>
-              <li>Sau 3 ngày hoặc sau khi đã chỉnh sửa 1 lần, bạn sẽ không thể chỉnh sửa đánh giá này nữa</li>
+              <li>You can edit your review <strong>only once</strong></li>
+              <li>Edit window: <strong>within 3 days</strong> from the review creation date</li>
+              <li>After 3 days or after one edit, you will no longer be able to edit this review</li>
             </ul>
           </div>
         </div>
       </section>
+
 
       <section className="py-10">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -185,7 +206,7 @@ const EditReview = () => {
                 <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={20} />
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Không thể chỉnh sửa review
+                    Cannot edit review
                   </h3>
                   <p className="text-gray-700">{editMessage}</p>
                   <Link
@@ -207,7 +228,7 @@ const EditReview = () => {
               className="bg-white border rounded-2xl shadow-sm p-6 space-y-6"
             >
               <div>
-                <div className="text-sm text-gray-600 mb-2">Đánh giá sao</div>
+                <div className="text-sm text-gray-600 mb-2">Star rating</div>
                 <div className="flex items-center gap-2">
                   {[1, 2, 3, 4, 5].map((value) => (
                     <button
@@ -227,9 +248,10 @@ const EditReview = () => {
                 </div>
               </div>
 
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nhận xét (tối đa 1000 ký tự)
+                  Comment (max 1000 characters)
                 </label>
                 <textarea
                   value={comment}
@@ -242,15 +264,16 @@ const EditReview = () => {
                 <div className="text-xs text-gray-500 mt-1">{comment.length}/1000</div>
               </div>
 
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Ảnh đánh giá (tối đa 3 ảnh)
+                  Review images (max 3)
                 </label>
-                
+               
                 {/* ✅ Hiển thị ảnh hiện tại */}
                 {existingImages.length > 0 && (
                   <div className="mb-3">
-                    <p className="text-xs text-gray-600 mb-2">Ảnh hiện tại:</p>
+                    <p className="text-xs text-gray-600 mb-2">Current images:</p>
                     <div className="flex flex-wrap gap-2">
                       {existingImages.map((img, index) => (
                         <div key={`existing-${index}`} className="relative">
@@ -272,6 +295,7 @@ const EditReview = () => {
                   </div>
                 )}
 
+
                 {/* ✅ Input để thêm ảnh mới */}
                 {totalImages < 3 && (
                   <input
@@ -283,10 +307,11 @@ const EditReview = () => {
                   />
                 )}
 
+
                 {/* ✅ Hiển thị preview ảnh mới */}
                 {newImagePreviews.length > 0 && (
                   <div className="mt-3">
-                    <p className="text-xs text-gray-600 mb-2">Ảnh mới:</p>
+                    <p className="text-xs text-gray-600 mb-2">New images:</p>
                     <div className="flex flex-wrap gap-2">
                       {newImagePreviews.map((preview, index) => (
                         <div key={`new-${index}`} className="relative">
@@ -308,11 +333,13 @@ const EditReview = () => {
                   </div>
                 )}
 
+
                 <p className="text-xs text-gray-500 mt-1">
                   Đã chọn {totalImages}/3 ảnh
                   {existingImages.length > 0 && ` (${existingImages.length} ảnh hiện tại, ${newImageFiles.length} ảnh mới)`}
                 </p>
               </div>
+
 
               {updateReviewError && (
                 <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -320,12 +347,13 @@ const EditReview = () => {
                 </div>
               )}
 
+
               <div className="flex justify-end gap-3">
                 <Link
                   to="/customer/orders"
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  Hủy
+                  Cancel
                 </Link>
                 <button
                   type="submit"
@@ -339,10 +367,11 @@ const EditReview = () => {
           )}
         </div>
       </section>
-
       <Footer />
     </div>
   );
 };
 
 export default EditReview;
+
+

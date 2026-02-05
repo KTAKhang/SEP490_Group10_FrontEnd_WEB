@@ -4,11 +4,14 @@ import { X } from "lucide-react";
 import axios from "axios";
 import { createSupplierRequest } from "../../../redux/actions/supplierActions";
 
+
 const API_BASE = "https://provinces.open-api.vn/api/v2";
+
 
 const CreateSupplier = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const { createSupplierLoading, createSupplierError } = useSelector((state) => state.supplier);
+
 
   const [formData, setFormData] = useState({
     name: "",
@@ -23,10 +26,12 @@ const CreateSupplier = ({ isOpen, onClose }) => {
     status: true,
   });
 
+
   const [provinces, setProvinces] = useState([]);
   const [wards, setWards] = useState([]);
   const [icity, setIcity] = useState("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
+
 
   useEffect(() => {
     axios
@@ -35,6 +40,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
       .catch((err) => console.error("Error loading provinces:", err));
   }, []);
 
+
   useEffect(() => {
     if (!formData.city) {
       setWards([]);
@@ -42,6 +48,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
       setIcity("");
       return;
     }
+
 
     axios
       .get(`${API_BASE}/w/`)
@@ -53,6 +60,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
       })
       .catch((err) => console.error("Error loading wards:", err));
   }, [formData.city]);
+
 
   useEffect(() => {
     if (hasSubmitted && !createSupplierLoading && !createSupplierError) {
@@ -74,6 +82,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
     }
   }, [hasSubmitted, createSupplierLoading, createSupplierError, onClose]);
 
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (name === "city") {
@@ -83,20 +92,24 @@ const CreateSupplier = ({ isOpen, onClose }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
 
     if (!formData.name || !formData.name.trim()) {
       return;
     }
 
-    // ✅ BR-SUP-02: Phải có ít nhất phone hoặc email
+
+    // BR-SUP-02: At least phone or email is required
     const phone = formData.phone?.toString().trim() || "";
     const email = formData.email?.toString().trim() || "";
     if (!phone && !email) {
-      alert("Phải có ít nhất số điện thoại hoặc email");
+      alert("At least phone or email is required");
       return;
     }
+
 
     // Clean data
     const cleanedData = {
@@ -104,6 +117,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
       type: formData.type,
       status: formData.status,
     };
+
 
     // Only include optional fields if they have values
     if (formData.contactPerson && formData.contactPerson.trim()) {
@@ -126,9 +140,11 @@ const CreateSupplier = ({ isOpen, onClose }) => {
       cleanedData.notes = formData.notes.trim();
     }
 
+
     setHasSubmitted(true);
     dispatch(createSupplierRequest(cleanedData));
   };
+
 
   const handleCancel = () => {
     setHasSubmitted(false);
@@ -148,7 +164,9 @@ const CreateSupplier = ({ isOpen, onClose }) => {
     onClose();
   };
 
+
   if (!isOpen) return null;
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -175,6 +193,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
               />
             </div>
 
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -194,6 +213,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
               </div>
             </div>
 
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Contact Person
@@ -207,6 +227,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
                 placeholder="Enter contact person name"
               />
             </div>
+
 
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -233,6 +254,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
               </div>
             </div>
 
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
               <div className="space-y-3">
@@ -242,7 +264,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
                   value={formData.address}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Số nhà, tên đường"
+                  placeholder="Street address"
                 />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <select
@@ -251,7 +273,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   >
-                    <option value="">Chọn tỉnh/thành</option>
+                    <option value="">Select province/city</option>
                     {provinces.map((province) => (
                       <option key={province.code} value={province.code}>
                         {province.name}
@@ -265,7 +287,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     disabled={!formData.city}
                   >
-                    <option value="">Chọn phường/xã</option>
+                    <option value="">Select ward</option>
                     {wards.map((ward) => (
                       <option key={ward.code} value={ward.name}>
                         {ward.name}
@@ -275,6 +297,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
                 </div>
               </div>
             </div>
+
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
@@ -288,6 +311,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
               />
             </div>
 
+
             <div>
               <label className="flex items-center space-x-2">
                 <input
@@ -300,6 +324,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
               </label>
             </div>
           </div>
+
 
           <div className="flex justify-end space-x-3 p-6 border-t bg-gray-50">
             <button
