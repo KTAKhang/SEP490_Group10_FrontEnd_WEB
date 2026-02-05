@@ -3,21 +3,25 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logoutRequest } from "../../redux/actions/authActions";
 import { getShopInfoPublicRequest } from "../../redux/actions/shopActions";
-import { LogOut, Settings, User, Clock, Package, Menu, X } from "lucide-react";
+import { LogOut, Settings, User, Clock, Package, Menu, X, Heart } from "lucide-react";
 import PropTypes from "prop-types";
 import { fetchCartRequest } from "../../redux/actions/cartActions";
 import NotificationBell from "../NotificationBell/NotificationBell";
 import ChatForCustomer from "../../pages/CustomerView/ChatForCustomer";
 
+
 const Header = ({ searchTerm, setSearchTerm }) => {
   void searchTerm;
   void setSearchTerm;
 
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+
   const tokenFromStorage = localStorage.getItem("token");
-  
+ 
+
 
   useEffect(() => {
   if (tokenFromStorage) {
@@ -36,30 +40,34 @@ const Header = ({ searchTerm, setSearchTerm }) => {
     console.log('📸 Header - Logo URL:', publicShopInfo?.logo);
   }, [publicShopInfo]);
 
+
   // Load shop info for shop name and logo
   useEffect(() => {
     // Always load/refresh shop info to ensure logo is up to date
     dispatch(getShopInfoPublicRequest());
   }, [dispatch]);
-  
+ 
   // Also refresh when component mounts or when navigating
   useEffect(() => {
     const handleFocus = () => {
       // Refresh when window regains focus (user switches tabs)
       dispatch(getShopInfoPublicRequest());
     };
-    
+   
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, [dispatch]);
 
+
   const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+
 
   const displayName = storedUser?.user_name || "Người dùng";
   const displayEmail = storedUser?.email || "user@email.com";
   const displayAvatar = storedUser?.avatar?.startsWith("http")
     ? storedUser.avatar
     : "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=60&h=60&fit=crop&crop=face";
+
 
   const handleLogout = () => {
     if (window.confirm("Bạn có chắc chắn muốn đăng xuất?")) {
@@ -68,6 +76,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
       navigate("/");
     }
   };
+
 
   return (
     <>
@@ -93,6 +102,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
             </span>
           </Link>
 
+
           {/* DESKTOP MENU */}
           <div className="hidden md:flex items-center space-x-8">
             {[
@@ -106,7 +116,6 @@ const Header = ({ searchTerm, setSearchTerm }) => {
               { label: "News", path: "/news" },
               { label: "FAQ", path: "/faq" },
               { label: "Voucher", path: "/customer/vouchers" },
-       ...(storedUser ? [{ label: "Wishlist", path: "/wishlist" }] : []),
             ].map((item) => (
               <Link
                 key={item.path}
@@ -118,6 +127,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
             ))}
           </div>
 
+
           {/* ACTIONS */}
           <div className="flex items-center space-x-3">
             {/* USER */}
@@ -125,7 +135,18 @@ const Header = ({ searchTerm, setSearchTerm }) => {
               <>
                 {/* NOTIFICATIONS */}
                 <NotificationBell />
-                
+
+
+                {/* WISHLIST - icon trái tim */}
+                <Link
+                  to="/wishlist"
+                  className="p-2 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-700 hover:text-red-500"
+                  aria-label="Wishlist"
+                >
+                  <Heart size={22} strokeWidth={1.5} />
+                </Link>
+
+
                 {/* CART */}
                 <Link
                   to="/customer/cart"
@@ -147,6 +168,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                       className="w-10 h-10 rounded-full border object-cover"
                     />
                   </button>
+
 
                   {isDropdownOpen && (
                     <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl overflow-hidden">
@@ -181,6 +203,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                           onClick={() => navigate("/customer/contact-history")}
                         />
 
+
                         <div className="border-t mt-2 pt-2">
                           <DropdownItem
                             icon={<LogOut size={18} />}
@@ -211,6 +234,7 @@ className="text-sm text-gray-700 hover:text-green-600"
               </>
             )}
 
+
             {/* MOBILE MENU BUTTON */}
             <button
               className="md:hidden p-2"
@@ -220,6 +244,7 @@ className="text-sm text-gray-700 hover:text-green-600"
             </button>
           </div>
         </div>
+
 
         {/* MOBILE MENU */}
         {isMobileMenuOpen && (
@@ -234,7 +259,6 @@ className="text-sm text-gray-700 hover:text-green-600"
               { label: "Contact", path: "/customer/contact" },
               { label: "FAQ", path: "/faq" },
               { label: "Voucher", path: "/customer/vouchers" },
-             ...(storedUser ? [{ label: "Wishlist", path: "/wishlist" }] : []),
             ].map((item) => (
               <Link
                 key={item.path}
@@ -253,6 +277,7 @@ className="text-sm text-gray-700 hover:text-green-600"
   );
 };
 
+
 const DropdownItem = ({ icon, label, onClick, danger }) => (
   <button
     onClick={onClick}
@@ -264,6 +289,7 @@ const DropdownItem = ({ icon, label, onClick, danger }) => (
   </button>
 );
 
+
 DropdownItem.propTypes = {
   icon: PropTypes.node,
   label: PropTypes.string.isRequired,
@@ -271,9 +297,11 @@ DropdownItem.propTypes = {
   danger: PropTypes.bool,
 };
 
+
 Header.propTypes = {
   searchTerm: PropTypes.string,
   setSearchTerm: PropTypes.func,
 };
+
 
 export default Header;

@@ -155,6 +155,3 @@ const ReadOrderDetail = ({
 
 export default ReadOrderDetail;
 
-
-
-
