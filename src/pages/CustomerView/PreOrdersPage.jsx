@@ -6,28 +6,10 @@ const formatCurrency = (n) => (n || 0).toLocaleString("en-US", { maximumFraction
 
 const PLACEHOLDER_IMAGE = "https://via.placeholder.com/400x400?text=Pre-order";
 
-/** Days before harvest date: fruit is hidden from this page when harvest is within this many days (business rule: lock pre-order 3 days before harvest). */
-const DAYS_BEFORE_HARVEST_TO_HIDE = 3;
-
 /**
- * Filter out fruit types that are within DAYS_BEFORE_HARVEST_TO_HIDE days of harvest date.
- * Does not change backend or inactive status; only hides from this customer pre-orders list.
- * @param {Array} items - List of fruit type objects with estimatedHarvestDate
- * @returns {Array} Items where harvest is more than DAYS_BEFORE_HARVEST_TO_HIDE days away (or no harvest date)
+ * Visibility is decided by backend (harvest lock + allocation-closed).
+ * API /preorder/fruit-types returns only fruit types visible for pre-order; frontend renders that list as-is.
  */
-function filterByHarvestLock(items) {
-  if (!items || items.length === 0) return items;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const cutoff = new Date(today);
-  cutoff.setDate(cutoff.getDate() + DAYS_BEFORE_HARVEST_TO_HIDE);
-  return items.filter((item) => {
-    if (!item.estimatedHarvestDate) return true;
-    const harvest = new Date(item.estimatedHarvestDate);
-    harvest.setHours(0, 0, 0, 0);
-    return harvest > cutoff;
-  });
-}
 /*method for pagination product*/
 export default function PreOrdersPage() {
   const navigate = useNavigate();
@@ -104,15 +86,14 @@ export default function PreOrdersPage() {
               <Loading message="Loading..." />
             </div>
           ) : (() => {
-            const visibleList = filterByHarvestLock(list);
-            return visibleList.length === 0 ? (
+            return list.length === 0 ? (
               <div className="text-center py-12">
                 <i className="ri-archive-line text-6xl text-gray-400 mx-auto mb-4 block" />
                 <p className="text-gray-600 text-lg">There is currently no fruit available for pre-order.</p>
               </div>
             ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {visibleList.map((item) => (
+              {list.map((item) => (
                 <div
                   key={item._id}
                   onClick={() => handleCardClick(item._id)}

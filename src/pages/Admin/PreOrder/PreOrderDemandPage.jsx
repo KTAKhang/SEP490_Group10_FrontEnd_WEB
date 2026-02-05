@@ -9,6 +9,7 @@ export default function PreOrderDemandPage() {
   const [searchText, setSearchText] = useState("");
   const [allocModal, setAllocModal] = useState(null);
   const [showAllocConfirm, setShowAllocConfirm] = useState(false);
+  const [isAllocating, setIsAllocating] = useState(false);
 
   const load = useCallback((page = 1, limit) => {
     setLoading(true);
@@ -38,19 +39,26 @@ export default function PreOrderDemandPage() {
     setAllocModal(row);
   };
 
-  const availableKg = allocModal ? (allocModal.receivedKgFromPreOrderStock ?? 0) : 0;
+  const availableKg = allocModal
+    ? Math.max(0, (allocModal.receivedKgFromPreOrderStock ?? 0) - (allocModal.allocatedKg ?? 0))
+    : 0;
 
   const doSubmitAlloc = () => {
-    if (!allocModal) return;
+    if (!allocModal || isAllocating) return;
     setErr("");
-      apiClient.post("/admin/preorder/allocations", {
-      fruitTypeId: allocModal.fruitTypeId?._id || allocModal.fruitTypeId,
-      allocatedKg: availableKg,
-    }).then(() => {
-      setAllocModal(null);
-      setShowAllocConfirm(false);
-      load(pagination.page);
-    }).catch((e) => setErr(e.response?.data?.message || "Error."));
+    setIsAllocating(true);
+    apiClient
+      .post("/admin/preorder/allocations", {
+        fruitTypeId: allocModal.fruitTypeId?._id || allocModal.fruitTypeId,
+        allocatedKg: availableKg,
+      })
+      .then(() => {
+        setAllocModal(null);
+        setShowAllocConfirm(false);
+        load(pagination.page);
+      })
+      .catch((e) => setErr(e.response?.data?.message || "Error."))
+      .finally(() => setIsAllocating(false));
   };
 
   const submitAlloc = () => {
@@ -62,7 +70,7 @@ export default function PreOrderDemandPage() {
     <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Pre-order demand</h1>
       <p className="text-gray-600 text-sm mb-6">
-        Allocate only when stock is fully received. Allocate from <strong>Pre-order stock</strong> (warehouse receives at Pre-order Stock page).
+        Run allocation whenever there is <strong>received stock</strong>. Stock is assigned to orders in FIFO order. Orders that get full quantity can pay the remaining 50%; orders that do not fit in this batch wait for the next receive. You can run allocation again after more stock is received.
       </p>
       <div className="mb-4 flex flex-wrap items-center gap-4">
         <div className="relative flex-1 min-w-[200px] max-w-xs">
@@ -87,30 +95,35 @@ export default function PreOrderDemandPage() {
         <div className="space-y-6">
           {demand.map((d) => {
             const fid = d.fruitTypeId?._id || d.fruitTypeId;
-            const canAlloc = d.fullyReceived && (d.allocatedKg ?? 0) <= 0;
-            const alreadyAllocated = (d.allocatedKg ?? 0) > 0;
+            const received = d.receivedKgFromPreOrderStock ?? 0;
+            const allocated = d.allocatedKg ?? 0;
+            const availableKg = Math.max(0, received - allocated);
+            const canAlloc = availableKg > 0;
             return (
               <div key={fid} className="bg-white rounded-2xl border border-gray-100 shadow-md p-6">
                 <h2 className="font-bold text-gray-900 text-lg">{d.fruitTypeName || "—"}</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 text-sm text-gray-700">
                   <div><span className="text-gray-500">Demand: </span><strong>{d.demandKg} kg</strong> ({d.orderCount} orders)</div>
-                  <div><span className="text-gray-500">Received (pre-order stock): </span><strong>{d.receivedKgFromPreOrderStock ?? 0} kg</strong></div>
-                  <div><span className="text-gray-500">Allocated: </span><strong>{d.allocatedKg} kg</strong></div>
-                  <div><span className="text-gray-500">Shortfall: </span><strong className="text-amber-600">{d.remainingKg} kg</strong></div>
+                  <div><span className="text-gray-500">Received (pre-order stock): </span><strong>{received} kg</strong></div>
+                  <div><span className="text-gray-500">Allocated: </span><strong>{allocated} kg</strong></div>
+                  <div><span className="text-gray-500">Remaining demand: </span><strong className="text-amber-600">{d.remainingKg} kg</strong></div>
                 </div>
-                {!d.fullyReceived && (
-                  <p className="mt-3 text-amber-700 text-sm">Allocate only when fully received. Received {d.receivedKgFromPreOrderStock ?? 0} kg / demand {d.demandKg} kg.</p>
+                {received > 0 && received < (d.demandKg ?? 0) && (
+                  <p className="mt-3 text-amber-700 text-sm">Partial stock received ({received} kg). Run allocation to assign to orders (FIFO). Unfulfilled orders will wait for the next batch.</p>
                 )}
-                {alreadyAllocated && (
-                  <p className="mt-3 text-green-700 text-sm font-medium">Allocation done for this fruit type (one-time only). <span className="text-gray-600">No longer selling.</span></p>
+                {canAlloc && (
+                  <p className="mt-3 text-green-700 text-sm font-medium">Available to allocate: <strong>{availableKg} kg</strong>. Run allocation to assign to waiting orders.</p>
+                )}
+                {received === 0 && (
+                  <p className="mt-3 text-gray-500 text-sm">No stock received yet. Warehouse staff must receive at Pre-order Stock page first.</p>
                 )}
                 <button
                   type="button"
                   onClick={() => canAlloc && openAlloc(d)}
-                  disabled={!canAlloc}
+                  disabled={!canAlloc || isAllocating}
                   className="mt-4 px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-full hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {alreadyAllocated ? "Allocated" : "Allocate from pre-order stock"}
+                  {isAllocating ? "Processing…" : canAlloc ? "Run allocation" : (received === 0 ? "No stock to allocate" : "Allocated (no remaining stock)")}
                 </button>
               </div>
             );
@@ -184,11 +197,11 @@ export default function PreOrderDemandPage() {
             )}
             <p className="text-sm text-gray-600 mb-2">Available from pre-order stock: <strong>{availableKg} kg</strong></p>
             <p className="text-sm text-gray-700 mb-6">
-              Allocate: <strong>{availableKg} kg</strong> (full available, one-time allocation for this fruit type).
+              Run allocation to assign <strong>{availableKg} kg</strong> to waiting orders (FIFO). Orders that get full quantity can pay remaining; others wait for the next batch.
             </p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => { setAllocModal(null); setErr(""); }} className="flex-1 py-2.5 border border-gray-300 rounded-full font-medium text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
-              <button type="button" onClick={submitAlloc} className="flex-1 py-2.5 bg-green-600 text-white rounded-full font-medium hover:bg-green-700 transition-colors">Continue</button>
+              <button type="button" onClick={() => { setAllocModal(null); setErr(""); }} disabled={isAllocating} className="flex-1 py-2.5 border border-gray-300 rounded-full font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Cancel</button>
+              <button type="button" onClick={submitAlloc} disabled={isAllocating} className="flex-1 py-2.5 bg-green-600 text-white rounded-full font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">{isAllocating ? "Processing…" : "Continue"}</button>
             </div>
           </div>
         </div>
@@ -202,25 +215,27 @@ export default function PreOrderDemandPage() {
               <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-2xl border border-red-100 text-sm">{err}</div>
             )}
             <p className="text-gray-700 mb-2">
-              Allocate <strong>{availableKg} kg</strong> (full available) for <strong>{allocModal.fruitTypeName}</strong>. This action can be done <strong>only once</strong>; after allocation it cannot be changed.
+              Assign <strong>{availableKg} kg</strong> to pre-orders for <strong>{allocModal.fruitTypeName}</strong> (FIFO). Orders that fit get allocated; the first order that does not fit will wait for the next receive batch.
             </p>
             <p className="text-gray-700 mb-6">
-              After allocation, this fruit type will be set to <strong>no longer selling</strong> (no more pre-orders). Are you sure?
+              You can run allocation again when more stock is received. Continue?
             </p>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => { setShowAllocConfirm(false); setErr(""); }}
-                className="flex-1 py-2.5 border border-gray-300 rounded-full font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                disabled={isAllocating}
+                className="flex-1 py-2.5 border border-gray-300 rounded-full font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={doSubmitAlloc}
-                className="flex-1 py-2.5 bg-green-600 text-white rounded-full font-medium hover:bg-green-700 transition-colors"
+                disabled={isAllocating}
+                className="flex-1 py-2.5 bg-green-600 text-white rounded-full font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Confirm allocation
+                {isAllocating ? "Processing…" : "Confirm allocation"}
               </button>
             </div>
           </div>

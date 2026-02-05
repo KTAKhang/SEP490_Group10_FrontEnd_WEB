@@ -67,6 +67,8 @@ const Sidebar = () => {
       icon: Apple,
       label: "Pre-order management",
       path: "/admin/preorder",
+    },
+    {
       icon: Star,
       label: "Reviews",
       path: "/admin/reviews",
@@ -96,7 +98,7 @@ const Sidebar = () => {
       label: "Staff Management",
       path: "/admin/staff",
     },
-      {
+    {
       icon: Users,
       label: "Customer Management",
       path: "/admin/customers",
