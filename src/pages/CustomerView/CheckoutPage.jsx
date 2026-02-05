@@ -34,7 +34,7 @@ export default function CheckoutPage() {
   // State for address API
   const [provinces, setProvinces] = useState([]);
   const [wards, setWards] = useState([]);
-  const [icity, setIcity] = useState([]);
+  const [icity, setIcity] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -163,6 +163,7 @@ export default function CheckoutPage() {
         buildReceiverInfo(),
         formData.payment,
         discountInfo,
+        icity,
       ),
     );
   };

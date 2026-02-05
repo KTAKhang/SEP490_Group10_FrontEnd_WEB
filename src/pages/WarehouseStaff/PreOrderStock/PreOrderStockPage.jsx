@@ -338,7 +338,8 @@ export default function PreOrderStockPage() {
                   setSelectedBatch(null);
                   setErr("");
                 }}
-                className="flex-1 py-2 border rounded-lg"
+                disabled={submitting}
+                className="flex-1 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
@@ -346,9 +347,9 @@ export default function PreOrderStockPage() {
                 type="button"
                 onClick={submitReceive}
                 disabled={submitting}
-                className="flex-1 py-2 bg-green-600 text-white rounded-lg disabled:opacity-50"
+                className="flex-1 py-2 bg-green-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {submitting ? "Saving…" : "Save"}
+                {submitting ? "Processing…" : "Confirm"}
               </button>
             </div>
           </div>

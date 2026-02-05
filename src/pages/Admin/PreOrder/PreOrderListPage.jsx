@@ -2,9 +2,12 @@ import { useState, useEffect } from "react";
 import apiClient from "../../../utils/axiosConfig";
 
 const STATUS_LABEL = {
-  WAITING_FOR_PRODUCT: "Waiting for product",
+  WAITING_FOR_ALLOCATION: "Waiting for allocation",
+  WAITING_FOR_NEXT_BATCH: "Waiting for next batch",
+  ALLOCATED_WAITING_PAYMENT: "Allocated, waiting payment",
   READY_FOR_FULFILLMENT: "Ready for fulfillment",
   COMPLETED: "Completed",
+  WAITING_FOR_PRODUCT: "Waiting for allocation (legacy)",
 };
 const formatDate = (d) => (d ? new Date(d).toLocaleString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—");
 const formatCurrency = (n) => (n != null ? (n || 0).toLocaleString("en-US", { maximumFractionDigits: 0 }) + " VND" : "—");
@@ -117,7 +120,9 @@ export default function PreOrderListPage() {
           className="border border-gray-200 rounded-2xl px-4 py-2 text-sm text-gray-700 bg-white"
         >
           <option value="">All</option>
-          <option value="WAITING_FOR_PRODUCT">Waiting for product</option>
+          <option value="WAITING_FOR_ALLOCATION">Waiting for allocation</option>
+          <option value="WAITING_FOR_NEXT_BATCH">Waiting for next batch</option>
+          <option value="ALLOCATED_WAITING_PAYMENT">Allocated, waiting payment</option>
           <option value="READY_FOR_FULFILLMENT">Ready for fulfillment</option>
           <option value="COMPLETED">Completed</option>
         </select>
@@ -155,7 +160,9 @@ export default function PreOrderListPage() {
                     <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
                       po.status === "COMPLETED" ? "bg-green-100 text-green-800" :
                       po.status === "READY_FOR_FULFILLMENT" ? "bg-blue-100 text-blue-800" :
-                      "bg-amber-100 text-amber-800"
+                      po.status === "ALLOCATED_WAITING_PAYMENT" ? "bg-purple-100 text-purple-800" :
+                      po.status === "WAITING_FOR_NEXT_BATCH" ? "bg-amber-100 text-amber-800" :
+                      "bg-gray-100 text-gray-800"
                     }`}>
                       {STATUS_LABEL[po.status] || po.status}
                     </span>
