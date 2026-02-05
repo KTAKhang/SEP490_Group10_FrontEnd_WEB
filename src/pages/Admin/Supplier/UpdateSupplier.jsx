@@ -3,9 +3,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { X } from "lucide-react";
 import { updateSupplierRequest } from "../../../redux/actions/supplierActions";
 
+
 const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
   const dispatch = useDispatch();
   const { updateSupplierLoading, updateSupplierError } = useSelector((state) => state.supplier);
+
 
   const [formData, setFormData] = useState({
     name: "",
@@ -18,7 +20,9 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
     status: true,
   });
 
+
   const [hasSubmitted, setHasSubmitted] = useState(false);
+
 
   useEffect(() => {
     if (supplier) {
@@ -35,6 +39,7 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
     }
   }, [supplier]);
 
+
   useEffect(() => {
     if (hasSubmitted && !updateSupplierLoading && !updateSupplierError) {
       setHasSubmitted(false);
@@ -42,20 +47,24 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
     }
   }, [hasSubmitted, updateSupplierLoading, updateSupplierError, onClose]);
 
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
 
     if (!formData.name || !formData.name.trim()) {
       return;
     }
 
-    // ✅ BR-SUP-02: Phải có ít nhất phone hoặc email
+
+    // BR-SUP-02: At least phone or email is required
     const phone = formData.phone?.toString().trim() || "";
     const email = formData.email?.toString().trim() || "";
     if (!phone && !email) {
-      alert("Phải có ít nhất số điện thoại hoặc email");
+      alert("At least phone or email is required");
       return;
     }
+
 
     // Clean data: remove empty strings and undefined values
     const cleanedData = {
@@ -63,6 +72,7 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
       type: formData.type,
       status: formData.status,
     };
+
 
     // Only include fields that are provided
     if (formData.contactPerson !== undefined) {
@@ -81,16 +91,20 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
       cleanedData.notes = formData.notes?.toString().trim() || "";
     }
 
+
     setHasSubmitted(true);
     dispatch(updateSupplierRequest(supplier._id, cleanedData));
   };
+
 
   const handleCancel = () => {
     setHasSubmitted(false);
     onClose();
   };
 
+
   if (!isOpen || !supplier) return null;
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -117,6 +131,7 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
               />
             </div>
 
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -135,6 +150,7 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
               </div>
             </div>
 
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Contact Person
@@ -147,6 +163,7 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
                 placeholder="Enter contact person name"
               />
             </div>
+
 
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -171,6 +188,7 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
               </div>
             </div>
 
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
               <textarea
@@ -182,6 +200,7 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
               />
             </div>
 
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
               <textarea
@@ -192,6 +211,7 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
                 placeholder="Enter notes"
               />
             </div>
+
 
             <div>
               <label className="flex items-center space-x-2">
@@ -205,6 +225,7 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
               </label>
             </div>
           </div>
+
 
           <div className="flex justify-end space-x-3 p-6 border-t bg-gray-50">
             <button
@@ -227,5 +248,6 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
     </div>
   );
 };
+
 
 export default UpdateSupplier;

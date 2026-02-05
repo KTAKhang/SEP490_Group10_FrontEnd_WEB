@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
 import { updateCategoryRequest } from "../../../redux/actions/categoryActions";
 
+
 const UpdateCategory = ({ isOpen, onClose, category }) => {
   const dispatch = useDispatch();
   const { updateCategoryLoading, updateCategoryError } = useSelector((state) => state.category);
+
 
   const [formData, setFormData] = useState({
     name: "",
@@ -18,32 +20,36 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
   const [currentImageUrl, setCurrentImageUrl] = useState(null);
   const [currentImagePublicId, setCurrentImagePublicId] = useState(null);
 
+
   // Track if we submitted the form
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  const [hasShownToast, setHasShownToast] = useState(false);
+  const toastShownRef = useRef(false);
+
 
   // Close modal after successful update
   useEffect(() => {
-    if (hasSubmitted && !updateCategoryLoading && !updateCategoryError && !hasShownToast) {
+    if (hasSubmitted && !updateCategoryLoading && !updateCategoryError && !toastShownRef.current) {
       // Update was successful, show toast and close modal
       toast.success("Category updated successfully!");
-      setHasShownToast(true);
+      toastShownRef.current = true;
       setHasSubmitted(false);
       onClose();
     }
-    if (hasSubmitted && updateCategoryError && !hasShownToast) {
+    if (hasSubmitted && updateCategoryError && !toastShownRef.current) {
       toast.error(updateCategoryError);
-      setHasShownToast(true);
+      toastShownRef.current = true;
     }
-  }, [hasSubmitted, updateCategoryLoading, updateCategoryError, hasShownToast, onClose]);
+  }, [hasSubmitted, updateCategoryLoading, updateCategoryError, onClose]);
+
 
   // Reset toast flag when modal opens
   useEffect(() => {
     if (isOpen) {
-      setHasShownToast(false);
+      toastShownRef.current = false;
       setHasSubmitted(false);
     }
   }, [isOpen]);
+
 
   // Load category data when category changes
   useEffect(() => {
@@ -60,6 +66,7 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
     }
   }, [category]);
 
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -73,6 +80,7 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
     }
   };
 
+
   const handleRemoveImage = () => {
     setImageFile(null);
     setImagePreview(null);
@@ -80,8 +88,10 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
     setCurrentImagePublicId(null);
   };
 
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
 
     // Validation
     if (!formData.name || !formData.name.trim()) {
@@ -89,24 +99,26 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
       return;
     }
 
+
     if (!category?._id) {
       toast.error("Category not found");
       return;
     }
+
 
     // Create FormData
     const formDataToSend = new FormData();
     formDataToSend.append("name", formData.name);
     formDataToSend.append("description", formData.description || "");
     formDataToSend.append("status", formData.status);
-    
+   
     // Always send oldImagePublicId (even if null) so backend knows which image to delete
     if (currentImagePublicId) {
       formDataToSend.append("oldImagePublicId", currentImagePublicId);
     } else {
       formDataToSend.append("oldImagePublicId", "");
     }
-    
+   
     // If there's a new image file, send it
     if (imageFile) {
       formDataToSend.append("image", imageFile);
@@ -116,10 +128,12 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
     }
     // If there's an old image and no new file, don't send anything (keep unchanged)
 
+
     // Don't close modal immediately - let it close after success
     setHasSubmitted(true);
     dispatch(updateCategoryRequest(category._id, formDataToSend));
   };
+
 
   const handleCancel = () => {
     setHasSubmitted(false);
@@ -137,9 +151,12 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
     onClose();
   };
 
+
   if (!isOpen || !category) return null;
 
+
   const displayImage = imagePreview || currentImageUrl;
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -256,4 +273,9 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
   );
 };
 
+
 export default UpdateCategory;
+
+
+
+

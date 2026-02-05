@@ -39,6 +39,7 @@ import {
 const API_BASE = "https://provinces.open-api.vn/api/v2";
 const { Option } = Select;
 
+
 const ProfileManager = () => {
   const dispatch = useDispatch();
   const {
@@ -50,6 +51,7 @@ const ProfileManager = () => {
     updateSuccess,
     updateMessage,
   } = useSelector((state) => state.profile);
+
 
   const [editMode, setEditMode] = useState(false);
   const [avatarFile, setAvatarFile] = useState(null);
@@ -66,12 +68,14 @@ const ProfileManager = () => {
       .catch((err) => console.error("Error loading provinces:", err));
   }, []);
 
+
   // Load wards when selected cityCode changes
   useEffect(() => {
     if (!cityCode) {
       setWards([]);
       return;
     }
+
 
     axios
       .get(`${API_BASE}/w/`)
@@ -84,9 +88,11 @@ const ProfileManager = () => {
       .catch((err) => console.error(err));
   }, [cityCode]);
 
+
   // When user & provinces available, parse user.address into fields
   useEffect(() => {
     if (!user || provinces.length === 0) return;
+
 
     const parts = user.address
       ? user.address.split(",").map((p) => p.trim())
@@ -94,6 +100,7 @@ const ProfileManager = () => {
     const addr = parts[0] || "";
     const ward = parts[1] || "";
     const provinceName = parts[2] || "";
+
 
     // Try to find province by exact or partial name
     const byName = provinces.find(
@@ -104,12 +111,14 @@ const ProfileManager = () => {
         (provinceName && provinceName.includes(p.name)),
     );
 
+
     // Try to find by code (user.city might already be a code)
     const byCode = provinces.find(
       (p) =>
         String(p.code) === String(user.city) ||
         String(p.code) === String(parts[2]),
     );
+
 
     const province = byName || byCode;
     const code = province
@@ -118,10 +127,12 @@ const ProfileManager = () => {
         ? Number(user.city)
         : null;
 
+
     if (code) {
       setCityCode(Number(code));
       setIcity(province ? province.name : provinceName);
     }
+
 
     // Fill form fields only when form is mounted (editMode true) so Select shows value
     if (form) {
@@ -137,10 +148,12 @@ const ProfileManager = () => {
     }
   }, [user, provinces, form, editMode]);
 
+
   useEffect(() => {
     dispatch(getProfileRequest());
     dispatch(clearProfileMessages());
   }, [dispatch]);
+
 
   useEffect(() => {
     if (updateSuccess && updateSuccess.data) {
@@ -149,6 +162,7 @@ const ProfileManager = () => {
     }
     dispatch(clearProfileMessages());
   }, [updateSuccess]);
+
 
   // Format date helper function
   const formatDate = (dateString) => {
@@ -166,13 +180,16 @@ const ProfileManager = () => {
     }
   };
 
+
   // Role display mapping
   const getRoleDisplayName = (roleName = "") => {
     if (roleName === "admin") return "ADMIN";
     if (roleName === "customer") return "CUSTOMER";
 
+
     return roleName.toUpperCase();
   };
+
 
   // Handle avatar upload
   const handleAvatarChange = (info) => {
@@ -184,6 +201,7 @@ const ProfileManager = () => {
     }
   };
 
+
   const uploadProps = {
     name: "avatar",
     listType: "picture",
@@ -193,7 +211,7 @@ const ProfileManager = () => {
       const isJpgOrPng =
         file.type === "image/jpeg" || file.type === "image/png";
       if (!isJpgOrPng) {
-        message.error("Chỉ có thể tải lên file JPG/PNG!");
+        message.error("Only JPG/PNG files are allowed!");
         return Upload.LIST_IGNORE;
       }
       const isLt3M = file.size / 1024 / 1024 < 3;
@@ -201,7 +219,7 @@ const ProfileManager = () => {
         message.error("Kích thước ảnh phải nhỏ hơn 3MB!");
         return Upload.LIST_IGNORE;
       }
-      message.success("Tải ảnh đại diện thành công!");
+      message.success("Avatar uploaded successfully!");
       return false;
     },
     onChange: handleAvatarChange,
@@ -218,14 +236,17 @@ const ProfileManager = () => {
     }
   }, [updateSuccess, error]);
 
+
   const handleSubmit = async (values) => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     const userId = storedUser ? storedUser._id : null;
 
+
     if (!userId) {
-      message.error("Không tìm thấy thông tin người dùng!");
+      message.error("User information not found!");
       return;
     }
+
 
     // Sử dụng FormData để hỗ trợ cả file lẫn text
     const formData = new FormData();
@@ -239,9 +260,11 @@ const ProfileManager = () => {
       formData.append("avatar", avatarFile);
     }
 
+
     // Gửi request lên server
     dispatch(updateProfileRequest(formData));
   };
+
 
   if (loading) {
     return (
@@ -253,6 +276,7 @@ const ProfileManager = () => {
       </div>
     );
   }
+
 
   if (error) {
     return (
@@ -272,6 +296,7 @@ const ProfileManager = () => {
     );
   }
 
+
   if (!user) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -281,6 +306,7 @@ const ProfileManager = () => {
       </div>
     );
   }
+
 
   return (
     <div className="flex min-h-screen bg-white mt-20">
@@ -410,6 +436,7 @@ const ProfileManager = () => {
                         </div>
                       )}
 
+
                       <Form
                         form={form}
                         layout="vertical"
@@ -438,6 +465,7 @@ const ProfileManager = () => {
                           />
                         </Form.Item>
 
+
                         {/* Phone */}
                         <Form.Item
                           label="Phone Number"
@@ -459,6 +487,7 @@ const ProfileManager = () => {
                             className="rounded-xl border-2 hover:border-green-500 focus:border-green-500 transition-colors"
                           />
                         </Form.Item>
+
 
                         <Form.Item
                           label="City / Province"
@@ -491,6 +520,7 @@ const ProfileManager = () => {
                           </Select>
                         </Form.Item>
 
+
                         {/* Ward */}
                         <Form.Item
                           label="Ward"
@@ -513,6 +543,7 @@ const ProfileManager = () => {
                           </Select>
                         </Form.Item>
 
+
                         {/* Address */}
                         <Form.Item
                           label="Address"
@@ -520,17 +551,17 @@ const ProfileManager = () => {
                           rules={[
                             {
                               required: true,
-                              message: "Vui lòng nhập địa chỉ!",
+                              message: "Please enter address!",
                             },
                             {
                               min: 5,
-                              message: "Địa chỉ phải có ít nhất 5 ký tự!",
+                              message: "Address must be at least 5 characters!",
                             },
                           ]}
                         >
                           <Input.TextArea
                             rows={3}
-                            placeholder="Nhập địa chỉ"
+                            placeholder="Enter address"
                             className="rounded-xl border-2 hover:border-green-500 focus:border-green-500 transition-colors"
                           />
                         </Form.Item>
@@ -554,6 +585,7 @@ const ProfileManager = () => {
                           />
                         </Form.Item>
 
+
                         {/* Gender */}
                         <Form.Item
                           label="Gender"
@@ -575,6 +607,7 @@ const ProfileManager = () => {
                             <Select.Option value="other">Other</Select.Option>
                           </Select>
                         </Form.Item>
+
 
                         <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-100">
                           <Button
@@ -599,6 +632,7 @@ const ProfileManager = () => {
                           >
                             Cancel
                           </Button>
+
 
                           <Button
                             type="text"
@@ -671,7 +705,7 @@ const ProfileManager = () => {
                           {user.email}
                         </p>
                       </div>
-                      {/* Nút chỉnh sửa */}
+                      {/* Edit button */}
                       {!editMode && (
                         <Button
                           type="text"
@@ -694,4 +728,9 @@ const ProfileManager = () => {
   );
 };
 
+
 export default ProfileManager;
+
+
+
+

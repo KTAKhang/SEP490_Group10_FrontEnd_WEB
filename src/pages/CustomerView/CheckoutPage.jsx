@@ -7,7 +7,7 @@ import {
   fetchCartRequest,
   shippingCheckRequest,
 } from "../../redux/actions/cartActions";
-import { orderCreateRequest } from "../../redux/actions/orderActions";
+import { orderCreateRequest, clearOrderMessages } from "../../redux/actions/orderActions";
 import {
   clearDiscountFeedback,
   clearSelectedDiscount,
@@ -17,6 +17,7 @@ import {
   setSelectedDiscount,
 } from "../../redux/actions/discountActions";
 const API_BASE = "https://provinces.open-api.vn/api/v2";
+
 
 export default function CheckoutPage() {
   const [formData, setFormData] = useState({
@@ -31,17 +32,20 @@ export default function CheckoutPage() {
     payment: "COD",
   });
 
+
   // State for address API
   const [provinces, setProvinces] = useState([]);
   const [wards, setWards] = useState([]);
-  const [icity, setIcity] = useState([]);
+  const [icity, setIcity] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
 
   const checkout = useSelector((state) => state.checkout || {});
   const cart = useSelector((state) => state.cart || {});
   const order = useSelector((state) => state.order || {});
   const discount = useSelector((state) => state.discount || {});
+
 
   // Prefer items from checkout (returned by checkout hold), otherwise fallback to cart items
   const cartItems =
@@ -49,12 +53,14 @@ export default function CheckoutPage() {
       ? checkout.items
       : cart.items || [];
 
+
   const shippingCost = cart.shippingFee || 0;
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
   const total = subtotal + shippingCost;
+
 
   const {
     selectedDiscount,
@@ -65,9 +71,11 @@ export default function CheckoutPage() {
     loading: discountLoading,
   } = discount;
 
+
   const discountData = applyResult?.data || validationResult?.data || null;
   const discountAmount = discountData?.discountAmount || 0;
   const finalAmount = discountData?.finalAmount || total;
+
 
   // Load provinces on mount
   useEffect(() => {
@@ -77,6 +85,7 @@ export default function CheckoutPage() {
       .catch((err) => console.error("Error loading provinces:", err));
   }, []);
 
+
   // Load wards when province changes
   useEffect(() => {
     if (!formData.city) {
@@ -84,6 +93,7 @@ export default function CheckoutPage() {
       setFormData((prev) => ({ ...prev, ward: "" }));
       return;
     }
+
 
     axios
       .get(`${API_BASE}/w/`)
@@ -96,8 +106,10 @@ export default function CheckoutPage() {
       .catch((err) => console.error(err));
   }, [formData.city]);
 
+
   useEffect(() => {
     // existing ward-loading logic preserved above (omitted in snippet)
+
 
     // When city changes, call shipping check to compute fee
     const selected_product_ids = cartItems.map(
@@ -109,10 +121,12 @@ export default function CheckoutPage() {
         item._id,
     );
 
+
     if (formData.city && selected_product_ids.length > 0) {
       dispatch(shippingCheckRequest(selected_product_ids, icity));
     }
   }, [formData.city, cartItems, dispatch]);
+
 
   useEffect(() => {
     if (order.order_id || order.payment_url) {
@@ -120,6 +134,7 @@ export default function CheckoutPage() {
       dispatch(fetchCartRequest());
     }
   }, [order.order_id, order.payment_url, dispatch]);
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -130,6 +145,7 @@ export default function CheckoutPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+
   const buildReceiverInfo = () => ({
     receiver_name: formData.fullName,
     receiver_phone: formData.phone,
@@ -137,17 +153,21 @@ export default function CheckoutPage() {
     note: formData.note,
   });
 
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
+
     if (!cartItems.length) {
-      alert("Giỏ hàng trống");
+      alert("Cart is empty");
       return;
     }
+
 
     const selected_product_ids = cartItems.map(
       (item) => item.product_id || item._id,
     );
+
 
     // VNPAY + có voucher đã validate: truyền discountInfo để saga áp discount trước khi redirect (giống flow COD)
     const discountInfo =
@@ -157,12 +177,14 @@ export default function CheckoutPage() {
         ? { discountId: selectedDiscount.discountId, orderValue: total }
         : null;
 
+
     dispatch(
       orderCreateRequest(
         selected_product_ids,
         buildReceiverInfo(),
         formData.payment,
         discountInfo,
+        icity,
       ),
     );
   };
@@ -171,10 +193,12 @@ export default function CheckoutPage() {
       checkout.checkout_session_id ||
       localStorage.getItem("checkout_session_id");
 
+
     if (!sessionId) {
       navigate("/customer/cart", { replace: true });
     }
   }, [checkout.checkout_session_id, navigate]);
+
 
   useEffect(() => {
     if (validationError && selectedDiscount) {
@@ -184,6 +208,7 @@ export default function CheckoutPage() {
     }
   }, [validationError, selectedDiscount, dispatch]);
 
+
   useEffect(() => {
     if (discount.applyError && selectedDiscount) {
       alert(discount.applyError);
@@ -192,9 +217,30 @@ export default function CheckoutPage() {
     }
   }, [discount.applyError, selectedDiscount, dispatch]);
 
+
+  // When holding period expired, show message and offer to go back to cart
+  const holdingExpired =
+    order.error &&
+    String(order.error).toLowerCase().includes("holding period has expired");
+
+
+  useEffect(() => {
+    if (holdingExpired) {
+      dispatch(fetchCartRequest());
+    }
+  }, [holdingExpired, dispatch]);
+
+
+  const handleBackToCartAfterExpired = () => {
+    dispatch(clearOrderMessages());
+    navigate("/customer/cart");
+  };
+
+
   useEffect(() => {
     dispatch(clearDiscountFeedback());
   }, [total, dispatch]);
+
 
   // Load mã giảm giá phù hợp đơn hàng (minOrderValue <= total, chưa dùng)
   useEffect(() => {
@@ -202,6 +248,7 @@ export default function CheckoutPage() {
       dispatch(discountGetValidRequest(total));
     }
   }, [total, dispatch]);
+
 
   // COD: áp discount sau khi tạo order (flow hiện tại). VNPAY áp trong saga trước khi redirect.
   useEffect(() => {
@@ -216,20 +263,24 @@ export default function CheckoutPage() {
     }
   }, [order.order_id, order.payment_url, selectedDiscount, total, dispatch]);
 
+
   const handleCancel = () => {
     const sessionId =
       checkout.checkout_session_id ||
       localStorage.getItem("checkout_session_id");
     if (!sessionId) {
-      alert("Không có phiên thanh toán nào để hủy.");
+      alert("No checkout session to cancel.");
       return;
     }
 
-    if (!window.confirm("Bạn có chắc muốn hủy phiên thanh toán này?")) return;
+
+    if (!window.confirm("Are you sure you want to cancel this checkout session?")) return;
+
 
     dispatch(checkoutCancelRequest(sessionId));
     navigate("/customer/cart");
   };
+
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -237,6 +288,7 @@ export default function CheckoutPage() {
       currency: "VND",
     }).format(price);
   };
+
 
   const handleSelectVoucher = (voucher) => {
     if (!voucher) {
@@ -259,10 +311,12 @@ export default function CheckoutPage() {
     dispatch(discountValidateRequest(voucher.code, total));
   };
 
+
   const handleRemoveVoucher = () => {
     dispatch(clearSelectedDiscount());
     dispatch(clearDiscountFeedback());
   };
+
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -271,6 +325,23 @@ export default function CheckoutPage() {
           <h1 className="text-3xl font-bold text-green-600 mt-20">Payments</h1>
           <p className="text-gray-600">Please fill on all order information</p>
         </div>
+
+
+        {holdingExpired && (
+          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <p className="text-amber-800 font-medium">
+              The holding period has expired. Your cart items are still saved. Please return to your cart and complete checkout again.
+            </p>
+            <button
+              type="button"
+              onClick={handleBackToCartAfterExpired}
+              className="shrink-0 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-medium"
+            >
+              Back to cart
+            </button>
+          </div>
+        )}
+
 
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -292,7 +363,7 @@ export default function CheckoutPage() {
                       value={formData.fullName}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Nhập họ và tên"
+                      placeholder="Enter full name"
                       type="text"
                     />
                   </div>
@@ -306,7 +377,7 @@ export default function CheckoutPage() {
                       value={formData.phone}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Nhập số điện thoại"
+                      placeholder="Enter phone number"
                       type="tel"
                     />
                   </div>
@@ -319,7 +390,7 @@ export default function CheckoutPage() {
                       value={formData.email}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Nhập email"
+                      placeholder="Enter email"
                       type="email"
                     />
                   </div>
@@ -333,7 +404,7 @@ export default function CheckoutPage() {
                       value={formData.address}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Số nhà, tên đường"
+                      placeholder="Street address"
                       type="text"
                     />
                   </div>
@@ -356,6 +427,7 @@ export default function CheckoutPage() {
                       ))}
                     </select>
                   </div>
+
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -392,6 +464,7 @@ export default function CheckoutPage() {
                   </div>
                 </div>
               </div>
+
 
               {/* Payment Method */}
               <div className="bg-white rounded-xl shadow-sm p-6">
@@ -437,6 +510,7 @@ export default function CheckoutPage() {
               </div>
             </div>
 
+
             {/* Right Column - Order Summary */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-xl shadow-sm p-6 sticky top-8">
@@ -460,6 +534,11 @@ export default function CheckoutPage() {
                         <h3 className="font-medium text-gray-900 text-sm mb-1 line-clamp-2">
                           {item.name}
                         </h3>
+                        {item.isNearExpiry && (
+                          <span className="inline-block text-xs font-medium px-2 py-0.5 rounded bg-amber-100 text-amber-800 mb-1">
+                            Near expiry - Special price
+                          </span>
+                        )}
                         <div className="flex flex-wrap gap-1 mb-1">
                           {item.specs?.map((spec, idx) => (
                             <span
@@ -511,6 +590,7 @@ export default function CheckoutPage() {
                     )}
                   </div>
 
+
                   <div className="p-4">
                     {discountLoading ? (
                       <div className="flex items-center justify-center py-8">
@@ -535,8 +615,8 @@ export default function CheckoutPage() {
                         </div>
                         <p className="text-sm font-medium text-gray-600">
                           {total < 1
-                            ? "Thêm sản phẩm để xem mã giảm giá"
-                            : "Không có mã phù hợp đơn hàng"}
+                            ? "Add products to see discount codes"
+                            : "No matching discount for this order"}
                         </p>
                       </div>
                     ) : (
@@ -564,7 +644,7 @@ export default function CheckoutPage() {
                                       {v.code}
                                     </span>
                                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
-                                      Giảm {v.discountPercent}%
+                                      {v.discountPercent}% off
                                     </span>
                                   </div>
                                   <p className="text-xs text-gray-500 mt-1">
@@ -589,7 +669,7 @@ export default function CheckoutPage() {
                                     </span>
                                   ) : (
                                     <span className="text-sm font-medium text-emerald-600">
-                                      Áp dụng
+                                      Apply
                                     </span>
                                   )}
                                 </div>
@@ -599,6 +679,7 @@ export default function CheckoutPage() {
                         })}
                       </div>
                     )}
+
 
                     {selectedDiscount && discountData && (
                       <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
@@ -670,3 +751,7 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
+
+
+

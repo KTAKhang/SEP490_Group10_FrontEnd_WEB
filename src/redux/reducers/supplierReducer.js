@@ -38,6 +38,7 @@ import {
   CLEAR_SUPPLIER_MESSAGES,
 } from "../actions/supplierActions";
 
+
 const initialState = {
   suppliers: [],
   suppliersLoading: false,
@@ -70,7 +71,10 @@ const initialState = {
   updatePurchaseCostError: null,
   updateCooperationStatusLoading: false,
   updateCooperationStatusError: null,
+  /** Patch visibility/eligible đã gửi lên; dùng để áp lên dữ liệu từ API khi backend chưa trả đúng */
+  lastHarvestBatchPatch: {},
 };
+
 
 const supplierReducer = (state = initialState, action) => {
   switch (action.type) {
@@ -96,6 +100,7 @@ const supplierReducer = (state = initialState, action) => {
         suppliersError: action.payload,
       };
 
+
     // ===== GET SUPPLIER BY ID =====
     case GET_SUPPLIER_BY_ID_REQUEST:
       return {
@@ -116,6 +121,7 @@ const supplierReducer = (state = initialState, action) => {
         supplierDetailLoading: false,
         supplierDetailError: action.payload,
       };
+
 
     // ===== GET SUPPLIERS FOR BRAND =====
     case GET_SUPPLIERS_FOR_BRAND_REQUEST:
@@ -138,6 +144,7 @@ const supplierReducer = (state = initialState, action) => {
         suppliersForBrandError: action.payload,
       };
 
+
     // ===== CREATE SUPPLIER =====
     case CREATE_SUPPLIER_REQUEST:
       return {
@@ -158,6 +165,7 @@ const supplierReducer = (state = initialState, action) => {
         createSupplierLoading: false,
         createSupplierError: action.payload,
       };
+
 
     // ===== UPDATE SUPPLIER =====
     case UPDATE_SUPPLIER_REQUEST:
@@ -183,6 +191,7 @@ const supplierReducer = (state = initialState, action) => {
         updateSupplierError: action.payload,
       };
 
+
     // ===== CREATE HARVEST BATCH =====
     case CREATE_HARVEST_BATCH_REQUEST:
       return {
@@ -204,6 +213,7 @@ const supplierReducer = (state = initialState, action) => {
         createHarvestBatchError: action.payload,
       };
 
+
     // ===== GET HARVEST BATCHES =====
     case GET_HARVEST_BATCHES_REQUEST:
       return {
@@ -211,20 +221,35 @@ const supplierReducer = (state = initialState, action) => {
         harvestBatchesLoading: true,
         harvestBatchesError: null,
       };
-    case GET_HARVEST_BATCHES_SUCCESS:
+    case GET_HARVEST_BATCHES_SUCCESS: {
+      const data = action.payload.data || [];
+      const hasPatch = data.some((b) => state.lastHarvestBatchPatch[b._id]);
+      const harvestBatches = hasPatch
+        ? data.map((batch) => {
+            const patch = state.lastHarvestBatchPatch[batch._id];
+            if (!patch) return batch;
+            return {
+              ...batch,
+              visibleInReceipt: patch.visibleInReceipt ?? batch.visibleInReceipt,
+              receiptEligible: patch.receiptEligible ?? batch.receiptEligible,
+            };
+          })
+        : data;
       return {
         ...state,
         harvestBatchesLoading: false,
-        harvestBatches: action.payload.data,
+        harvestBatches,
         harvestBatchesPagination: action.payload.pagination,
         harvestBatchesError: null,
       };
+    }
     case GET_HARVEST_BATCHES_FAILURE:
       return {
         ...state,
         harvestBatchesLoading: false,
         harvestBatchesError: action.payload,
       };
+
 
     // ===== GET HARVEST BATCH BY ID =====
     case GET_HARVEST_BATCH_BY_ID_REQUEST:
@@ -233,19 +258,31 @@ const supplierReducer = (state = initialState, action) => {
         harvestBatchDetailLoading: true,
         harvestBatchDetailError: null,
       };
-    case GET_HARVEST_BATCH_BY_ID_SUCCESS:
+    case GET_HARVEST_BATCH_BY_ID_SUCCESS: {
+      const batch = action.payload;
+      const patch = state.lastHarvestBatchPatch[batch?._id];
+      const merged =
+        patch && batch
+          ? {
+              ...batch,
+              visibleInReceipt: patch.visibleInReceipt ?? batch.visibleInReceipt,
+              receiptEligible: patch.receiptEligible ?? batch.receiptEligible,
+            }
+          : batch;
       return {
         ...state,
         harvestBatchDetailLoading: false,
-        harvestBatchDetail: action.payload,
+        harvestBatchDetail: merged,
         harvestBatchDetailError: null,
       };
+    }
     case GET_HARVEST_BATCH_BY_ID_FAILURE:
       return {
         ...state,
         harvestBatchDetailLoading: false,
         harvestBatchDetailError: action.payload,
       };
+
 
     // ===== UPDATE HARVEST BATCH =====
     case UPDATE_HARVEST_BATCH_REQUEST:
@@ -254,22 +291,44 @@ const supplierReducer = (state = initialState, action) => {
         updateHarvestBatchLoading: true,
         updateHarvestBatchError: null,
       };
-    case UPDATE_HARVEST_BATCH_SUCCESS:
+    case UPDATE_HARVEST_BATCH_SUCCESS: {
+      const formData = action.formData;
+      const mergedBatch = formData
+        ? {
+            ...action.payload,
+            visibleInReceipt:
+              formData.visibleInReceipt ?? formData.visible_in_receipt ?? action.payload.visibleInReceipt,
+            receiptEligible: formData.receiptEligible ?? action.payload.receiptEligible,
+          }
+        : action.payload;
+      const patch =
+        formData && (formData.visibleInReceipt !== undefined || formData.visible_in_receipt !== undefined || formData.receiptEligible !== undefined)
+          ? {
+              ...state.lastHarvestBatchPatch,
+              [mergedBatch._id]: {
+                visibleInReceipt: mergedBatch.visibleInReceipt,
+                receiptEligible: mergedBatch.receiptEligible,
+              },
+            }
+          : state.lastHarvestBatchPatch;
       return {
         ...state,
         updateHarvestBatchLoading: false,
+        lastHarvestBatchPatch: patch,
         harvestBatches: state.harvestBatches.map((batch) =>
-          batch._id === action.payload._id ? action.payload : batch
+          batch._id === mergedBatch._id ? mergedBatch : batch
         ),
-        harvestBatchDetail: action.payload,
+        harvestBatchDetail: mergedBatch,
         updateHarvestBatchError: null,
       };
+    }
     case UPDATE_HARVEST_BATCH_FAILURE:
       return {
         ...state,
         updateHarvestBatchLoading: false,
         updateHarvestBatchError: action.payload,
       };
+
 
     // ===== DELETE HARVEST BATCH =====
     case DELETE_HARVEST_BATCH_REQUEST:
@@ -293,6 +352,7 @@ const supplierReducer = (state = initialState, action) => {
         deleteHarvestBatchLoading: false,
         deleteHarvestBatchError: action.payload,
       };
+
 
     // ===== UPDATE PURCHASE COST =====
     case UPDATE_PURCHASE_COST_REQUEST:
@@ -320,6 +380,7 @@ const supplierReducer = (state = initialState, action) => {
         updatePurchaseCostError: action.payload,
       };
 
+
     // ===== UPDATE COOPERATION STATUS =====
     case UPDATE_COOPERATION_STATUS_REQUEST:
       return {
@@ -344,6 +405,7 @@ const supplierReducer = (state = initialState, action) => {
         updateCooperationStatusError: action.payload,
       };
 
+
     // ===== CLEAR MESSAGES =====
     case CLEAR_SUPPLIER_MESSAGES:
       return {
@@ -357,9 +419,15 @@ const supplierReducer = (state = initialState, action) => {
         updateCooperationStatusError: null,
       };
 
+
     default:
       return state;
   }
 };
 
+
 export default supplierReducer;
+
+
+
+

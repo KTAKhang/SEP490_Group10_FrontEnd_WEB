@@ -8,27 +8,32 @@ import { getFavoritesRequest, addFavoriteRequest, removeFavoriteRequest, checkFa
 import { getPublicCategoriesRequest } from '../../redux/actions/publicCategoryActions';
 import { Search, Package, Heart } from 'lucide-react';
 
+
 export default function WishlistPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
+
   // Get categories for filter
   const { publicCategories } = useSelector((state) => state.publicCategory);
-  
+ 
   // Get favorites
-  const { 
-    favorites, 
-    favoritesPagination, 
+  const {
+    favorites,
+    favoritesPagination,
     favoritesLoading,
     favoriteStatus,
   } = useSelector((state) => state.favorite);
 
+
   // Check if user is logged in
   const storedUser = JSON.parse(localStorage.getItem("user") || "null");
 
+
   // Track which products have been checked for favorite status
   const checkedProductsRef = useRef(new Set());
+
 
   // State for filters and search
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
@@ -37,10 +42,12 @@ export default function WishlistPage() {
   const [sortOrder, setSortOrder] = useState(searchParams.get('sortOrder') || 'desc');
   const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page')) || 1);
 
+
   // Fetch categories on mount
   useEffect(() => {
     dispatch(getPublicCategoriesRequest({ page: 1, limit: 100 }));
   }, [dispatch]);
+
 
   // Check if user is logged in, redirect if not
   useEffect(() => {
@@ -49,9 +56,10 @@ export default function WishlistPage() {
     }
   }, [storedUser, navigate]);
 
+
   // Track previous filter values to avoid unnecessary updates
   const prevFiltersRef = useRef('');
-  
+ 
   // Update URL params separately to avoid loop (only when filters change, not when searchParams change)
   const prevUrlParamsRef = useRef('');
   useEffect(() => {
@@ -63,9 +71,9 @@ export default function WishlistPage() {
       if (sortOrder !== 'desc') newSearchParams.set('sortOrder', sortOrder);
     }
     if (currentPage > 1) newSearchParams.set('page', currentPage.toString());
-    
+   
     const newParamsString = newSearchParams.toString();
-    
+   
     // Only update if params actually changed
     if (prevUrlParamsRef.current !== newParamsString) {
       prevUrlParamsRef.current = newParamsString;
@@ -74,9 +82,11 @@ export default function WishlistPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, searchTerm, selectedCategory, sortBy, sortOrder]);
 
+
   // Fetch favorites when filters change
   useEffect(() => {
     if (!storedUser) return;
+
 
     const params = {
       page: currentPage,
@@ -87,15 +97,17 @@ export default function WishlistPage() {
       sortOrder: sortOrder,
     };
 
+
     // Create a string representation of filters to compare
     const filtersString = `${currentPage}-${searchTerm}-${selectedCategory}-${sortBy}-${sortOrder}`;
-    
+   
     // Only proceed if filters actually changed
     if (filtersString === prevFiltersRef.current) {
       return;
     }
-    
+   
     prevFiltersRef.current = filtersString;
+
 
     dispatch(getFavoritesRequest(params));
     // Reset checked products when filters change (new products will be loaded)
@@ -103,14 +115,17 @@ export default function WishlistPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, currentPage, searchTerm, selectedCategory, sortBy, sortOrder, storedUser]);
 
+
   // Note: Favorites in WishlistPage are already favorites, so we don't need to check status
   // The favoriteStatus will be automatically set to true when favorites are loaded in the reducer
+
 
   // Handle search
   const handleSearch = (e) => {
     e.preventDefault();
     setCurrentPage(1);
   };
+
 
   // Handle sort change
   const handleSortChange = (value) => {
@@ -130,16 +145,19 @@ export default function WishlistPage() {
     setCurrentPage(1);
   };
 
+
   // Handle category filter
   const handleCategoryChange = (categoryId) => {
     setSelectedCategory(categoryId);
     setCurrentPage(1);
   };
 
+
   // Handle product click
   const handleProductClick = (productId) => {
     navigate(`/products/${productId}`);
   };
+
 
   // Handle favorite toggle
   const handleFavoriteToggle = (e, productId) => {
@@ -149,6 +167,7 @@ export default function WishlistPage() {
       return;
     }
 
+
     const isFavorite = favoriteStatus[productId];
     if (isFavorite) {
       dispatch(removeFavoriteRequest(productId));
@@ -157,25 +176,30 @@ export default function WishlistPage() {
     }
   };
 
+
   // Handle pagination
   const handlePageChange = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const sortValue = 
+
+  const sortValue =
     sortBy === 'createdAt' && sortOrder === 'desc' ? 'default' :
     sortBy === 'price' && sortOrder === 'asc' ? 'price-low' :
     sortBy === 'price' && sortOrder === 'desc' ? 'price-high' :
     sortBy === 'name' && sortOrder === 'asc' ? 'name' : 'default';
 
+
   if (!storedUser) {
     return null; // Will redirect
   }
 
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
+
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 bg-gradient-to-br from-red-50 to-white">
@@ -185,11 +209,12 @@ export default function WishlistPage() {
               Favorite product
             </h1>
             <p className="text-xl text-gray-600 leading-relaxed">
-              Danh sách các sản phẩm bạn đã yêu thích
+              List of products you have favorited
             </p>
           </div>
         </div>
       </section>
+
 
       {/* Filters Section */}
       <section className="py-8 border-b border-gray-200 sticky top-20 bg-white z-40">
@@ -207,6 +232,7 @@ export default function WishlistPage() {
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             </form>
           </div>
+
 
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
             {/* Category Filter */}
@@ -236,6 +262,7 @@ export default function WishlistPage() {
               ))}
             </div>
 
+
             {/* Sort Filter */}
             <div className="flex items-center space-x-3">
               <span className="text-sm text-gray-600">Sort:</span>
@@ -253,6 +280,7 @@ export default function WishlistPage() {
           </div>
         </div>
       </section>
+
 
       {/* Products Grid */}
       <section className="py-16">
@@ -275,7 +303,7 @@ export default function WishlistPage() {
                 <p className="text-gray-600">
                   Showing{' '}
                   <span className="font-semibold">
-                    {favoritesPagination 
+                    {favoritesPagination
                       ? favoritesPagination.page * favoritesPagination.limit - favoritesPagination.limit + 1
                       : 0}{' '}
                     -{' '}
@@ -289,6 +317,7 @@ export default function WishlistPage() {
                   </span>
                 </p>
               </div>
+
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {favorites.map((product) => (
@@ -308,7 +337,7 @@ export default function WishlistPage() {
                       {product.onHandQuantity === 0 && (
                         <div className="absolute top-4 left-4">
                           <span className="inline-flex items-center px-3 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold shadow-lg">
-                            Hết hàng
+                            Out of stock
                           </span>
                         </div>
                       )}
@@ -321,12 +350,13 @@ export default function WishlistPage() {
                         }`}
                         aria-label="Remove from wishlist"
                       >
-                        <Heart 
-                          size={20} 
+                        <Heart
+                          size={20}
                           fill={favoriteStatus[product._id] ? 'currentColor' : 'none'}
                         />
                       </button>
                     </div>
+
 
                     {/* Product Info */}
                     <div className="p-5">
@@ -340,10 +370,21 @@ export default function WishlistPage() {
                         {product.description || product.short_desc || ''}
                       </p>
 
+
                       <div className="flex items-center justify-between">
                         <div>
+                          {product.isNearExpiry && product.originalPrice != null && product.originalPrice > 0 && (
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <span className="text-xs font-medium px-2 py-0.5 rounded bg-amber-100 text-amber-800">
+                                Sắp hết hạn - Giảm {Math.round((1 - (product.price || 0) / product.originalPrice) * 100)}%
+                              </span>
+                              <span className="text-sm text-gray-500 line-through">
+                                {product.originalPrice?.toLocaleString('en-US')}
+                              </span>
+                            </div>
+                          )}
                           <span className="text-xl font-bold text-gray-900">
-                            {product.price?.toLocaleString('vi-VN') || '0'}đ
+                            {product.price?.toLocaleString('en-US') || '0'}
                           </span>
                         </div>
                         <button
@@ -368,6 +409,7 @@ export default function WishlistPage() {
                   </div>
                 ))}
               </div>
+
 
               {/* Pagination */}
               {favoritesPagination && favoritesPagination.totalPages > 1 && (
@@ -422,7 +464,12 @@ export default function WishlistPage() {
         </div>
       </section>
 
+
       <Footer />
     </div>
   );
 }
+
+
+
+
