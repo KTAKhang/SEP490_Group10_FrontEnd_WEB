@@ -144,7 +144,7 @@ export default function PreOrderStockPage() {
         </div>
       </div>
 
-      {err && (
+      {err && !showReceive && (
         <div className="p-3 bg-red-100 text-red-700 rounded-lg text-sm">{err}</div>
       )}
 
@@ -289,17 +289,21 @@ export default function PreOrderStockPage() {
                 onClick={() => {
                   setShowReceive(false);
                   setSelectedBatch(null);
+                  setErr("");
                 }}
                 className="p-1 hover:bg-gray-100 rounded"
               >
                 <i className="ri-close-line text-xl text-gray-600" />
               </button>
             </div>
+            {err && (
+              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-2xl border border-red-100 text-sm">{err}</div>
+            )}
             <p className="text-sm text-amber-700 bg-amber-50 rounded p-2 mb-3">
-              Chỉ được nhập đủ <strong>một lần duy nhất</strong>, đúng số kế hoạch. Không chỉnh sửa sau.
+              You can only receive <strong>once</strong>, exactly the planned quantity. No edits after.
             </p>
             <p className="text-sm text-gray-600 mb-2">
-              Lô: <strong>{selectedBatch.batchCode}</strong> — {selectedBatch.fruitTypeId?.name} · Kế hoạch: <strong>{selectedBatch.quantityKg ?? 0} kg</strong>
+              Batch: <strong>{selectedBatch.batchCode}</strong> — {selectedBatch.fruitTypeId?.name} · Planned: <strong>{selectedBatch.quantityKg ?? 0} kg</strong>
             </p>
             <div className="space-y-3">
               <div>
@@ -322,7 +326,7 @@ export default function PreOrderStockPage() {
                     setReceiveForm((f) => ({ ...f, note: e.target.value }))
                   }
                   className="w-full border rounded px-3 py-2 mt-1"
-                  placeholder="Ví dụ: lô 01/2025"
+                  placeholder="e.g. batch 01/2025"
                 />
               </div>
             </div>
@@ -332,8 +336,10 @@ export default function PreOrderStockPage() {
                 onClick={() => {
                   setShowReceive(false);
                   setSelectedBatch(null);
+                  setErr("");
                 }}
-                className="flex-1 py-2 border rounded-lg"
+                disabled={submitting}
+                className="flex-1 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
@@ -341,9 +347,9 @@ export default function PreOrderStockPage() {
                 type="button"
                 onClick={submitReceive}
                 disabled={submitting}
-                className="flex-1 py-2 bg-green-600 text-white rounded-lg disabled:opacity-50"
+                className="flex-1 py-2 bg-green-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {submitting ? "Saving..." : "Save"}
+                {submitting ? "Processing…" : "Confirm"}
               </button>
             </div>
           </div>

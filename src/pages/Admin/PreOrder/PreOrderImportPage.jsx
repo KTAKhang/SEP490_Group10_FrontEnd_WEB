@@ -54,20 +54,17 @@ export default function PreOrderImportPage() {
   }, [searchText]);
 
   const openForm = (row) => {
+    const received = row?.receivedKgFromPreOrderStock ?? 0;
+    const remaining = Math.max(0, (row?.demandKg ?? 0) - received);
     setForm({
       fruitTypeId: row?.fruitTypeId?._id || row?.fruitTypeId || "",
       harvestBatchId: "",
-      quantityKg: row?.demandKg ?? "",
+      quantityKg: remaining > 0 ? remaining : (row?.demandKg ?? ""),
       notes: "",
     });
     setErr("");
     setShowForm(true);
   };
-
-  const hasBatchForFruitType = (fid) =>
-    existingPreOrderBatches.some(
-      (b) => (b.fruitTypeId?._id || b.fruitTypeId)?.toString() === (fid?._id || fid)?.toString()
-    );
 
   const doSubmitForm = () => {
     setSubmitting(true);
@@ -105,8 +102,10 @@ export default function PreOrderImportPage() {
       return;
     }
     const row = demand.find((d) => (d.fruitTypeId?._id || d.fruitTypeId) === form.fruitTypeId);
-    if (row && Math.abs(qty - (row.demandKg ?? 0)) > 0.001) {
-      setErr(`Quantity must equal demand (${row.demandKg} kg).`);
+    const received = row?.receivedKgFromPreOrderStock ?? 0;
+    const remainingDemandKg = row ? Math.max(0, (row.demandKg ?? 0) - received) : 0;
+    if (row && qty > remainingDemandKg) {
+      setErr(`Quantity cannot exceed remaining demand (${remainingDemandKg} kg).`);
       return;
     }
     setErr("");
@@ -126,7 +125,7 @@ export default function PreOrderImportPage() {
         <Link to="/admin/harvest-batches" className="text-green-600 hover:underline inline-flex items-center gap-1">
           Harvest Batch <i className="ri-external-link-line text-sm" />
         </Link>
-        ), fruit type, quantity (kg) = demand. After creation, warehouse staff receives at Pre-order Stock until fully received, then Admin allocates from Demand page.
+        ), fruit type, and quantity (kg). Quantity must be greater than 0 and cannot exceed demand; you may enter less if the supplier delivers short. After creation, warehouse staff receives at Pre-order Stock; then Admin allocates from Demand page.
       </p>
       <div className="mb-4 flex flex-wrap items-center gap-4">
         <div className="relative flex-1 min-w-[200px] max-w-xs">
@@ -140,7 +139,7 @@ export default function PreOrderImportPage() {
           />
         </div>
       </div>
-      {err && (
+      {err && !showForm && !showConfirmCreate && (
         <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-2xl border border-red-100 text-sm">{err}</div>
       )}
       {loading ? (
@@ -156,7 +155,11 @@ export default function PreOrderImportPage() {
         <div className="space-y-4">
           {demand.map((d) => {
             const fid = d.fruitTypeId?._id || d.fruitTypeId;
-            const alreadyHasBatch = hasBatchForFruitType(fid);
+            const received = d.receivedKgFromPreOrderStock ?? 0;
+            const allocated = d.allocatedKg ?? 0;
+            const availableKg = Math.max(0, received - allocated);
+            const remainingDemandKg = Math.max(0, (d.demandKg ?? 0) - received);
+            const noRemainingDemand = remainingDemandKg <= 0;
             return (
               <div
                 key={fid}
@@ -166,17 +169,20 @@ export default function PreOrderImportPage() {
                   <h2 className="font-semibold text-gray-800">{d.fruitTypeName || "—"}</h2>
                   <div className="flex flex-wrap gap-4 mt-1 text-sm text-gray-600">
                     <span>Demand: <strong>{d.demandKg} kg</strong> ({d.orderCount} orders)</span>
-                    <span>Received: <strong>{d.receivedKgFromPreOrderStock ?? 0} kg</strong></span>
+                    <span>Received: <strong>{received} kg</strong></span>
+                    <span>Allocated: <strong>{allocated} kg</strong></span>
+                    <span>Available: <strong>{availableKg} kg</strong></span>
+                    <span>Remaining demand: <strong>{remainingDemandKg} kg</strong></span>
                   </div>
-                  {alreadyHasBatch && (
-                    <p className="text-amber-600 text-sm mt-1">Receive batch already created (one per fruit type).</p>
+                  {noRemainingDemand && (
+                    <p className="text-amber-600 text-sm mt-1">No remaining demand; no further receive batches needed.</p>
                   )}
                 </div>
                 <button
                   type="button"
                   onClick={() => openForm(d)}
-                  disabled={alreadyHasBatch}
-                  className="px-4 py-2 bg-gray-900 text-white rounded-full hover:bg-gray-800 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  disabled={noRemainingDemand}
+                  className="px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Create receive batch
                 </button>
@@ -250,12 +256,15 @@ export default function PreOrderImportPage() {
               <h3 className="font-bold text-lg text-gray-900">Create receive batch</h3>
               <button
                 type="button"
-                onClick={() => setShowForm(false)}
+                onClick={() => { setShowForm(false); setErr(""); }}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
               >
                 <i className="ri-close-line text-xl text-gray-600" />
               </button>
             </div>
+            {err && (
+              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-2xl border border-red-100 text-sm">{err}</div>
+            )}
             <div className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700">
@@ -307,11 +316,18 @@ export default function PreOrderImportPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Quantity (kg) — must equal demand</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Quantity (kg) — greater than 0, not more than remaining demand
+                </label>
                 <input
                   type="number"
                   min={0.1}
                   step={0.5}
+                  max={(() => {
+                    const row = demand.find((d) => (d.fruitTypeId?._id || d.fruitTypeId) === form.fruitTypeId);
+                    const received = row?.receivedKgFromPreOrderStock ?? 0;
+                    return row ? Math.max(0, (row.demandKg ?? 0) - received) : undefined;
+                  })()}
                   value={form.quantityKg}
                   onChange={(e) => setForm((f) => ({ ...f, quantityKg: e.target.value }))}
                   className="w-full border rounded px-3 py-2 mt-1"
@@ -330,7 +346,7 @@ export default function PreOrderImportPage() {
             <div className="flex gap-3 mt-6">
               <button
                 type="button"
-                onClick={() => setShowForm(false)}
+                onClick={() => { setShowForm(false); setErr(""); }}
                 className="flex-1 py-2.5 border border-gray-300 rounded-full font-medium text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Cancel
@@ -339,7 +355,7 @@ export default function PreOrderImportPage() {
                 type="button"
                 onClick={submitForm}
                 disabled={submitting}
-                className="flex-1 py-2.5 bg-gray-900 text-white rounded-full font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                className="flex-1 py-2.5 bg-green-600 text-white rounded-full font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
               >
                 {submitting ? "Creating..." : "Create batch"}
               </button>
@@ -353,14 +369,18 @@ export default function PreOrderImportPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
             <h3 className="font-bold text-gray-900 text-lg mb-3">Confirm create receive batch</h3>
+            {err && (
+              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-2xl border border-red-100 text-sm">{err}</div>
+            )}
             <p className="text-gray-700 mb-6">
-              This action can be done <strong>only once</strong> per pre-order fruit type. Quantity must equal demand. After creation, warehouse staff receives once only. Are you sure?
+              Create a receive batch for this fruit type with the quantity above. Quantity is greater than 0 and does not exceed demand. Warehouse staff will receive stock at Pre-order Stock (partial receives allowed; total received must not exceed demand). Then run allocation from the Demand page. Continue?
             </p>
             <div className="flex gap-3">
               <button
                 type="button"
-                onClick={() => setShowConfirmCreate(false)}
-                className="flex-1 py-2.5 border border-gray-300 rounded-full font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                onClick={() => { setShowConfirmCreate(false); setErr(""); }}
+                disabled={submitting}
+                className="flex-1 py-2.5 border border-gray-300 rounded-full font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Cancel
               </button>
@@ -368,9 +388,9 @@ export default function PreOrderImportPage() {
                 type="button"
                 onClick={doSubmitForm}
                 disabled={submitting}
-                className="flex-1 py-2.5 bg-gray-900 text-white rounded-full font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                className="flex-1 py-2.5 bg-green-600 text-white rounded-full font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {submitting ? "Creating..." : "Confirm create"}
+                {submitting ? "Processing…" : "Confirm create"}
               </button>
             </div>
           </div>

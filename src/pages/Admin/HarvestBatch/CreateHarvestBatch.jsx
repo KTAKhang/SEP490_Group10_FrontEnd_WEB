@@ -375,7 +375,8 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
             <button
               type="button"
               onClick={handleCancel}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              disabled={createHarvestBatchLoading}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
@@ -384,7 +385,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
               disabled={createHarvestBatchLoading}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {createHarvestBatchLoading ? "Creating..." : "Create Harvest Batch"}
+              {createHarvestBatchLoading ? "Processing…" : "Create Harvest Batch"}
             </button>
           </div>
         </form>
