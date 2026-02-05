@@ -75,10 +75,10 @@ const ReadCategory = ({ isOpen, onClose, category }) => {
           {/* Timestamps */}
           <div className="border-t pt-4 grid grid-cols-2 gap-4 text-sm text-gray-500">
             <div>
-              <p>Created: {category.createdAt ? new Date(category.createdAt).toLocaleString("vi-VN") : "N/A"}</p>
+              <p>Created: {category.createdAt ? new Date(category.createdAt).toLocaleString("en-US") : "N/A"}</p>
             </div>
             <div>
-              <p>Last updated: {category.updatedAt ? new Date(category.updatedAt).toLocaleString("vi-VN") : "N/A"}</p>
+              <p>Last updated: {category.updatedAt ? new Date(category.updatedAt).toLocaleString("en-US") : "N/A"}</p>
             </div>
           </div>
         </div>

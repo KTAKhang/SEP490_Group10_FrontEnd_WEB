@@ -193,7 +193,7 @@ const ProfileManager = () => {
       const isJpgOrPng =
         file.type === "image/jpeg" || file.type === "image/png";
       if (!isJpgOrPng) {
-        message.error("Chỉ có thể tải lên file JPG/PNG!");
+        message.error("Only JPG/PNG files are allowed!");
         return Upload.LIST_IGNORE;
       }
       const isLt3M = file.size / 1024 / 1024 < 3;
@@ -201,7 +201,7 @@ const ProfileManager = () => {
         message.error("Kích thước ảnh phải nhỏ hơn 3MB!");
         return Upload.LIST_IGNORE;
       }
-      message.success("Tải ảnh đại diện thành công!");
+      message.success("Avatar uploaded successfully!");
       return false;
     },
     onChange: handleAvatarChange,
@@ -223,7 +223,7 @@ const ProfileManager = () => {
     const userId = storedUser ? storedUser._id : null;
 
     if (!userId) {
-      message.error("Không tìm thấy thông tin người dùng!");
+      message.error("User information not found!");
       return;
     }
 
@@ -520,17 +520,17 @@ const ProfileManager = () => {
                           rules={[
                             {
                               required: true,
-                              message: "Vui lòng nhập địa chỉ!",
+                              message: "Please enter address!",
                             },
                             {
                               min: 5,
-                              message: "Địa chỉ phải có ít nhất 5 ký tự!",
+                              message: "Address must be at least 5 characters!",
                             },
                           ]}
                         >
                           <Input.TextArea
                             rows={3}
-                            placeholder="Nhập địa chỉ"
+                            placeholder="Enter address"
                             className="rounded-xl border-2 hover:border-green-500 focus:border-green-500 transition-colors"
                           />
                         </Form.Item>
@@ -671,7 +671,7 @@ const ProfileManager = () => {
                           {user.email}
                         </p>
                       </div>
-                      {/* Nút chỉnh sửa */}
+                      {/* Edit button */}
                       {!editMode && (
                         <Button
                           type="text"

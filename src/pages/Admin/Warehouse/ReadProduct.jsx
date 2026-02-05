@@ -38,7 +38,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
 
   const handleUpdateExpiryDate = () => {
     if (!expiryDate) {
-      toast.error("Vui lòng chọn ngày hết hạn");
+      toast.error("Please select expiry date");
       return;
     }
 
@@ -72,11 +72,11 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
   const getReceivingStatus = (product) => {
     switch (product.receivingStatus) {
       case "NOT_RECEIVED":
-        return { label: "Chưa nhập", color: "bg-gray-100 text-gray-800" };
+        return { label: "Not received", color: "bg-gray-100 text-gray-800" };
       case "PARTIAL":
-        return { label: "Chưa đủ", color: "bg-yellow-100 text-yellow-800" };
+        return { label: "Partial", color: "bg-yellow-100 text-yellow-800" };
       case "RECEIVED":
-        return { label: "Đã nhập đủ", color: "bg-green-100 text-green-800" };
+        return { label: "Fully received", color: "bg-green-100 text-green-800" };
       default:
         return { label: "N/A", color: "bg-gray-100 text-gray-800" };
     }
@@ -135,7 +135,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-700 mb-2">Thương hiệu</h3>
-              <p className="text-gray-900">{product.brand || "Chưa có"}</p>
+              <p className="text-gray-900">{product.brand || "N/A"}</p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-700 mb-2">Giá</h3>
@@ -190,7 +190,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
                 <p className="text-2xl font-bold text-blue-600">{product.plannedQuantity || 0}</p>
               </div>
               <div className="bg-purple-50 p-4 rounded-lg">
-                <p className="text-xs text-gray-600 mb-1">Đã nhập</p>
+                <p className="text-xs text-gray-600 mb-1">Received</p>
                 <p className="text-2xl font-bold text-purple-600">{product.receivedQuantity || 0}</p>
               </div>
               <div className="bg-green-50 p-4 rounded-lg">
@@ -198,7 +198,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
                 <p className="text-2xl font-bold text-green-600">{product.onHandQuantity || 0}</p>
               </div>
               <div className="bg-orange-50 p-4 rounded-lg">
-                <p className="text-xs text-gray-600 mb-1">Đã giữ hàng</p>
+                <p className="text-xs text-gray-600 mb-1">Reserved</p>
                 <p className="text-2xl font-bold text-orange-600">{product.reservedQuantity || 0}</p>
               </div>
             </div>
@@ -365,7 +365,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Chọn ngày hết hạn (tối thiểu từ ngày mai)
+                  Select expiry date (minimum from tomorrow)
                 </p>
               </div>
             </div>

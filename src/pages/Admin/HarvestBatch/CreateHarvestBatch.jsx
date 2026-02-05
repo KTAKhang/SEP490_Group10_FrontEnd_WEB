@@ -19,11 +19,9 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
     productId: "",
     batchNumber: "",
     harvestDate: "",
-    quantity: "",
     location: "",
     city: "",
     ward: "",
-    qualityGrade: "A",
     notes: "",
   });
 
@@ -44,11 +42,9 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
         productId: "",
         batchNumber: "",
         harvestDate: "",
-        quantity: "",
         location: "",
         city: "",
         ward: "",
-        qualityGrade: "A",
         notes: "",
       });
       setIcity("");
@@ -99,11 +95,9 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
         productId: "",
         batchNumber: "",
         harvestDate: "",
-        quantity: "",
         location: "",
         city: "",
         ward: "",
-        qualityGrade: "A",
         notes: "",
       });
       setIcity("");
@@ -119,14 +113,14 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.supplierId || !formData.productId || !formData.harvestDate || !formData.quantity) {
+    if (!formData.supplierId || !formData.productId || !formData.harvestDate) {
       return;
     }
 
     // ✅ Validation: Batch Number không được để trống
     const batchNumberTrimmed = formData.batchNumber?.trim() || "";
     if (!batchNumberTrimmed) {
-      alert("Số lô thu hoạch (Batch Number) là bắt buộc và không được để trống");
+      alert("Harvest Batch Number is required and cannot be empty");
       return;
     }
 
@@ -140,13 +134,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
       return;
     }
 
-    const quantityNum = parseInt(formData.quantity);
-    if (isNaN(quantityNum) || quantityNum <= 0 || !Number.isInteger(quantityNum)) {
-      alert("Số lượng phải là số nguyên lớn hơn 0");
-      return;
-    }
-
-    // Clean data
+    // Clean data - đã xóa quantity trên HarvestBatch
     const locationLine = formData.location?.trim() || "";
     const wardName = formData.ward?.toString().trim() || "";
     const provinceName = icity?.toString().trim() || "";
@@ -157,9 +145,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
       productId: formData.productId,
       batchNumber: batchNumberTrimmed,
       harvestDate: formData.harvestDate,
-      quantity: quantityNum,
       location: locationParts.join(", "),
-      qualityGrade: formData.qualityGrade || "A",
       notes: formData.notes?.trim() || "",
     };
 
@@ -174,11 +160,9 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
         productId: "",
         batchNumber: "",
         harvestDate: "",
-        quantity: "",
         location: "",
         city: "",
         ward: "",
-        qualityGrade: "A",
         notes: "",
       });
     setIcity("");
@@ -296,23 +280,6 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Quantity (KG) <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                value={formData.quantity}
-                onChange={handleInputChange}
-                name="quantity"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Enter quantity in KG"
-                min="1"
-                step="1"
-                required
-              />
-            </div>
-
-            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center space-x-2">
                 <MapPin size={16} />
                 <span>Location</span>
@@ -324,7 +291,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
                   onChange={handleInputChange}
                   name="location"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Số nhà, tên đường"
+                  placeholder="Street address"
                 />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <select
@@ -333,7 +300,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   >
-                    <option value="">Chọn tỉnh/thành</option>
+                    <option value="">Select province/city</option>
                     {provinces.map((province) => (
                       <option key={province.code} value={province.code}>
                         {province.name}
@@ -347,7 +314,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     disabled={!formData.city}
                   >
-                    <option value="">Chọn phường/xã</option>
+                    <option value="">Select ward</option>
                     {wards.map((ward) => (
                       <option key={ward.code} value={ward.name}>
                         {ward.name}
@@ -356,24 +323,6 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
                   </select>
                 </div>
               </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Quality Grade <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.qualityGrade}
-                onChange={handleInputChange}
-                name="qualityGrade"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                required
-              >
-                <option value="A">Grade A (Best)</option>
-                <option value="B">Grade B (Good)</option>
-                <option value="C">Grade C (Fair)</option>
-                <option value="D">Grade D (Poor)</option>
-              </select>
             </div>
 
             <div>

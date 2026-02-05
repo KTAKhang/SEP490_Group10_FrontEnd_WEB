@@ -17,12 +17,11 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
   const [formData, setFormData] = useState({
     batchNumber: "",
     harvestDate: "",
-    quantity: "",
     location: "",
     city: "",
     ward: "",
-    qualityGrade: "A",
     notes: "",
+    receiptEligible: true,
   });
 
   const [provinces, setProvinces] = useState([]);
@@ -48,12 +47,11 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
       setFormData({
         batchNumber: harvestBatchDetail.batchNumber || "",
         harvestDate: harvestDate,
-        quantity: harvestBatchDetail.quantity?.toString() || "",
         location: harvestBatchDetail.location || "",
         city: "",
         ward: "",
-        qualityGrade: harvestBatchDetail.qualityGrade || "A",
         notes: harvestBatchDetail.notes || "",
+        receiptEligible: harvestBatchDetail.receiptEligible !== false,
       });
       setIcity("");
     }
@@ -65,7 +63,8 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
       setHasSubmitted(false);
       onClose();
     }
-  }, [hasSubmitted, updateHarvestBatchLoading, onClose]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- onClose omitted to avoid infinite loop on parent re-render
+  }, [hasSubmitted, updateHarvestBatchLoading]);
 
   useEffect(() => {
     axios
@@ -76,8 +75,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
 
   useEffect(() => {
     if (!formData.city) {
-      setWards([]);
-      setFormData((prev) => ({ ...prev, ward: "" }));
+      setWards(() => []);
       setIcity("");
       return;
     }
@@ -98,6 +96,8 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
     if (name === "city") {
       const selectedProvince = provinces.find((p) => p.code === Number(value));
       setIcity(selectedProvince ? selectedProvince.name : "");
+      setFormData((prev) => ({ ...prev, city: value, ward: "" }));
+      return;
     }
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -105,8 +105,8 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.batchNumber || !formData.harvestDate || !formData.quantity) {
-      alert("Vui lòng điền đầy đủ các trường bắt buộc.");
+    if (!formData.batchNumber || !formData.harvestDate) {
+      alert("Please fill in all required fields.");
       return;
     }
 
@@ -116,24 +116,10 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (harvestDateObj > today) {
-      alert("Ngày thu hoạch không được lớn hơn ngày hiện tại.");
+      alert("Harvest date cannot be later than today.");
       return;
     }
 
-    const quantityNum = parseInt(formData.quantity);
-    if (isNaN(quantityNum) || quantityNum <= 0 || !Number.isInteger(quantityNum)) {
-      alert("Số lượng phải là số nguyên lớn hơn 0.");
-      return;
-    }
-
-    // Validation: quantity không được nhỏ hơn receivedQuantity
-    const receivedQuantity = harvestBatchDetail?.receivedQuantity || 0;
-    if (quantityNum < receivedQuantity) {
-      alert(`Số lượng không thể nhỏ hơn số lượng đã nhập kho (${receivedQuantity} KG).`);
-      return;
-    }
-
-    // Clean data - chỉ gửi các fields được phép update
     const locationLine = formData.location?.trim() || "";
     const wardName = formData.ward?.toString().trim() || "";
     const provinceName = icity?.toString().trim() || "";
@@ -142,10 +128,9 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
     const cleanedData = {
       batchNumber: formData.batchNumber.trim(),
       harvestDate: formData.harvestDate,
-      quantity: quantityNum,
       location: locationParts.join(", "),
-      qualityGrade: formData.qualityGrade || "A",
       notes: formData.notes?.trim() || "",
+      receiptEligible: formData.receiptEligible,
     };
 
     setHasSubmitted(true);
@@ -167,7 +152,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-gray-200/80">
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-bold text-gray-800 flex items-center space-x-2">
             <Package size={24} />
@@ -194,10 +179,10 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                 <AlertCircle className="text-yellow-600 flex-shrink-0 mt-0.5" size={20} />
                 <div>
                   <p className="text-sm font-medium text-yellow-800">
-                    Không thể chỉnh sửa lô thu hoạch đã được nhập kho
+                    Cannot edit harvest batch that has been received in warehouse
                   </p>
                   <p className="text-xs text-yellow-700 mt-1">
-                    Lô này đã có {receivedQuantity} KG được nhập kho. Chỉ có thể xem thông tin, không thể chỉnh sửa.
+                    This batch has {receivedQuantity} already received in warehouse. You can only view details, not edit.
                   </p>
                 </div>
               </div>
@@ -207,7 +192,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
               <div className="p-6 space-y-4">
                 {/* Read-only Supplier & Product Info */}
                 <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3">Thông tin không thể chỉnh sửa</h3>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3">Read-only information</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-xs text-gray-500 mb-1">Supplier</p>
@@ -230,11 +215,14 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                     <div>
                       <p className="text-xs text-gray-500 mb-1">Received Quantity</p>
                       <p className="text-sm font-medium text-gray-900">
-                        {receivedQuantity} KG
+                        {receivedQuantity}
                       </p>
                     </div>
                   </div>
                 </div>
+
+                {/* Receipt Eligible - only editable when canEdit */}
+                
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -246,7 +234,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                       value={formData.batchNumber}
                       onChange={handleInputChange}
                       name="batchNumber"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                       placeholder="Enter batch number"
                       required
                       disabled={!canEdit}
@@ -264,36 +252,13 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                         value={formData.harvestDate}
                         onChange={handleInputChange}
                         name="harvestDate"
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                         max={today}
                         required
                         disabled={!canEdit}
                       />
                     </div>
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Quantity (KG) <span className="text-red-500">*</span>
-                    {receivedQuantity > 0 && (
-                      <span className="text-xs text-gray-500 ml-2">
-                        (Tối thiểu: {receivedQuantity} KG)
-                      </span>
-                    )}
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.quantity}
-                    onChange={handleInputChange}
-                    name="quantity"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                    placeholder="Enter quantity in KG"
-                    min={receivedQuantity > 0 ? receivedQuantity : 1}
-                    step="1"
-                    required
-                    disabled={!canEdit}
-                  />
                 </div>
 
                 <div>
@@ -307,8 +272,8 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                       value={formData.location}
                       onChange={handleInputChange}
                       name="location"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                      placeholder="Số nhà, tên đường"
+                      className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      placeholder="Street address"
                       disabled={!canEdit}
                     />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -316,10 +281,10 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                         name="city"
                         value={formData.city}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                         disabled={!canEdit}
                       >
-                        <option value="">Chọn tỉnh/thành</option>
+                        <option value="">Select province/city</option>
                         {provinces.map((province) => (
                           <option key={province.code} value={province.code}>
                             {province.name}
@@ -330,10 +295,10 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                         name="ward"
                         value={formData.ward}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                         disabled={!canEdit || !formData.city}
                       >
-                        <option value="">Chọn phường/xã</option>
+                        <option value="">Select ward</option>
                         {wards.map((ward) => (
                           <option key={ward.code} value={ward.name}>
                             {ward.name}
@@ -346,32 +311,13 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Quality Grade <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={formData.qualityGrade}
-                  onChange={handleInputChange}
-                  name="qualityGrade"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                    required
-                    disabled={!canEdit}
-                  >
-                    <option value="A">Grade A (Best)</option>
-                    <option value="B">Grade B (Good)</option>
-                    <option value="C">Grade C (Fair)</option>
-                    <option value="D">Grade D (Poor)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Notes
                   </label>
                   <textarea
                     value={formData.notes}
                   onChange={handleInputChange}
                   name="notes"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                     rows="3"
                     placeholder="Enter notes"
                     maxLength={500}
@@ -385,7 +331,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-200 rounded-xl hover:bg-gray-50"
                 >
                   {canEdit ? "Cancel" : "Close"}
                 </button>
@@ -393,7 +339,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                   <button
                     type="submit"
                     disabled={updateHarvestBatchLoading}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {updateHarvestBatchLoading ? "Updating..." : "Update Harvest Batch"}
                   </button>

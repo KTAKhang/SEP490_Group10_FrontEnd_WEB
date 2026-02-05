@@ -90,11 +90,11 @@ const CreateSupplier = ({ isOpen, onClose }) => {
       return;
     }
 
-    // ✅ BR-SUP-02: Phải có ít nhất phone hoặc email
+    // BR-SUP-02: At least phone or email is required
     const phone = formData.phone?.toString().trim() || "";
     const email = formData.email?.toString().trim() || "";
     if (!phone && !email) {
-      alert("Phải có ít nhất số điện thoại hoặc email");
+      alert("At least phone or email is required");
       return;
     }
 
@@ -242,7 +242,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
                   value={formData.address}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Số nhà, tên đường"
+                  placeholder="Street address"
                 />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <select
@@ -251,7 +251,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   >
-                    <option value="">Chọn tỉnh/thành</option>
+                    <option value="">Select province/city</option>
                     {provinces.map((province) => (
                       <option key={province.code} value={province.code}>
                         {province.name}
@@ -265,7 +265,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     disabled={!formData.city}
                   >
-                    <option value="">Chọn phường/xã</option>
+                    <option value="">Select ward</option>
                     {wards.map((ward) => (
                       <option key={ward.code} value={ward.name}>
                         {ward.name}

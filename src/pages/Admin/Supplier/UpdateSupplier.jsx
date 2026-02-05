@@ -49,11 +49,11 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
       return;
     }
 
-    // ✅ BR-SUP-02: Phải có ít nhất phone hoặc email
+    // BR-SUP-02: At least phone or email is required
     const phone = formData.phone?.toString().trim() || "";
     const email = formData.email?.toString().trim() || "";
     if (!phone && !email) {
-      alert("Phải có ít nhất số điện thoại hoặc email");
+      alert("At least phone or email is required");
       return;
     }
 

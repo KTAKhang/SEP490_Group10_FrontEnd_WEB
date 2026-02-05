@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Search, Eye, Edit } from "lucide-react";
+import { Search, Eye, Edit, Star } from "lucide-react";
 import {
   getAdminReviewsRequest,
   updateReviewVisibilityRequest,
@@ -10,9 +10,9 @@ import ReviewDetails from "./ReviewDetails";
 import UpdateReview from "./UpdateReview";
 
 const STATUS_OPTIONS = [
-  { value: "ALL", label: "Tất cả" },
-  { value: "VISIBLE", label: "Hiển thị" },
-  { value: "HIDDEN", label: "Ẩn" },
+  { value: "ALL", label: "All" },
+  { value: "VISIBLE", label: "Visible" },
+  { value: "HIDDEN", label: "Hidden" },
 ];
 
 const ReviewManagement = () => {
@@ -85,20 +85,23 @@ const ReviewManagement = () => {
   };
 
   const formatDate = (value) =>
-    value ? new Date(value).toLocaleString("vi-VN") : "N/A";
+    value ? new Date(value).toLocaleString("en-US") : "N/A";
 
   return (
-    <div className="bg-white rounded-lg border shadow-sm">
-      <div className="p-6 border-b">
-        <h1 className="text-2xl font-bold text-gray-900">Review Management</h1>
-        <p className="text-sm text-gray-600 mt-1">
-          Quản lý đánh giá sản phẩm của khách hàng.
-        </p>
+    <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
+      <div className="flex items-center gap-3 border-b border-gray-100 p-5">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+          <Star size={24} />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-gray-900">Review Management</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Manage customer product reviews</p>
+        </div>
       </div>
 
-      <div className="p-6 border-b bg-gray-50 space-y-4">
+      <div className="border-b border-gray-100 bg-gray-50/50 p-5 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <div className="relative">
+          <div className="relative min-w-0">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
@@ -108,10 +111,10 @@ const ReviewManagement = () => {
                 setPage(1);
               }}
               placeholder="Product ID"
-              className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
             />
           </div>
-          <div className="relative">
+          <div className="relative min-w-0">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
@@ -121,10 +124,10 @@ const ReviewManagement = () => {
                 setPage(1);
               }}
               placeholder="User ID"
-              className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
             />
           </div>
-          <div className="relative">
+          <div className="relative min-w-0">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
@@ -133,18 +136,18 @@ const ReviewManagement = () => {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              placeholder="Tìm theo nội dung"
-              className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              placeholder="Search by content"
+              className="w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 min-w-0">
             <select
               value={status}
               onChange={(e) => {
                 setStatus(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
             >
               {STATUS_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -162,12 +165,12 @@ const ReviewManagement = () => {
               setRating(e.target.value);
               setPage(1);
             }}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            className="rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
           >
-            <option value="ALL">Tất cả rating</option>
+            <option value="ALL">All ratings</option>
             {[5, 4, 3, 2, 1].map((value) => (
               <option key={value} value={value}>
-                {value} sao
+                {value} stars
               </option>
             ))}
           </select>
@@ -179,38 +182,38 @@ const ReviewManagement = () => {
               setSortOrder(nextSortOrder);
               setPage(1);
             }}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            className="rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
           >
-            <option value="createdAt:desc">Mới nhất</option>
-            <option value="createdAt:asc">Cũ nhất</option>
-            <option value="rating:desc">Rating cao</option>
-            <option value="rating:asc">Rating thấp</option>
+            <option value="createdAt:desc">Newest</option>
+            <option value="createdAt:asc">Oldest</option>
+            <option value="rating:desc">Rating high</option>
+            <option value="rating:asc">Rating low</option>
           </select>
         </div>
       </div>
 
       <div className="p-6">
         {adminLoading ? (
-          <div className="py-10 text-center text-gray-600">Đang tải review...</div>
+          <div className="py-10 text-center text-gray-600">Loading reviews...</div>
         ) : adminError ? (
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
             {adminError}
           </div>
         ) : adminReviews.length === 0 ? (
-          <div className="py-12 text-center text-gray-600">Chưa có review nào</div>
+          <div className="py-12 text-center text-gray-600">No reviews yet</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead className="bg-gray-50 text-gray-600">
                   <tr>
-                  <th className="px-4 py-3 text-left">Sản phẩm</th>
-                  <th className="px-4 py-3 text-left">Khách hàng</th>
+                  <th className="px-4 py-3 text-left">Product</th>
+                  <th className="px-4 py-3 text-left">Customer</th>
                   <th className="px-4 py-3 text-left">Rating</th>
-                  <th className="px-4 py-3 text-left">Nội dung</th>
-                  <th className="px-4 py-3 text-left">Trạng thái</th>
-                  <th className="px-4 py-3 text-left">Đã sửa</th>
-                  <th className="px-4 py-3 text-left">Ngày tạo</th>
-                  <th className="px-4 py-3 text-right">Hành động</th>
+                  <th className="px-4 py-3 text-left">Content</th>
+                  <th className="px-4 py-3 text-left">Status</th>
+                  <th className="px-4 py-3 text-left">Edited</th>
+                  <th className="px-4 py-3 text-left">Created</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -233,30 +236,30 @@ const ReviewManagement = () => {
                             : "bg-gray-100 text-gray-700"
                         }`}
                       >
-                        {review.status === "VISIBLE" ? "Hiển thị" : review.status === "HIDDEN" ? "Ẩn" : review.status || "N/A"}
+                        {review.status === "VISIBLE" ? "Visible" : review.status === "HIDDEN" ? "Hidden" : review.status || "N/A"}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       {(review.editedCount != null && review.editedCount > 0)
-                        ? `${review.editedCount} lần`
+                        ? `${review.editedCount} time(s)`
                         : "-"}
                     </td>
                     <td className="px-4 py-3">{formatDate(review.createdAt)}</td>
                     <td className="px-4 py-3 text-right">
-                      <div className="inline-flex gap-2">
+                      <div className="inline-flex gap-1">
                         <button
                           onClick={() => handleViewDetail(review)}
-                          className="px-2 py-1 border border-gray-300 rounded-lg hover:bg-gray-50"
-                          title="Xem chi tiết"
+                          className="rounded-xl p-2 text-blue-600 transition hover:bg-blue-50 hover:text-blue-700"
+                          title="View details"
                         >
-                          <Eye size={16} />
+                          <Eye size={18} />
                         </button>
                         <button
                           onClick={() => handleOpenUpdate(review)}
-                          className="px-2 py-1 border border-gray-300 rounded-lg hover:bg-gray-50"
-                          title="Cập nhật"
+                          className="rounded-xl p-2 text-emerald-600 transition hover:bg-emerald-50 hover:text-emerald-700"
+                          title="Update"
                         >
-                          <Edit size={16} />
+                          <Edit size={18} />
                         </button>
                       </div>
                     </td>
@@ -273,17 +276,17 @@ const ReviewManagement = () => {
           <button
             onClick={() => setPage((prev) => Math.max(1, prev - 1))}
             disabled={page === 1}
-            className="px-3 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition disabled:opacity-50 hover:bg-gray-50"
           >
             Prev
           </button>
           <span className="text-sm text-gray-600">
-            Trang {page} / {totalPages}
+            Page {page} / {totalPages}
           </span>
           <button
             onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
             disabled={page === totalPages}
-            className="px-3 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition disabled:opacity-50 hover:bg-gray-50"
           >
             Next
           </button>

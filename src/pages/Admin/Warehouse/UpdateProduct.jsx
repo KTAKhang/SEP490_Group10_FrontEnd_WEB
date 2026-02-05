@@ -329,19 +329,6 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
                 )}
                 <p className="text-xs text-gray-500 mt-1">Select a supplier to assign as brand</p>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Status
-                </label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value === "true" })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                >
-                  <option value={true}>Visible</option>
-                  <option value={false}>Hidden</option>
-                </select>
-              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

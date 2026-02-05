@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
@@ -20,27 +20,27 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
 
   // Track if we submitted the form
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  const [hasShownToast, setHasShownToast] = useState(false);
+  const toastShownRef = useRef(false);
 
   // Close modal after successful update
   useEffect(() => {
-    if (hasSubmitted && !updateCategoryLoading && !updateCategoryError && !hasShownToast) {
+    if (hasSubmitted && !updateCategoryLoading && !updateCategoryError && !toastShownRef.current) {
       // Update was successful, show toast and close modal
       toast.success("Category updated successfully!");
-      setHasShownToast(true);
+      toastShownRef.current = true;
       setHasSubmitted(false);
       onClose();
     }
-    if (hasSubmitted && updateCategoryError && !hasShownToast) {
+    if (hasSubmitted && updateCategoryError && !toastShownRef.current) {
       toast.error(updateCategoryError);
-      setHasShownToast(true);
+      toastShownRef.current = true;
     }
-  }, [hasSubmitted, updateCategoryLoading, updateCategoryError, hasShownToast, onClose]);
+  }, [hasSubmitted, updateCategoryLoading, updateCategoryError, onClose]);
 
   // Reset toast flag when modal opens
   useEffect(() => {
     if (isOpen) {
-      setHasShownToast(false);
+      toastShownRef.current = false;
       setHasSubmitted(false);
     }
   }, [isOpen]);

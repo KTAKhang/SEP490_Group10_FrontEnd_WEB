@@ -21,6 +21,7 @@ import WareHouse from "../pages/Admin/Warehouse/WareHouse";
 import CategoryManagement from "../pages/Admin/Category/CategoryManagement";
 import BatchHistoryPage from "../pages/Admin/BatchHistory/BatchHistoryPage";
 import ReceiptHistoryPage from "../pages/Admin/ReceiptHistory/ReceiptHistoryPage";
+import OrderLogHistoryPage from "../pages/Admin/OrderLogHistory/OrderLogHistoryPage";
 import WarehouseStaffLayout from "../layout/WarehouseStaffLayout";
 import WarehouseStaffPage from "../pages/WarehouseStaff/WarehouseStaffPage";
 import WarehouseStaffWareHouse from "../pages/WarehouseStaff/Warehouse/WareHouse";
@@ -62,6 +63,7 @@ import VoucherPage from "../pages/CustomerView/VoucherPage";
 import OrderHistory from "../pages/CustomerView/OrderHistory";
 import OrderHistoryDetail from "../pages/CustomerView/OrderHistoryDetail";
 import OrderManagement from "../pages/Admin/OrderManagement/OrderManagement";
+import SalesStaffOrderManagement from "../pages/SalesStaff/OrderManagement/OrderManagement";
 import FruitTypeManagement from "../pages/Admin/PreOrder/FruitTypeManagement";
 import PreOrderDemandPage from "../pages/Admin/PreOrder/PreOrderDemandPage";
 import PreOrderListPage from "../pages/Admin/PreOrder/PreOrderListPage";
@@ -200,6 +202,7 @@ export const routes = [
       { path: "customers", element: <CustomerManagement /> },
       { path: "discounts", element: <AdminDiscountManagement /> },
       { path: "orders", element: <OrderManagement /> },
+      { path: "order-log-history", element: <OrderLogHistoryPage /> },
       {
         path: "preorder",
         element: <AdminPreOrderLayout />,
@@ -250,6 +253,7 @@ export const routes = [
       { index: true, element: <FinanceLayout /> },
       { path: "statistics", element: <SalesStaffPage /> },
       { path: "discounts", element: <StaffDiscountManagement /> },
+      { path: "orders", element: <SalesStaffOrderManagement /> },
     ],
   },
 

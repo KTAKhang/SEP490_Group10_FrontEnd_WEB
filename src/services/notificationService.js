@@ -110,6 +110,16 @@ export const handleNotificationClick = (notificationData) => {
       window.location.href = '/customer/my-pre-orders';
     }
   }
-  
-  // Add more notification types as needed
+
+  // Order: backend chỉ gửi thông báo khi admin cập nhật trạng thái đơn (action: view_order)
+  if (notificationData?.type === 'order') {
+    const orderId = notificationData?.orderId;
+    if (notificationData?.action === 'view_order' && orderId) {
+      window.location.href = `/customer/orders/${orderId}`;
+      return;
+    }
+    if (orderId) {
+      window.location.href = `/customer/orders/${orderId}`;
+    }
+  }
 };

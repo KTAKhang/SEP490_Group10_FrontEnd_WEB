@@ -80,7 +80,7 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
 
   const handleAddItem = () => {
     if (items.length >= 5) {
-      toast.error("Giỏ trái cây chỉ được tối đa 5 loại trái cây");
+      toast.error("Fruit basket can have at most 5 fruit types");
       return;
     }
     setItems((prev) => [...prev, { productId: "", quantity: 1 }]);
@@ -102,7 +102,7 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
 
     const total = images.length + uploadFiles.length + files.length;
     if (total > 10) {
-      toast.error("Số lượng ảnh không được vượt quá 10");
+      toast.error("Number of images must not exceed 10");
       return;
     }
 
@@ -129,11 +129,11 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
   const validateItems = () => {
     const normalized = items.filter((item) => item.productId);
     if (normalized.length === 0) {
-      toast.error("Giỏ trái cây phải có ít nhất 1 loại trái cây");
+      toast.error("Fruit basket must have at least 1 fruit type");
       return null;
     }
     if (normalized.length > 5) {
-      toast.error("Giỏ trái cây chỉ được tối đa 5 loại trái cây");
+      toast.error("Fruit basket can have at most 5 fruit types");
       return null;
     }
 
@@ -146,7 +146,7 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
       productSet.add(item.productId);
       const qty = Number(item.quantity);
       if (!Number.isInteger(qty) || qty < 1 || qty > 10) {
-        toast.error("Số lượng mỗi trái cây phải là số nguyên từ 1 đến 10");
+        toast.error("Quantity per fruit must be an integer from 1 to 10");
         return null;
       }
     }
@@ -161,7 +161,7 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
     const normalized = images.filter((img) => img.url && img.publicId);
     const total = normalized.length + uploadFiles.length;
     if (total > 10) {
-      toast.error("Số lượng ảnh không được vượt quá 10");
+      toast.error("Number of images must not exceed 10");
       return null;
     }
     return {

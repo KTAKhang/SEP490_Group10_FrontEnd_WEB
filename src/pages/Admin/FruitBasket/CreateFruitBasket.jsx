@@ -63,7 +63,7 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
 
   const handleAddItem = () => {
     if (items.length >= 5) {
-      toast.error("Giỏ trái cây chỉ được tối đa 5 loại trái cây");
+      toast.error("Fruit basket can have at most 5 fruit types");
       return;
     }
     setItems((prev) => [...prev, { productId: "", quantity: 1 }]);
@@ -85,7 +85,7 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
 
     const total = uploadFiles.length + files.length;
     if (total > 10) {
-      toast.error("Số lượng ảnh không được vượt quá 10");
+      toast.error("Number of images must not exceed 10");
       return;
     }
 
@@ -108,18 +108,18 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
   const validateItems = () => {
     const normalized = items.filter((item) => item.productId);
     if (normalized.length === 0) {
-      toast.error("Giỏ trái cây phải có ít nhất 1 loại trái cây");
+      toast.error("Fruit basket must have at least 1 fruit type");
       return null;
     }
     if (normalized.length > 5) {
-      toast.error("Giỏ trái cây chỉ được tối đa 5 loại trái cây");
+      toast.error("Fruit basket can have at most 5 fruit types");
       return null;
     }
 
     const productSet = new Set();
     for (const item of normalized) {
       if (productSet.has(item.productId)) {
-        toast.error("Không được chọn trùng sản phẩm trong giỏ trái cây");
+        toast.error("Cannot select duplicate products in fruit basket");
         return null;
       }
       productSet.add(item.productId);
@@ -138,7 +138,7 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
 
   const validateImages = () => {
     if (uploadFiles.length > 10) {
-      toast.error("Số lượng ảnh không được vượt quá 10");
+      toast.error("Number of images must not exceed 10");
       return null;
     }
     return uploadFiles.map((item) => item.file);
@@ -148,7 +148,7 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
     e.preventDefault();
 
     if (!formData.name.trim()) {
-      toast.error("Tên giỏ trái cây là bắt buộc");
+      toast.error("Fruit basket name is required");
       return;
     }
 

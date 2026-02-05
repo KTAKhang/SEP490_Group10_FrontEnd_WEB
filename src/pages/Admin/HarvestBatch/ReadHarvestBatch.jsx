@@ -20,7 +20,7 @@ const ReadHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
+    return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -30,7 +30,7 @@ const ReadHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
   const formatDateTime = (dateString) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
-    return date.toLocaleString("vi-VN", {
+    return date.toLocaleString("en-US", {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -43,7 +43,7 @@ const ReadHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-gray-200/80">
         <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white">
           <h2 className="text-2xl font-bold text-gray-800 flex items-center space-x-2">
             <Package size={24} />
@@ -132,56 +132,32 @@ const ReadHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
               </div>
             </div>
 
-            {/* Quantity Information */}
+            {/* Quantity & receipt visibility */}
             <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Quantity Information</h3>
-              <div className="grid grid-cols-3 gap-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Quantity & Receipt Status</h3>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-500 mb-1 flex items-center space-x-1">
                     <Scale size={16} className="text-gray-400" />
-                    <span>Quantity (KG)</span>
+                    <span>Received Quantity</span>
                   </p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {harvestBatchDetail.quantity || 0} KG
+                    {harvestBatchDetail.receivedQuantity ?? 0}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 mb-1 flex items-center space-x-1">
-                    <Scale size={16} className="text-gray-400" />
-                    <span>Received Quantity (KG)</span>
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {harvestBatchDetail.receivedQuantity || 0} KG
-                  </p>
+                  <p className="text-sm text-gray-500 mb-1">Receipt eligible</p>
+                  <span className={`inline-flex px-2 py-1 rounded text-sm font-medium ${harvestBatchDetail.receiptEligible !== false ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-700"}`}>
+                    {harvestBatchDetail.receiptEligible !== false ? "Yes" : "No"}
+                  </span>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 mb-1 flex items-center space-x-1">
-                    <Scale size={16} className="text-gray-400" />
-                    <span>Remaining Quantity (KG)</span>
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {harvestBatchDetail.remainingQuantity !== undefined ? harvestBatchDetail.remainingQuantity : (harvestBatchDetail.quantity || 0) - (harvestBatchDetail.receivedQuantity || 0)} KG
-                  </p>
+                  <p className="text-sm text-gray-500 mb-1">Visible in receipt</p>
+                  <span className={`inline-flex px-2 py-1 rounded text-sm font-medium ${harvestBatchDetail.visibleInReceipt !== false ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-700"}`}>
+                    {harvestBatchDetail.visibleInReceipt !== false ? "Yes" : "No"}
+                  </span>
                 </div>
               </div>
-              {harvestBatchDetail.quantity > 0 && harvestBatchDetail.receivedQuantity > 0 && (
-                <div className="mt-4 pt-4 border-t">
-                  <p className="text-sm text-gray-500 mb-1">Receiving Rate</p>
-                  <div className="flex items-center space-x-2">
-                    <div className="flex-1 bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-green-600 h-2 rounded-full"
-                        style={{
-                          width: `${(harvestBatchDetail.receivedQuantity / harvestBatchDetail.quantity) * 100}%`,
-                        }}
-                      />
-                    </div>
-                    <span className="text-sm font-medium text-gray-900">
-                      {Math.round((harvestBatchDetail.receivedQuantity / harvestBatchDetail.quantity) * 100)}%
-                    </span>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Notes */}
@@ -222,7 +198,7 @@ const ReadHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
         <div className="flex justify-end p-6 border-t bg-gray-50">
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            className="px-6 py-2 bg-gray-600 text-white rounded-xl hover:bg-gray-700"
           >
             Close
           </button>
