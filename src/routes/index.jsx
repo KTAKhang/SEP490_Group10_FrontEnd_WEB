@@ -171,7 +171,11 @@ export const routes = [
         <FeedbackStaffLayout />
       </PrivateRoute>
     ),
-    children: [{ index: true, element: <ChatForStaffPage /> }],
+    children: [
+      { index: true, element: <ChatForStaffPage /> },
+      { path: "profile", element: <ProfileManagement /> },
+      { path: "change-password", element: <UpdatePassword /> },
+    ],
   },
 
   // Khu vực Admin
