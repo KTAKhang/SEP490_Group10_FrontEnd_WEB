@@ -87,9 +87,9 @@ const apiGetVnpayUrl = async (order_id) => {
 
 
 const apiRetryPayment = async (order_id) => {
-  const res = await axios.put(
-    `${API_BASE_URL}/order/retry-payment/${order_id}`,
-    {},
+  const res = await axios.post(
+    `${API_BASE_URL}/order/retry-payment`,
+    {order_id},
     {
       withCredentials: true,
       headers: authHeader(),

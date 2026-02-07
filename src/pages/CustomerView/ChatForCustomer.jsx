@@ -48,18 +48,14 @@ export default function CustomerChat() {
     };
 
     const handleOnlineStaffs = (staffs) => {
-      console.log("👥 ONLINE STAFFS (raw):", staffs);
-
       if (Array.isArray(staffs)) {
         setOnlineStaffs(staffs);
         return;
       }
-
       if (staffs && typeof staffs === "object") {
         setOnlineStaffs(Object.values(staffs));
         return;
       }
-
       setOnlineStaffs([]);
     };
 

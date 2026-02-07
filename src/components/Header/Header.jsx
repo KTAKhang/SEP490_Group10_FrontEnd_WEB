@@ -32,12 +32,11 @@ const Header = ({ searchTerm, setSearchTerm }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const cart = useSelector((state) => state.cart || {});
   const { publicShopInfo } = useSelector((state) => state.shop || {});
-  console.log("cart",cart)
   const cartItems = cart?.items?.length || 0;
   // Log when publicShopInfo changes
   useEffect(() => {
-    console.log('🔄 Header - publicShopInfo updated:', publicShopInfo);
-    console.log('📸 Header - Logo URL:', publicShopInfo?.logo);
+    // console.log('🔄 Header - publicShopInfo updated:', publicShopInfo);
+    // console.log('📸 Header - Logo URL:', publicShopInfo?.logo);
   }, [publicShopInfo]);
 
 
