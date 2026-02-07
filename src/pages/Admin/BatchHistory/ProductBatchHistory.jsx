@@ -18,6 +18,7 @@ const ProductBatchHistory = ({ isOpen, onClose, product }) => {
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
+
   useEffect(() => {
     if (isOpen && product?._id) {
       const params = {
@@ -32,7 +33,9 @@ const ProductBatchHistory = ({ isOpen, onClose, product }) => {
     }
   }, [dispatch, isOpen, product?._id, currentPage, searchTerm, completionReason, sortBy, sortOrder]);
 
+
   if (!isOpen || !product) return null;
+
 
   const formatVND = (value) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(value ?? 0);
@@ -49,6 +52,7 @@ const ProductBatchHistory = ({ isOpen, onClose, product }) => {
     }
   };
 
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto">
@@ -61,6 +65,7 @@ const ProductBatchHistory = ({ isOpen, onClose, product }) => {
             <X size={24} />
           </button>
         </div>
+
 
         {/* Filters */}
         <div className="p-6 border-b bg-gray-50">
@@ -80,6 +85,7 @@ const ProductBatchHistory = ({ isOpen, onClose, product }) => {
               />
             </div>
 
+
             {/* Completion Reason Filter */}
             <div>
               <select
@@ -95,6 +101,7 @@ const ProductBatchHistory = ({ isOpen, onClose, product }) => {
                 <option value="EXPIRED">Expired</option>
               </select>
             </div>
+
 
             {/* Sort */}
             <div className="flex items-center space-x-2">
@@ -129,6 +136,7 @@ const ProductBatchHistory = ({ isOpen, onClose, product }) => {
           </div>
         </div>
 
+
         <div className="p-6">
           {batchHistoryLoading ? (
             <Loading message="Loading batch history..." />
@@ -146,7 +154,7 @@ const ProductBatchHistory = ({ isOpen, onClose, product }) => {
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b">
                     <tr>
-                      <th 
+                      <th
                         className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         onClick={() => {
                           setSortBy("batchNumber");
@@ -161,7 +169,7 @@ const ProductBatchHistory = ({ isOpen, onClose, product }) => {
                           )}
                         </div>
                       </th>
-                      <th 
+                      <th
                         className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         onClick={() => {
                           setSortBy("plannedQuantity");
@@ -176,7 +184,7 @@ const ProductBatchHistory = ({ isOpen, onClose, product }) => {
                           )}
                         </div>
                       </th>
-                      <th 
+                      <th
                         className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         onClick={() => {
                           setSortBy("receivedQuantity");
@@ -191,7 +199,7 @@ const ProductBatchHistory = ({ isOpen, onClose, product }) => {
                           )}
                         </div>
                       </th>
-                      <th 
+                      <th
                         className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         onClick={() => {
                           setSortBy("soldQuantity");
@@ -206,7 +214,7 @@ const ProductBatchHistory = ({ isOpen, onClose, product }) => {
                           )}
                         </div>
                       </th>
-                      <th 
+                      <th
                         className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         onClick={() => {
                           setSortBy("discardedQuantity");
@@ -227,7 +235,7 @@ const ProductBatchHistory = ({ isOpen, onClose, product }) => {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Expiry Date
                       </th>
-                      <th 
+                      <th
                         className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         onClick={() => {
                           setSortBy("completedDate");
@@ -301,8 +309,8 @@ const ProductBatchHistory = ({ isOpen, onClose, product }) => {
                             {batch.expiryDateStr
                               ? batch.expiryDateStr.split("-").reverse().join("/")
                               : batch.expiryDate
-                              ? new Date(batch.expiryDate).toLocaleDateString("en-US")
-                              : "N/A"}
+                                ? new Date(batch.expiryDate).toLocaleDateString("en-US")
+                                : "N/A"}
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                             {batch.completedDateStr
@@ -357,6 +365,7 @@ const ProductBatchHistory = ({ isOpen, onClose, product }) => {
                 </table>
               </div>
 
+
               {/* Pagination */}
               {batchHistoryPagination && batchHistoryPagination.totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4 pt-4 border-t">
@@ -400,6 +409,7 @@ const ProductBatchHistory = ({ isOpen, onClose, product }) => {
           )}
         </div>
 
+
         <div className="flex items-center justify-end p-6 border-t">
           <button
             onClick={onClose}
@@ -409,6 +419,7 @@ const ProductBatchHistory = ({ isOpen, onClose, product }) => {
           </button>
         </div>
       </div>
+
 
       <BatchHistoryDetail
         isOpen={isDetailModalOpen}
@@ -422,5 +433,4 @@ const ProductBatchHistory = ({ isOpen, onClose, product }) => {
     </div>
   );
 };
-
 export default ProductBatchHistory;
