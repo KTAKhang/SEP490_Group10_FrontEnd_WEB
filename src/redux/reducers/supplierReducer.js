@@ -38,6 +38,7 @@ import {
   CLEAR_SUPPLIER_MESSAGES,
 } from "../actions/supplierActions";
 
+
 const initialState = {
   suppliers: [],
   suppliersLoading: false,
@@ -74,6 +75,7 @@ const initialState = {
   lastHarvestBatchPatch: {},
 };
 
+
 const supplierReducer = (state = initialState, action) => {
   switch (action.type) {
     // ===== GET SUPPLIERS =====
@@ -98,6 +100,7 @@ const supplierReducer = (state = initialState, action) => {
         suppliersError: action.payload,
       };
 
+
     // ===== GET SUPPLIER BY ID =====
     case GET_SUPPLIER_BY_ID_REQUEST:
       return {
@@ -118,6 +121,7 @@ const supplierReducer = (state = initialState, action) => {
         supplierDetailLoading: false,
         supplierDetailError: action.payload,
       };
+
 
     // ===== GET SUPPLIERS FOR BRAND =====
     case GET_SUPPLIERS_FOR_BRAND_REQUEST:
@@ -140,6 +144,7 @@ const supplierReducer = (state = initialState, action) => {
         suppliersForBrandError: action.payload,
       };
 
+
     // ===== CREATE SUPPLIER =====
     case CREATE_SUPPLIER_REQUEST:
       return {
@@ -160,6 +165,7 @@ const supplierReducer = (state = initialState, action) => {
         createSupplierLoading: false,
         createSupplierError: action.payload,
       };
+
 
     // ===== UPDATE SUPPLIER =====
     case UPDATE_SUPPLIER_REQUEST:
@@ -185,6 +191,7 @@ const supplierReducer = (state = initialState, action) => {
         updateSupplierError: action.payload,
       };
 
+
     // ===== CREATE HARVEST BATCH =====
     case CREATE_HARVEST_BATCH_REQUEST:
       return {
@@ -205,6 +212,7 @@ const supplierReducer = (state = initialState, action) => {
         createHarvestBatchLoading: false,
         createHarvestBatchError: action.payload,
       };
+
 
     // ===== GET HARVEST BATCHES =====
     case GET_HARVEST_BATCHES_REQUEST:
@@ -242,6 +250,7 @@ const supplierReducer = (state = initialState, action) => {
         harvestBatchesError: action.payload,
       };
 
+
     // ===== GET HARVEST BATCH BY ID =====
     case GET_HARVEST_BATCH_BY_ID_REQUEST:
       return {
@@ -273,6 +282,7 @@ const supplierReducer = (state = initialState, action) => {
         harvestBatchDetailLoading: false,
         harvestBatchDetailError: action.payload,
       };
+
 
     // ===== UPDATE HARVEST BATCH =====
     case UPDATE_HARVEST_BATCH_REQUEST:
@@ -319,6 +329,7 @@ const supplierReducer = (state = initialState, action) => {
         updateHarvestBatchError: action.payload,
       };
 
+
     // ===== DELETE HARVEST BATCH =====
     case DELETE_HARVEST_BATCH_REQUEST:
       return {
@@ -341,6 +352,7 @@ const supplierReducer = (state = initialState, action) => {
         deleteHarvestBatchLoading: false,
         deleteHarvestBatchError: action.payload,
       };
+
 
     // ===== UPDATE PURCHASE COST =====
     case UPDATE_PURCHASE_COST_REQUEST:
@@ -368,6 +380,7 @@ const supplierReducer = (state = initialState, action) => {
         updatePurchaseCostError: action.payload,
       };
 
+
     // ===== UPDATE COOPERATION STATUS =====
     case UPDATE_COOPERATION_STATUS_REQUEST:
       return {
@@ -392,6 +405,7 @@ const supplierReducer = (state = initialState, action) => {
         updateCooperationStatusError: action.payload,
       };
 
+
     // ===== CLEAR MESSAGES =====
     case CLEAR_SUPPLIER_MESSAGES:
       return {
@@ -405,9 +419,15 @@ const supplierReducer = (state = initialState, action) => {
         updateCooperationStatusError: null,
       };
 
+
     default:
       return state;
   }
 };
 
+
 export default supplierReducer;
+
+
+
+

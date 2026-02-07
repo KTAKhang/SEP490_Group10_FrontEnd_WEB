@@ -24,6 +24,7 @@ import {
   Search,
 } from 'lucide-react';
 
+
 export default function ProductDetailPage() {
   const { id } = useParams();
   const dispatch = useDispatch();
@@ -40,6 +41,7 @@ export default function ProductDetailPage() {
     productReviewStats,
   } = useSelector((state) => state.review || {});
 
+
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [reviewPage, setReviewPage] = useState(1);
   const [reviewSearch, setReviewSearch] = useState('');
@@ -47,15 +49,18 @@ export default function ProductDetailPage() {
   const [reviewSortOrder, setReviewSortOrder] = useState('desc');
   const [activeTab, setActiveTab] = useState('description');
 
+
   const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
   const favoritesLoadedRef = useRef(false);
   const prevUserRef = useRef(null);
+
 
   useEffect(() => {
     if (id) {
       dispatch(getPublicProductByIdRequest(id));
     }
   }, [dispatch, id]);
+
 
   useEffect(() => {
     if (id) {
@@ -72,6 +77,7 @@ export default function ProductDetailPage() {
     }
   }, [dispatch, id, reviewPage, reviewSearch, reviewSortBy, reviewSortOrder]);
 
+
   const currentProductIdRef = useRef(null);
   useEffect(() => {
     if (publicProductDetail && publicProductDetail._id) {
@@ -82,6 +88,7 @@ export default function ProductDetailPage() {
       }
     }
   }, [publicProductDetail?._id]);
+
 
   useEffect(() => {
     const currentUserId = storedUser?._id || storedUser?.id || null;
@@ -99,11 +106,13 @@ export default function ProductDetailPage() {
     }
   }, [storedUser, dispatch]);
 
+
   useEffect(() => {
     if (!favoritesLoading && storedUser) {
       favoritesLoadedRef.current = true;
     }
   }, [favoritesLoading, storedUser]);
+
 
   if (publicProductDetailLoading) {
     return (
@@ -116,6 +125,7 @@ export default function ProductDetailPage() {
       </div>
     );
   }
+
 
   if (publicProductDetailError || !publicProductDetail) {
     return (
@@ -135,6 +145,7 @@ export default function ProductDetailPage() {
     );
   }
 
+
   const product = publicProductDetail;
   const images =
     product.images && Array.isArray(product.images) && product.images.length > 0
@@ -142,6 +153,7 @@ export default function ProductDetailPage() {
       : product.featuredImage
         ? [product.featuredImage]
         : [];
+
 
   const handleAddToCart = () => {
     if (!storedUser) {
@@ -152,6 +164,7 @@ export default function ProductDetailPage() {
       dispatch(addItemToCartRequest(product._id, 1));
     }
   };
+
 
   const renderStars = (rating, size = 'sm') => {
     const value = Math.max(0, Math.min(5, Number(rating || 0)));
@@ -168,12 +181,15 @@ export default function ProductDetailPage() {
     );
   };
 
+
   const avgRating = productReviewStats?.avgRating ?? product.avgRating ?? 0;
   const reviewCount = productReviewStats?.reviewCount ?? product.reviewCount ?? 0;
+
 
   return (
     <div className="min-h-screen bg-stone-50">
       <Header />
+
 
       {/* Breadcrumb */}
       <section className="pt-28 pb-4 bg-white border-b border-stone-200/80">
@@ -187,6 +203,7 @@ export default function ProductDetailPage() {
           </button>
         </div>
       </section>
+
 
       {/* Product Hero */}
       <section className="py-8 lg:py-10">
@@ -237,10 +254,12 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
+
             {/* Main Info + Sticky CTA */}
             <div className="lg:col-span-6">
               <div className="lg:sticky lg:top-28 space-y-6">
                
+
 
                 {/* Product info list */}
                 <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-stone-200/60 space-y-4">
@@ -248,6 +267,7 @@ export default function ProductDetailPage() {
                     <span className="text-stone-500 text-sm font-medium min-w-[7rem]">Name:</span>
                     <span className="text-stone-900 font-semibold text-lg">{product.name}</span>
                   </div>
+
 
                   {product.category?.name && (
                     <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2 border-b border-stone-100 pb-4">
@@ -308,6 +328,7 @@ export default function ProductDetailPage() {
                   )}
                 </div>
 
+
                 {/* Actions */}
                 <div className="flex items-center gap-3">
                   <button
@@ -345,6 +366,7 @@ export default function ProductDetailPage() {
           </div>
         </div>
       </section>
+
 
       {/* Tabs: Description + Specs */}
       <section className="py-6 pb-10">
@@ -438,6 +460,7 @@ export default function ProductDetailPage() {
         </div>
       </section>
 
+
       {/* Reviews */}
       <section className="py-6 pb-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -487,6 +510,7 @@ export default function ProductDetailPage() {
                 </div>
               </div>
             </div>
+
 
             <div className="p-6 sm:p-8">
               {productReviewsLoading ? (
@@ -540,6 +564,7 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
+
               {productReviewsPagination && productReviewsPagination.totalPages > 1 && (
                 <div className="mt-8 flex items-center justify-center gap-2">
                   <button
@@ -568,7 +593,12 @@ export default function ProductDetailPage() {
         </div>
       </section>
 
+
       <Footer />
     </div>
   );
 }
+
+
+
+

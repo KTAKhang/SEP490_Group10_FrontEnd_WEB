@@ -6,18 +6,20 @@ import Header from "../../../components/Header/Header";
 import Footer from "../../../components/Footer/Footer";
 import { updateReviewRequest, clearReviewMessages } from "../../../redux/actions/reviewActions";
 
+
 const EditReview = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { reviewId } = useParams();
   const location = useLocation();
-  
+ 
   // ✅ Lấy review data từ location state (nếu có) hoặc từ order detail
   const reviewFromState = location.state?.review;
-  
+ 
   const { updateReviewLoading, updateReviewError, updateReviewSuccess } = useSelector(
     (state) => state.review || {}
   );
+
 
   const [rating, setRating] = useState(reviewFromState?.rating || 5);
   const [comment, setComment] = useState(reviewFromState?.comment || "");
@@ -28,18 +30,20 @@ const EditReview = () => {
   const [canEdit, setCanEdit] = useState(true);
   const [editMessage, setEditMessage] = useState("");
 
+
   // ✅ Validate: Kiểm tra editedCount và 3-day window
   useEffect(() => {
     if (reviewFromState) {
       const editedCount = reviewFromState.editedCount || 0;
       const createdAt = reviewFromState.createdAt ? new Date(reviewFromState.createdAt) : null;
-      
+     
       // Kiểm tra editedCount
       if (editedCount >= 1) {
         setCanEdit(false);
         setEditMessage("Review can only be edited once. You have already edited this review.");
         return;
       }
+
 
       // Kiểm tra 3-day window
       if (createdAt) {
@@ -51,6 +55,7 @@ const EditReview = () => {
           return;
         }
       }
+
 
       // Load existing data
       setRating(reviewFromState.rating || 5);
@@ -65,6 +70,7 @@ const EditReview = () => {
     }
   }, [reviewFromState, reviewId]);
 
+
   useEffect(() => {
     if (updateReviewSuccess) {
       dispatch(clearReviewMessages());
@@ -72,24 +78,28 @@ const EditReview = () => {
     }
   }, [updateReviewSuccess, dispatch, navigate]);
 
+
   useEffect(() => {
     return () => {
       dispatch(clearReviewMessages());
     };
   }, [dispatch]);
 
+
   const canSubmit = useMemo(() => {
     return canEdit && !!reviewId && rating >= 1 && rating <= 5;
   }, [canEdit, reviewId, rating]);
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!canSubmit) return;
 
+
     const formData = new FormData();
     formData.append("rating", rating);
     formData.append("comment", comment.trim());
-    
+   
     // ✅ Gửi existing images và imagePublicIds (để backend biết giữ lại ảnh nào)
     if (existingImages.length > 0) {
       formData.append("existingImages", JSON.stringify(existingImages));
@@ -97,23 +107,27 @@ const EditReview = () => {
     if (existingImagePublicIds.length > 0) {
       formData.append("existingImagePublicIds", JSON.stringify(existingImagePublicIds));
     }
-    
+   
     // ✅ Gửi ảnh mới (nếu có)
     newImageFiles.forEach((file) => {
       formData.append("images", file);
     });
 
+
     dispatch(updateReviewRequest(reviewId, formData));
   };
+
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
 
+
     // ✅ Tổng số ảnh (existing + new) không được vượt quá 3
     const totalImages = existingImages.length + newImageFiles.length;
     const allowed = files.slice(0, Math.max(0, 3 - totalImages));
     setNewImageFiles((prev) => [...prev, ...allowed]);
+
 
     allowed.forEach((file) => {
       const reader = new FileReader();
@@ -126,21 +140,26 @@ const EditReview = () => {
     });
   };
 
+
   const handleRemoveNewImage = (index) => {
     setNewImageFiles((prev) => prev.filter((_, i) => i !== index));
     setNewImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
+
 
   const handleRemoveExistingImage = (index) => {
     setExistingImages((prev) => prev.filter((_, i) => i !== index));
     setExistingImagePublicIds((prev) => prev.filter((_, i) => i !== index));
   };
 
+
   const totalImages = existingImages.length + newImageFiles.length;
+
 
   return (
     <div className="min-h-screen bg-white">
       <Header />
+
 
       <section className="pt-28 pb-10 bg-gradient-to-br from-green-50 to-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -160,6 +179,7 @@ const EditReview = () => {
         </div>
       </section>
 
+
       {/* ✅ Thông báo quy định */}
       <section className="py-4">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -176,6 +196,7 @@ const EditReview = () => {
           </div>
         </div>
       </section>
+
 
       <section className="py-10">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -227,6 +248,7 @@ const EditReview = () => {
                 </div>
               </div>
 
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Comment (max 1000 characters)
@@ -242,11 +264,12 @@ const EditReview = () => {
                 <div className="text-xs text-gray-500 mt-1">{comment.length}/1000</div>
               </div>
 
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Review images (max 3)
                 </label>
-                
+               
                 {/* ✅ Hiển thị ảnh hiện tại */}
                 {existingImages.length > 0 && (
                   <div className="mb-3">
@@ -272,6 +295,7 @@ const EditReview = () => {
                   </div>
                 )}
 
+
                 {/* ✅ Input để thêm ảnh mới */}
                 {totalImages < 3 && (
                   <input
@@ -282,6 +306,7 @@ const EditReview = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                 )}
+
 
                 {/* ✅ Hiển thị preview ảnh mới */}
                 {newImagePreviews.length > 0 && (
@@ -308,17 +333,20 @@ const EditReview = () => {
                   </div>
                 )}
 
+
                 <p className="text-xs text-gray-500 mt-1">
                   Đã chọn {totalImages}/3 ảnh
                   {existingImages.length > 0 && ` (${existingImages.length} ảnh hiện tại, ${newImageFiles.length} ảnh mới)`}
                 </p>
               </div>
 
+
               {updateReviewError && (
                 <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                   {updateReviewError}
                 </div>
               )}
+
 
               <div className="flex justify-end gap-3">
                 <Link
@@ -339,10 +367,11 @@ const EditReview = () => {
           )}
         </div>
       </section>
-
       <Footer />
     </div>
   );
 };
 
 export default EditReview;
+
+

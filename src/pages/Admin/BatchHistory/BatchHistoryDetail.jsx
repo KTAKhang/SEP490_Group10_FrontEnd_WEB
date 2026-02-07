@@ -11,12 +11,14 @@ import {
   DollarSign,
 } from "lucide-react";
 
+
 const formatVND = (value) =>
   new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
     maximumFractionDigits: 0,
   }).format(value ?? 0);
+
 
 const getCompletionReasonLabel = (reason, apiLabel) => {
   if (apiLabel)
@@ -35,6 +37,7 @@ const getCompletionReasonLabel = (reason, apiLabel) => {
   }
 };
 
+
 /**
  * Popup chi tiết một lô đã hoàn thành (batch).
  * Nhận batch, product (tùy chọn) và hiển thị thông tin lô, tài chính, ngày tháng, tỷ lệ.
@@ -42,8 +45,10 @@ const getCompletionReasonLabel = (reason, apiLabel) => {
 const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
   if (!isOpen || !batch) return null;
 
+
   const selectedBatch = batch;
   const selectedProduct = product;
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -66,6 +71,7 @@ const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
             <X size={24} />
           </button>
         </div>
+
 
         {/* Modal Content */}
         <div className="p-6 space-y-6">
@@ -96,6 +102,7 @@ const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
               </div>
             </div>
           )}
+
 
           {/* Batch Info */}
           <div>
@@ -142,6 +149,7 @@ const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
               </div>
             </div>
           </div>
+
 
           {/* Dates */}
           <div>
@@ -192,6 +200,7 @@ const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
             </div>
           </div>
 
+
           {/* Status and Reason */}
           <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
@@ -223,6 +232,7 @@ const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
               </div>
             </div>
           </div>
+
 
           {/* Financial summary */}
           {(selectedBatch.financial ||
@@ -334,6 +344,7 @@ const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
             </div>
           )}
 
+
           {/* Summary Statistics */}
           <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Summary statistics</h3>
@@ -389,11 +400,13 @@ const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
                     ? new Date(selectedBatch.completedDate).toISOString().split("T")[0]
                     : null);
 
+
                 if (entryDateStr && completedDateStr) {
                   const entryDate = new Date(entryDateStr);
                   const completedDate = new Date(completedDateStr);
                   const diffTime = Math.abs(completedDate - entryDate);
                   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
 
                   return (
                     <div className="flex justify-between items-center pt-3 border-t border-gray-300">
@@ -408,6 +421,7 @@ const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
           </div>
         </div>
 
+
         {/* Modal Footer */}
         <div className="flex justify-end p-6 border-t bg-gray-50">
           <button
@@ -421,5 +435,6 @@ const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
     </div>
   );
 };
+
 
 export default BatchHistoryDetail;

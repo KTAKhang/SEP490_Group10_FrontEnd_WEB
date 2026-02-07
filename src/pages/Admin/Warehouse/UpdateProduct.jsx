@@ -6,11 +6,13 @@ import { updateProductRequest } from "../../../redux/actions/productActions";
 import { getCategoriesRequest } from "../../../redux/actions/categoryActions";
 import { getSuppliersForBrandRequest } from "../../../redux/actions/supplierActions";
 
+
 const UpdateProduct = ({ isOpen, onClose, product }) => {
   const dispatch = useDispatch();
   const { categories } = useSelector((state) => state.category);
   const { suppliersForBrand, suppliersForBrandLoading } = useSelector((state) => state.supplier);
   const { updateProductLoading, updateProductError } = useSelector((state) => state.product);
+
 
   const [formData, setFormData] = useState({
     name: "",
@@ -28,6 +30,7 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
   const [newImageFiles, setNewImageFiles] = useState([]);
   const [newImagePreviews, setNewImagePreviews] = useState([]);
 
+
   // Fetch categories and suppliers when modal opens
   useEffect(() => {
     if (isOpen) {
@@ -36,8 +39,10 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
     }
   }, [dispatch, isOpen]);
 
+
   // Track if we submitted the form
   const [hasSubmitted, setHasSubmitted] = useState(false);
+
 
   // Close modal after successful update
   useEffect(() => {
@@ -49,12 +54,14 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
     }
   }, [hasSubmitted, updateProductLoading, updateProductError, onClose]);
 
+
   // Reset submit flag when modal opens
   useEffect(() => {
     if (isOpen) {
       setHasSubmitted(false);
     }
   }, [isOpen]);
+
 
   // Load product data when product changes
   useEffect(() => {
@@ -77,13 +84,14 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
     }
   }, [product]);
 
+
   const handleNewImageChange = (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
-    
+   
     const newFiles = [...files];
     setNewImageFiles((prev) => [...prev, ...newFiles]);
-    
+   
     // Create previews for new files
     files.forEach((file) => {
       const reader = new FileReader();
@@ -99,40 +107,46 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
     });
   };
 
+
   const handleRemoveNewImage = (index) => {
     setNewImageFiles((prev) => prev.filter((_, i) => i !== index));
     setNewImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
+
 
   const handleRemoveExistingImage = (index) => {
     setExistingImages((prev) => prev.filter((_, i) => i !== index));
     setExistingImagePublicIds((prev) => prev.filter((_, i) => i !== index));
   };
 
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+   
     // Validation
     if (!formData.name || !formData.category || !formData.brand || formData.price <= 0 || formData.plannedQuantity < 0) {
       toast.error("Please fill in all required fields (name, category, brand, price, planned quantity)");
       return;
     }
-    
+   
     if (formData.purchasePrice < 0) {
       toast.error("Purchase price must be >= 0");
       return;
     }
+
 
     if (!product?._id) {
       toast.error("Product not found");
       return;
     }
 
+
     // ✅ Block updating plannedQuantity if onHandQuantity > 0
     if (product.onHandQuantity > 0 && formData.plannedQuantity !== product.plannedQuantity) {
       toast.error("Cannot update planned quantity while product has stock. Please wait until stock is sold out or expired.");
       return;
     }
+
 
     // Create FormData
     const formDataToSend = new FormData();
@@ -145,22 +159,24 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
     formDataToSend.append("brand", formData.brand || "");
     formDataToSend.append("detail_desc", formData.detail_desc || "");
     formDataToSend.append("status", formData.status);
-    
+   
     // Always append existing images (even if empty) so backend knows which images to keep
     // Backend will compare old images from DB with this list to determine which to delete
     formDataToSend.append("existingImages", JSON.stringify(existingImages));
     formDataToSend.append("existingImagePublicIds", JSON.stringify(existingImagePublicIds));
-    
+   
     // Append new image files
     newImageFiles.forEach((file) => {
       formDataToSend.append("images", file);
     });
+
 
     // Don't close modal immediately - let it close after success
     // This gives better UX as user can see loading state
     setHasSubmitted(true);
     dispatch(updateProductRequest(product._id, formDataToSend));
   };
+
 
   const handleCancel = () => {
     setHasSubmitted(false);
@@ -184,7 +200,9 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
     onClose();
   };
 
+
   if (!isOpen || !product) return null;
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -289,8 +307,8 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
                   setFormData({ ...formData, plannedQuantity: parseInt(e.target.value) || 0 })
                 }
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                  product.onHandQuantity > 0 
-                    ? "bg-gray-100 border-gray-300 cursor-not-allowed" 
+                  product.onHandQuantity > 0
+                    ? "bg-gray-100 border-gray-300 cursor-not-allowed"
                     : "border-gray-300"
                 }`}
                 min="0"
@@ -298,7 +316,7 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
                 disabled={product.onHandQuantity > 0}
               />
               <p className="text-xs text-gray-500 mt-1">
-                {product.onHandQuantity > 0 
+                {product.onHandQuantity > 0
                   ? `Cannot update planned quantity while product has stock (onHand: ${product.onHandQuantity}). Please wait until stock is sold out or expired.`
                   : `Received: ${product.receivedQuantity || 0} | Cannot reduce below received amount`}
               </p>
@@ -428,4 +446,9 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
   );
 };
 
+
 export default UpdateProduct;
+
+
+
+

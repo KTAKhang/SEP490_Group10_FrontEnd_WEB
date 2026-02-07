@@ -7,6 +7,7 @@ import Footer from "../../components/Footer/Footer";
 import Loading from "../../components/Loading/Loading";
 import { getPublicFruitBasketByIdRequest } from "../../redux/actions/publicFruitBasketActions";
 
+
 const FruitBasketDetail = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
@@ -16,14 +17,17 @@ const FruitBasketDetail = () => {
     publicFruitBasketDetailError,
   } = useSelector((state) => state.publicFruitBasket);
 
+
   useEffect(() => {
     if (id) {
       dispatch(getPublicFruitBasketByIdRequest(id));
     }
   }, [dispatch, id]);
 
+
   const formatCurrency = (value) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value || 0);
+
 
   const basket = publicFruitBasketDetail;
   const images =
@@ -33,9 +37,11 @@ const FruitBasketDetail = () => {
       ? [basket.featuredImage]
       : ["https://via.placeholder.com/600x400?text=Fruit+Basket"];
 
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
+
 
       <section className="pt-28 pb-10 bg-gradient-to-br from-orange-50 to-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -61,6 +67,7 @@ const FruitBasketDetail = () => {
           </div>
         </div>
       </section>
+
 
       <section className="py-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -100,6 +107,7 @@ const FruitBasketDetail = () => {
                 )}
               </div>
 
+
               <div className="space-y-6">
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="text-2xl font-bold text-orange-600">
@@ -116,9 +124,11 @@ const FruitBasketDetail = () => {
                   </span>
                 </div>
 
+
                 {basket.description && (
                   <div className="text-gray-700 whitespace-pre-line">{basket.description}</div>
                 )}
+
 
                 <div className="rounded-2xl border border-gray-200 p-5">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4">Sản phẩm trong giỏ</h2>
@@ -172,9 +182,15 @@ const FruitBasketDetail = () => {
         </div>
       </section>
 
+
       <Footer />
     </div>
   );
 };
 
+
 export default FruitBasketDetail;
+
+
+
+

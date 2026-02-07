@@ -5,6 +5,7 @@ import { getProductBatchHistoryRequest } from "../../../redux/actions/productBat
 import Loading from "../../../components/Loading/Loading";
 import BatchHistoryDetail from "./BatchHistoryDetail";
 
+
 const ProductBatchHistory = ({ isOpen, onClose, product }) => {
   const dispatch = useDispatch();
   const { batchHistory, batchHistoryPagination, batchHistoryLoading } = useSelector(
@@ -39,6 +40,7 @@ const ProductBatchHistory = ({ isOpen, onClose, product }) => {
 
   const formatVND = (value) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(value ?? 0);
+
 
   const getCompletionReasonLabel = (reason, apiLabel) => {
     if (apiLabel) return { label: apiLabel, color: reason === "EXPIRED" ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800" };
@@ -309,8 +311,8 @@ const ProductBatchHistory = ({ isOpen, onClose, product }) => {
                             {batch.expiryDateStr
                               ? batch.expiryDateStr.split("-").reverse().join("/")
                               : batch.expiryDate
-                                ? new Date(batch.expiryDate).toLocaleDateString("en-US")
-                                : "N/A"}
+                              ? new Date(batch.expiryDate).toLocaleDateString("en-US")
+                              : "N/A"}
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                             {batch.completedDateStr

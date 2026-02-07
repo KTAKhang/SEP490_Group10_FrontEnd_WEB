@@ -9,6 +9,7 @@ import {
 } from "../../redux/actions/orderActions";
 import { OrderHistoryDetailContent } from "./OrderHistoryDetail";
 
+
 const STATUS_OPTIONS = [
   { value: "ALL", label: "All" },
   { value: "PENDING", label: "Pending" },
@@ -20,9 +21,11 @@ const STATUS_OPTIONS = [
   { value: "CANCELLED", label: "Cancelled" },
 ];
 
+
 const FILTERABLE_STATUSES = STATUS_OPTIONS.filter(
   (status) => status.value !== "ALL"
 );
+
 
 const STATUS_BADGE = {
   PENDING: "bg-yellow-100 text-yellow-800",
@@ -34,8 +37,10 @@ const STATUS_BADGE = {
   CANCELLED: "bg-red-100 text-red-800",
 };
 
+
 const normalizeStatus = (value) =>
   value ? value.toString().trim().toUpperCase().replace(/[_\s]+/g, "-") : "";
+
 
 /** Chuẩn hóa tên trạng thái từ backend (vd. READY_TO_SHIP) rồi lấy label hiển thị. */
 const getStatusLabel = (name) => {
@@ -44,13 +49,17 @@ const getStatusLabel = (name) => {
   return STATUS_OPTIONS.find((o) => o.value === normalized)?.label || name;
 };
 
+
 const toApiStatus = (value) => normalizeStatus(value).replace(/-/g, "_");
+
 
 const formatCurrency = (value) =>
   (value || 0).toLocaleString("en-US", { maximumFractionDigits: 0 });
 
+
 const formatDate = (value) =>
   value ? new Date(value).toLocaleString("en-US") : "N/A";
+
 
 const OrderHistory = () => {
   const dispatch = useDispatch();
@@ -62,6 +71,7 @@ const OrderHistory = () => {
     message,
   } = useSelector((state) => state.order || {});
 
+
   const [statusFilters, setStatusFilters] = useState([]);
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
@@ -72,6 +82,7 @@ const OrderHistory = () => {
   const [detailOrderId, setDetailOrderId] = useState(null);
   const cancelingRef = useRef(null);
 
+
   // Debounce search: apply 400ms after user stops typing
   useEffect(() => {
     const t = setTimeout(() => {
@@ -81,9 +92,11 @@ const OrderHistory = () => {
     return () => clearTimeout(t);
   }, [searchTerm]);
 
+
   // Mở popup từ URL ?orderId= (deep link)
   const orderIdFromUrl = searchParams.get("orderId");
   const effectiveDetailId = detailOrderId ?? orderIdFromUrl;
+
 
   const queryParams = useMemo(
     () => ({
@@ -100,9 +113,11 @@ const OrderHistory = () => {
     [page, limit, appliedSearch, statusFilters, sortBy, sortOrder]
   );
 
+
   useEffect(() => {
     dispatch(orderHistoryRequest(queryParams));
   }, [dispatch, queryParams]);
+
 
   useEffect(() => {
     if (message && cancelingRef.current) {
@@ -112,9 +127,11 @@ const OrderHistory = () => {
     }
   }, [message, dispatch, queryParams]);
 
+
   const handleViewDetail = (orderId) => {
     setDetailOrderId(orderId);
   };
+
 
   const handleCloseDetailModal = () => {
     setDetailOrderId(null);
@@ -123,6 +140,7 @@ const OrderHistory = () => {
       setSearchParams(searchParams, { replace: true });
     }
   };
+
 
   const handleCancelOrder = (orderId) => {
     if (!orderId) return;
@@ -133,12 +151,15 @@ const OrderHistory = () => {
   };
 
 
+
+
   // Backend: chỉ đơn COD và trạng thái PENDING mới được khách hủy
   const canCancelOrder = (order) => {
     const statusName = normalizeStatus(order?.order_status_id?.name);
     const paymentMethod = (order?.payment_method || "").toString().trim().toUpperCase();
     return statusName === "PENDING" && paymentMethod === "COD";
   };
+
 
   const renderStatusBadge = (statusName) => {
     const normalized = normalizeStatus(statusName);
@@ -153,7 +174,9 @@ const OrderHistory = () => {
     );
   };
 
+
   const totalPages = ordersPagination?.totalPages || 1;
+
 
   return (
     <div className="min-h-screen bg-gray-50 pt-20 pb-16">
@@ -173,6 +196,7 @@ const OrderHistory = () => {
           </div>
         </div>
       </section>
+
 
       {/* Full-width content area - rectangular layout */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
@@ -250,6 +274,7 @@ const OrderHistory = () => {
           </div>
         </div>
 
+
         {/* Order list: wide rectangular cards */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           {historyLoading ? (
@@ -285,6 +310,7 @@ const OrderHistory = () => {
                     {renderStatusBadge(order.order_status_id?.name)}
                   </div>
 
+
                   {/* Center: Date, Recipient, Address (flex grow - main content) */}
                   <div className="flex-1 min-w-0 p-4 xl:py-5 xl:px-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
@@ -302,6 +328,7 @@ const OrderHistory = () => {
                       </div>
                     </div>
                   </div>
+
 
                   {/* Right: Total, Payment, Actions (fixed width column) */}
                   <div className="flex-shrink-0 p-4 xl:py-5 xl:pl-6 flex flex-row xl:flex-col items-center xl:items-end justify-between xl:justify-center gap-3 border-t xl:border-t-0 xl:border-l border-gray-100 bg-gray-50/50 xl:bg-transparent">
@@ -337,6 +364,7 @@ const OrderHistory = () => {
             </div>
           )}
 
+
           {ordersPagination && totalPages > 1 && (
             <div className="px-4 py-4 border-t border-gray-200 flex items-center justify-center gap-3 bg-gray-50">
               <button
@@ -361,6 +389,7 @@ const OrderHistory = () => {
         </div>
       </div>
 
+
       {effectiveDetailId && (
         <OrderHistoryDetailContent
           orderId={effectiveDetailId}
@@ -371,4 +400,7 @@ const OrderHistory = () => {
   );
 };
 
+
 export default OrderHistory;
+
+

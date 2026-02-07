@@ -40,6 +40,7 @@ import {
   updateCooperationStatusFailure,
 } from "../actions/supplierActions";
 
+
 // ===== SUPPLIER API CALLS =====
 // ✅ Tất cả endpoints đã được cập nhật sang /admin/suppliers (chỉ admin mới có quyền)
 const apiCreateSupplier = async (formData) => {
@@ -47,10 +48,12 @@ const apiCreateSupplier = async (formData) => {
   return response.data;
 };
 
+
 const apiUpdateSupplier = async (supplierId, formData) => {
   const response = await apiClient.put(`/admin/suppliers/${supplierId}`, formData);
   return response.data;
 };
+
 
 const apiGetSuppliers = async (params = {}) => {
   const queryParams = new URLSearchParams();
@@ -75,21 +78,25 @@ const apiGetSuppliers = async (params = {}) => {
   if (params.sortBy) queryParams.append("sortBy", params.sortBy);
   if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
 
+
   const queryString = queryParams.toString();
   const url = `/admin/suppliers${queryString ? `?${queryString}` : ""}`;
   const response = await apiClient.get(url);
   return response.data;
 };
 
+
 const apiGetSupplierById = async (supplierId) => {
   const response = await apiClient.get(`/admin/suppliers/${supplierId}`);
   return response.data;
 };
 
+
 const apiGetSuppliersForBrand = async () => {
   const response = await apiClient.get("/admin/suppliers/for-brand");
   return response.data;
 };
+
 
 // ✅ Harvest Batch endpoints đã được tách ra router riêng tại /admin/harvest-batch
 const apiCreateHarvestBatch = async (formData) => {
@@ -97,15 +104,18 @@ const apiCreateHarvestBatch = async (formData) => {
   return response.data;
 };
 
+
 const apiUpdateHarvestBatch = async (harvestBatchId, formData) => {
   const response = await apiClient.put(`/admin/harvest-batch/${harvestBatchId}`, formData);
   return response.data;
 };
 
+
 const apiDeleteHarvestBatch = async (harvestBatchId) => {
   const response = await apiClient.delete(`/admin/harvest-batch/${harvestBatchId}`);
   return response.data;
 };
+
 
 const apiGetHarvestBatches = async (params = {}) => {
   const queryParams = new URLSearchParams();
@@ -130,26 +140,31 @@ const apiGetHarvestBatches = async (params = {}) => {
   if (params.sortBy) queryParams.append("sortBy", params.sortBy);
   if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
 
+
   const queryString = queryParams.toString();
   const url = `/admin/harvest-batch${queryString ? `?${queryString}` : ""}`;
   const response = await apiClient.get(url);
   return response.data;
 };
 
+
 const apiGetHarvestBatchById = async (harvestBatchId) => {
   const response = await apiClient.get(`/admin/harvest-batch/${harvestBatchId}`);
   return response.data;
 };
+
 
 const apiUpdatePurchaseCost = async (supplierId, formData) => {
   const response = await apiClient.put(`/admin/suppliers/${supplierId}/purchase-cost`, formData);
   return response.data;
 };
 
+
 const apiUpdateCooperationStatus = async (supplierId, formData) => {
   const response = await apiClient.put(`/admin/suppliers/${supplierId}/cooperation-status`, formData);
   return response.data;
 };
+
 
 // ===== SUPPLIER SAGAS =====
 function* createSupplierSaga(action) {
@@ -170,14 +185,15 @@ function* createSupplierSaga(action) {
     console.error("❌ Create supplier error:", error);
     console.error("❌ Error response:", error.response?.data);
     const errorMessage =
-      error.response?.data?.message || 
+      error.response?.data?.message ||
       error.response?.data?.error ||
-      error.message || 
+      error.message ||
       "Không thể tạo nhà cung cấp";
     yield put(createSupplierFailure(errorMessage));
     toast.error(errorMessage);
   }
 }
+
 
 function* updateSupplierSaga(action) {
   try {
@@ -198,6 +214,7 @@ function* updateSupplierSaga(action) {
     toast.error(errorMessage);
   }
 }
+
 
 function* getSuppliersSaga(action) {
   try {
@@ -221,6 +238,7 @@ function* getSuppliersSaga(action) {
   }
 }
 
+
 function* getSupplierByIdSaga(action) {
   try {
     const supplierId = action.payload;
@@ -238,6 +256,7 @@ function* getSupplierByIdSaga(action) {
   }
 }
 
+
 function* getSuppliersForBrandSaga(action) {
   try {
     const response = yield call(apiGetSuppliersForBrand);
@@ -253,6 +272,7 @@ function* getSuppliersForBrandSaga(action) {
     // Don't show toast for this, as it's used in product form
   }
 }
+
 
 function* createHarvestBatchSaga(action) {
   try {
@@ -272,14 +292,15 @@ function* createHarvestBatchSaga(action) {
     console.error("❌ Create harvest batch error:", error);
     console.error("❌ Error response:", error.response?.data);
     const errorMessage =
-      error.response?.data?.message || 
+      error.response?.data?.message ||
       error.response?.data?.error ||
-      error.message || 
+      error.message ||
       "Không thể tạo lô thu hoạch";
     yield put(createHarvestBatchFailure(errorMessage));
     toast.error(errorMessage);
   }
 }
+
 
 function* updatePurchaseCostSaga(action) {
   try {
@@ -301,6 +322,7 @@ function* updatePurchaseCostSaga(action) {
   }
 }
 
+
 function* updateCooperationStatusSaga(action) {
   try {
     const { supplierId, formData } = action.payload;
@@ -320,6 +342,7 @@ function* updateCooperationStatusSaga(action) {
     toast.error(errorMessage);
   }
 }
+
 
 // ===== HARVEST BATCH SAGAS =====
 function* updateHarvestBatchSaga(action) {
@@ -342,6 +365,7 @@ function* updateHarvestBatchSaga(action) {
   }
 }
 
+
 function* deleteHarvestBatchSaga(action) {
   try {
     const harvestBatchId = action.payload;
@@ -361,6 +385,7 @@ function* deleteHarvestBatchSaga(action) {
     toast.error(errorMessage);
   }
 }
+
 
 function* getHarvestBatchesSaga(action) {
   try {
@@ -383,6 +408,7 @@ function* getHarvestBatchesSaga(action) {
     toast.error(errorMessage);
   }
 }
+
 
 function* getHarvestBatchByIdSaga(action) {
   try {
@@ -416,3 +442,7 @@ export default function* supplierSaga() {
   yield takeLatest(UPDATE_PURCHASE_COST_REQUEST, updatePurchaseCostSaga);
   yield takeLatest(UPDATE_COOPERATION_STATUS_REQUEST, updateCooperationStatusSaga);
 }
+
+
+
+

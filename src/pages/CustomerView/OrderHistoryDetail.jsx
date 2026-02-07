@@ -7,6 +7,7 @@ import {
   clearOrderMessages,
 } from "../../redux/actions/orderActions";
 
+
 const STATUS_OPTIONS = [
   { value: "PENDING", label: "Pending" },
   { value: "PAID", label: "Paid" },
@@ -16,6 +17,7 @@ const STATUS_OPTIONS = [
   { value: "RETURNED", label: "Returned" },
   { value: "CANCELLED", label: "Cancelled" },
 ];
+
 
 const STATUS_BADGE = {
   PENDING: "bg-yellow-100 text-yellow-800",
@@ -27,8 +29,10 @@ const STATUS_BADGE = {
   CANCELLED: "bg-red-100 text-red-800",
 };
 
+
 const normalizeStatus = (value) =>
   value ? value.toString().trim().toUpperCase().replace(/[_\s]+/g, "-") : "";
+
 
 /** Normalize status name from backend (e.g. READY_TO_SHIP) then get display label. */
 const getStatusLabel = (name) => {
@@ -37,11 +41,14 @@ const getStatusLabel = (name) => {
   return STATUS_OPTIONS.find((o) => o.value === normalized)?.label || name;
 };
 
+
 const formatCurrency = (value) =>
   (value || 0).toLocaleString("en-US", { maximumFractionDigits: 0 });
 
+
 const formatDate = (value) =>
   value ? new Date(value).toLocaleString("en-US") : "N/A";
+
 
 /**
  * Order detail popup content.
@@ -51,17 +58,20 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
   const dispatch = useDispatch();
   const { orderDetail, detailLoading } = useSelector((state) => state.order || {});
 
+
   useEffect(() => {
     if (orderId) {
       dispatch(orderDetailRequest(orderId));
     }
   }, [dispatch, orderId]);
 
+
   useEffect(() => {
     return () => {
       dispatch(clearOrderMessages());
     };
   }, [dispatch]);
+
 
   const renderStatusBadge = (statusName) => {
     const normalized = normalizeStatus(statusName);
@@ -76,7 +86,9 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
     );
   };
 
+
   const isCompleted = normalizeStatus(orderDetail?.order?.order_status_id?.name) === "COMPLETED";
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
@@ -115,6 +127,7 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
                 </div>
               </div>
 
+
               <div className="mb-4">
                 <h3 className="text-sm font-semibold text-gray-800 mb-2">Products</h3>
                 <div className="space-y-2">
@@ -150,6 +163,7 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
                         );
                         return diffDays <= 3;
                       })();
+
 
                     return (
                       <div
@@ -225,12 +239,14 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
                 </div>
               </div>
 
+
               <div className="flex items-center justify-between border-t pt-3 text-sm text-gray-700">
                 <span>Total</span>
                 <span className="font-semibold text-gray-900">
                   {formatCurrency(orderDetail.order?.total_price)}
                 </span>
               </div>
+
 
               {orderDetail.order?.status_history?.length > 0 && (
                 <div className="mt-4">
@@ -267,6 +283,7 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
   );
 };
 
+
 /**
  * Redirect /customer/orders/:orderId → /customer/orders?orderId=...
  * So old links still open the detail popup on the order history page.
@@ -274,6 +291,7 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
 const OrderHistoryDetailRedirect = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
+
 
   useEffect(() => {
     if (orderId) {
@@ -285,6 +303,7 @@ const OrderHistoryDetailRedirect = () => {
     }
   }, [orderId, navigate]);
 
+
   return (
     <div className="p-6 flex items-center justify-center min-h-[200px] text-gray-600">
       Redirecting to order history...
@@ -292,4 +311,6 @@ const OrderHistoryDetailRedirect = () => {
   );
 };
 
+
 export default OrderHistoryDetailRedirect;
+

@@ -12,9 +12,11 @@ import {
   X,
 } from "lucide-react";
 
+
 const SalesStaffSidebar = () => {
   const { isOpen, toggleSidebar } = useSidebar();
   const location = useLocation();
+
 
   const menuItems = [
     {
@@ -35,12 +37,14 @@ const SalesStaffSidebar = () => {
     },
   ];
 
+
   const isActive = (path, exact = false) => {
     if (exact) {
       return location.pathname === path;
     }
     return location.pathname.startsWith(path);
   };
+
 
   return (
     <>
@@ -51,6 +55,7 @@ const SalesStaffSidebar = () => {
           onClick={toggleSidebar}
         />
       )}
+
 
       {/* Sidebar */}
       <aside
@@ -78,6 +83,7 @@ const SalesStaffSidebar = () => {
               <X size={20} />
             </button>
           </div>
+
 
           {/* Menu Items */}
           <nav className="flex-1 overflow-y-auto p-4">
@@ -108,5 +114,6 @@ const SalesStaffSidebar = () => {
     </>
   );
 };
+
 
 export default SalesStaffSidebar;

@@ -32,23 +32,28 @@ import {
   ORDER_CLEAR_MESSAGES,
 } from "../actions/orderActions";
 
+
 const initialState = {
   order_id: null,
   payment_url: null, // dùng cho VNPAY
 
+
   orders: [],
   ordersPagination: null,
   orderDetail: null,
+
 
   adminOrders: [],
   adminPagination: null,
   adminDetail: null,
   adminStats: null,
 
+
   orderStatusLogs: null,
   orderStatusLogsPagination: null,
   orderStatusLogsLoading: false,
   orderStatusLogsError: null,
+
 
   loading: false,
   historyLoading: false,
@@ -61,11 +66,13 @@ const initialState = {
   message: null,
 };
 
+
 const orderReducer = (state = initialState, action) => {
   switch (action.type) {
     // ===== CREATE =====
     case ORDER_CREATE_REQUEST:
       return { ...state, loading: true, error: null };
+
 
     case ORDER_CREATE_SUCCESS:
       return {
@@ -76,11 +83,14 @@ const orderReducer = (state = initialState, action) => {
         message: "Tạo đơn hàng thành công",
       };
 
+
     case ORDER_CREATE_FAILURE:
       return { ...state, loading: false, error: action.payload };
 
+
      case RETRY_PAYMENT_REQUEST:
       return { ...state, loading: true, error: null };
+
 
     case RETRY_PAYMENT_SUCCESS:
       return {
@@ -91,12 +101,15 @@ const orderReducer = (state = initialState, action) => {
         message: "Thanh toán thành công",
       };
 
+
     case RETRY_PAYMENT_FAILURE:
       return { ...state, loading: false, error: action.payload };
+
 
     // ===== CANCEL =====
     case ORDER_CANCEL_REQUEST:
       return { ...state, loading: true, error: null };
+
 
     case ORDER_CANCEL_SUCCESS:
       return {
@@ -105,12 +118,15 @@ const orderReducer = (state = initialState, action) => {
         message: action.payload,
       };
 
+
     case ORDER_CANCEL_FAILURE:
       return { ...state, loading: false, error: action.payload };
+
 
     // ===== ORDER HISTORY =====
     case ORDER_HISTORY_REQUEST:
       return { ...state, historyLoading: true, error: null };
+
 
     case ORDER_HISTORY_SUCCESS:
       return {
@@ -120,12 +136,15 @@ const orderReducer = (state = initialState, action) => {
         ordersPagination: action.payload.pagination || null,
       };
 
+
     case ORDER_HISTORY_FAILURE:
       return { ...state, historyLoading: false, error: action.payload };
+
 
     // ===== ORDER DETAIL =====
     case ORDER_DETAIL_REQUEST:
       return { ...state, detailLoading: true, error: null };
+
 
     case ORDER_DETAIL_SUCCESS:
       return {
@@ -134,12 +153,15 @@ const orderReducer = (state = initialState, action) => {
         orderDetail: action.payload,
       };
 
+
     case ORDER_DETAIL_FAILURE:
       return { ...state, detailLoading: false, error: action.payload };
+
 
     // ===== ADMIN LIST =====
     case ORDER_ADMIN_LIST_REQUEST:
       return { ...state, adminLoading: true, error: null };
+
 
     case ORDER_ADMIN_LIST_SUCCESS:
       return {
@@ -149,12 +171,15 @@ const orderReducer = (state = initialState, action) => {
         adminPagination: action.payload.pagination || null,
       };
 
+
     case ORDER_ADMIN_LIST_FAILURE:
       return { ...state, adminLoading: false, error: action.payload };
+
 
     // ===== ADMIN UPDATE =====
     case ORDER_ADMIN_UPDATE_REQUEST:
       return { ...state, adminUpdateLoading: true, error: null };
+
 
     case ORDER_ADMIN_UPDATE_SUCCESS:
       return {
@@ -163,12 +188,15 @@ const orderReducer = (state = initialState, action) => {
         message: action.payload,
       };
 
+
     case ORDER_ADMIN_UPDATE_FAILURE:
       return { ...state, adminUpdateLoading: false, error: action.payload };
+
 
     // ===== ADMIN DETAIL =====
     case ORDER_ADMIN_DETAIL_REQUEST:
       return { ...state, adminDetailLoading: true, error: null };
+
 
     case ORDER_ADMIN_DETAIL_SUCCESS:
       return {
@@ -177,12 +205,15 @@ const orderReducer = (state = initialState, action) => {
         adminDetail: action.payload,
       };
 
+
     case ORDER_ADMIN_DETAIL_FAILURE:
       return { ...state, adminDetailLoading: false, error: action.payload };
+
 
     // ===== ADMIN STATS =====
     case ORDER_ADMIN_STATS_REQUEST:
       return { ...state, adminStatsLoading: true, error: null };
+
 
     case ORDER_ADMIN_STATS_SUCCESS:
       return {
@@ -191,8 +222,10 @@ const orderReducer = (state = initialState, action) => {
         adminStats: action.payload,
       };
 
+
     case ORDER_ADMIN_STATS_FAILURE:
       return { ...state, adminStatsLoading: false, error: action.payload };
+
 
     // ===== ORDER STATUS LOGS (admin: who updated order) =====
     case ORDER_STATUS_LOGS_REQUEST:
@@ -203,6 +236,7 @@ const orderReducer = (state = initialState, action) => {
         orderStatusLogs: null,
       };
 
+
     case ORDER_STATUS_LOGS_SUCCESS:
       return {
         ...state,
@@ -212,6 +246,7 @@ const orderReducer = (state = initialState, action) => {
         orderStatusLogsError: null,
       };
 
+
     case ORDER_STATUS_LOGS_FAILURE:
       return {
         ...state,
@@ -219,6 +254,7 @@ const orderReducer = (state = initialState, action) => {
         orderStatusLogs: null,
         orderStatusLogsError: action.payload,
       };
+
 
     // ===== CLEAR =====
     case ORDER_CLEAR_MESSAGES:
@@ -228,9 +264,12 @@ const orderReducer = (state = initialState, action) => {
         message: null,
       };
 
+
     default:
       return state;
   }
 };
 
+
 export default orderReducer;
+

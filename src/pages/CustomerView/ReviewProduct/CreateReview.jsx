@@ -6,6 +6,7 @@ import Header from "../../../components/Header/Header";
 import Footer from "../../../components/Footer/Footer";
 import { createReviewRequest, clearReviewMessages } from "../../../redux/actions/reviewActions";
 
+
 const CreateReview = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -13,18 +14,22 @@ const CreateReview = () => {
   const orderId = searchParams.get("orderId");
   const productId = searchParams.get("productId");
 
+
   const { createReviewLoading, createReviewError, createReviewSuccess } = useSelector(
     (state) => state.review || {}
   );
+
 
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
 
+
   const canSubmit = useMemo(() => {
     return !!orderId && !!productId && rating >= 1 && rating <= 5;
   }, [orderId, productId, rating]);
+
 
   useEffect(() => {
     if (createReviewSuccess) {
@@ -33,15 +38,18 @@ const CreateReview = () => {
     }
   }, [createReviewSuccess, dispatch, navigate]);
 
+
   useEffect(() => {
     return () => {
       dispatch(clearReviewMessages());
     };
   }, [dispatch]);
 
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!canSubmit) return;
+
 
     const formData = new FormData();
     formData.append("orderId", orderId);
@@ -52,15 +60,19 @@ const CreateReview = () => {
       formData.append("images", file);
     });
 
+
     dispatch(createReviewRequest(formData));
   };
+
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
 
+
     const allowed = files.slice(0, Math.max(0, 3 - imageFiles.length));
     setImageFiles((prev) => [...prev, ...allowed]);
+
 
     allowed.forEach((file) => {
       const reader = new FileReader();
@@ -73,14 +85,17 @@ const CreateReview = () => {
     });
   };
 
+
   const handleRemoveImage = (index) => {
     setImageFiles((prev) => prev.filter((_, i) => i !== index));
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
+
 
       <section className="pt-28 pb-10 bg-gradient-to-br from-green-50 to-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -99,6 +114,7 @@ const CreateReview = () => {
           </p>
         </div>
       </section>
+
 
       <section className="py-10">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -132,6 +148,7 @@ const CreateReview = () => {
                 </div>
               </div>
 
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Nhận xét (tối đa 1000 ký tự)
@@ -146,6 +163,7 @@ const CreateReview = () => {
                 />
                 <div className="text-xs text-gray-500 mt-1">{comment.length}/1000</div>
               </div>
+
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -183,12 +201,12 @@ const CreateReview = () => {
                 </p>
               </div>
 
+
               {createReviewError && (
                 <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                   {createReviewError}
                 </div>
               )}
-
               <div className="flex justify-end">
                 <button
                   type="submit"
@@ -202,10 +220,10 @@ const CreateReview = () => {
           )}
         </div>
       </section>
-
       <Footer />
     </div>
   );
 };
 
 export default CreateReview;
+

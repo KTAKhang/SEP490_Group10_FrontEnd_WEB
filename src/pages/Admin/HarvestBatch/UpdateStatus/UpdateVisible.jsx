@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { X, Package, Eye, EyeOff } from "lucide-react";
 import { updateHarvestBatchRequest } from "../../../../redux/actions/supplierActions";
 
+
 const UpdateVisible = ({ isOpen, onClose, batch, onSuccess }) => {
   const dispatch = useDispatch();
   const { updateHarvestBatchLoading, updateHarvestBatchError } = useSelector(
@@ -11,11 +12,13 @@ const UpdateVisible = ({ isOpen, onClose, batch, onSuccess }) => {
   const [value, setValue] = useState(true);
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
+
   useEffect(() => {
     if (batch) {
       setValue(batch.visibleInReceipt !== false);
     }
   }, [batch]);
+
 
   useEffect(() => {
     if (hasSubmitted && !updateHarvestBatchLoading) {
@@ -28,9 +31,11 @@ const UpdateVisible = ({ isOpen, onClose, batch, onSuccess }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- onSuccess/onClose omitted to avoid infinite loop on parent re-render
   }, [hasSubmitted, updateHarvestBatchLoading, updateHarvestBatchError]);
 
+
   useEffect(() => {
     if (isOpen) setHasSubmitted(false);
   }, [isOpen]);
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -45,7 +50,9 @@ const UpdateVisible = ({ isOpen, onClose, batch, onSuccess }) => {
     );
   };
 
+
   if (!isOpen || !batch) return null;
+
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -132,5 +139,6 @@ const UpdateVisible = ({ isOpen, onClose, batch, onSuccess }) => {
     </div>
   );
 };
+
 
 export default UpdateVisible;

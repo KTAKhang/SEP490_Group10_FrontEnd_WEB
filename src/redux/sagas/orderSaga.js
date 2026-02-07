@@ -2,6 +2,7 @@ import { call, put, takeLatest } from "redux-saga/effects";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+
 import {
   ORDER_CREATE_REQUEST,
   RETRY_PAYMENT_REQUEST,
@@ -35,13 +36,16 @@ import {
   orderStatusLogsFailure,
 } from "../actions/orderActions";
 
+
 const API_BASE_URL = "http://localhost:3001";
+
 
 // ===== AUTH HEADER =====
 const authHeader = () => {
   const token = localStorage.getItem("token");
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
+
 
 // ===== API =====
 const apiCreateOrder = async (
@@ -61,6 +65,7 @@ const apiCreateOrder = async (
   return res.data;
 };
 
+
 const apiApplyDiscount = async (orderId, discountId, orderValue) => {
   const res = await axios.post(
     `${API_BASE_URL}/discounts/customer/apply`,
@@ -70,6 +75,7 @@ const apiApplyDiscount = async (orderId, discountId, orderValue) => {
   return res.data;
 };
 
+
 const apiGetVnpayUrl = async (order_id) => {
   const res = await axios.post(
     `${API_BASE_URL}/payment/vnpay/create`,
@@ -78,6 +84,7 @@ const apiGetVnpayUrl = async (order_id) => {
   );
   return res.data;
 };
+
 
 const apiRetryPayment = async (order_id) => {
   const res = await axios.put(
@@ -91,6 +98,7 @@ const apiRetryPayment = async (order_id) => {
   return res.data;
 };
 
+
 const apiCancelOrder = async (order_id) => {
   const res = await axios.put(
     `${API_BASE_URL}/order/cancel/${order_id}`,
@@ -102,6 +110,7 @@ const apiCancelOrder = async (order_id) => {
   );
   return res.data;
 };
+
 
 const apiGetMyOrders = async (params = {}) => {
   const queryParams = new URLSearchParams();
@@ -118,6 +127,7 @@ const apiGetMyOrders = async (params = {}) => {
   if (params.sortBy) queryParams.append("sortBy", params.sortBy);
   if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
 
+
   const res = await axios.get(
     `${API_BASE_URL}/order/my-orders?${queryParams.toString()}`,
     {
@@ -128,6 +138,7 @@ const apiGetMyOrders = async (params = {}) => {
   return res.data;
 };
 
+
 const apiGetMyOrderById = async (order_id) => {
   const res = await axios.get(`${API_BASE_URL}/order/my-orders/${order_id}`, {
     withCredentials: true,
@@ -135,6 +146,7 @@ const apiGetMyOrderById = async (order_id) => {
   });
   return res.data;
 };
+
 
 const apiGetAdminOrders = async (params = {}) => {
   const queryParams = new URLSearchParams();
@@ -149,12 +161,14 @@ const apiGetAdminOrders = async (params = {}) => {
   if (params.sortBy) queryParams.append("sortBy", params.sortBy);
   if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
 
+
   const res = await axios.get(`${API_BASE_URL}/order?${queryParams.toString()}`, {
     withCredentials: true,
     headers: authHeader(),
   });
   return res.data;
 };
+
 
 const apiUpdateOrderAdmin = async (order_id, status_name, note) => {
   const res = await axios.put(
@@ -168,6 +182,7 @@ const apiUpdateOrderAdmin = async (order_id, status_name, note) => {
   return res.data;
 };
 
+
 const apiGetAdminOrderDetail = async (order_id) => {
   const res = await axios.get(`${API_BASE_URL}/order/${order_id}`, {
     withCredentials: true,
@@ -176,6 +191,7 @@ const apiGetAdminOrderDetail = async (order_id) => {
   return res.data;
 };
 
+
 const apiGetAdminOrderStats = async () => {
   const res = await axios.get(`${API_BASE_URL}/order/stats`, {
     withCredentials: true,
@@ -183,6 +199,7 @@ const apiGetAdminOrderStats = async () => {
   });
   return res.data;
 };
+
 
 /** GET /order/status-logs với query: page, limit, sortBy, sortOrder, search, changed_by_role, order_id, changedAtFrom, changedAtTo */
 const apiGetOrderStatusLogsList = async (filters = {}) => {
@@ -201,7 +218,9 @@ const apiGetOrderStatusLogsList = async (filters = {}) => {
   return res.data;
 };
 
+
 // ===== SAGAS =====
+
 
 // CREATE ORDER
 function* orderCreateSaga(action) {
@@ -215,13 +234,16 @@ function* orderCreateSaga(action) {
       icity
     );
 
+
     if (res.success) {
       yield put(orderCreateSuccess(res));
+
 
       if (res.redirect_url) {
         window.location.href = res.redirect_url;
         return;
       }
+
 
       // VNPAY: nếu có discount thì áp discount trước (giống flow COD), lấy URL mới rồi mới redirect
       if (res.payment_url) {
@@ -259,14 +281,18 @@ function* orderCreateSaga(action) {
   }
 }
 
+
 function* retryPaymentSaga(action) {
   try {
     const { order_id } = action.payload;
 
+
    const res = yield call(apiRetryPayment, order_id);
+
 
     if (res.success) {
       yield put(retryPaymentSuccess(res));
+
 
       // 🔥 VNPAY → redirect
       if (res.payment_url) {
@@ -284,12 +310,15 @@ function* retryPaymentSaga(action) {
   }
 }
 
+
 // CANCEL ORDER (CUSTOMER)
 function* orderCancelSaga(action) {
   try {
     const { order_id } = action.payload;
 
+
     const res = yield call(apiCancelOrder, order_id);
+
 
     if (res.success) {
       yield put(orderCancelSuccess(res.message));
@@ -303,6 +332,7 @@ function* orderCancelSaga(action) {
     toast.error(msg);
   }
 }
+
 
 // CUSTOMER ORDER HISTORY
 function* orderHistorySaga(action) {
@@ -318,6 +348,7 @@ function* orderHistorySaga(action) {
     yield put(orderHistoryFailure(msg));
   }
 }
+
 
 // CUSTOMER ORDER DETAIL
 function* orderDetailSaga(action) {
@@ -335,6 +366,7 @@ function* orderDetailSaga(action) {
   }
 }
 
+
 // ADMIN ORDER LIST
 function* orderAdminListSaga(action) {
   try {
@@ -349,6 +381,7 @@ function* orderAdminListSaga(action) {
     yield put(orderAdminListFailure(msg));
   }
 }
+
 
 // ADMIN UPDATE ORDER STATUS
 function* orderAdminUpdateSaga(action) {
@@ -368,6 +401,7 @@ function* orderAdminUpdateSaga(action) {
   }
 }
 
+
 // ADMIN ORDER DETAIL
 function* orderAdminDetailSaga(action) {
   try {
@@ -384,6 +418,7 @@ function* orderAdminDetailSaga(action) {
   }
 }
 
+
 // ADMIN ORDER STATS
 function* orderAdminStatsSaga() {
   try {
@@ -398,6 +433,7 @@ function* orderAdminStatsSaga() {
     yield put(orderAdminStatsFailure(msg));
   }
 }
+
 
 // ORDER STATUS LOGS (admin: list with filters, sort, pagination)
 function* orderStatusLogsSaga(action) {
@@ -417,6 +453,7 @@ function* orderStatusLogsSaga(action) {
   }
 }
 
+
 export default function* orderSaga() {
   yield takeLatest(ORDER_CREATE_REQUEST, orderCreateSaga);
   yield takeLatest(ORDER_CANCEL_REQUEST, orderCancelSaga);
@@ -429,3 +466,7 @@ export default function* orderSaga() {
   yield takeLatest(ORDER_ADMIN_STATS_REQUEST, orderAdminStatsSaga);
   yield takeLatest(ORDER_STATUS_LOGS_REQUEST, orderStatusLogsSaga);
 }
+
+
+
+

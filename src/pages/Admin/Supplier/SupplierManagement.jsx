@@ -23,6 +23,7 @@ import ReadSupplier from "./ReadSupplier";
 import UpdateCooperationStatus from "./UpdateCooperationStatus";
 import Loading from "../../../components/Loading/Loading";
 
+
 const SupplierManagement = () => {
   const dispatch = useDispatch();
   const {
@@ -32,6 +33,7 @@ const SupplierManagement = () => {
     createSupplierLoading,
     updateSupplierLoading,
   } = useSelector((state) => state.supplier);
+
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all"); // all, FARM, COOPERATIVE
@@ -48,6 +50,7 @@ const SupplierManagement = () => {
   const [prevCreateLoading, setPrevCreateLoading] = useState(false);
   const [prevUpdateLoading, setPrevUpdateLoading] = useState(false);
 
+
   // Fetch suppliers when filters change
   useEffect(() => {
     const params = {
@@ -62,6 +65,7 @@ const SupplierManagement = () => {
     };
     dispatch(getSuppliersRequest(params));
   }, [dispatch, currentPage, searchTerm, filterType, filterCooperationStatus, filterStatus, sortBy, sortOrder]);
+
 
   // Auto refresh after successful create/update
   useEffect(() => {
@@ -82,6 +86,7 @@ const SupplierManagement = () => {
     setPrevCreateLoading(createSupplierLoading);
   }, [dispatch, createSupplierLoading, prevCreateLoading, currentPage, searchTerm, filterType, filterCooperationStatus, filterStatus, sortBy, sortOrder]);
 
+
   useEffect(() => {
     if (prevUpdateLoading && !updateSupplierLoading) {
       setShowUpdateModal(false);
@@ -100,15 +105,18 @@ const SupplierManagement = () => {
     setPrevUpdateLoading(updateSupplierLoading);
   }, [dispatch, updateSupplierLoading, prevUpdateLoading, currentPage, searchTerm, filterType, filterCooperationStatus, filterStatus, sortBy, sortOrder]);
 
+
   const handleAddSupplier = () => {
     setSelectedSupplier(null);
     setShowCreateModal(true);
   };
 
+
   const handleEditSupplier = (supplier) => {
     setSelectedSupplier(supplier);
     setShowUpdateModal(true);
   };
+
 
   const handleViewSupplier = (supplier) => {
     setSelectedSupplier(supplier);
@@ -116,10 +124,12 @@ const SupplierManagement = () => {
     setShowReadModal(true);
   };
 
+
   const handleUpdateCooperationStatus = (supplier) => {
     setSelectedSupplier(supplier);
     setShowCooperationStatusModal(true);
   };
+
 
   const getCooperationStatusBadge = (status) => {
     switch (status) {
@@ -149,6 +159,7 @@ const SupplierManagement = () => {
     }
   };
 
+
   const getTypeBadge = (type) => {
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -158,6 +169,7 @@ const SupplierManagement = () => {
       </span>
     );
   };
+
 
   return (
     <div className="space-y-6">
@@ -178,9 +190,11 @@ const SupplierManagement = () => {
         </button>
       </div>
 
+
       {/* Filters Card */}
       <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm">
         <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Search & filters</p>
+
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Search */}
@@ -197,6 +211,7 @@ const SupplierManagement = () => {
               className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-4 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
             />
           </div>
+
 
           {/* Type Filter */}
           <div>
@@ -215,6 +230,7 @@ const SupplierManagement = () => {
             </select>
           </div>
 
+
           {/* Cooperation Status Filter */}
           <div>
             <select
@@ -232,6 +248,7 @@ const SupplierManagement = () => {
             </select>
           </div>
 
+
           {/* Status Filter */}
           <div>
             <select
@@ -248,6 +265,7 @@ const SupplierManagement = () => {
             </select>
           </div>
         </div>
+
 
         {/* Sort */}
         <div className="mt-4 flex items-center space-x-4">
@@ -283,6 +301,7 @@ const SupplierManagement = () => {
         </div>
       </div>
 
+
       {/* Suppliers Table */}
       <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
         <div className="border-b border-gray-100 px-5 py-4">
@@ -293,6 +312,7 @@ const SupplierManagement = () => {
             </p>
           )}
         </div>
+
 
         <div className="p-5">
           {suppliersLoading ? (
@@ -392,6 +412,7 @@ const SupplierManagement = () => {
                 </table>
               </div>
 
+
               {/* Pagination */}
               {suppliersPagination && suppliersPagination.totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4 pt-4 border-t">
@@ -443,6 +464,7 @@ const SupplierManagement = () => {
         </div>
       </div>
 
+
       {/* Modals */}
       {showCreateModal && (
         <CreateSupplier
@@ -450,6 +472,7 @@ const SupplierManagement = () => {
           onClose={() => setShowCreateModal(false)}
         />
       )}
+
 
       {showUpdateModal && selectedSupplier && (
         <UpdateSupplier
@@ -459,6 +482,7 @@ const SupplierManagement = () => {
         />
       )}
 
+
       {showReadModal && selectedSupplier && (
         <ReadSupplier
           isOpen={showReadModal}
@@ -466,6 +490,7 @@ const SupplierManagement = () => {
           supplierId={selectedSupplier._id}
         />
       )}
+
 
       {showCooperationStatusModal && selectedSupplier && (
         <UpdateCooperationStatus
@@ -483,4 +508,9 @@ const SupplierManagement = () => {
   );
 };
 
+
 export default SupplierManagement;
+
+
+
+

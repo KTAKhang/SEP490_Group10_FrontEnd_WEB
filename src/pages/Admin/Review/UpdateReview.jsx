@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 
+
 const STATUS_OPTIONS = [
   { value: "VISIBLE", label: "Visible" },
   { value: "HIDDEN", label: "Hidden" },
 ];
 
+
 const UpdateReview = ({ isOpen, onClose, review, onSubmit, loading }) => {
   const [status, setStatus] = useState("VISIBLE");
+
 
   useEffect(() => {
     if (review) {
@@ -15,7 +18,9 @@ const UpdateReview = ({ isOpen, onClose, review, onSubmit, loading }) => {
     }
   }, [review, isOpen]);
 
+
   if (!isOpen || !review) return null;
+
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -69,4 +74,9 @@ const UpdateReview = ({ isOpen, onClose, review, onSubmit, loading }) => {
   );
 };
 
+
 export default UpdateReview;
+
+
+
+

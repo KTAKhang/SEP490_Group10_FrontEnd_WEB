@@ -25,6 +25,7 @@ import UpdateVisible from "./UpdateStatus/UpdateVisible";
 import DeleteHarvestBatch from "./DeleteHarvestBatch";
 import Loading from "../../../components/Loading/Loading";
 
+
 const HarvestBatchManagement = () => {
   const dispatch = useDispatch();
   const {
@@ -34,6 +35,7 @@ const HarvestBatchManagement = () => {
     deleteHarvestBatchLoading,
     deleteHarvestBatchError,
   } = useSelector((state) => state.supplier);
+
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSupplier, setFilterSupplier] = useState("all");
@@ -50,6 +52,7 @@ const HarvestBatchManagement = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedBatch, setSelectedBatch] = useState(null);
 
+
   // Fetch harvest batches when filters change
   useEffect(() => {
     const params = {
@@ -65,9 +68,11 @@ const HarvestBatchManagement = () => {
     dispatch(getHarvestBatchesRequest(params));
   }, [dispatch, currentPage, searchTerm, filterSupplier, filterReceiptEligible, filterVisibleInReceipt, sortBy, sortOrder]);
 
+
   const handleAddBatch = () => {
     setShowCreateModal(true);
   };
+
 
   const handleViewBatch = (batch) => {
     setSelectedBatch(batch);
@@ -75,20 +80,24 @@ const HarvestBatchManagement = () => {
     dispatch(getHarvestBatchByIdRequest(batch._id));
   };
 
+
   const handleEditBatch = (batch) => {
     setSelectedBatch(batch);
     setShowUpdateModal(true);
   };
+
 
   const handleUpdateEligible = (batch) => {
     setSelectedBatch(batch);
     setShowUpdateEligibleModal(true);
   };
 
+
   const handleUpdateVisible = (batch) => {
     setSelectedBatch(batch);
     setShowUpdateVisibleModal(true);
   };
+
 
   const refreshList = useCallback(() => {
     const params = {
@@ -104,21 +113,25 @@ const HarvestBatchManagement = () => {
     dispatch(getHarvestBatchesRequest(params));
   }, [dispatch, currentPage, searchTerm, filterSupplier, filterReceiptEligible, filterVisibleInReceipt, sortBy, sortOrder]);
 
+
   const handleDeleteBatch = (batch) => {
     setSelectedBatch(batch);
     setShowDeleteModal(true);
   };
+
 
   const closeDeleteModal = useCallback(() => {
     setShowDeleteModal(false);
     setSelectedBatch(null);
   }, []);
 
+
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US");
   };
+
 
   return (
     <div className="space-y-6">
@@ -139,9 +152,11 @@ const HarvestBatchManagement = () => {
         </button>
       </div>
 
+
       {/* Filters Card */}
       <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm">
         <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Search & filters</p>
+
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Search */}
@@ -162,6 +177,7 @@ const HarvestBatchManagement = () => {
             </div>
           </div>
 
+
           {/* Receipt Eligible */}
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">Receipt eligible</label>
@@ -179,6 +195,7 @@ const HarvestBatchManagement = () => {
             </select>
           </div>
 
+
           {/* Visible in receipt */}
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">Visible in receipt</label>
@@ -195,6 +212,7 @@ const HarvestBatchManagement = () => {
               <option value="false">No</option>
             </select>
           </div>
+
 
           {/* Sort */}
           <div>
@@ -231,6 +249,7 @@ const HarvestBatchManagement = () => {
         </div>
       </div>
 
+
       {/* Harvest Batches Table */}
       <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
         <div className="p-6 border-b">
@@ -241,6 +260,7 @@ const HarvestBatchManagement = () => {
             </p>
           )}
         </div>
+
 
         <div className="p-6">
           {harvestBatchesLoading ? (
@@ -350,6 +370,7 @@ const HarvestBatchManagement = () => {
                 </table>
               </div>
 
+
               {/* Pagination */}
               {harvestBatchesPagination && harvestBatchesPagination.totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4 pt-4 border-t">
@@ -399,6 +420,7 @@ const HarvestBatchManagement = () => {
         </div>
       </div>
 
+
       {/* Modals */}
       {showCreateModal && (
         <CreateHarvestBatch
@@ -410,6 +432,7 @@ const HarvestBatchManagement = () => {
         />
       )}
 
+
       {showReadModal && selectedBatch && (
         <ReadHarvestBatch
           isOpen={showReadModal}
@@ -420,6 +443,7 @@ const HarvestBatchManagement = () => {
           harvestBatchId={selectedBatch._id}
         />
       )}
+
 
       {showUpdateModal && selectedBatch && (
         <UpdateHarvestBatch
@@ -433,6 +457,7 @@ const HarvestBatchManagement = () => {
         />
       )}
 
+
       {showUpdateEligibleModal && selectedBatch && (
         <UpdateEligible
           isOpen={showUpdateEligibleModal}
@@ -444,6 +469,7 @@ const HarvestBatchManagement = () => {
           onSuccess={refreshList}
         />
       )}
+
 
       {showUpdateVisibleModal && selectedBatch && (
         <UpdateVisible
@@ -457,6 +483,7 @@ const HarvestBatchManagement = () => {
         />
       )}
 
+
       {showDeleteModal && selectedBatch && (
         <DeleteHarvestBatch
           isOpen={showDeleteModal}
@@ -469,4 +496,6 @@ const HarvestBatchManagement = () => {
   );
 };
 
+
 export default HarvestBatchManagement;
+

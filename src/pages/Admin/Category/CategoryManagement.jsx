@@ -23,21 +23,26 @@ import ReadCategory from "./ReadCategory";
 import DeleteCategory from "./DeleteCategory";
 import Loading from "../../../components/Loading/Loading";
 
+
 const Card = ({ children, className = "" }) => (
   <div className={`bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden ${className}`}>{children}</div>
 );
+
 
 const CardHeader = ({ children, className = "" }) => (
   <div className={`px-5 py-4 border-b border-gray-100 ${className}`}>{children}</div>
 );
 
+
 const CardTitle = ({ children, className = "" }) => (
   <h3 className={`text-base font-semibold text-gray-800 ${className}`}>{children}</h3>
 );
 
+
 const CardContent = ({ children, className = "" }) => (
   <div className={`p-5 ${className}`}>{children}</div>
 );
+
 
 const CategoryManagement = () => {
   const dispatch = useDispatch();
@@ -54,6 +59,7 @@ const CategoryManagement = () => {
     deleteCategoryError,
   } = useSelector((state) => state.category);
 
+
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all"); // all, true, false
   const [currentPage, setCurrentPage] = useState(1);
@@ -68,11 +74,13 @@ const CategoryManagement = () => {
   const [prevUpdateLoading, setPrevUpdateLoading] = useState(false);
   const [prevDeleteLoading, setPrevDeleteLoading] = useState(false);
 
+
   // Fetch categories and stats on mount
   useEffect(() => {
     dispatch(getCategoriesRequest({ page: currentPage, limit: 10, sortBy, sortOrder }));
     dispatch(getCategoryStatsRequest());
   }, [dispatch]);
+
 
   // Fetch categories when filters change
   useEffect(() => {
@@ -86,6 +94,7 @@ const CategoryManagement = () => {
     };
     dispatch(getCategoriesRequest(params));
   }, [dispatch, currentPage, searchTerm, filterStatus, sortBy, sortOrder]);
+
 
   // Auto refresh after successful create
   useEffect(() => {
@@ -105,6 +114,7 @@ const CategoryManagement = () => {
     setPrevCreateLoading(createCategoryLoading);
   }, [dispatch, createCategoryLoading, createCategoryError, prevCreateLoading, currentPage, searchTerm, filterStatus, sortBy, sortOrder]);
 
+
   // Auto refresh after successful update
   useEffect(() => {
     if (prevUpdateLoading && !updateCategoryLoading && !updateCategoryError) {
@@ -122,6 +132,7 @@ const CategoryManagement = () => {
     }
     setPrevUpdateLoading(updateCategoryLoading);
   }, [dispatch, updateCategoryLoading, updateCategoryError, prevUpdateLoading, currentPage, searchTerm, filterStatus, sortBy, sortOrder]);
+
 
   // Auto refresh after successful delete
   useEffect(() => {
@@ -141,24 +152,29 @@ const CategoryManagement = () => {
     setPrevDeleteLoading(deleteCategoryLoading);
   }, [dispatch, deleteCategoryLoading, deleteCategoryError, prevDeleteLoading, currentPage, searchTerm, filterStatus, sortBy, sortOrder]);
 
+
   const handleAddCategory = () => {
     setShowCreateModal(true);
   };
+
 
   const handleEditCategory = (category) => {
     setSelectedCategory(category);
     setShowUpdateModal(true);
   };
 
+
   const handleViewCategory = (category) => {
     setSelectedCategory(category);
     setShowReadModal(true);
   };
 
+
   const handleDeleteCategory = (category) => {
     setSelectedCategory(category);
     setShowDeleteModal(true);
   };
+
 
   // Use stats from API
   const stats = {
@@ -166,6 +182,7 @@ const CategoryManagement = () => {
     active: categoryStats?.active || 0,
     inactive: categoryStats?.hidden || 0,
   };
+
 
   return (
     <div className="space-y-6">
@@ -188,6 +205,7 @@ const CategoryManagement = () => {
           <span>Add category</span>
         </button>
       </div>
+
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -225,6 +243,7 @@ const CategoryManagement = () => {
           </div>
         </div>
       </div>
+
 
       {/* Filters and Search */}
       <Card>
@@ -280,6 +299,7 @@ const CategoryManagement = () => {
           </div>
         </CardContent>
       </Card>
+
 
       {/* Categories Table */}
       <Card>
@@ -362,8 +382,10 @@ const CategoryManagement = () => {
         </CardContent>
       </Card>
 
+
       {/* Create Category Modal */}
       <CreateCategory isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
+
 
       {/* Update Category Modal */}
       <UpdateCategory
@@ -375,6 +397,7 @@ const CategoryManagement = () => {
         category={selectedCategory}
       />
 
+
       {/* Read Category Modal */}
       <ReadCategory
         isOpen={showReadModal}
@@ -384,6 +407,7 @@ const CategoryManagement = () => {
         }}
         category={selectedCategory}
       />
+
 
       {/* Delete Category Modal */}
       <DeleteCategory
@@ -410,4 +434,7 @@ const CategoryManagement = () => {
   );
 };
 
+
 export default CategoryManagement;
+
+

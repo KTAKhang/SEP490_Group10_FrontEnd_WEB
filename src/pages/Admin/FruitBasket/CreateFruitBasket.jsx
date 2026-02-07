@@ -5,12 +5,14 @@ import { toast } from "react-toastify";
 import { getProductsRequest } from "../../../redux/actions/productActions";
 import { createFruitBasketRequest } from "../../../redux/actions/fruitBasketActions";
 
+
 const CreateFruitBasket = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const { products, productsLoading } = useSelector((state) => state.product);
   const { createFruitBasketLoading, createFruitBasketError } = useSelector(
     (state) => state.fruitBasket
   );
+
 
   const [formData, setFormData] = useState({
     name: "",
@@ -23,6 +25,7 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const toastShownRef = useRef(false);
 
+
   useEffect(() => {
     if (isOpen) {
       dispatch(getProductsRequest({ page: 1, limit: 200, status: true, sortBy: "name", sortOrder: "asc" }));
@@ -30,6 +33,7 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
       toastShownRef.current = false;
     }
   }, [dispatch, isOpen]);
+
 
   useEffect(() => {
     if (hasSubmitted && !createFruitBasketLoading && !createFruitBasketError && !toastShownRef.current) {
@@ -45,7 +49,9 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
     }
   }, [hasSubmitted, createFruitBasketLoading, createFruitBasketError, onClose]);
 
+
   const productOptions = useMemo(() => products || [], [products]);
+
 
   const handleReset = () => {
     setFormData({
@@ -61,6 +67,7 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
     });
   };
 
+
   const handleAddItem = () => {
     if (items.length >= 5) {
       toast.error("Fruit basket can have at most 5 fruit types");
@@ -69,9 +76,11 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
     setItems((prev) => [...prev, { productId: "", quantity: 1 }]);
   };
 
+
   const handleRemoveItem = (index) => {
     setItems((prev) => prev.filter((_, i) => i !== index));
   };
+
 
   const handleItemChange = (index, key, value) => {
     setItems((prev) =>
@@ -79,15 +88,18 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
     );
   };
 
+
   const handleAddImages = (event) => {
     const files = Array.from(event.target.files || []);
     if (!files.length) return;
+
 
     const total = uploadFiles.length + files.length;
     if (total > 10) {
       toast.error("Number of images must not exceed 10");
       return;
     }
+
 
     const nextFiles = files.map((file) => ({
       file,
@@ -97,6 +109,7 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
     event.target.value = "";
   };
 
+
   const handleRemoveUpload = (index) => {
     setUploadFiles((prev) => {
       const target = prev[index];
@@ -104,6 +117,7 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
       return prev.filter((_, i) => i !== index);
     });
   };
+
 
   const validateItems = () => {
     const normalized = items.filter((item) => item.productId);
@@ -115,6 +129,7 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
       toast.error("Fruit basket can have at most 5 fruit types");
       return null;
     }
+
 
     const productSet = new Set();
     for (const item of normalized) {
@@ -130,11 +145,13 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
       }
     }
 
+
     return normalized.map((item) => ({
       product: item.productId,
       quantity: Number(item.quantity),
     }));
   };
+
 
   const validateImages = () => {
     if (uploadFiles.length > 10) {
@@ -144,19 +161,24 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
     return uploadFiles.map((item) => item.file);
   };
 
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
 
     if (!formData.name.trim()) {
       toast.error("Fruit basket name is required");
       return;
     }
 
+
     const itemsPayload = validateItems();
     if (!itemsPayload) return;
 
+
     const imageFiles = validateImages();
     if (!imageFiles) return;
+
 
     const payload = new FormData();
     payload.append("name", formData.name.trim());
@@ -169,9 +191,11 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
     payload.append("status", formData.status ? "true" : "false");
     imageFiles.forEach((file) => payload.append("images", file));
 
+
     setHasSubmitted(true);
     dispatch(createFruitBasketRequest(payload));
   };
+
 
   const handleCancel = () => {
     setHasSubmitted(false);
@@ -179,7 +203,9 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
     onClose();
   };
 
+
   if (!isOpen) return null;
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -227,6 +253,7 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
                 maxLength={1000}
               />
             </div>
+
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -282,6 +309,7 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
               ))}
             </div>
 
+
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-gray-800">Images (optional, up to 10)</h3>
@@ -322,6 +350,7 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
               )}
             </div>
 
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
               <select
@@ -355,5 +384,6 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
     </div>
   );
 };
+
 
 export default CreateFruitBasket;

@@ -9,11 +9,13 @@ import {
 import ReviewDetails from "./ReviewDetails";
 import UpdateReview from "./UpdateReview";
 
+
 const STATUS_OPTIONS = [
   { value: "ALL", label: "All" },
   { value: "VISIBLE", label: "Visible" },
   { value: "HIDDEN", label: "Hidden" },
 ];
+
 
 const ReviewManagement = () => {
   const dispatch = useDispatch();
@@ -26,6 +28,7 @@ const ReviewManagement = () => {
     updateVisibilitySuccess,
   } = useSelector((state) => state.review || {});
 
+
   const [page, setPage] = useState(1);
   const [limit] = useState(5);
   const [status, setStatus] = useState("ALL");
@@ -36,9 +39,11 @@ const ReviewManagement = () => {
   const [search, setSearch] = useState("");
   const [rating, setRating] = useState("ALL");
 
+
   const [showDetail, setShowDetail] = useState(false);
   const [showUpdate, setShowUpdate] = useState(false);
   const [selectedReview, setSelectedReview] = useState(null);
+
 
   const queryParams = useMemo(
     () => ({
@@ -55,9 +60,11 @@ const ReviewManagement = () => {
     [page, limit, status, sortBy, sortOrder, productId, userId, search, rating]
   );
 
+
   useEffect(() => {
     dispatch(getAdminReviewsRequest(queryParams));
   }, [dispatch, queryParams]);
+
 
   useEffect(() => {
     if (updateVisibilitySuccess) {
@@ -68,24 +75,30 @@ const ReviewManagement = () => {
     }
   }, [updateVisibilitySuccess, dispatch, queryParams]);
 
+
   const totalPages = adminPagination?.totalPages || 1;
+
 
   const handleViewDetail = (review) => {
     setSelectedReview(review);
     setShowDetail(true);
   };
 
+
   const handleOpenUpdate = (review) => {
     setSelectedReview(review);
     setShowUpdate(true);
   };
 
+
   const handleUpdateStatus = (id, nextStatus) => {
     dispatch(updateReviewVisibilityRequest(id, nextStatus));
   };
 
+
   const formatDate = (value) =>
     value ? new Date(value).toLocaleString("en-US") : "N/A";
+
 
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
@@ -98,6 +111,7 @@ const ReviewManagement = () => {
           <p className="text-sm text-gray-500 mt-0.5">Manage customer product reviews</p>
         </div>
       </div>
+
 
       <div className="border-b border-gray-100 bg-gray-50/50 p-5 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -158,6 +172,7 @@ const ReviewManagement = () => {
           </div>
         </div>
 
+
         <div className="flex flex-col md:flex-row gap-3 md:items-center">
           <select
             value={rating}
@@ -191,6 +206,7 @@ const ReviewManagement = () => {
           </select>
         </div>
       </div>
+
 
       <div className="p-6">
         {adminLoading ? (
@@ -271,6 +287,7 @@ const ReviewManagement = () => {
         )}
       </div>
 
+
       {adminPagination && totalPages > 1 && (
         <div className="px-6 pb-6 flex items-center justify-center gap-2">
           <button
@@ -293,6 +310,7 @@ const ReviewManagement = () => {
         </div>
       )}
 
+
       <ReviewDetails
         isOpen={showDetail}
         onClose={() => setShowDetail(false)}
@@ -309,4 +327,9 @@ const ReviewManagement = () => {
   );
 };
 
+
 export default ReviewManagement;
+
+
+
+

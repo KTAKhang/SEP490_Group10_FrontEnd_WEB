@@ -10,30 +10,35 @@ import { addFavoriteRequest, removeFavoriteRequest, getFavoritesRequest } from '
 import { addItemToCartRequest } from '../../redux/actions/cartActions';
 import { Search, Package, Heart } from 'lucide-react';
 
+
 export default function ProductPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
+
   // Get categories for filter
   const { publicCategories } = useSelector((state) => state.publicCategory);
-  
+ 
   // Get products
-  const { 
-    publicProducts, 
-    publicProductsPagination, 
-    publicProductsLoading 
+  const {
+    publicProducts,
+    publicProductsPagination,
+    publicProductsLoading
   } = useSelector((state) => state.publicProduct);
   const { favoriteStatus, favoritesLoading } = useSelector((state) => state.favorite);
 
+
   // Check if user is logged in
   const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+
 
   // Track previous URL params to avoid infinite loop
   const prevUrlParamsRef = useRef('');
   // Track if favorites have been loaded for current user
   const favoritesLoadedRef = useRef(false);
   const prevUserRef = useRef(null);
+
 
   // State for filters and search
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
@@ -42,16 +47,18 @@ export default function ProductPage() {
   const [sortOrder, setSortOrder] = useState(searchParams.get('sortOrder') || 'desc');
   const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page')) || 1);
 
+
   // Fetch categories on mount
   useEffect(() => {
     dispatch(getPublicCategoriesRequest({ page: 1, limit: 100 }));
   }, [dispatch]);
 
+
   // Load favorites list when user logs in (to populate favoriteStatus)
   useEffect(() => {
     const currentUserId = storedUser?._id || storedUser?.id || null;
     const prevUserId = prevUserRef.current?._id || prevUserRef.current?.id || null;
-    
+   
     // User changed (logged in or logged out)
     if (currentUserId !== prevUserId) {
       if (currentUserId) {
@@ -70,13 +77,14 @@ export default function ProductPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storedUser, dispatch]);
-  
+ 
   // Mark favorites as loaded after successful fetch
   useEffect(() => {
     if (!favoritesLoading && storedUser) {
       favoritesLoadedRef.current = true;
     }
   }, [favoritesLoading, storedUser]);
+
 
   // Update URL params separately to avoid loop
   useEffect(() => {
@@ -88,9 +96,9 @@ export default function ProductPage() {
       if (sortOrder !== 'desc') newSearchParams.set('sortOrder', sortOrder);
     }
     if (currentPage > 1) newSearchParams.set('page', currentPage.toString());
-    
+   
     const newParamsString = newSearchParams.toString();
-    
+   
     // Only update if params actually changed
     if (prevUrlParamsRef.current !== newParamsString) {
       prevUrlParamsRef.current = newParamsString;
@@ -98,6 +106,7 @@ export default function ProductPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, searchTerm, selectedCategory, sortBy, sortOrder]);
+
 
   // Fetch products when filters change
   useEffect(() => {
@@ -110,14 +119,17 @@ export default function ProductPage() {
       sortOrder: sortOrder,
     };
 
+
     dispatch(getPublicProductsRequest(params));
   }, [dispatch, currentPage, searchTerm, selectedCategory, sortBy, sortOrder]);
+
 
   // Handle search
   const handleSearch = (e) => {
     e.preventDefault();
     setCurrentPage(1);
   };
+
 
   // Handle sort change
   const handleSortChange = (value) => {
@@ -137,16 +149,19 @@ export default function ProductPage() {
     setCurrentPage(1);
   };
 
+
   // Handle category filter
   const handleCategoryChange = (categoryId) => {
     setSelectedCategory(categoryId);
     setCurrentPage(1);
   };
 
+
   // Handle product click
   const handleProductClick = (productId) => {
     navigate(`/products/${productId}`);
   };
+
 
   const handleAddToCart = (e, productId, inStock) => {
     e.stopPropagation();
@@ -158,21 +173,25 @@ export default function ProductPage() {
     dispatch(addItemToCartRequest(productId, 1));
   };
 
+
   // Handle pagination
   const handlePageChange = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const sortValue = 
+
+  const sortValue =
     sortBy === 'createdAt' && sortOrder === 'desc' ? 'default' :
     sortBy === 'price' && sortOrder === 'asc' ? 'price-low' :
     sortBy === 'price' && sortOrder === 'desc' ? 'price-high' :
     sortBy === 'name' && sortOrder === 'asc' ? 'name' : 'default';
 
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
+
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 bg-gradient-to-br from-green-50 to-white">
@@ -187,6 +206,7 @@ export default function ProductPage() {
           </div>
         </div>
       </section>
+
 
       {/* Filters Section */}
       <section className="py-8 border-b border-gray-200 sticky top-20 bg-white z-40">
@@ -204,6 +224,7 @@ export default function ProductPage() {
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             </form>
           </div>
+
 
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
             {/* Category Filter */}
@@ -233,6 +254,7 @@ export default function ProductPage() {
               ))}
             </div>
 
+
             {/* Sort Filter */}
             <div className="flex items-center space-x-3">
               <span className="text-sm text-gray-600">Sort:</span>
@@ -250,6 +272,7 @@ export default function ProductPage() {
           </div>
         </div>
       </section>
+
 
       {/* Products Grid */}
       <section className="py-16">
@@ -269,7 +292,7 @@ export default function ProductPage() {
                 <p className="text-gray-600">
                   Showing{' '}
                   <span className="font-semibold">
-                    {publicProductsPagination 
+                    {publicProductsPagination
                       ? publicProductsPagination.page * publicProductsPagination.limit - publicProductsPagination.limit + 1
                       : 0}{' '}
                     -{' '}
@@ -283,6 +306,7 @@ export default function ProductPage() {
                   </span>
                 </p>
               </div>
+
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {publicProducts.map((product) => (
@@ -324,13 +348,14 @@ export default function ProductPage() {
                           }`}
                           aria-label={favoriteStatus[product._id] ? "Remove from wishlist" : "Add to wishlist"}
                         >
-                          <Heart 
-                            size={18} 
+                          <Heart
+                            size={18}
                             fill={favoriteStatus[product._id] ? 'currentColor' : 'none'}
                           />
                         </button>
                       )}
                     </div>
+
 
                     {/* Product Info */}
                     <div className="p-5">
@@ -343,6 +368,7 @@ export default function ProductPage() {
                       <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                         {product.description || ''}
                       </p>
+
 
                       <div className="flex items-center justify-between">
                         <div>
@@ -379,6 +405,7 @@ export default function ProductPage() {
                   </div>
                 ))}
               </div>
+
 
               {/* Pagination */}
               {publicProductsPagination && publicProductsPagination.totalPages > 1 && (
@@ -433,7 +460,10 @@ export default function ProductPage() {
         </div>
       </section>
 
+
       <Footer />
     </div>
   );
 }
+
+

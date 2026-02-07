@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 
+
 const ReadOrderDetail = ({
   isOpen,
   adminDetailLoading,
@@ -11,6 +12,7 @@ const ReadOrderDetail = ({
   formatCurrency,
 }) => {
   if (!isOpen) return null;
+
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -46,6 +48,7 @@ const ReadOrderDetail = ({
                   <div>Address: {adminDetail.order?.receiver_address}</div>
                 </div>
               </div>
+
 
               <div className="mb-6">
                 <h3 className="text-sm font-semibold text-gray-800 mb-3">
@@ -92,6 +95,7 @@ const ReadOrderDetail = ({
                 </div>
               </div>
 
+
               <div className="mb-6">
                 <h3 className="text-sm font-semibold text-gray-800 mb-3">
                   Payment
@@ -105,12 +109,14 @@ const ReadOrderDetail = ({
                 </div>
               </div>
 
+
               <div className="flex items-center justify-between border-t pt-4 text-sm text-gray-700">
                 <span>Total</span>
                 <span className="text-lg font-semibold text-gray-900">
                   {formatCurrency(adminDetail.order?.total_price)}
                 </span>
               </div>
+
 
               {adminDetail.order?.status_history?.length > 0 && (
                 <div className="mt-6">
@@ -146,4 +152,6 @@ const ReadOrderDetail = ({
   );
 };
 
+
 export default ReadOrderDetail;
+
