@@ -55,9 +55,9 @@ apiClientNoCredentials.interceptors.request.use(
         if (isOptionalAuthEndpoint) {
           console.log('📤 Optional auth endpoint - sending token for view tracking:', token ? `${token.substring(0, 20)}...` : 'no token');
         } else {
-          console.log('📤 Request sent with token:', token ? `${token.substring(0, 20)}...` : 'no token');
+          // console.log('📤 Request sent with token:', token ? `${token.substring(0, 20)}...` : 'no token');
         }
-        console.log('📤 Authorization header:', config.headers.Authorization);
+        // console.log('📤 Authorization header:', config.headers.Authorization);
       } else {
         if (isOptionalAuthEndpoint) {
           console.log('⚠️ Optional auth endpoint but no token found - view tracking may not work for logged-in users');

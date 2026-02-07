@@ -86,8 +86,8 @@ function* getShopInfoPublicSaga() {
   try {
     const response = yield call(apiGetShopInfoPublic);
     if (response.status === "OK") {
-      console.log('✅ Public shop info loaded:', response.data);
-      console.log('📸 Logo URL:', response.data?.logo);
+      // console.log('✅ Public shop info loaded:', response.data);
+      // console.log('📸 Logo URL:', response.data?.logo);
       // Dùng đúng data từ public API, không gọi GET /admin/shop (chỉ dành cho admin).
       // Nếu public API không trả logo (vd: đã xóa logo) thì logo để trống, tránh 403 khi user là customer.
       const publicData = response.data;
