@@ -6,13 +6,16 @@ import { createHarvestBatchRequest } from "../../../redux/actions/supplierAction
 import { getSuppliersRequest } from "../../../redux/actions/supplierActions";
 import { getProductsRequest } from "../../../redux/actions/productActions";
 
+
 const API_BASE = "https://provinces.open-api.vn/api/v2";
+
 
 const CreateHarvestBatch = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const { suppliers } = useSelector((state) => state.supplier);
   const { products } = useSelector((state) => state.product);
   const { createHarvestBatchLoading, createHarvestBatchError } = useSelector((state) => state.supplier);
+
 
   const [formData, setFormData] = useState({
     supplierId: "",
@@ -25,10 +28,12 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
     notes: "",
   });
 
+
   const [provinces, setProvinces] = useState([]);
   const [wards, setWards] = useState([]);
   const [icity, setIcity] = useState("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
+
 
   useEffect(() => {
     if (isOpen) {
@@ -51,12 +56,14 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
     }
   }, [dispatch, isOpen]);
 
+
   useEffect(() => {
     axios
       .get(`${API_BASE}/p/`)
       .then((res) => setProvinces(res.data))
       .catch((err) => console.error("Error loading provinces:", err));
   }, []);
+
 
   useEffect(() => {
     if (!formData.city) {
@@ -65,6 +72,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
       setIcity("");
       return;
     }
+
 
     axios
       .get(`${API_BASE}/w/`)
@@ -77,6 +85,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
       .catch((err) => console.error("Error loading wards:", err));
   }, [formData.city]);
 
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (name === "city") {
@@ -85,6 +94,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
     }
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
 
   useEffect(() => {
     // Only close modal if submission was successful (no error) and loading is done
@@ -110,12 +120,15 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasSubmitted, createHarvestBatchLoading, createHarvestBatchError]);
 
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
 
     if (!formData.supplierId || !formData.productId || !formData.harvestDate) {
       return;
     }
+
 
     // ✅ Validation: Batch Number không được để trống
     const batchNumberTrimmed = formData.batchNumber?.trim() || "";
@@ -123,6 +136,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
       alert("Harvest Batch Number is required and cannot be empty");
       return;
     }
+
 
     // ✅ BR-SUP-12: Validation harvestDate không được lớn hơn ngày hiện tại
     const harvestDateObj = new Date(formData.harvestDate);
@@ -134,11 +148,13 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
       return;
     }
 
+
     // Clean data - đã xóa quantity trên HarvestBatch
     const locationLine = formData.location?.trim() || "";
     const wardName = formData.ward?.toString().trim() || "";
     const provinceName = icity?.toString().trim() || "";
     const locationParts = [locationLine, wardName, provinceName].filter(Boolean);
+
 
     const cleanedData = {
       supplierId: formData.supplierId,
@@ -149,9 +165,11 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
       notes: formData.notes?.trim() || "",
     };
 
+
     setHasSubmitted(true);
     dispatch(createHarvestBatchRequest(cleanedData));
   };
+
 
   const handleCancel = () => {
     setHasSubmitted(false);
@@ -169,10 +187,12 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
     onClose();
   };
 
+
   // Filter suppliers: only ACTIVE and status true
   const activeSuppliers = suppliers?.filter(
     (s) => s.cooperationStatus === "ACTIVE" && s.status === true
   ) || [];
+
 
   // Filter products based on selected supplier
   const filteredProducts = products?.filter(product => {
@@ -181,10 +201,13 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
     return productSupplierId && productSupplierId.toString() === formData.supplierId;
   }) || [];
 
+
   if (!isOpen) return null;
+
 
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split("T")[0];
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -220,6 +243,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
                 </select>
               </div>
 
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Product <span className="text-red-500">*</span>
@@ -244,6 +268,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
               </div>
             </div>
 
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -259,6 +284,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
                   required
                 />
               </div>
+
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -278,6 +304,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
                 </div>
               </div>
             </div>
+
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center space-x-2">
@@ -325,6 +352,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
               </div>
             </div>
 
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Notes
@@ -342,11 +370,13 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
             </div>
           </div>
 
+
           <div className="flex justify-end space-x-3 p-6 border-t bg-gray-50">
             <button
               type="button"
               onClick={handleCancel}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              disabled={createHarvestBatchLoading}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
@@ -355,7 +385,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
               disabled={createHarvestBatchLoading}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {createHarvestBatchLoading ? "Creating..." : "Create Harvest Batch"}
+              {createHarvestBatchLoading ? "Processing…" : "Create Harvest Batch"}
             </button>
           </div>
         </form>
@@ -364,4 +394,9 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
   );
 };
 
+
 export default CreateHarvestBatch;
+
+
+
+

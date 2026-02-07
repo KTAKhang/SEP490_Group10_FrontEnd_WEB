@@ -5,11 +5,13 @@ import { orderStatusLogsRequest } from "../../../redux/actions/orderActions";
 import OrderLogDetail from "./OrderLogDetail";
 import Loading from "../../../components/Loading/Loading";
 
+
 const ROLE_LABEL = {
   admin: "Admin",
   "sales-staff": "Sales staff",
   customer: "Customer",
 };
+
 
 const STATUS_OPTIONS = [
   { value: "PENDING", label: "Pending" },
@@ -28,6 +30,7 @@ const getStatusLabel = (name) => {
   return STATUS_LABEL[name] || STATUS_LABEL[normalized] || name;
 };
 
+
 const SORT_OPTIONS = [
   { value: "changed_at", label: "Change time" },
   { value: "changed_by_role", label: "Role" },
@@ -35,14 +38,17 @@ const SORT_OPTIONS = [
   { value: "createdAt", label: "Created date" },
 ];
 
+
 const formatDate = (value) =>
   value ? new Date(value).toLocaleString("en-US") : "—";
+
 
 const formatDateInput = (value) => {
   if (!value) return "";
   const d = new Date(value);
   return d.toISOString().slice(0, 10);
 };
+
 
 const OrderLogHistoryPage = () => {
   const dispatch = useDispatch();
@@ -52,6 +58,7 @@ const OrderLogHistoryPage = () => {
     orderStatusLogsLoading,
     orderStatusLogsError,
   } = useSelector((state) => state.order || {});
+
 
   const [page, setPage] = useState(1);
   const [limit] = useState(20);
@@ -65,6 +72,7 @@ const OrderLogHistoryPage = () => {
   const [selectedLog, setSelectedLog] = useState(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
+
   const buildFilters = useCallback(() => {
     const f = { page, limit, sortBy, sortOrder };
     if (search.trim()) f.search = search.trim();
@@ -75,13 +83,16 @@ const OrderLogHistoryPage = () => {
     return f;
   }, [page, limit, search, changedByRole, orderIdFilter, changedAtFrom, changedAtTo, sortBy, sortOrder]);
 
+
   const fetchLogs = useCallback(() => {
     dispatch(orderStatusLogsRequest(buildFilters()));
   }, [dispatch, buildFilters]);
 
+
   useEffect(() => {
     fetchLogs();
   }, [fetchLogs]);
+
 
   const handleApplyFilters = (e) => {
     e.preventDefault();
@@ -89,10 +100,12 @@ const OrderLogHistoryPage = () => {
     dispatch(orderStatusLogsRequest({ ...buildFilters(), page: 1 }));
   };
 
+
   const logs = Array.isArray(orderStatusLogs) ? orderStatusLogs : [];
   const pagination = orderStatusLogsPagination || {};
   const totalPages = pagination.totalPages || 1;
   const total = pagination.total ?? 0;
+
 
   return (
     <div className="space-y-6">
@@ -105,6 +118,7 @@ const OrderLogHistoryPage = () => {
           <p className="text-sm text-gray-500 mt-0.5">Order status updates (admin, sales staff, customer). Search, filter and sort.</p>
         </div>
       </div>
+
 
       <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm">
         <form onSubmit={handleApplyFilters} className="space-y-4">
@@ -188,11 +202,13 @@ const OrderLogHistoryPage = () => {
           </div>
         </form>
 
+
         {orderStatusLogsError && (
           <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
             {orderStatusLogsError}
           </div>
         )}
+
 
         {orderStatusLogsLoading ? (
           <div className="mt-6">
@@ -277,6 +293,7 @@ const OrderLogHistoryPage = () => {
                   </table>
                 </div>
 
+
                 {totalPages > 1 && (
                   <div className="mt-4 flex items-center justify-center gap-2">
                     <button
@@ -312,6 +329,7 @@ const OrderLogHistoryPage = () => {
         )}
       </div>
 
+
       <OrderLogDetail
         isOpen={detailOpen}
         log={selectedLog}
@@ -321,4 +339,7 @@ const OrderLogHistoryPage = () => {
   );
 };
 
+
 export default OrderLogHistoryPage;
+
+

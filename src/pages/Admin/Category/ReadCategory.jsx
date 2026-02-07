@@ -1,7 +1,9 @@
 import { X, Eye, CheckCircle, XCircle } from "lucide-react";
 
+
 const ReadCategory = ({ isOpen, onClose, category }) => {
   if (!isOpen || !category) return null;
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -34,6 +36,7 @@ const ReadCategory = ({ isOpen, onClose, category }) => {
             </div>
           )}
 
+
           {/* Basic Info */}
           <div className="grid grid-cols-2 gap-6">
             <div>
@@ -64,6 +67,7 @@ const ReadCategory = ({ isOpen, onClose, category }) => {
             </div>
           </div>
 
+
           {/* Description */}
           {category.description && (
             <div>
@@ -71,6 +75,7 @@ const ReadCategory = ({ isOpen, onClose, category }) => {
               <p className="text-gray-900 whitespace-pre-wrap">{category.description}</p>
             </div>
           )}
+
 
           {/* Timestamps */}
           <div className="border-t pt-4 grid grid-cols-2 gap-4 text-sm text-gray-500">
@@ -95,4 +100,9 @@ const ReadCategory = ({ isOpen, onClose, category }) => {
   );
 };
 
+
 export default ReadCategory;
+
+
+
+

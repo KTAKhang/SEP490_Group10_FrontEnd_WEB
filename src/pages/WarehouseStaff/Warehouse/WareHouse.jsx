@@ -19,21 +19,26 @@ import ReadProduct from "./ReadProduct";
 import CreateReceipt from "./CreateReceipt";
 import Loading from "../../../components/Loading/Loading";
 
+
 const Card = ({ children, className = "" }) => (
   <div className={`bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden ${className}`}>{children}</div>
 );
+
 
 const CardHeader = ({ children, className = "" }) => (
   <div className={`px-5 py-4 border-b border-gray-100 ${className}`}>{children}</div>
 );
 
+
 const CardTitle = ({ children, className = "" }) => (
   <h3 className={`text-base font-semibold text-gray-800 ${className}`}>{children}</h3>
 );
 
+
 const CardContent = ({ children, className = "" }) => (
   <div className={`p-5 ${className}`}>{children}</div>
 );
+
 
 const WareHouse = () => {
   const dispatch = useDispatch();
@@ -43,9 +48,10 @@ const WareHouse = () => {
     productsPagination,
     productStats,
   } = useSelector((state) => state.product);
-  
+ 
   const { categories } = useSelector((state) => state.category);
   const { createReceiptLoading, createReceiptError } = useSelector((state) => state.inventory);
+
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStockStatus, setFilterStockStatus] = useState("all"); // all, IN_STOCK, OUT_OF_STOCK
@@ -60,12 +66,14 @@ const WareHouse = () => {
   const [selectedProductForReceipt, setSelectedProductForReceipt] = useState(null);
   const [prevCreateReceiptLoading, setPrevCreateReceiptLoading] = useState(false);
 
+
   // Fetch products, categories and stats on mount
   useEffect(() => {
     dispatch(getProductsRequest({ page: currentPage, limit: 10, sortBy, sortOrder }));
     dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
     dispatch(getProductStatsRequest());
   }, [dispatch]);
+
 
   // Fetch products when filters change
   useEffect(() => {
@@ -81,6 +89,7 @@ const WareHouse = () => {
     };
     dispatch(getProductsRequest(params));
   }, [dispatch, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory, sortBy, sortOrder]);
+
 
   // Auto refresh after successful create receipt
   useEffect(() => {
@@ -103,6 +112,8 @@ const WareHouse = () => {
   }, [dispatch, createReceiptLoading, createReceiptError, prevCreateReceiptLoading, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory, sortBy, sortOrder]);
 
 
+
+
   const getStockStatus = (product) => {
     if (product.stockStatus === "OUT_OF_STOCK" || product.onHandQuantity === 0) {
       return { label: "Out of stock", color: "bg-red-100 text-red-800", icon: AlertCircle };
@@ -112,6 +123,7 @@ const WareHouse = () => {
     }
     return { label: "In stock", color: "bg-green-100 text-green-800", icon: CheckCircle };
   };
+
 
   const getReceivingStatus = (product) => {
     switch (product.receivingStatus) {
@@ -126,15 +138,18 @@ const WareHouse = () => {
     }
   };
 
+
   const handleViewProduct = (product) => {
     setSelectedProduct(product);
     setShowReadModal(true);
   };
 
+
   const handleOpenReceiptModal = (product) => {
     setSelectedProductForReceipt(product);
     setShowReceiptModal(true);
   };
+
 
   // Helper function to check if product can receive more inventory
   // According to new backend logic: Can receive multiple times on the same day,
@@ -147,7 +162,7 @@ const WareHouse = () => {
       const vnToday = new Date(today.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
       vnToday.setHours(0, 0, 0, 0);
       const todayStr = `${vnToday.getFullYear()}-${String(vnToday.getMonth() + 1).padStart(2, "0")}-${String(vnToday.getDate()).padStart(2, "0")}`;
-      
+     
       // Can only receive on the same day
       return product.warehouseEntryDateStr === todayStr;
     } else if (product.warehouseEntryDate) {
@@ -156,14 +171,16 @@ const WareHouse = () => {
       entryDate.setHours(0, 0, 0, 0);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+     
       // Can only receive on the same day
       return entryDate.getTime() === today.getTime();
     }
 
+
     // If no warehouseEntryDate, can receive (first receipt)
     return true;
   };
+
 
   // Use stats from API
   const stats = {
@@ -172,6 +189,7 @@ const WareHouse = () => {
     outOfStock: productStats?.outOfStock || 0,
     lowStock: productStats?.lowStock || 0,
   };
+
 
   return (
     <div className="space-y-6">
@@ -185,6 +203,7 @@ const WareHouse = () => {
           <p className="text-sm text-gray-500 mt-0.5">View and receive products</p>
         </div>
       </div>
+
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -233,6 +252,7 @@ const WareHouse = () => {
           </div>
         </div>
       </div>
+
 
       {/* Filters and Search */}
       <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm">
@@ -298,6 +318,7 @@ const WareHouse = () => {
           </select>
         </div>
       </div>
+
 
       {/* Products Table */}
       <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
@@ -412,6 +433,7 @@ const WareHouse = () => {
                 </div>
               )}
 
+
               {/* Pagination */}
               {productsPagination && productsPagination.totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
@@ -464,6 +486,7 @@ const WareHouse = () => {
         </div>
       </div>
 
+
       {/* Read Product Modal */}
       <ReadProduct
         isOpen={showReadModal}
@@ -473,6 +496,7 @@ const WareHouse = () => {
         }}
         product={selectedProduct}
       />
+
 
       {/* Receipt Modal */}
       <CreateReceipt
@@ -484,8 +508,12 @@ const WareHouse = () => {
         product={selectedProductForReceipt}
       />
 
+
     </div>
   );
 };
 
+
 export default WareHouse;
+
+

@@ -15,12 +15,14 @@ import { getProductsRequest } from "../../../redux/actions/productActions";
 import Loading from "../../../components/Loading/Loading";
 import ReceiptDetailModal from "./ReceiptDetailModal";
 
+
 const ReceiptHistoryPage = () => {
   const dispatch = useDispatch();
   const { receiptHistory, receiptHistoryPagination, receiptHistoryLoading } = useSelector(
     (state) => state.inventory
   );
   const { products } = useSelector((state) => state.product);
+
 
   const [selectedProductId, setSelectedProductId] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,10 +34,12 @@ const ReceiptHistoryPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReceiptId, setSelectedReceiptId] = useState(null);
 
+
   // Fetch products on mount for filter
   useEffect(() => {
     dispatch(getProductsRequest({ page: 1, limit: 1000, sortBy: "name", sortOrder: "asc" }));
   }, [dispatch]);
+
 
   // Fetch receipt history when filters change
   useEffect(() => {
@@ -52,6 +56,7 @@ const ReceiptHistoryPage = () => {
     dispatch(getReceiptHistoryRequest(params));
   }, [dispatch, currentPage, selectedProductId, searchTerm, startDate, endDate, sortBy, sortOrder]);
 
+
   const handleResetFilters = () => {
     setSelectedProductId("");
     setSearchTerm("");
@@ -61,6 +66,7 @@ const ReceiptHistoryPage = () => {
     setSortOrder("desc");
     setCurrentPage(1);
   };
+
 
   const handleSortChange = (field) => {
     if (sortBy === field) {
@@ -74,15 +80,18 @@ const ReceiptHistoryPage = () => {
     setCurrentPage(1);
   };
 
+
   const handleViewDetail = (receiptId) => {
     setSelectedReceiptId(receiptId);
     setIsModalOpen(true);
   };
 
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedReceiptId(null);
   };
+
 
   return (
     <div className="space-y-6">
@@ -97,12 +106,14 @@ const ReceiptHistoryPage = () => {
         </div>
       </div>
 
+
       {/* Filters Card */}
       <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm">
         <div className="flex items-center space-x-2 mb-4">
           <Filter className="text-gray-400" size={20} />
           <h2 className="text-lg font-semibold text-gray-800">Filters</h2>
         </div>
+
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Product Filter */}
@@ -127,6 +138,7 @@ const ReceiptHistoryPage = () => {
             </select>
           </div>
 
+
           {/* Search by Note */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -147,6 +159,7 @@ const ReceiptHistoryPage = () => {
             </div>
           </div>
 
+
           {/* Start Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -165,6 +178,7 @@ const ReceiptHistoryPage = () => {
               />
             </div>
           </div>
+
 
           {/* End Date */}
           <div>
@@ -186,6 +200,7 @@ const ReceiptHistoryPage = () => {
             </div>
           </div>
         </div>
+
 
         {/* Sort Options */}
         <div className="mt-4 flex items-center space-x-4">
@@ -216,6 +231,7 @@ const ReceiptHistoryPage = () => {
           </div>
         </div>
 
+
         {/* Reset Filters Button */}
         {(selectedProductId || searchTerm || startDate || endDate || sortBy !== "createdAt" || sortOrder !== "desc") && (
           <div className="mt-4">
@@ -229,6 +245,7 @@ const ReceiptHistoryPage = () => {
         )}
       </div>
 
+
       {/* Receipt History Table */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="p-6 border-b">
@@ -239,6 +256,7 @@ const ReceiptHistoryPage = () => {
             </p>
           )}
         </div>
+
 
         <div className="p-6">
           {receiptHistoryLoading ? (
@@ -260,7 +278,7 @@ const ReceiptHistoryPage = () => {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Product
                       </th>
-                      <th 
+                      <th
                         className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         onClick={() => handleSortChange("quantity")}
                       >
@@ -280,7 +298,7 @@ const ReceiptHistoryPage = () => {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Note
                       </th>
-                      <th 
+                      <th
                         className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         onClick={() => handleSortChange("createdAt")}
                       >
@@ -400,6 +418,7 @@ const ReceiptHistoryPage = () => {
                 </table>
               </div>
 
+
               {/* Pagination */}
               {receiptHistoryPagination && receiptHistoryPagination.totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4 pt-4 border-t">
@@ -449,6 +468,7 @@ const ReceiptHistoryPage = () => {
         </div>
       </div>
 
+
       {/* Receipt Detail Modal */}
       <ReceiptDetailModal
         isOpen={isModalOpen}
@@ -459,4 +479,9 @@ const ReceiptHistoryPage = () => {
   );
 };
 
+
 export default ReceiptHistoryPage;
+
+
+
+

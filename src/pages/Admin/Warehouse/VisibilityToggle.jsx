@@ -3,18 +3,22 @@ import { useDispatch, useSelector } from "react-redux";
 import { X, Eye, EyeOff } from "lucide-react";
 import { updateProductRequest } from "../../../redux/actions/productActions";
 
+
 const VisibilityToggle = ({ isOpen, onClose, product, onSuccess }) => {
   const dispatch = useDispatch();
   const { updateProductLoading, updateProductError } = useSelector((state) => state.product);
 
+
   const [status, setStatus] = useState(true);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+
 
   useEffect(() => {
     if (product) {
       setStatus(product.status !== undefined ? product.status : true);
     }
   }, [product]);
+
 
   useEffect(() => {
     if (hasSubmitted && !updateProductLoading) {
@@ -27,7 +31,9 @@ const VisibilityToggle = ({ isOpen, onClose, product, onSuccess }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- onSuccess/onClose omitted to avoid infinite loop on parent re-render
   }, [hasSubmitted, updateProductLoading, updateProductError]);
 
+
   if (!isOpen || !product) return null;
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -45,13 +51,16 @@ const VisibilityToggle = ({ isOpen, onClose, product, onSuccess }) => {
     formData.append("existingImages", JSON.stringify(product.images || []));
     formData.append("existingImagePublicIds", JSON.stringify(product.imagePublicIds || []));
 
+
     setHasSubmitted(true);
     dispatch(updateProductRequest(product._id, formData));
   };
 
+
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) onClose();
   };
+
 
   return (
     <div
@@ -68,6 +77,7 @@ const VisibilityToggle = ({ isOpen, onClose, product, onSuccess }) => {
             <X size={22} />
           </button>
         </div>
+
 
         <form onSubmit={handleSubmit}>
           <div className="p-6 space-y-4">
@@ -113,3 +123,4 @@ const VisibilityToggle = ({ isOpen, onClose, product, onSuccess }) => {
 };
 
 export default VisibilityToggle;
+

@@ -19,6 +19,7 @@ import {
   clearOrderMessages,
 } from "../../../redux/actions/orderActions";
 
+
 const STATUS_OPTIONS = [
   { value: "PENDING", label: "Pending" },
   { value: "PAID", label: "Paid" },
@@ -29,6 +30,7 @@ const STATUS_OPTIONS = [
   { value: "CANCELLED", label: "Cancelled" },
 ];
 
+
 const STATUS_BADGE = {
   PENDING: "bg-yellow-100 text-yellow-800",
   PAID: "bg-blue-100 text-blue-800",
@@ -38,6 +40,7 @@ const STATUS_BADGE = {
   RETURNED: "bg-amber-100 text-amber-800",
   CANCELLED: "bg-red-100 text-red-800",
 };
+
 
 const PAYMENT_STATUS_OPTIONS = [
   { value: "PENDING", label: "Pending payment" },
@@ -50,6 +53,7 @@ const PAYMENT_STATUS_OPTIONS = [
   { value: "REFUND_FAILED", label: "Refund failed" },
 ];
 
+
 const PAYMENT_STATUS_BADGE = {
   PENDING: "bg-yellow-50 text-yellow-700",
   SUCCESS: "bg-green-50 text-green-700",
@@ -61,6 +65,7 @@ const PAYMENT_STATUS_BADGE = {
   REFUND_FAILED: "bg-red-50 text-red-700",
 };
 
+
 const STATS_ORDER = [
   "PENDING",
   "PAID",
@@ -71,8 +76,10 @@ const STATS_ORDER = [
   "CANCELLED",
 ];
 
+
 const normalizeStatus = (value) =>
   value ? value.toString().trim().toUpperCase().replace(/[_\s]+/g, "-") : "";
+
 
 /** Chuẩn hóa tên trạng thái từ backend (vd. READY_TO_SHIP) rồi lấy label hiển thị. */
 const getStatusLabel = (name) => {
@@ -80,6 +87,7 @@ const getStatusLabel = (name) => {
   const normalized = normalizeStatus(name);
   return STATUS_OPTIONS.find((o) => o.value === normalized)?.label || name;
 };
+
 
 const getNextStatuses = (paymentMethod, currentStatus) => {
   const method = normalizeStatus(paymentMethod);
@@ -104,11 +112,14 @@ const getNextStatuses = (paymentMethod, currentStatus) => {
   return transitions[method]?.[current] || [];
 };
 
+
 const formatCurrency = (value) =>
   (value || 0).toLocaleString("en-US", { maximumFractionDigits: 0 });
 
+
 const formatDate = (value) =>
   value ? new Date(value).toLocaleString("en-US") : "N/A";
+
 
 const OrderManagement = () => {
   const dispatch = useDispatch();
@@ -123,6 +134,7 @@ const OrderManagement = () => {
     message,
   } = useSelector((state) => state.order || {});
 
+
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilters, setStatusFilters] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState("ALL");
@@ -132,6 +144,7 @@ const OrderManagement = () => {
   const [page, setPage] = useState(1);
   const [limit] = useState(5);
 
+
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [nextStatus, setNextStatus] = useState("");
@@ -139,6 +152,7 @@ const OrderManagement = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [detailOrderId, setDetailOrderId] = useState(null);
   const prevUpdateLoadingRef = useRef(false);
+
 
   const queryParams = useMemo(
     () => ({
@@ -163,13 +177,16 @@ const OrderManagement = () => {
     ]
   );
 
+
   useEffect(() => {
     dispatch(orderAdminListRequest(queryParams));
   }, [dispatch, queryParams]);
 
+
   useEffect(() => {
     dispatch(orderAdminStatsRequest());
   }, [dispatch]);
+
 
   useEffect(() => {
     if (prevUpdateLoadingRef.current && !adminUpdateLoading && message) {
@@ -184,11 +201,13 @@ const OrderManagement = () => {
     prevUpdateLoadingRef.current = adminUpdateLoading;
   }, [adminUpdateLoading, message, dispatch, queryParams]);
 
+
   useEffect(() => {
     if (showDetailModal && detailOrderId) {
       dispatch(orderAdminDetailRequest(detailOrderId));
     }
   }, [dispatch, showDetailModal, detailOrderId]);
+
 
   const handleOpenUpdate = (order) => {
     const currentStatus = order?.order_status_id?.name;
@@ -199,19 +218,23 @@ const OrderManagement = () => {
     setShowUpdateModal(true);
   };
 
+
   const handleOpenDetail = (orderId) => {
     setDetailOrderId(orderId);
     setShowDetailModal(true);
   };
 
+
   const handleCloseDetail = () => {
     setShowDetailModal(false);
   };
+
 
   const handleSubmitUpdate = () => {
     if (!selectedOrder || !nextStatus) return;
     dispatch(orderAdminUpdateRequest(selectedOrder._id, nextStatus, note));
   };
+
 
   const renderStatusBadge = (statusName) => {
     const normalized = normalizeStatus(statusName);
@@ -230,12 +253,14 @@ const OrderManagement = () => {
     );
   };
 
+
   const renderStatsCards = () => {
     const counts = adminStats?.statusCounts || [];
     const countMap = new Map(
       counts.map((item) => [normalizeStatus(item.status_name), item.total])
     );
     const totalOrders = adminStats?.totalOrders || 0;
+
 
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -260,6 +285,7 @@ const OrderManagement = () => {
     );
   };
 
+
   // Hide "Update status" when order is VNPAY + PENDING + payment PENDING
   const shouldHideUpdateStatusButton = (order) => {
     const method = (order?.payment_method || "").toString().trim().toUpperCase();
@@ -267,6 +293,7 @@ const OrderManagement = () => {
     const paymentStatus = (order?.payment?.status || "").toString().trim().toUpperCase();
     return method === "VNPAY" && orderStatus === "PENDING" && paymentStatus === "PENDING";
   };
+
 
   const renderPaymentBadge = (payment) => {
     if (!payment?.status) {
@@ -291,7 +318,9 @@ const OrderManagement = () => {
     );
   };
 
+
   const totalPages = adminPagination?.totalPages || 1;
+
 
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
@@ -307,6 +336,7 @@ const OrderManagement = () => {
         </div>
       </div>
 
+
       <div className="border-b border-gray-100 bg-gray-50/50 p-5 space-y-4">
         <h2 className="text-sm font-semibold text-gray-700">
           Order status overview
@@ -317,6 +347,7 @@ const OrderManagement = () => {
           <div className="text-sm text-gray-500">Loading statistics...</div>
         )}
       </div>
+
 
       <div className="p-4 sm:p-6 border-b border-gray-200 bg-gray-50/50 space-y-4">
         <div className="flex flex-col md:flex-row gap-3 md:items-center">
@@ -337,6 +368,7 @@ const OrderManagement = () => {
             />
           </div>
 
+
           <div>
             <select
               value={paymentMethod}
@@ -351,6 +383,7 @@ const OrderManagement = () => {
               <option value="VNPAY">VNPAY</option>
             </select>
           </div>
+
 
           <div>
             <select
@@ -370,6 +403,7 @@ const OrderManagement = () => {
             </select>
           </div>
         </div>
+
 
         <div className="flex flex-col lg:flex-row lg:items-start gap-4">
           <div>
@@ -414,6 +448,7 @@ const OrderManagement = () => {
             </div>
           </div>
 
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Sort
@@ -436,6 +471,7 @@ const OrderManagement = () => {
           </div>
         </div>
       </div>
+
 
       <div className="p-6">
         {adminLoading ? (
@@ -475,6 +511,7 @@ const OrderManagement = () => {
                   </div>
                 </div>
 
+
                 <div className="flex flex-col items-start lg:items-end gap-2">
                   <div className="text-lg font-semibold text-gray-900">
                     {formatCurrency(order.total_price)}
@@ -505,6 +542,7 @@ const OrderManagement = () => {
         )}
       </div>
 
+
       {adminPagination && totalPages > 1 && (
         <div className="px-6 pb-6 flex items-center justify-center gap-2">
           <button
@@ -527,6 +565,7 @@ const OrderManagement = () => {
         </div>
       )}
 
+
       <UpdateOrderStatus
         isOpen={showUpdateModal}
         selectedOrder={selectedOrder}
@@ -542,6 +581,7 @@ const OrderManagement = () => {
         renderStatusBadge={renderStatusBadge}
       />
 
+
       <ReadOrderDetail
         isOpen={showDetailModal}
         adminDetailLoading={adminDetailLoading}
@@ -556,4 +596,7 @@ const OrderManagement = () => {
   );
 };
 
+
 export default OrderManagement;
+
+

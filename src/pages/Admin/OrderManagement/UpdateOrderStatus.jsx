@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 
+
 const UpdateOrderStatus = ({
   isOpen,
   selectedOrder,
@@ -16,10 +17,12 @@ const UpdateOrderStatus = ({
 }) => {
   if (!isOpen || !selectedOrder) return null;
 
+
   const availableStatuses = getNextStatuses(
     selectedOrder.payment_method,
     selectedOrder.order_status_id?.name
   );
+
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -40,6 +43,7 @@ const UpdateOrderStatus = ({
             Current status:{" "}
             {renderStatusBadge(selectedOrder.order_status_id?.name)}
           </div>
+
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -66,6 +70,7 @@ const UpdateOrderStatus = ({
               </p>
             )}
           </div>
+
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -100,5 +105,6 @@ const UpdateOrderStatus = ({
     </div>
   );
 };
+
 
 export default UpdateOrderStatus;

@@ -4,7 +4,9 @@ import { X, Calendar, Package, MapPin, AlertCircle } from "lucide-react";
 import axios from "axios";
 import { updateHarvestBatchRequest, getHarvestBatchByIdRequest } from "../../../redux/actions/supplierActions";
 
+
 const API_BASE = "https://provinces.open-api.vn/api/v2";
+
 
 const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
   const dispatch = useDispatch();
@@ -13,6 +15,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
     harvestBatchDetailLoading,
     updateHarvestBatchLoading,
   } = useSelector((state) => state.supplier);
+
 
   const [formData, setFormData] = useState({
     batchNumber: "",
@@ -24,10 +27,12 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
     receiptEligible: true,
   });
 
+
   const [provinces, setProvinces] = useState([]);
   const [wards, setWards] = useState([]);
   const [icity, setIcity] = useState("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
+
 
   // Load harvest batch data when modal opens
   useEffect(() => {
@@ -36,6 +41,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
     }
   }, [dispatch, isOpen, harvestBatchId]);
 
+
   // Populate form when harvest batch detail is loaded
   useEffect(() => {
     if (harvestBatchDetail) {
@@ -43,6 +49,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
       const harvestDate = harvestBatchDetail.harvestDate
         ? new Date(harvestBatchDetail.harvestDate).toISOString().split("T")[0]
         : "";
+
 
       setFormData({
         batchNumber: harvestBatchDetail.batchNumber || "",
@@ -57,6 +64,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
     }
   }, [harvestBatchDetail]);
 
+
   // Close modal after successful update
   useEffect(() => {
     if (hasSubmitted && !updateHarvestBatchLoading) {
@@ -66,6 +74,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- onClose omitted to avoid infinite loop on parent re-render
   }, [hasSubmitted, updateHarvestBatchLoading]);
 
+
   useEffect(() => {
     axios
       .get(`${API_BASE}/p/`)
@@ -73,12 +82,14 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
       .catch((err) => console.error("Error loading provinces:", err));
   }, []);
 
+
   useEffect(() => {
     if (!formData.city) {
       setWards(() => []);
       setIcity("");
       return;
     }
+
 
     axios
       .get(`${API_BASE}/w/`)
@@ -91,6 +102,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
       .catch((err) => console.error("Error loading wards:", err));
   }, [formData.city]);
 
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (name === "city") {
@@ -102,13 +114,16 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
 
     if (!formData.batchNumber || !formData.harvestDate) {
       alert("Please fill in all required fields.");
       return;
     }
+
 
     // ✅ BR-SUP-12: Validation harvestDate không được lớn hơn ngày hiện tại
     const harvestDateObj = new Date(formData.harvestDate);
@@ -120,10 +135,12 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
       return;
     }
 
+
     const locationLine = formData.location?.trim() || "";
     const wardName = formData.ward?.toString().trim() || "";
     const provinceName = icity?.toString().trim() || "";
     const locationParts = [locationLine, wardName, provinceName].filter(Boolean);
+
 
     const cleanedData = {
       batchNumber: formData.batchNumber.trim(),
@@ -133,22 +150,28 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
       receiptEligible: formData.receiptEligible,
     };
 
+
     setHasSubmitted(true);
     dispatch(updateHarvestBatchRequest(harvestBatchId, cleanedData));
   };
+
 
   const handleCancel = () => {
     setHasSubmitted(false);
     onClose();
   };
 
+
   if (!isOpen || !harvestBatchId) return null;
+
 
   const receivedQuantity = harvestBatchDetail?.receivedQuantity || 0;
   const canEdit = receivedQuantity === 0; // Chỉ cho phép edit nếu chưa nhập kho
 
+
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split("T")[0];
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -162,6 +185,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
             <X size={24} />
           </button>
         </div>
+
 
         {harvestBatchDetailLoading ? (
           <div className="p-6 text-center">
@@ -187,6 +211,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                 </div>
               </div>
             )}
+
 
             <form onSubmit={handleSubmit}>
               <div className="p-6 space-y-4">
@@ -221,8 +246,10 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                   </div>
                 </div>
 
+
                 {/* Receipt Eligible - only editable when canEdit */}
-                
+               
+
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -240,6 +267,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                       disabled={!canEdit}
                     />
                   </div>
+
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -260,6 +288,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                     </div>
                   </div>
                 </div>
+
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center space-x-2">
@@ -309,6 +338,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                   </div>
                 </div>
 
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Notes
@@ -326,6 +356,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                   <p className="text-xs text-gray-500 mt-1">{formData.notes.length}/500</p>
                 </div>
               </div>
+
 
               <div className="flex justify-end space-x-3 p-6 border-t bg-gray-50">
                 <button
@@ -354,3 +385,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
 };
 
 export default UpdateHarvestBatch;
+
+
+
+

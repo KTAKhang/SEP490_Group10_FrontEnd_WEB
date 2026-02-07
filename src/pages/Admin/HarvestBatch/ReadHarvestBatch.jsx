@@ -4,6 +4,7 @@ import { X, Package, Calendar, Building2, Scale, MapPin } from "lucide-react";
 import { getHarvestBatchByIdRequest } from "../../../redux/actions/supplierActions";
 import Loading from "../../../components/Loading/Loading";
 
+
 const ReadHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
   const dispatch = useDispatch();
   const {
@@ -11,11 +12,13 @@ const ReadHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
     harvestBatchDetailLoading,
   } = useSelector((state) => state.supplier);
 
+
   useEffect(() => {
     if (isOpen && harvestBatchId) {
       dispatch(getHarvestBatchByIdRequest(harvestBatchId));
     }
   }, [dispatch, isOpen, harvestBatchId]);
+
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -26,6 +29,7 @@ const ReadHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
       day: "2-digit",
     });
   };
+
 
   const formatDateTime = (dateString) => {
     if (!dateString) return "N/A";
@@ -39,7 +43,9 @@ const ReadHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
     });
   };
 
+
   if (!isOpen || !harvestBatchId) return null;
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -53,6 +59,7 @@ const ReadHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
             <X size={24} />
           </button>
         </div>
+
 
         {harvestBatchDetailLoading ? (
           <div className="p-6">
@@ -97,6 +104,7 @@ const ReadHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
               </div>
             </div>
 
+
             {/* Supplier & Product Information */}
             <div className="bg-gray-50 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Supplier & Product</h3>
@@ -132,6 +140,7 @@ const ReadHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
               </div>
             </div>
 
+
             {/* Quantity & receipt visibility */}
             <div className="bg-gray-50 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Quantity & Receipt Status</h3>
@@ -160,6 +169,7 @@ const ReadHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
               </div>
             </div>
 
+
             {/* Notes */}
             {harvestBatchDetail.notes && (
               <div className="bg-gray-50 rounded-lg p-6">
@@ -169,6 +179,7 @@ const ReadHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                 </p>
               </div>
             )}
+
 
             {/* Timestamps */}
             <div className="bg-gray-50 rounded-lg p-6">
@@ -194,6 +205,7 @@ const ReadHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
             <p className="text-gray-600">Harvest batch not found</p>
           </div>
         )}
+
 
         <div className="flex justify-end p-6 border-t bg-gray-50">
           <button

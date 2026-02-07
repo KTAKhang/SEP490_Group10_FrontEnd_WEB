@@ -1,8 +1,11 @@
 import { X, Package, CheckCircle, AlertCircle, TrendingDown, Eye } from "lucide-react";
 
+
 const ReadProduct = ({ isOpen, onClose, product }) => {
 
+
   if (!isOpen || !product) return null;
+
 
   const getStockStatus = (product) => {
     if (product.stockStatus === "OUT_OF_STOCK" || product.onHandQuantity === 0) {
@@ -13,6 +16,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
     }
     return { label: "In stock", color: "bg-green-100 text-green-800", icon: CheckCircle };
   };
+
 
   const getReceivingStatus = (product) => {
     switch (product.receivingStatus) {
@@ -27,9 +31,11 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
     }
   };
 
+
   const stockStatus = getStockStatus(product);
   const receivingStatus = getReceivingStatus(product);
   const StatusIcon = stockStatus.icon;
+
 
   return (
     <>
@@ -72,6 +78,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
               </div>
             )}
 
+
             {/* Basic Info */}
             <div className="grid grid-cols-2 gap-4">
               <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
@@ -93,6 +100,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
                 </p>
               </div>
             </div>
+
 
             {/* Status */}
             <div className="grid grid-cols-3 gap-4">
@@ -117,6 +125,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
               </div>
             </div>
 
+
             {/* Inventory Info */}
             <div className="border-t border-gray-100 pt-5">
               <h3 className="text-sm font-semibold text-gray-800 mb-4">Inventory info</h3>
@@ -140,12 +149,13 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
                 <div className="rounded-xl border border-teal-200/60 bg-teal-50/50 p-4">
                   <p className="text-xs font-medium text-teal-700/80 mb-0.5">Available</p>
                   <p className="text-xl font-bold text-teal-600">
-                    {product.availableQuantity !== undefined 
-                      ? product.availableQuantity 
+                    {product.availableQuantity !== undefined
+                      ? product.availableQuantity
                       : Math.max(0, (product.onHandQuantity || 0) - (product.reservedQuantity || 0))}
                   </p>
                 </div>
               </div>
+
 
               {/* Expiry Date & Warehouse Entry Info */}
               {(product.expiryDate || product.expiryDateStr || product.warehouseEntryDate || product.warehouseEntryDateStr) && (
@@ -154,7 +164,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
                     <div className="rounded-xl border border-indigo-200/60 bg-indigo-50/50 p-4">
                       <p className="text-xs font-medium text-indigo-700/80 mb-0.5">Received date</p>
                       <p className="text-base font-semibold text-indigo-600">
-                        {product.warehouseEntryDateStr 
+                        {product.warehouseEntryDateStr
                           ? product.warehouseEntryDateStr.split('-').reverse().join('/')
                           : new Date(product.warehouseEntryDate).toLocaleDateString("en-US")}
                       </p>
@@ -172,13 +182,13 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
                         } else {
                           expiry = new Date(product.expiryDate);
                         }
-                        
+                       
                         const today = new Date();
                         today.setHours(0, 0, 0, 0);
                         expiry.setHours(0, 0, 0, 0);
                         const diffTime = expiry.getTime() - today.getTime();
                         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                        
+                       
                         if (diffDays < 0) return "bg-red-50";
                         if (diffDays <= 7) return "bg-yellow-50";
                         return "bg-green-50";
@@ -195,19 +205,19 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
                           } else {
                             expiry = new Date(product.expiryDate);
                           }
-                          
+                         
                           const today = new Date();
                           today.setHours(0, 0, 0, 0);
                           expiry.setHours(0, 0, 0, 0);
                           const diffTime = expiry.getTime() - today.getTime();
                           const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                          
+                         
                           if (diffDays < 0) return "text-red-600";
                           if (diffDays <= 7) return "text-yellow-600";
                           return "text-green-600";
                         })()
                       }`}>
-                        {product.expiryDateStr 
+                        {product.expiryDateStr
                           ? product.expiryDateStr.split('-').reverse().join('/')
                           : new Date(product.expiryDate).toLocaleDateString("en-US")}
                       </p>
@@ -220,13 +230,13 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
                         } else {
                           expiry = new Date(product.expiryDate);
                         }
-                        
+                       
                         const today = new Date();
                         today.setHours(0, 0, 0, 0);
                         expiry.setHours(0, 0, 0, 0);
                         const diffTime = expiry.getTime() - today.getTime();
                         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                        
+                       
                         if (diffDays < 0) {
                           return <p className="text-xs text-red-600 mt-1">Expired</p>;
                         } else if (diffDays <= 7) {
@@ -241,6 +251,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
               )}
             </div>
 
+
             {/* Descriptions */}
             {product.short_desc && (
               <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
@@ -249,12 +260,14 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
               </div>
             )}
 
+
             {product.detail_desc && (
               <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Detailed description</h3>
                 <p className="text-gray-900 text-sm whitespace-pre-wrap">{product.detail_desc}</p>
               </div>
             )}
+
 
             {/* Timestamps */}
             <div className="border-t border-gray-100 pt-4 grid grid-cols-2 gap-4 text-sm text-gray-500">
@@ -281,4 +294,9 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
   );
 };
 
+
 export default ReadProduct;
+
+
+
+

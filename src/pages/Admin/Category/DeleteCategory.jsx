@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { X, Trash2, AlertTriangle } from "lucide-react";
 import { deleteCategoryRequest, clearCategoryMessages } from "../../../redux/actions/categoryActions";
 
+
 const DeleteCategory = ({ isOpen, onClose, category, onSuccess }) => {
   const dispatch = useDispatch();
   const { deleteCategoryLoading, deleteCategoryError } = useSelector(
@@ -10,12 +11,14 @@ const DeleteCategory = ({ isOpen, onClose, category, onSuccess }) => {
   );
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
+
   // Clear previous error when opening the modal so it doesn't show on reopen
   useEffect(() => {
     if (isOpen && category) {
       dispatch(clearCategoryMessages());
     }
   }, [dispatch, isOpen, category?._id]);
+
 
   useEffect(() => {
     if (hasSubmitted && !deleteCategoryLoading) {
@@ -28,16 +31,20 @@ const DeleteCategory = ({ isOpen, onClose, category, onSuccess }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- onSuccess/onClose intentionally omitted to avoid infinite loop on parent re-render
   }, [hasSubmitted, deleteCategoryLoading, deleteCategoryError]);
 
+
   if (!isOpen || !category) return null;
+
 
   const handleConfirm = () => {
     setHasSubmitted(true);
     dispatch(deleteCategoryRequest(category._id));
   };
 
+
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget && !deleteCategoryLoading) onClose();
   };
+
 
   return (
     <div
@@ -60,6 +67,7 @@ const DeleteCategory = ({ isOpen, onClose, category, onSuccess }) => {
           </button>
         </div>
 
+
         <div className="p-6 space-y-4">
           <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-50 border border-amber-200">
             <AlertTriangle size={20} className="text-amber-600 shrink-0 mt-0.5" />
@@ -77,6 +85,7 @@ const DeleteCategory = ({ isOpen, onClose, category, onSuccess }) => {
             <p className="text-sm text-red-600">{deleteCategoryError}</p>
           )}
         </div>
+
 
         <div className="flex items-center justify-end gap-2 p-6 border-t bg-gray-50">
           <button
@@ -102,4 +111,9 @@ const DeleteCategory = ({ isOpen, onClose, category, onSuccess }) => {
   );
 };
 
+
 export default DeleteCategory;
+
+
+
+

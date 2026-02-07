@@ -1,10 +1,12 @@
 import { X, User, ArrowRightLeft, Clock, FileText, Package } from "lucide-react";
 
+
 const ROLE_LABEL = {
   admin: "Admin",
   "sales-staff": "Sales staff",
   customer: "Customer",
 };
+
 
 const STATUS_OPTIONS = [
   { value: "PENDING", label: "Pending" },
@@ -22,6 +24,7 @@ const getStatusLabel = (name) => {
   return STATUS_LABEL[name] || STATUS_LABEL[normalized] || name;
 };
 
+
 const formatDate = (value) =>
   value
     ? new Date(value).toLocaleString("en-US", {
@@ -33,6 +36,7 @@ const formatDate = (value) =>
       })
     : "—";
 
+
 const formatVND = (value) =>
   new Intl.NumberFormat("vi-VN", {
     style: "currency",
@@ -40,11 +44,13 @@ const formatVND = (value) =>
     maximumFractionDigits: 0,
   }).format(value ?? 0);
 
+
 /**
  * Modal chi tiết một bản ghi thay đổi trạng thái đơn hàng (layout giống ReceiptDetailModal).
  */
 const OrderLogDetail = ({ isOpen, log, onClose }) => {
   if (!isOpen || !log) return null;
+
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
@@ -52,10 +58,12 @@ const OrderLogDetail = ({ isOpen, log, onClose }) => {
     }
   };
 
+
   const orderId =
     typeof log.order_id === "object" && log.order_id?._id
       ? log.order_id._id
       : log.order_id;
+
 
   return (
     <div
@@ -78,6 +86,7 @@ const OrderLogDetail = ({ isOpen, log, onClose }) => {
             <X size={24} />
           </button>
         </div>
+
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
@@ -123,6 +132,7 @@ const OrderLogDetail = ({ isOpen, log, onClose }) => {
               </div>
             </div>
 
+
             {/* Order information */}
             {(orderId || (log.order_id && typeof log.order_id === "object")) && (
               <div className="bg-gray-50 rounded-lg p-6">
@@ -164,6 +174,7 @@ const OrderLogDetail = ({ isOpen, log, onClose }) => {
                 </div>
               </div>
             )}
+
 
             {/* Changed by (staff / user) */}
             <div className="bg-purple-50 rounded-lg p-6">
@@ -208,6 +219,7 @@ const OrderLogDetail = ({ isOpen, log, onClose }) => {
           </div>
         </div>
 
+
         {/* Footer */}
         <div className="flex items-center justify-end p-6 border-t bg-gray-50">
           <button
@@ -223,4 +235,6 @@ const OrderLogDetail = ({ isOpen, log, onClose }) => {
   );
 };
 
+
 export default OrderLogDetail;
+

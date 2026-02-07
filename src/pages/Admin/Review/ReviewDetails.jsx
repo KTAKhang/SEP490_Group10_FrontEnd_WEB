@@ -1,9 +1,12 @@
 import { X, Star } from "lucide-react";
 
+
 const ReviewDetails = ({ isOpen, onClose, review }) => {
   if (!isOpen || !review) return null;
 
+
   const rating = Number(review.rating || 0);
+
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -93,4 +96,9 @@ const ReviewDetails = ({ isOpen, onClose, review }) => {
   );
 };
 
+
 export default ReviewDetails;
+
+
+
+

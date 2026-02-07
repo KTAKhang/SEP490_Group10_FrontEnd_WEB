@@ -23,9 +23,11 @@ import {
   Star,
 } from "lucide-react";
 
+
 const Sidebar = () => {
   const { isOpen, toggleSidebar } = useSidebar();
   const location = useLocation();
+
 
   const menuItems = [
     {
@@ -104,7 +106,7 @@ const Sidebar = () => {
       label: "Staff Management",
       path: "/admin/staff",
     },
-      {
+    {
       icon: Users,
       label: "Customer Management",
       path: "/admin/customers",
@@ -126,12 +128,14 @@ const Sidebar = () => {
     },
   ];
 
+
   const isActive = (path, exact = false) => {
     if (exact) {
       return location.pathname === path;
     }
     return location.pathname.startsWith(path);
   };
+
 
   return (
     <>
@@ -142,6 +146,7 @@ const Sidebar = () => {
           onClick={toggleSidebar}
         />
       )}
+
 
       {/* Sidebar */}
       <aside
@@ -168,6 +173,7 @@ const Sidebar = () => {
               <X size={20} />
             </button>
           </div>
+
 
           {/* Menu Items */}
           <nav className="flex-1 overflow-y-auto p-4">
@@ -197,5 +203,6 @@ const Sidebar = () => {
     </>
   );
 };
+
 
 export default Sidebar;

@@ -18,6 +18,7 @@ import {
 } from "../../redux/actions/discountActions";
 const API_BASE = "https://provinces.open-api.vn/api/v2";
 
+
 export default function CheckoutPage() {
   const [formData, setFormData] = useState({
     fullName: "",
@@ -31,6 +32,7 @@ export default function CheckoutPage() {
     payment: "COD",
   });
 
+
   // State for address API
   const [provinces, setProvinces] = useState([]);
   const [wards, setWards] = useState([]);
@@ -38,10 +40,12 @@ export default function CheckoutPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+
   const checkout = useSelector((state) => state.checkout || {});
   const cart = useSelector((state) => state.cart || {});
   const order = useSelector((state) => state.order || {});
   const discount = useSelector((state) => state.discount || {});
+
 
   // Prefer items from checkout (returned by checkout hold), otherwise fallback to cart items
   const cartItems =
@@ -49,12 +53,14 @@ export default function CheckoutPage() {
       ? checkout.items
       : cart.items || [];
 
+
   const shippingCost = cart.shippingFee || 0;
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
   const total = subtotal + shippingCost;
+
 
   const {
     selectedDiscount,
@@ -65,9 +71,11 @@ export default function CheckoutPage() {
     loading: discountLoading,
   } = discount;
 
+
   const discountData = applyResult?.data || validationResult?.data || null;
   const discountAmount = discountData?.discountAmount || 0;
   const finalAmount = discountData?.finalAmount || total;
+
 
   // Load provinces on mount
   useEffect(() => {
@@ -77,6 +85,7 @@ export default function CheckoutPage() {
       .catch((err) => console.error("Error loading provinces:", err));
   }, []);
 
+
   // Load wards when province changes
   useEffect(() => {
     if (!formData.city) {
@@ -84,6 +93,7 @@ export default function CheckoutPage() {
       setFormData((prev) => ({ ...prev, ward: "" }));
       return;
     }
+
 
     axios
       .get(`${API_BASE}/w/`)
@@ -96,8 +106,10 @@ export default function CheckoutPage() {
       .catch((err) => console.error(err));
   }, [formData.city]);
 
+
   useEffect(() => {
     // existing ward-loading logic preserved above (omitted in snippet)
+
 
     // When city changes, call shipping check to compute fee
     const selected_product_ids = cartItems.map(
@@ -109,10 +121,12 @@ export default function CheckoutPage() {
         item._id,
     );
 
+
     if (formData.city && selected_product_ids.length > 0) {
       dispatch(shippingCheckRequest(selected_product_ids, icity));
     }
   }, [formData.city, cartItems, dispatch]);
+
 
   useEffect(() => {
     if (order.order_id || order.payment_url) {
@@ -120,6 +134,7 @@ export default function CheckoutPage() {
       dispatch(fetchCartRequest());
     }
   }, [order.order_id, order.payment_url, dispatch]);
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -130,6 +145,7 @@ export default function CheckoutPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+
   const buildReceiverInfo = () => ({
     receiver_name: formData.fullName,
     receiver_phone: formData.phone,
@@ -137,17 +153,21 @@ export default function CheckoutPage() {
     note: formData.note,
   });
 
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
 
     if (!cartItems.length) {
       alert("Cart is empty");
       return;
     }
 
+
     const selected_product_ids = cartItems.map(
       (item) => item.product_id || item._id,
     );
+
 
     // VNPAY + có voucher đã validate: truyền discountInfo để saga áp discount trước khi redirect (giống flow COD)
     const discountInfo =
@@ -156,6 +176,7 @@ export default function CheckoutPage() {
       discountData?.finalAmount != null
         ? { discountId: selectedDiscount.discountId, orderValue: total }
         : null;
+
 
     dispatch(
       orderCreateRequest(
@@ -172,10 +193,12 @@ export default function CheckoutPage() {
       checkout.checkout_session_id ||
       localStorage.getItem("checkout_session_id");
 
+
     if (!sessionId) {
       navigate("/customer/cart", { replace: true });
     }
   }, [checkout.checkout_session_id, navigate]);
+
 
   useEffect(() => {
     if (validationError && selectedDiscount) {
@@ -185,6 +208,7 @@ export default function CheckoutPage() {
     }
   }, [validationError, selectedDiscount, dispatch]);
 
+
   useEffect(() => {
     if (discount.applyError && selectedDiscount) {
       alert(discount.applyError);
@@ -193,10 +217,12 @@ export default function CheckoutPage() {
     }
   }, [discount.applyError, selectedDiscount, dispatch]);
 
+
   // When holding period expired, show message and offer to go back to cart
   const holdingExpired =
     order.error &&
     String(order.error).toLowerCase().includes("holding period has expired");
+
 
   useEffect(() => {
     if (holdingExpired) {
@@ -204,14 +230,17 @@ export default function CheckoutPage() {
     }
   }, [holdingExpired, dispatch]);
 
+
   const handleBackToCartAfterExpired = () => {
     dispatch(clearOrderMessages());
     navigate("/customer/cart");
   };
 
+
   useEffect(() => {
     dispatch(clearDiscountFeedback());
   }, [total, dispatch]);
+
 
   // Load mã giảm giá phù hợp đơn hàng (minOrderValue <= total, chưa dùng)
   useEffect(() => {
@@ -219,6 +248,7 @@ export default function CheckoutPage() {
       dispatch(discountGetValidRequest(total));
     }
   }, [total, dispatch]);
+
 
   // COD: áp discount sau khi tạo order (flow hiện tại). VNPAY áp trong saga trước khi redirect.
   useEffect(() => {
@@ -233,6 +263,7 @@ export default function CheckoutPage() {
     }
   }, [order.order_id, order.payment_url, selectedDiscount, total, dispatch]);
 
+
   const handleCancel = () => {
     const sessionId =
       checkout.checkout_session_id ||
@@ -242,11 +273,14 @@ export default function CheckoutPage() {
       return;
     }
 
+
     if (!window.confirm("Are you sure you want to cancel this checkout session?")) return;
+
 
     dispatch(checkoutCancelRequest(sessionId));
     navigate("/customer/cart");
   };
+
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -254,6 +288,7 @@ export default function CheckoutPage() {
       currency: "VND",
     }).format(price);
   };
+
 
   const handleSelectVoucher = (voucher) => {
     if (!voucher) {
@@ -276,10 +311,12 @@ export default function CheckoutPage() {
     dispatch(discountValidateRequest(voucher.code, total));
   };
 
+
   const handleRemoveVoucher = () => {
     dispatch(clearSelectedDiscount());
     dispatch(clearDiscountFeedback());
   };
+
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -288,6 +325,7 @@ export default function CheckoutPage() {
           <h1 className="text-3xl font-bold text-green-600 mt-20">Payments</h1>
           <p className="text-gray-600">Please fill on all order information</p>
         </div>
+
 
         {holdingExpired && (
           <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -303,6 +341,7 @@ export default function CheckoutPage() {
             </button>
           </div>
         )}
+
 
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -389,6 +428,7 @@ export default function CheckoutPage() {
                     </select>
                   </div>
 
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Ward <span className="text-red-500">*</span>
@@ -424,6 +464,7 @@ export default function CheckoutPage() {
                   </div>
                 </div>
               </div>
+
 
               {/* Payment Method */}
               <div className="bg-white rounded-xl shadow-sm p-6">
@@ -468,6 +509,7 @@ export default function CheckoutPage() {
                 </div>
               </div>
             </div>
+
 
             {/* Right Column - Order Summary */}
             <div className="lg:col-span-1">
@@ -547,6 +589,7 @@ export default function CheckoutPage() {
                       </button>
                     )}
                   </div>
+
 
                   <div className="p-4">
                     {discountLoading ? (
@@ -637,6 +680,7 @@ export default function CheckoutPage() {
                       </div>
                     )}
 
+
                     {selectedDiscount && discountData && (
                       <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
                         <div className="flex justify-between text-sm text-gray-600">
@@ -707,3 +751,7 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
+
+
+

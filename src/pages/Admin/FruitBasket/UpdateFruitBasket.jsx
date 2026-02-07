@@ -5,12 +5,14 @@ import { toast } from "react-toastify";
 import { getProductsRequest } from "../../../redux/actions/productActions";
 import { updateFruitBasketRequest } from "../../../redux/actions/fruitBasketActions";
 
+
 const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
   const dispatch = useDispatch();
   const { products, productsLoading } = useSelector((state) => state.product);
   const { updateFruitBasketLoading, updateFruitBasketError } = useSelector(
     (state) => state.fruitBasket
   );
+
 
   const [formData, setFormData] = useState({
     name: "",
@@ -24,6 +26,7 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const toastShownRef = useRef(false);
 
+
   useEffect(() => {
     if (isOpen) {
       dispatch(getProductsRequest({ page: 1, limit: 200, status: true, sortBy: "name", sortOrder: "asc" }));
@@ -31,6 +34,7 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
       toastShownRef.current = false;
     }
   }, [dispatch, isOpen]);
+
 
   useEffect(() => {
     if (basket) {
@@ -63,6 +67,7 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
     }
   }, [basket]);
 
+
   useEffect(() => {
     if (hasSubmitted && !updateFruitBasketLoading && !updateFruitBasketError && !toastShownRef.current) {
       toast.success("Fruit basket updated successfully!");
@@ -76,7 +81,9 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
     }
   }, [hasSubmitted, updateFruitBasketLoading, updateFruitBasketError, onClose]);
 
+
   const productOptions = useMemo(() => products || [], [products]);
+
 
   const handleAddItem = () => {
     if (items.length >= 5) {
@@ -86,9 +93,11 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
     setItems((prev) => [...prev, { productId: "", quantity: 1 }]);
   };
 
+
   const handleRemoveItem = (index) => {
     setItems((prev) => prev.filter((_, i) => i !== index));
   };
+
 
   const handleItemChange = (index, key, value) => {
     setItems((prev) =>
@@ -96,15 +105,18 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
     );
   };
 
+
   const handleAddImages = (event) => {
     const files = Array.from(event.target.files || []);
     if (!files.length) return;
+
 
     const total = images.length + uploadFiles.length + files.length;
     if (total > 10) {
       toast.error("Number of images must not exceed 10");
       return;
     }
+
 
     const nextFiles = files.map((file) => ({
       file,
@@ -114,6 +126,7 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
     event.target.value = "";
   };
 
+
   const handleRemoveUpload = (index) => {
     setUploadFiles((prev) => {
       const target = prev[index];
@@ -122,9 +135,11 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
     });
   };
 
+
   const handleRemoveExisting = (index) => {
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
+
 
   const validateItems = () => {
     const normalized = items.filter((item) => item.productId);
@@ -136,6 +151,7 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
       toast.error("Fruit basket can have at most 5 fruit types");
       return null;
     }
+
 
     const productSet = new Set();
     for (const item of normalized) {
@@ -151,11 +167,13 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
       }
     }
 
+
     return normalized.map((item) => ({
       product: item.productId,
       quantity: Number(item.quantity),
     }));
   };
+
 
   const validateImages = () => {
     const normalized = images.filter((img) => img.url && img.publicId);
@@ -170,24 +188,30 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
     };
   };
 
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
 
     if (!basket?._id) {
       toast.error("Fruit basket not found");
       return;
     }
 
+
     if (!formData.name.trim()) {
       toast.error("Tên giỏ trái cây là bắt buộc");
       return;
     }
 
+
     const itemsPayload = validateItems();
     if (!itemsPayload) return;
 
+
     const imagePayload = validateImages();
     if (!imagePayload) return;
+
 
     const payload = new FormData();
     payload.append("name", formData.name.trim());
@@ -208,16 +232,20 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
     );
     imagePayload.uploadFiles.forEach((file) => payload.append("images", file));
 
+
     setHasSubmitted(true);
     dispatch(updateFruitBasketRequest(basket._id, payload));
   };
+
 
   const handleCancel = () => {
     setHasSubmitted(false);
     onClose();
   };
 
+
   if (!isOpen || !basket) return null;
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -265,6 +293,7 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
                 maxLength={1000}
               />
             </div>
+
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -319,6 +348,7 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
                 </div>
               ))}
             </div>
+
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -376,6 +406,7 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
               )}
             </div>
 
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
               <select
@@ -410,4 +441,9 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
   );
 };
 
+
 export default UpdateFruitBasket;
+
+
+
+

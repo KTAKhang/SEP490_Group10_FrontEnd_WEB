@@ -6,12 +6,14 @@ import { getProductBatchHistoryRequest } from "../../../redux/actions/productBat
 import Loading from "../../../components/Loading/Loading";
 import BatchHistoryDetail from "./BatchHistoryDetail";
 
+
 const BatchHistoryPage = () => {
   const dispatch = useDispatch();
   const { products, productsLoading } = useSelector((state) => state.product);
   const { batchHistory, batchHistoryPagination, batchHistoryLoading } = useSelector(
     (state) => state.productBatch
   );
+
 
   const [selectedProductId, setSelectedProductId] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -22,10 +24,12 @@ const BatchHistoryPage = () => {
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
+
   // Fetch all products on mount
   useEffect(() => {
     dispatch(getProductsRequest({ page: 1, limit: 1000, sortBy: "name", sortOrder: "asc" }));
   }, [dispatch]);
+
 
   // Fetch batch history when product is selected or filters change
   useEffect(() => {
@@ -42,16 +46,20 @@ const BatchHistoryPage = () => {
     }
   }, [dispatch, selectedProductId, currentPage, searchTerm, completionReason, sortBy, sortOrder]);
 
+
   // Filter products by search term
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (product.brand && product.brand.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+
   const selectedProduct = products.find((p) => p._id === selectedProductId);
+
 
   const formatVND = (value) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(value ?? 0);
+
 
   const getCompletionReasonLabel = (reason, apiLabel) => {
     if (apiLabel) return { label: apiLabel, color: reason === "EXPIRED" ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800" };
@@ -64,6 +72,7 @@ const BatchHistoryPage = () => {
         return { label: "N/A", color: "bg-gray-100 text-gray-800" };
     }
   };
+
 
   return (
     <div className="space-y-6">
@@ -78,6 +87,7 @@ const BatchHistoryPage = () => {
         </div>
       </div>
 
+
       {/* Product Selection Card */}
       <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm">
         <div className="space-y-4">
@@ -85,6 +95,7 @@ const BatchHistoryPage = () => {
             <Filter className="text-gray-400" size={20} />
             <h2 className="text-lg font-semibold text-gray-800">Select Product</h2>
           </div>
+
 
           {/* Search */}
           <div className="relative">
@@ -97,6 +108,7 @@ const BatchHistoryPage = () => {
               className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
             />
           </div>
+
 
           {/* Product Dropdown/List */}
           {productsLoading ? (
@@ -140,6 +152,7 @@ const BatchHistoryPage = () => {
         </div>
       </div>
 
+
       {/* Batch History Table */}
       {selectedProductId && (
         <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
@@ -156,6 +169,7 @@ const BatchHistoryPage = () => {
                 )}
               </div>
             </div>
+
 
             {/* Filters for Batch History */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -174,6 +188,7 @@ const BatchHistoryPage = () => {
                 />
               </div>
 
+
               {/* Completion Reason Filter */}
               <div>
                 <select
@@ -189,6 +204,7 @@ const BatchHistoryPage = () => {
                   <option value="EXPIRED">Expired</option>
                 </select>
               </div>
+
 
               {/* Sort */}
               <div className="flex items-center space-x-2">
@@ -222,6 +238,7 @@ const BatchHistoryPage = () => {
               </div>
             </div>
           </div>
+
 
           <div className="p-6">
             {batchHistoryLoading ? (
@@ -350,6 +367,7 @@ const BatchHistoryPage = () => {
                   </table>
                 </div>
 
+
                 {/* Pagination */}
                 {batchHistoryPagination && batchHistoryPagination.totalPages > 1 && (
                   <div className="flex items-center justify-between mt-4 pt-4 border-t">
@@ -400,12 +418,14 @@ const BatchHistoryPage = () => {
         </div>
       )}
 
+
       {!selectedProductId && (
         <div className="bg-white rounded-lg border shadow-sm p-12 text-center">
           <History className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-600 text-lg">Please select a product to view batch history</p>
         </div>
       )}
+
 
       <BatchHistoryDetail
         isOpen={isDetailModalOpen}
@@ -419,5 +439,4 @@ const BatchHistoryPage = () => {
     </div>
   );
 };
-
 export default BatchHistoryPage;

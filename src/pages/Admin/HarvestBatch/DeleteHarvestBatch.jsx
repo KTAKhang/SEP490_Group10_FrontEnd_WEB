@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { X, Trash2, Package } from "lucide-react";
 import { deleteHarvestBatchRequest } from "../../../redux/actions/supplierActions";
 
+
 const DeleteHarvestBatch = ({ isOpen, onClose, batch, onSuccess }) => {
   const dispatch = useDispatch();
   const { deleteHarvestBatchLoading, deleteHarvestBatchError } = useSelector(
@@ -14,6 +15,7 @@ const DeleteHarvestBatch = ({ isOpen, onClose, batch, onSuccess }) => {
   onSuccessRef.current = onSuccess;
   onCloseRef.current = onClose;
 
+
   useEffect(() => {
     if (hasSubmitted && !deleteHarvestBatchLoading) {
       if (!deleteHarvestBatchError) {
@@ -24,9 +26,11 @@ const DeleteHarvestBatch = ({ isOpen, onClose, batch, onSuccess }) => {
     }
   }, [hasSubmitted, deleteHarvestBatchLoading, deleteHarvestBatchError]);
 
+
   useEffect(() => {
     if (isOpen) setHasSubmitted(false);
   }, [isOpen]);
+
 
   const handleDelete = (e) => {
     e.preventDefault();
@@ -35,7 +39,9 @@ const DeleteHarvestBatch = ({ isOpen, onClose, batch, onSuccess }) => {
     dispatch(deleteHarvestBatchRequest(batch._id));
   };
 
+
   if (!isOpen || !batch) return null;
+
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -113,3 +119,4 @@ const DeleteHarvestBatch = ({ isOpen, onClose, batch, onSuccess }) => {
 };
 
 export default DeleteHarvestBatch;
+

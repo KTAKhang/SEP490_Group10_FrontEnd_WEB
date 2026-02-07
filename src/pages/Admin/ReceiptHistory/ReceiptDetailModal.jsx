@@ -4,6 +4,7 @@ import { X, Package, User, Calendar, FileText, Info } from "lucide-react";
 import { getReceiptByIdRequest } from "../../../redux/actions/inventoryActions";
 import Loading from "../../../components/Loading/Loading";
 
+
 const ROLE_LABEL = {
   admin: "Admin",
   "sales-staff": "Sales staff",
@@ -18,11 +19,13 @@ const getRoleLabel = (name) => {
   return ROLE_LABEL[key] || ROLE_LABEL[name] || name;
 };
 
+
 const ReceiptDetailModal = ({ isOpen, onClose, receiptId }) => {
   const dispatch = useDispatch();
   const { receiptDetail, receiptDetailLoading, receiptDetailError } = useSelector(
     (state) => state.inventory
   );
+
 
   useEffect(() => {
     if (isOpen && receiptId) {
@@ -30,13 +33,16 @@ const ReceiptDetailModal = ({ isOpen, onClose, receiptId }) => {
     }
   }, [isOpen, receiptId, dispatch]);
 
+
   if (!isOpen) return null;
+
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
     }
   };
+
 
   return (
     <div
@@ -57,6 +63,7 @@ const ReceiptDetailModal = ({ isOpen, onClose, receiptId }) => {
             <X size={24} />
           </button>
         </div>
+
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
@@ -129,6 +136,7 @@ const ReceiptDetailModal = ({ isOpen, onClose, receiptId }) => {
                   )}
                 </div>
               </div>
+
 
               {/* Transaction Information */}
               <div className="bg-blue-50 rounded-lg p-6">
@@ -209,6 +217,7 @@ const ReceiptDetailModal = ({ isOpen, onClose, receiptId }) => {
                 </div>
               </div>
 
+
               {/* Staff Information */}
               <div className="bg-purple-50 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
@@ -262,6 +271,7 @@ const ReceiptDetailModal = ({ isOpen, onClose, receiptId }) => {
                 )}
               </div>
 
+
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12">
@@ -270,6 +280,7 @@ const ReceiptDetailModal = ({ isOpen, onClose, receiptId }) => {
             </div>
           )}
         </div>
+
 
         {/* Footer */}
         <div className="flex items-center justify-end p-6 border-t bg-gray-50">
@@ -285,4 +296,9 @@ const ReceiptDetailModal = ({ isOpen, onClose, receiptId }) => {
   );
 };
 
+
 export default ReceiptDetailModal;
+
+
+
+

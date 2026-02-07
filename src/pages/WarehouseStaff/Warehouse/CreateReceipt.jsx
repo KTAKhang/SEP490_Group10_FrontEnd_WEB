@@ -5,8 +5,10 @@ import { toast } from "react-toastify";
 import { createReceiptRequest, getReceiptHistoryRequest, clearInventoryMessages } from "../../../redux/actions/inventoryActions";
 import { getHarvestBatchesRequest } from "../../../redux/actions/supplierActions";
 
+
 const HARVEST_BATCH_CONFLICT_MSG =
   "The harvest batch was selected during the first receipt and cannot be changed in later receipts";
+
 
 /** Format date to YYYY-MM-DD in Asia/Ho_Chi_Minh (khớp backend) */
 const toEntryDateStr = (date) => {
@@ -14,10 +16,12 @@ const toEntryDateStr = (date) => {
   return new Date(date).toLocaleDateString("en-CA", { timeZone: "Asia/Ho_Chi_Minh" });
 };
 
+
 const CreateReceipt = ({ isOpen, onClose, product }) => {
   const dispatch = useDispatch();
   const { createReceiptLoading, createReceiptError, receiptHistory, receiptHistoryLoading } = useSelector((state) => state.inventory);
   const { harvestBatches, harvestBatchesLoading } = useSelector((state) => state.supplier);
+
 
   const [receiptData, setReceiptData] = useState({
     productId: "",
@@ -27,11 +31,14 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
     harvestBatchId: "",
   });
 
+
   // Track if we submitted the form
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
+
   // Check if product has supplier (must be before any useEffect that uses it)
   const hasSupplier = !!(product?.supplier?._id || product?.supplier);
+
 
   // Chỉ khóa lô trong cùng kỳ nhập kho (cùng warehouseEntryDateStr). Sau reset (không còn warehouseEntryDateStr) → kỳ mới → không khóa.
   const entryDateStr =
@@ -54,12 +61,14 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
     (b) => b.visibleInReceipt !== false && b.receiptEligible !== false
   );
 
+
   // Clear previous create-receipt error when opening modal so old message does not persist
   useEffect(() => {
     if (isOpen) {
       dispatch(clearInventoryMessages());
     }
   }, [isOpen, dispatch]);
+
 
   // Lỗi backend: "đã có phiếu nhập đầu với lô khác" → refetch receipt history để khóa đúng lô
   useEffect(() => {
@@ -76,6 +85,7 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
     );
   }, [createReceiptError, product?._id, hasSupplier, dispatch]);
 
+
   // Sau khi refetch receipt history, nếu có existingHarvestBatchId thì xóa lỗi để hiển thị UI khóa lô
   useEffect(() => {
     if (!createReceiptError || createReceiptError !== HARVEST_BATCH_CONFLICT_MSG) return;
@@ -83,6 +93,7 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
       dispatch(clearInventoryMessages());
     }
   }, [createReceiptError, existingHarvestBatchId, dispatch]);
+
 
   // Close modal only after successful create (no error)
   useEffect(() => {
@@ -105,6 +116,7 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
     onClose();
   }, [hasSubmitted, createReceiptLoading, createReceiptError, onClose]);
 
+
   // Load harvest batches when product has supplier and modal opens
   // Only show batches eligible for receipt and still visible (not yet used for this product)
   useEffect(() => {
@@ -121,6 +133,7 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
     }
   }, [isOpen, product, hasSupplier, dispatch]);
 
+
   // Load receipt history to enforce "same harvest batch" rule
   useEffect(() => {
     if (isOpen && product && hasSupplier) {
@@ -136,6 +149,7 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
     }
   }, [isOpen, product, hasSupplier, dispatch]);
 
+
   // Load product data when product changes
   useEffect(() => {
     if (product) {
@@ -149,17 +163,20 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
     }
   }, [product]);
 
+
   useEffect(() => {
     if (existingHarvestBatchId) {
       setReceiptData((prev) => ({ ...prev, harvestBatchId: existingHarvestBatchId }));
     }
   }, [existingHarvestBatchId]);
 
+
   const handleSubmit = () => {
     if (!receiptData.productId || receiptData.quantity <= 0) {
       toast.error("Please enter a valid quantity");
       return;
     }
+
 
     // Validate: product with supplier must have harvest batch (wait for history when needed)
     if (hasSupplier) {
@@ -178,8 +195,10 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
       }
     }
 
+
     // ✅ Check if this is the first receipt (no warehouseEntryDate)
     const isFirstReceipt = !product.warehouseEntryDate && !product.warehouseEntryDateStr;
+
 
     // First receipt must set expiry date
     if (isFirstReceipt) {
@@ -188,6 +207,7 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
         return;
       }
     }
+
 
     // Validate expiryDate if provided (must be at least tomorrow, i.e. today + 1)
     if (receiptData.expiryDate) {
@@ -202,17 +222,19 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
       }
     }
 
+
     // Prepare receipt data
     const receiptPayload = {
       productId: receiptData.productId,
       quantity: receiptData.quantity,
       note: receiptData.note || "",
     };
-    
+   
     // Add expiryDate if provided
     if (receiptData.expiryDate) {
       receiptPayload.expiryDate = receiptData.expiryDate;
     }
+
 
     // ✅ Add harvestBatchId if product has supplier (use locked batch when set)
     if (hasSupplier) {
@@ -220,10 +242,12 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
         existingHarvestBatchId || receiptData.harvestBatchId || "";
     }
 
+
     // Don't close modal immediately - let it close after success
     setHasSubmitted(true);
     dispatch(createReceiptRequest(receiptPayload));
   };
+
 
   const handleCancel = () => {
     setHasSubmitted(false);
@@ -237,11 +261,14 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
     onClose();
   };
 
+
   if (!isOpen || !product) return null;
+
 
   // ✅ Check if this is the first receipt (no warehouseEntryDate)
   const isFirstReceipt = !product.warehouseEntryDate && !product.warehouseEntryDateStr;
   const hasNoExpiryDate = !product.expiryDate && !product.expiryDateStr;
+
 
   // Minimum expiry date = today + 1 (tomorrow) in local timezone (YYYY-MM-DD)
   const getMinExpiryDate = () => {
@@ -253,6 +280,7 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
     return `${y}-${m}-${day}`;
   };
   const minExpiryDate = getMinExpiryDate();
+
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -288,6 +316,7 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
               </p>
             </div>
           )}
+
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Product</label>
@@ -358,6 +387,7 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
             </div>
           )}
 
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Receive quantity <span className="text-red-500">*</span>
@@ -423,4 +453,9 @@ const CreateReceipt = ({ isOpen, onClose, product }) => {
   );
 };
 
+
 export default CreateReceipt;
+
+
+
+

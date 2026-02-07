@@ -27,21 +27,26 @@ import DetailProduct from "./DetailProduct";
 import VisibilityToggle from "./VisibilityToggle";
 import Loading from "../../../components/Loading/Loading";
 
+
 const Card = ({ children, className = "" }) => (
   <div className={`bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden ${className}`}>{children}</div>
 );
+
 
 const CardHeader = ({ children, className = "" }) => (
   <div className={`border-b border-gray-100 px-5 py-4 ${className}`}>{children}</div>
 );
 
+
 const CardTitle = ({ children, className = "" }) => (
   <h3 className={`text-base font-semibold text-gray-800 ${className}`}>{children}</h3>
 );
 
+
 const CardContent = ({ children, className = "" }) => (
   <div className={`p-5 ${className}`}>{children}</div>
 );
+
 
 const WareHouse = () => {
   const dispatch = useDispatch();
@@ -55,8 +60,9 @@ const WareHouse = () => {
     createProductError,
     updateProductError,
   } = useSelector((state) => state.product);
-  
+ 
   const { categories } = useSelector((state) => state.category);
+
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStockStatus, setFilterStockStatus] = useState("all"); // all, IN_STOCK, OUT_OF_STOCK
@@ -73,12 +79,14 @@ const WareHouse = () => {
   const [prevCreateLoading, setPrevCreateLoading] = useState(false);
   const [prevUpdateLoading, setPrevUpdateLoading] = useState(false);
 
+
   // Fetch products, categories and stats on mount
   useEffect(() => {
     dispatch(getProductsRequest({ page: currentPage, limit: 10, sortBy, sortOrder }));
 dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
     dispatch(getProductStatsRequest());
   }, [dispatch]);
+
 
   // Fetch products when filters change
   useEffect(() => {
@@ -94,6 +102,7 @@ dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
     };
     dispatch(getProductsRequest(params));
   }, [dispatch, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory, sortBy, sortOrder]);
+
 
   // Auto refresh after successful create
   useEffect(() => {
@@ -115,6 +124,7 @@ dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
     setPrevCreateLoading(createProductLoading);
   }, [dispatch, createProductLoading, createProductError, prevCreateLoading, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory, sortBy, sortOrder]);
 
+
   // Auto refresh after successful update
   useEffect(() => {
     if (prevUpdateLoading && !updateProductLoading && !updateProductError) {
@@ -135,6 +145,7 @@ dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
     setPrevUpdateLoading(updateProductLoading);
   }, [dispatch, updateProductLoading, updateProductError, prevUpdateLoading, currentPage, searchTerm, filterStockStatus, filterReceivingStatus, selectedCategory, sortBy, sortOrder]);
 
+
   const getStockStatus = (product) => {
     if (product.stockStatus === "OUT_OF_STOCK" || product.onHandQuantity === 0) {
       return { label: "Out of stock", color: "bg-red-100 text-red-800", icon: AlertCircle };
@@ -144,6 +155,7 @@ dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
     }
     return { label: "In stock", color: "bg-green-100 text-green-800", icon: CheckCircle };
   };
+
 
   const getReceivingStatus = (product) => {
     switch (product.receivingStatus) {
@@ -158,24 +170,29 @@ dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
     }
   };
 
+
   const handleAddProduct = () => {
     setShowCreateModal(true);
   };
+
 
   const handleEditProduct = (product) => {
     setSelectedProduct(product);
     setShowUpdateModal(true);
   };
 
+
   const handleViewProduct = (product) => {
     setSelectedProduct(product);
     setShowReadModal(true);
   };
 
+
   const handleVisibilityProduct = (product) => {
     setSelectedProduct(product);
     setShowVisibilityModal(true);
   };
+
 
   // Use stats from API
   const stats = {
@@ -184,6 +201,7 @@ dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
     outOfStock: productStats?.outOfStock || 0,
     lowStock: productStats?.lowStock || 0,
   };
+
 
   return (
     <div className="space-y-6">
@@ -213,6 +231,7 @@ dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
           </button>
         </div>
       </div>
+
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -253,6 +272,7 @@ dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
           </div>
         </div>
       </div>
+
 
       {/* Filters */}
       <Card>
@@ -297,6 +317,7 @@ dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
           </div>
         </CardContent>
       </Card>
+
 
       {/* Products Table */}
       <Card>
@@ -421,6 +442,7 @@ dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
                 </table>
               </div>
 
+
               {/* Pagination */}
               {productsPagination && productsPagination.totalPages > 1 && (
                 <div className="flex flex-col gap-3 border-t border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -441,8 +463,10 @@ dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
         </CardContent>
       </Card>
 
+
       {/* Create Product Modal */}
       <CreateProduct isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
+
 
       {/* Update Product Modal */}
       <UpdateProduct
@@ -454,6 +478,7 @@ dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
         product={selectedProduct}
       />
 
+
       {/* Detail Product Modal */}
       <DetailProduct
         isOpen={showReadModal}
@@ -463,6 +488,7 @@ dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
         }}
         product={selectedProduct}
       />
+
 
       {/* Visibility Toggle Modal */}
       <VisibilityToggle
@@ -491,4 +517,9 @@ dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
   );
 };
 
+
 export default WareHouse;
+
+
+
+

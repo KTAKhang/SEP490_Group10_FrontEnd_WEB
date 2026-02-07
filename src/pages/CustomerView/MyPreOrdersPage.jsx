@@ -15,15 +15,20 @@ const formatDate = (d) =>
     : "";
 
 const STATUS_LABEL = {
-  WAITING_FOR_PRODUCT: "Waiting for product",
+  WAITING_FOR_ALLOCATION: "Waiting for allocation",
+  WAITING_FOR_NEXT_BATCH: "Waiting for next batch",
+  ALLOCATED_WAITING_PAYMENT: "Allocated, pay remaining",
   READY_FOR_FULFILLMENT: "Ready for fulfillment",
   COMPLETED: "Completed",
   CANCELLED: "Cancelled",
+  WAITING_FOR_PRODUCT: "Waiting for allocation (legacy)",
 };
 
 const STATUS_OPTIONS = [
   { value: "", label: "All orders" },
-  { value: "WAITING_FOR_PRODUCT", label: "Waiting for product" },
+  { value: "WAITING_FOR_ALLOCATION", label: "Waiting for allocation" },
+  { value: "WAITING_FOR_NEXT_BATCH", label: "Waiting for next batch" },
+  { value: "ALLOCATED_WAITING_PAYMENT", label: "Allocated, pay remaining" },
   { value: "READY_FOR_FULFILLMENT", label: "Ready for fulfillment" },
   { value: "COMPLETED", label: "Completed" },
 ];
@@ -31,7 +36,10 @@ const STATUS_OPTIONS = [
 const statusStyles = {
   COMPLETED: "bg-green-100 text-green-800",
   READY_FOR_FULFILLMENT: "bg-green-100 text-green-700",
-  WAITING_FOR_PRODUCT: "bg-gray-100 text-gray-700",
+  ALLOCATED_WAITING_PAYMENT: "bg-purple-100 text-purple-700",
+  WAITING_FOR_NEXT_BATCH: "bg-amber-100 text-amber-700",
+  WAITING_FOR_ALLOCATION: "bg-gray-100 text-gray-700",
+  WAITING_FOR_PRODUCT: "bg-gray-100 text-gray-600",
   CANCELLED: "bg-gray-100 text-gray-600",
 };
 
@@ -118,7 +126,7 @@ export default function MyPreOrdersPage() {
         <div className="mb-8">
           <h1 className="text-4xl font-black text-gray-900 mb-3">My pre-orders</h1>
           <p className="text-gray-600 max-w-3xl">
-            Track your pre-orders from deposit to delivery. After your deposit payment succeeds, the order status is <span className="font-medium text-gray-900">Waiting for product</span>. Once stock is allocated, pay the remaining 50% to move to <span className="font-medium text-gray-900">Ready for fulfillment</span>.
+            Track your pre-orders from deposit to delivery. After your deposit payment succeeds, the order status is <span className="font-medium text-gray-900">Waiting for allocation</span>. Once stock is allocated, the status becomes <span className="font-medium text-gray-900">Allocated, pay remaining</span> — pay the remaining 50% to move to <span className="font-medium text-gray-900">Ready for fulfillment</span>.
           </p>
         </div>
 

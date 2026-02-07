@@ -4,6 +4,7 @@ import { X, Package, CheckCircle, AlertCircle, TrendingDown, Eye, Edit } from "l
 import { toast } from "react-toastify";
 import { updateProductExpiryDateRequest } from "../../../redux/actions/warehouseActions";
 
+
 const ReadProduct = ({ isOpen, onClose, product }) => {
   const dispatch = useDispatch();
   const { updateProductExpiryDateLoading, updateProductExpiryDateError } = useSelector(
@@ -11,6 +12,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
   );
   const [showUpdateExpiryModal, setShowUpdateExpiryModal] = useState(false);
   const [expiryDate, setExpiryDate] = useState("");
+
 
   // Reset modal state when product changes
   useEffect(() => {
@@ -22,6 +24,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
       setExpiryDate("");
     }
   }, [product]);
+
 
   // Close update modal after successful update
   useEffect(() => {
@@ -36,11 +39,13 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
     }
   }, [updateProductExpiryDateLoading, updateProductExpiryDateError, showUpdateExpiryModal]);
 
+
   const handleUpdateExpiryDate = () => {
     if (!expiryDate) {
       toast.error("Please select expiry date");
       return;
     }
+
 
     // Validate expiryDate (must be at least tomorrow)
     const selectedDate = new Date(expiryDate);
@@ -48,16 +53,19 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(0, 0, 0, 0);
     selectedDate.setHours(0, 0, 0, 0);
-    
+   
     if (selectedDate < tomorrow) {
       toast.error(`Hạn sử dụng phải tối thiểu từ ngày ${tomorrow.toISOString().split('T')[0]} (ngày mai)`);
       return;
     }
 
+
     dispatch(updateProductExpiryDateRequest(product._id, expiryDate));
   };
 
+
   if (!isOpen || !product) return null;
+
 
   const getStockStatus = (product) => {
     if (product.stockStatus === "OUT_OF_STOCK" || product.onHandQuantity === 0) {
@@ -68,6 +76,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
     }
     return { label: "Còn hàng", color: "bg-green-100 text-green-800", icon: CheckCircle };
   };
+
 
   const getReceivingStatus = (product) => {
     switch (product.receivingStatus) {
@@ -82,9 +91,11 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
     }
   };
 
+
   const stockStatus = getStockStatus(product);
   const receivingStatus = getReceivingStatus(product);
   const StatusIcon = stockStatus.icon;
+
 
   return (
     <>
@@ -123,6 +134,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
             </div>
           )}
 
+
           {/* Basic Info */}
           <div className="grid grid-cols-2 gap-6">
             <div>
@@ -147,6 +159,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
               </p>
             </div>
           </div>
+
 
           {/* Status */}
           <div className="grid grid-cols-2 gap-6">
@@ -181,6 +194,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
             </div>
           </div>
 
+
           {/* Inventory Info */}
           <div className="border-t pt-4">
             <h3 className="text-sm font-medium text-gray-700 mb-4">Thông tin tồn kho</h3>
@@ -208,6 +222,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
                 {Math.max(0, (product.onHandQuantity || 0) - (product.reservedQuantity || 0))}
               </p>
             </div>
+
 
             {/* Expiry Date & Warehouse Entry Info */}
             {(product.expiryDate || product.warehouseEntryDate || product.shelfLifeDays) && (
@@ -288,6 +303,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
             )}
           </div>
 
+
           {/* Descriptions */}
           {product.short_desc && (
             <div>
@@ -296,12 +312,14 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
             </div>
           )}
 
+
           {product.detail_desc && (
             <div>
               <h3 className="text-sm font-medium text-gray-700 mb-2">Mô tả chi tiết</h3>
               <p className="text-gray-900 whitespace-pre-wrap">{product.detail_desc}</p>
             </div>
           )}
+
 
           {/* Timestamps */}
           <div className="border-t pt-4 grid grid-cols-2 gap-4 text-sm text-gray-500">
@@ -323,6 +341,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
           </div>
         </div>
       </div>
+
 
       {/* Update Expiry Date Modal */}
       {showUpdateExpiryModal && (
@@ -391,4 +410,9 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
   );
 };
 
+
 export default ReadProduct;
+
+
+
+

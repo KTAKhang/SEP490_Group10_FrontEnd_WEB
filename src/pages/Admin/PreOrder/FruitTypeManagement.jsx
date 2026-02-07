@@ -10,6 +10,8 @@ export default function FruitTypeManagement() {
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
   const [modal, setModal] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [form, setForm] = useState({
     name: "",
@@ -25,6 +27,7 @@ export default function FruitTypeManagement() {
   const [currentImageUrl, setCurrentImageUrl] = useState(null);
   const [currentImagePublicId, setCurrentImagePublicId] = useState(null);
   const [removeImage, setRemoveImage] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
 
   const load = (params = {}) => {
@@ -92,9 +95,45 @@ export default function FruitTypeManagement() {
 
   const closeModal = () => {
     setModal(null);
+    setEditingId(null);
     setErr("");
     setImageFile(null);
     setImagePreview(null);
+  };
+
+  const openEdit = (row) => {
+    if ((row.demandKg ?? 0) > 0) return;
+    setModal("edit");
+    setEditingId(row._id);
+    setForm({
+      name: row.name ?? "",
+      description: row.description ?? "",
+      estimatedPrice: row.estimatedPrice ?? "",
+      minOrderKg: row.minOrderKg ?? "",
+      maxOrderKg: row.maxOrderKg ?? "",
+      estimatedHarvestDate: row.estimatedHarvestDate ? new Date(row.estimatedHarvestDate).toISOString().slice(0, 10) : "",
+      status: row.status ?? "ACTIVE",
+    });
+    setImageFile(null);
+    setImagePreview(null);
+    setCurrentImageUrl(row.image ?? null);
+    setCurrentImagePublicId(row.imagePublicId ?? null);
+    setRemoveImage(false);
+    setShowSaveConfirm(false);
+  };
+
+  const handleDelete = (row) => {
+    if ((row.demandKg ?? 0) > 0) return;
+    if (!window.confirm(`Delete fruit type "${row.name}"? This cannot be undone.`)) return;
+    setDeletingId(row._id);
+    setErr("");
+    apiClient
+      .delete(`/admin/preorder/fruit-types/${row._id}`)
+      .then(() => {
+        load();
+      })
+      .catch((e) => setErr(e.response?.data?.message || "Delete failed."))
+      .finally(() => setDeletingId(null));
   };
 
   const handleImageChange = (e) => {
@@ -158,6 +197,7 @@ export default function FruitTypeManagement() {
       setErr(validationError);
       return;
     }
+    setIsSubmitting(true);
     const fd = buildFormData();
     apiClient
       .post("/admin/preorder/fruit-types", fd)
@@ -166,7 +206,27 @@ export default function FruitTypeManagement() {
         closeModal();
         load();
       })
-      .catch((e) => setErr(e.response?.data?.message || "Something went wrong."));
+      .catch((e) => setErr(e.response?.data?.message || "Something went wrong."))
+      .finally(() => setIsSubmitting(false));
+  };
+
+  const submitEdit = () => {
+    setErr("");
+    const validationError = validateForm();
+    if (validationError) {
+      setErr(validationError);
+      return;
+    }
+    setIsSubmitting(true);
+    const fd = buildFormData();
+    apiClient
+      .put(`/admin/preorder/fruit-types/${editingId}`, fd)
+      .then(() => {
+        closeModal();
+        load();
+      })
+      .catch((e) => setErr(e.response?.data?.message || "Update failed."))
+      .finally(() => setIsSubmitting(false));
   };
 
   const handleSaveClick = () => {
@@ -174,6 +234,10 @@ export default function FruitTypeManagement() {
     const validationError = validateForm();
     if (validationError) {
       setErr(validationError);
+      return;
+    }
+    if (modal === "edit") {
+      submitEdit();
       return;
     }
     setShowSaveConfirm(true);
@@ -184,7 +248,7 @@ export default function FruitTypeManagement() {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Pre-order fruit types</h1>
-      {err && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{err}</div>}
+      {err && !modal && !showSaveConfirm && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-2xl border border-red-100">{err}</div>}
       <div className="mb-4 flex flex-wrap items-center gap-4">
         <button
           type="button"
@@ -230,31 +294,62 @@ export default function FruitTypeManagement() {
                 <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Min–Max kg</th>
                 <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Pre-order</th>
                 <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Status</th>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Demand</th>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {list.map((row) => (
-                <tr key={row._id} className="border-t">
-                  <td className="px-4 py-2">
-                    {row.image ? (
-                      <img
-                        src={row.image}
-                        alt={row.name}
-                        className="h-10 w-10 rounded-lg object-cover"
-                      />
-                    ) : (
-                      <span className="text-gray-400 text-xs">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2">{row.name}</td>
-                  <td className="px-4 py-2">{(row.estimatedPrice || 0).toLocaleString("en-US")}</td>
-                  <td className="px-4 py-2">
-                    {row.minOrderKg}–{row.maxOrderKg}
-                  </td>
-                  <td className="px-4 py-2">{row.allowPreOrder ? "Yes" : "No"}</td>
-                  <td className="px-4 py-2">{row.status}</td>
-                </tr>
-              ))}
+              {list.map((row) => {
+                const canEditDelete = (row.demandKg ?? 0) === 0 && row.status !== "INACTIVE";
+                return (
+                  <tr key={row._id} className="border-t">
+                    <td className="px-4 py-2">
+                      {row.image ? (
+                        <img
+                          src={row.image}
+                          alt={row.name}
+                          className="h-10 w-10 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <span className="text-gray-400 text-xs">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2">{row.name}</td>
+                    <td className="px-4 py-2">{(row.estimatedPrice || 0).toLocaleString("en-US")}</td>
+                    <td className="px-4 py-2">
+                      {row.minOrderKg}–{row.maxOrderKg}
+                    </td>
+                    <td className="px-4 py-2">{row.allowPreOrder ? "Yes" : "No"}</td>
+                    <td className="px-4 py-2">{row.status}</td>
+                    <td className="px-4 py-2 text-sm text-gray-600">{row.demandKg ?? 0} kg</td>
+                    <td className="px-4 py-2">
+                      {canEditDelete ? (
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openEdit(row)}
+                            className="px-3 py-1.5 text-sm font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(row)}
+                            disabled={deletingId === row._id}
+                            className="px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 disabled:opacity-50 transition-colors"
+                          >
+                            {deletingId === row._id ? "Deleting…" : "Delete"}
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-500" title={row.status === "INACTIVE" ? "Closed (inactive). Edit/delete not allowed." : "Edit/delete allowed only when demand = 0."}>
+                          {row.status === "INACTIVE" ? "Closed" : "Locked (demand &gt; 0)"}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
           {list.length === 0 && <p className="p-6 text-gray-500 text-center">No fruit types yet.</p>}
@@ -316,12 +411,12 @@ export default function FruitTypeManagement() {
             </div>
           )}
         </div>
+        /* Modal for create form for pre-order fruit */
       )}
-
       {modal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h3 className="font-semibold text-lg mb-4 text-gray-900">Add fruit type</h3>
+            <h3 className="font-semibold text-lg mb-4 text-gray-900">{modal === "edit" ? "Edit fruit type" : "Add fruit type"}</h3>
             {err && (
               <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-700 rounded-2xl text-sm">
                 {err}
@@ -442,11 +537,11 @@ export default function FruitTypeManagement() {
               </div>
             </div>
             <div className="flex gap-2 mt-6">
-              <button type="button" onClick={closeModal} className="flex-1 py-2.5 border border-gray-300 text-gray-700 rounded-full font-medium hover:bg-gray-50 transition-colors">
+              <button type="button" onClick={closeModal} disabled={isSubmitting} className="flex-1 py-2.5 border border-gray-300 text-gray-700 rounded-full font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                 Cancel
               </button>
-              <button type="button" onClick={handleSaveClick} className="flex-1 py-2.5 bg-gray-900 text-white rounded-full font-medium hover:bg-gray-800 transition-colors">
-                Save
+              <button type="button" onClick={handleSaveClick} disabled={isSubmitting} className="flex-1 py-2.5 bg-green-600 text-white rounded-full font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                {isSubmitting ? "Processing…" : "Save"}
               </button>
             </div>
           </div>
@@ -456,23 +551,28 @@ export default function FruitTypeManagement() {
       {showSaveConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
+            {err && (
+              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-2xl border border-red-100 text-sm">{err}</div>
+            )}
             <p className="text-gray-700 text-sm mb-6">
-              After creating, this fruit type cannot be edited. Please check all information carefully, then click Confirm to save.
+              When there is pre-order demand (customers have ordered), this fruit type cannot be edited or deleted. Please check all information carefully, then click Confirm to save.
             </p>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setShowSaveConfirm(false)}
-                className="flex-1 py-2.5 border border-gray-300 text-gray-700 rounded-full font-medium hover:bg-gray-50 transition-colors"
+                disabled={isSubmitting}
+                className="flex-1 py-2.5 border border-gray-300 text-gray-700 rounded-full font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={submit}
-                className="flex-1 py-2.5 bg-gray-900 text-white rounded-full font-medium hover:bg-gray-800 transition-colors"
+                disabled={isSubmitting}
+                className="flex-1 py-2.5 bg-green-600 text-white rounded-full font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Confirm
+                {isSubmitting ? "Processing…" : "Confirm"}
               </button>
             </div>
           </div>
