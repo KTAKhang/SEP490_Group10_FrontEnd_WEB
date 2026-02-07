@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { X, AlertCircle, RotateCcw } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function PaymentFailPage() {
   const [animate, setAnimate] = useState(false);
-
+ const navigate = useNavigate();
   useEffect(() => {
     setAnimate(true);
   }, []);
@@ -47,7 +48,9 @@ export default function PaymentFailPage() {
         
         {/* Buttons */}
         <div className="space-y-3">
-          <button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+          <button
+          onClick={() => navigate("/customer/orders")} 
+          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
            View Orders History
           </button>
         
