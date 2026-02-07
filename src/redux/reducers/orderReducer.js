@@ -98,7 +98,7 @@ const orderReducer = (state = initialState, action) => {
         loading: false,
         order_id: action.payload.order_id || null,
         payment_url: action.payload.payment_url || null,
-        message: "Thanh toán thành công",
+        message: "Payment Success!",
       };
 
 
