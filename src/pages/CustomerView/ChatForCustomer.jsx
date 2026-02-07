@@ -1,58 +1,107 @@
-import { useEffect, useState } from "react";
-import { MessageCircle, Send, X, Minimize2, Maximize2 } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { MessageCircle, Send, X, ChevronLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import api from "../../api";
 import { socket } from "../../socket";
-import { Navigate, useNavigate } from "react-router-dom";
 
 export default function CustomerChat() {
-  const tokenFromStorage = localStorage.getItem("token");
-  const isAuthenticated = !!tokenFromStorage;
   const navigate = useNavigate();
-  // Nếu component cần authentication
+  const isAuthenticated = !!localStorage.getItem("token");
+
+  const [user, setUser] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const [onlineStaffs, setOnlineStaffs] = useState([]);
+  const [selectedStaff, setSelectedStaff] = useState(null);
 
   const [room, setRoom] = useState(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [onlineStaffs, setOnlineStaffs] = useState([]);
-const [user, setUser] = useState(null);
+  const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [oldestMessageId, setOldestMessageId] = useState(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const initialLoadRef = useRef(false);
+  const [initializing, setInitializing] = useState(false);
 
+  /* ======================
+     LOAD USER
+  ====================== */
   useEffect(() => {
     const raw = localStorage.getItem("user");
     if (raw) {
-      const user = JSON.parse(raw);
-      if (user.role_name === "customer") {
-        setUser(user);
+      const parsed = JSON.parse(raw);
+      if (parsed.role_name === "customer") {
+        setUser(parsed);
       }
     }
   }, []);
 
-  
-
-   /* ======================
+  /* ======================
      ONLINE STAFFS
   ====================== */
   useEffect(() => {
-    socket.on("online_staffs", (staffs) => {
-      setOnlineStaffs(staffs); // [staffId1, staffId2]
-    });
+    const handleConnect = () => {
+      console.log("🔌 socket connected (customer):", socket.id);
+      socket.emit("get_online_staffs");
+    };
 
-    return () => socket.off("online_staffs");
+    const handleOnlineStaffs = (staffs) => {
+      console.log("👥 ONLINE STAFFS (raw):", staffs);
+
+      if (Array.isArray(staffs)) {
+        setOnlineStaffs(staffs);
+        return;
+      }
+
+      if (staffs && typeof staffs === "object") {
+        setOnlineStaffs(Object.values(staffs));
+        return;
+      }
+
+      setOnlineStaffs([]);
+    };
+
+    const handleConnectError = (err) => {
+      console.error("socket connect_error:", err.message);
+    };
+
+    if (socket.connected) {
+      socket.emit("get_online_staffs");
+    }
+
+    socket.on("connect", handleConnect);
+    socket.on("online_staffs", handleOnlineStaffs);
+    socket.on("connect_error", handleConnectError);
+
+    return () => {
+      socket.off("connect", handleConnect);
+      socket.off("online_staffs", handleOnlineStaffs);
+      socket.off("connect_error", handleConnectError);
+    };
   }, []);
 
-  const staffId = room?.staff?._id;
-  const isStaffOnline = staffId && onlineStaffs.includes(staffId);
   /* ======================
-     SOCKET LISTENER
+     RECEIVE MESSAGE
   ====================== */
   useEffect(() => {
-    socket.on("receive_message", (message) => {
-      if (room && message.room._id === room._id) {
+    const handleReceiveMessage = (message) => {
+      if (!room) return;
+
+      const msgRoomId =
+        typeof message.room === "string" ? message.room : message.room?._id;
+
+      if (msgRoomId === room._id) {
         setMessages((prev) => [...prev, message]);
       }
-    });
-    return () => socket.off("receive_message");
+    };
+
+    socket.on("receive_message", handleReceiveMessage);
+
+    return () => {
+      socket.off("receive_message", handleReceiveMessage);
+    };
   }, [room]);
 
   /* ======================
@@ -64,35 +113,54 @@ const [user, setUser] = useState(null);
     }
   }, [room]);
 
-    /* ======================
-     CREATE ROOM
+  /* ======================
+     CREATE ROOM WITH STAFF
   ====================== */
-  const createRoom = async () => {
-    const res = await api.post("/chat/room");
-    const createdRoom = res.data.data;
+  const createRoomWithStaff = async (staff) => {
+    try {
+      console.log("📝 Creating room with staff:", {
+        staffId: staff.staffId,
+        staffName: staff.userName,
+        currentRoom: room?._id,
+      });
 
-    setRoom(createdRoom);
+      // 🔥 Leave room cũ trước (nếu có)
+      if (room?._id) {
+        socket.emit("leave_room", room._id);
+      }
 
-    const msgRes = await api.get(
-      `/chat/room/${createdRoom._id}/messages`
-    );
-    setMessages(msgRes.data.data);
+      // Reset state
+      setMessages([]);
+      setSelectedStaff(staff);
 
-    setIsOpen(true);
+      const res = await api.post("/chat/room", {
+        staffId: staff.staffId,
+      });
+
+      console.log("res.data",res.data)
+      const createdRoom = res.data.data;
+      setRoom(createdRoom);
+      setHasMore(false);
+      setOldestMessageId(null);
+      initialLoadRef.current = true;
+      setInitializing(true);
+      await loadMessages(createdRoom._id);
+    } catch (err) {
+      console.error("❌ createRoomWithStaff error:", err);
+    }
   };
 
   /* ======================
      SEND MESSAGE
   ====================== */
   const sendMessage = () => {
-    if (!room || !text.trim()) return;
-    console.log("OK")
+    if (!text.trim() || !room || !user) return;
 
     socket.emit("send_message", {
       roomId: room._id,
       senderId: user._id,
       senderRole: "customer",
-      content: text,
+      content: text.trim(),
     });
 
     setText("");
@@ -105,176 +173,305 @@ const [user, setUser] = useState(null);
     }
   };
 
- const toggleChat = () => {
-  console.log("🔥 toggleChat");
-
-  if (!isAuthenticated) {
-    console.log("❌ not authenticated");
-    navigate("/login");
-    return;
-  }
-
-  setIsOpen(true);
-
-  if (!room) {
-    console.log("🚀 call createRoom");
-    createRoom();
-  }
-};
-
-
+  /* ======================
+     TOGGLE CHAT
+  ====================== */
+  const toggleChat = () => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    setIsOpen((prev) => !prev);
+  };
 
   const closeChat = () => {
+    if (room?._id) {
+      socket.emit("leave_room", room._id);
+    }
     setIsOpen(false);
     setRoom(null);
     setMessages([]);
+    setSelectedStaff(null);
   };
+
+  /* ======================
+     BACK TO STAFF LIST
+  ====================== */
+  const backToStaffList = () => {
+    if (room?._id) {
+      socket.emit("leave_room", room._id);
+    }
+    setRoom(null);
+    setMessages([]);
+    setSelectedStaff(null);
+  };
+
+  // Scroll to bottom after messages change and clear init flag
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+
+    if (initialLoadRef.current) {
+      initialLoadRef.current = false;
+      setInitializing(false);
+    }
+  }, [messages]);
+
+  // Load messages with optional before (messageId) for pagination
+  const loadMessages = async (roomId, { before = null, prepend = false, limit = 6 } = {}) => {
+    if (!roomId) return;
+    if (prepend && loadingMore) return;
+
+    if (prepend) setLoadingMore(true);
+
+    try {
+      const params = { limit };
+      if (before) params.before = before;
+
+      const container = messagesContainerRef.current;
+      const prevScrollHeight = prepend && container ? container.scrollHeight : null;
+
+      const res = await api.get(`/chat/room/${roomId}/messages`, { params });
+      const payload = res.data?.data ?? res.data;
+
+      const fetched = Array.isArray(payload) ? payload : payload.messages || [];
+      const more = typeof payload === "object" && payload.hasMore !== undefined ? payload.hasMore : fetched.length === limit;
+      const oldest = typeof payload === "object" && payload.oldestMessageId ? payload.oldestMessageId : (fetched.length > 0 ? fetched[0]._id : null);
+
+      if (prepend) {
+        setMessages((prev) => [...fetched, ...prev]);
+
+        // preserve scroll position after prepending
+        setTimeout(() => {
+          if (container && prevScrollHeight != null) {
+            const newScrollHeight = container.scrollHeight;
+            container.scrollTop = newScrollHeight - prevScrollHeight;
+          }
+        }, 0);
+      } else {
+        setMessages(fetched);
+      }
+
+      setHasMore(more);
+      setOldestMessageId(oldest);
+    } catch (err) {
+      console.error("loadMessages failed:", err);
+    } finally {
+      if (prepend) setLoadingMore(false);
+    }
+  };
+
+  // Helpers: compare days and format header label
+  const isSameDay = (a, b) => {
+  if (!a || !b) return false;
+  const d1 = new Date(a);
+  const d2 = new Date(b);
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate()
+  );
+};
+
+const getStartOfWeek = (date) => {
+  const d = new Date(date);
+  const day = d.getDay(); // 0 = CN, 1 = T2...
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // chỉnh về Monday
+  return new Date(d.setDate(diff));
+};
+
+const formatDateHeader = (dateStr) => {
+  const d = new Date(dateStr);
+
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  // 1. Hôm nay
+  if (isSameDay(d, today)) return "Today";
+
+  // 2. Hôm qua
+  if (isSameDay(d, yesterday)) return "Yesterday";
+
+  // 3. Trong tuần này → hiện Thứ
+  const startOfWeek = getStartOfWeek(today);
+  if (d >= startOfWeek) {
+    const weekday = d.toLocaleDateString("vi-VN", {
+      weekday: "long",
+    });
+
+    // Viết hoa chữ cái đầu cho đẹp
+    return weekday.charAt(0).toUpperCase() + weekday.slice(1);
+  }
+
+  // 4. Xa hơn → ngày đầy đủ
+  return d.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
-      {/* Chat Button */}
+      {/* Toggle Button */}
       {!isOpen && (
         <button
           onClick={toggleChat}
-          className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 flex items-center justify-center group"
+          className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full shadow-2xl hover:scale-110 transition flex items-center justify-center"
         >
-          <MessageCircle className="w-7 h-7 group-hover:scale-110 transition-transform" />
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-pulse"></span>
+          <MessageCircle className="text-white w-7 h-7" />
         </button>
       )}
 
-      {/* Chat Window */}
+      {/* Chat Box */}
       {isOpen && (
-        <div
-          className={`bg-white rounded-2xl shadow-2xl transition-all duration-300 ${
-            isMinimized ? "w-80 h-14" : "w-96 h-[600px]"
-          } flex flex-col overflow-hidden`}
-        >
+        <div className="absolute bottom-20 right-0 w-96 bg-white rounded-2xl shadow-2xl overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 flex items-center justify-between">
+          <div className="bg-gradient-to-r from-green-500 to-green-600 p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
-                <MessageCircle className="w-5 h-5 text-white" />
-              </div>
+              {/* Nút quay lại (chỉ hiện khi đã chọn staff) */}
+              {room && (
+                <button
+                  onClick={backToStaffList}
+                  className="text-white hover:bg-white/20 p-1 rounded transition"
+                  title="Go back and select staff"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+              )}
+
               <div>
-                <h3 className="text-white font-semibold">Support </h3>
-                <p className="text-blue-100 text-xs flex items-center gap-1">
-                  <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-                  Trực tuyến
+                <h3 className="text-white font-bold">
+                  {selectedStaff ? selectedStaff.userName : "Message"}
+                </h3>
+                <p className="text-white/80 text-xs">
+                  {selectedStaff
+                    ? "Online"
+                    : `${onlineStaffs.length} The staff are online.`}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setIsMinimized(!isMinimized)}
-                className="p-1.5 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
-              >
-                {isMinimized ? (
-                  <Maximize2 className="w-4 h-4 text-white" />
-                ) : (
-                  <Minimize2 className="w-4 h-4 text-white" />
-                )}
-              </button>
-              <button
-                onClick={closeChat}
-                className="p-1.5 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
-              >
-                <X className="w-4 h-4 text-white" />
-              </button>
-            </div>
+
+            <button
+              onClick={closeChat}
+              className="text-white hover:bg-white/20 p-1 rounded transition"
+            >
+              <X />
+            </button>
           </div>
 
-          {!isMinimized && (
-            <>
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-gray-50 to-white">
-                {messages.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-center">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mb-3">
-                      <MessageCircle className="w-8 h-8 text-blue-600" />
-                    </div>
-                    <p className="text-gray-600 font-medium mb-1">
-                      Bắt đầu cuộc trò chuyện
-                    </p>
-                    <p className="text-gray-400 text-sm">
-                      Chúng tôi sẽ phản hồi ngay lập tức!
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {messages.map((m) => {
-                      const isCustomer =
-                        m.senderRole === "customer" ||
-                        m.sender._id === "6960f91abe067bcf753cf1bf";
-                      return (
-                        <div
-                          key={m._id}
-                          className={`flex ${isCustomer ? "justify-end" : "justify-start"}`}
-                        >
-                          <div
-                            className={`flex gap-2 max-w-[80%] ${isCustomer ? "flex-row-reverse" : ""}`}
-                          >
-                            <div
-                              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0 ${
-                                isCustomer
-                                  ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white"
-                                  : "bg-gradient-to-br from-gray-300 to-gray-400 text-white"
-                              }`}
-                            >
-                              {isCustomer ? "B" : "S"}
-                            </div>
-                            <div>
-                              <div
-                                className={`rounded-2xl px-4 py-2 shadow-sm ${
-                                  isCustomer
-                                    ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-br-sm"
-                                    : "bg-white border border-gray-200 text-gray-800 rounded-bl-sm"
-                                }`}
-                              >
-                                <p className="text-sm leading-relaxed">
-                                  {m.content}
-                                </p>
-                              </div>
-                              <p
-                                className={`text-xs text-gray-500 mt-1 px-1 ${isCustomer ? "text-right" : ""}`}
-                              >
-                                {new Date(m.createdAt).toLocaleTimeString(
-                                  "vi-VN",
-                                  { hour: "2-digit", minute: "2-digit" },
-                                )}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+          {/* STAFF PICKER */}
+          {!room && (
+            <div className="p-4 h-96 overflow-y-auto">
+              <p className="text-xs text-gray-500 font-semibold mb-3">
+                Chose staff for support
+              </p>
+
+              <div className="flex flex-wrap gap-3">
+                {onlineStaffs.map((staff) => (
+                  <button
+                    key={staff.staffId}
+                    onClick={() => createRoomWithStaff(staff)}
+                    title={staff.userName}
+                    className="relative group"
+                  >
+                    <img
+                      src={staff.avatar}
+                      alt={staff.userName}
+                      className="w-14 h-14 rounded-full border-2 border-white shadow-md group-hover:scale-110 transition object-cover"
+                    />
+                    <span className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full" />
+                  </button>
+                ))}
               </div>
 
-              {/* Input */}
-              <div className="p-4 border-t border-gray-200 bg-white">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={text}
-                    disabled={!room}
-                    onChange={(e) => setText(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Nhập tin nhắn..."
-                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
-                  />
-                  <button
-                    onClick={sendMessage}
-                    disabled={!text.trim()}
-                    className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
-                  >
-                    <Send className="w-4 h-4" />
-                  </button>
-                </div>
-                <p className="text-xs text-gray-400 mt-2 text-center">
-                  Nhấn Enter để gửi tin nhắn
+              {onlineStaffs.length === 0 && (
+                <p className="text-sm text-gray-400 mt-4">
+                  There are currently no staff online
                 </p>
+              )}
+            </div>
+          )}
+
+          {/* CHAT AREA */}
+          {room && (
+            <>
+              <div ref={messagesContainerRef} className="h-96 overflow-y-auto p-4 bg-gray-50 space-y-3">
+                {hasMore && (
+                  <div className="flex justify-center mb-2">
+                    <button
+                      onClick={() => {
+                        if (loadingMore || !room?._id || !oldestMessageId) return;
+                        loadMessages(room._id, { before: oldestMessageId, prepend: true });
+                      }}
+                      className="text-sm text-green-600 px-3 py-1 border border-green-200 rounded hover:bg-green-50"
+                    >
+                      {loadingMore ? "Loading..." : "Loadmore"}
+                    </button>
+                  </div>
+                )}
+
+                {messages.length === 0 && (
+                  <div className="text-center text-gray-400 text-sm mt-8">
+                   Start a conversation with {selectedStaff?.userName}
+                  </div>
+                )}
+
+                {messages.map((m, i) => {
+                  const prev = messages[i - 1];
+                  const showDateSeparator = !prev || !isSameDay(prev.createdAt, m.createdAt);
+                  const isCustomer = m.senderRole === "customer";
+
+                  return (
+                    <div key={m._id || i}>
+                      {showDateSeparator && (
+                        <div className="flex justify-center my-2">
+                          <div className="bg-gray-200 text-xs text-gray-600 px-3 py-1 rounded-full">
+                            {formatDateHeader(m.createdAt)}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className={`flex ${isCustomer ? "justify-end" : "justify-start"}`}>
+                        <div
+                          className={`max-w-[70%] px-4 py-2 rounded-2xl text-sm shadow ${
+                            isCustomer
+                              ? "bg-green-500 text-white rounded-br-none"
+                              : "bg-white text-gray-800 rounded-bl-none"
+                          }`}
+                        >
+                          <p>{m.content}</p>
+                          <p className="text-xs mt-1 opacity-70">
+                            {new Date(m.createdAt).toLocaleTimeString("vi-VN", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* INPUT */}
+              <div className="border-t p-3 bg-white flex gap-2">
+                <input
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Enter message..."
+                  className="flex-1 rounded-full px-4 py-2 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+                <button
+                  onClick={sendMessage}
+                  disabled={!text.trim()}
+                  className="bg-green-500 text-white rounded-full p-2 hover:bg-green-600 disabled:opacity-50 transition"
+                >
+                  <Send className="w-5 h-5" />
+                </button>
               </div>
             </>
           )}

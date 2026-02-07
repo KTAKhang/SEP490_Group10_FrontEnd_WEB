@@ -49,6 +49,9 @@ const Navbar = () => {
     } else if (pathname.startsWith("/customer")) {
       return "/customer";
     }
+    else if (pathname.startsWith("/feedbacked-staff")) {
+      return "/feedbacked-staff";
+    }
     // Default to admin if cannot determine
     return "/admin";
   };
@@ -122,6 +125,16 @@ const Navbar = () => {
                   >
                     <User size={18} />
                     <span>Profile</span>
+                  </button>
+                   <button
+                    onClick={() => {
+                      navigate(`${basePath}/change-password`);
+                      setIsDropdownOpen(false);
+                    }}
+                    className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <Settings size={18} />
+                    <span>Change password</span>
                   </button>
                   <button
                     onClick={() => {
