@@ -17,7 +17,8 @@ import CustomerLayout from "../layout/CustomerLayout";
 import FeedbackStaffLayout from "../layout/FeedbackStaffLayout";
 import AdminLayout from "../layout/AdminLayout";
 import AdminPage from "../pages/Admin/AdminPage/AdminPage";
-import WareHouse from "../pages/Admin/Warehouse/WareHouse";
+import ProductManagement from "../pages/Admin/Product/ProductManagement";
+import AdminWareHouse from "../pages/Admin/Warehouse/WareHouse";
 import CategoryManagement from "../pages/Admin/Category/CategoryManagement";
 import BatchHistoryPage from "../pages/Admin/BatchHistory/BatchHistoryPage";
 import ReceiptHistoryPage from "../pages/Admin/ReceiptHistory/ReceiptHistoryPage";
@@ -25,6 +26,7 @@ import OrderLogHistoryPage from "../pages/Admin/OrderLogHistory/OrderLogHistoryP
 import WarehouseStaffLayout from "../layout/WarehouseStaffLayout";
 import WarehouseStaffPage from "../pages/WarehouseStaff/WarehouseStaffPage";
 import WarehouseStaffWareHouse from "../pages/WarehouseStaff/Warehouse/WareHouse";
+import WarehouseHarvestBatchManagement from "../pages/WarehouseStaff/Warehouse/HarvestBatchManagement";
 import PreOrderStockPage from "../pages/WarehouseStaff/PreOrderStock/PreOrderStockPage";
 import ProfileManagement from "../pages/ProfileManagement/ProfileManagerment";
 import UpdatePassword from "../pages/ProfileManagement/UpdatePassword";
@@ -33,6 +35,7 @@ import ContactListPage from "../pages/ContactManagement/ContactListPage";
 import ContactDetailPage from "../pages/ContactManagement/ContactDetailPage";
 import ContactEditPage from "../pages/ContactManagement/ContactEditPage";
 import ChatForStaffPage from "../pages/FeedbackStaff/ChatForStaffPage";
+import FeedbackStaffReviewManagement from "../pages/FeedbackStaff/Review/ReviewManagement";
 // Admin Supplier Management
 import AdminSupplierManagement from "../pages/Admin/Supplier/SupplierManagement";
 // Admin Harvest Batch Management
@@ -173,6 +176,7 @@ export const routes = [
       { index: true, element: <ChatForStaffPage /> },
       { path: "profile", element: <ProfileManagement /> },
       { path: "change-password", element: <UpdatePassword /> },
+      { path: "reviews", element: <FeedbackStaffReviewManagement /> },
     ],
   },
 
@@ -188,7 +192,8 @@ export const routes = [
       { index: true, element: <AdminPage /> },
       { path: "profile", element: <ProfileManagement /> },
       { path: "change-password", element: <UpdatePassword /> },
-      { path: "warehouse", element: <WareHouse /> },
+      { path: "product", element: <ProductManagement /> },
+      { path: "warehouse", element: <AdminWareHouse /> },
       { path: "category", element: <CategoryManagement /> },
       { path: "suppliers", element: <AdminSupplierManagement /> },
       { path: "harvest-batches", element: <AdminHarvestBatchManagement /> },
@@ -237,6 +242,7 @@ export const routes = [
       { path: "profile", element: <ProfileManagement /> },
       { path: "change-password", element: <UpdatePassword /> },
       { path: "warehouse", element: <WarehouseStaffWareHouse /> },
+      { path: "harvest-batch", element: <WarehouseHarvestBatchManagement /> },
       { path: "preorder-stock", element: <PreOrderStockPage /> },
     ],
   },
