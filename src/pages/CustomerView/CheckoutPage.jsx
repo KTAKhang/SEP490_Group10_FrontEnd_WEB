@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -41,6 +41,10 @@ export default function CheckoutPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const [manualCode, setManualCode] = useState("");
+  const [appliedByManualCode, setAppliedByManualCode] = useState(false);
+  const lastManualCodeRef = useRef(null);
+
   const checkout = useSelector((state) => state.checkout || {});
   const cart = useSelector((state) => state.cart || {});
   const order = useSelector((state) => state.order || {});
@@ -68,9 +72,18 @@ export default function CheckoutPage() {
     loading: discountLoading,
   } = discount;
 
-  const discountData = applyResult?.data || validationResult?.data || null;
+  // Khi chọn mã từ list: validationResult/applyResult có data. Khi nhập tay: reducer xóa validationResult khi setSelectedDiscount, nên lưu luôn discountAmount/finalAmount vào selectedDiscount.
+  const discountData =
+    applyResult?.data ||
+    validationResult?.data ||
+    (selectedDiscount?.discountAmount != null && selectedDiscount?.finalAmount != null
+      ? {
+          discountAmount: selectedDiscount.discountAmount,
+          finalAmount: selectedDiscount.finalAmount,
+        }
+      : null);
   const discountAmount = discountData?.discountAmount || 0;
-  const finalAmount = discountData?.finalAmount || total;
+  const finalAmount = discountData?.finalAmount ?? total;
 
   // Load provinces on mount
   useEffect(() => {
@@ -274,8 +287,10 @@ export default function CheckoutPage() {
     if (!voucher) {
       dispatch(clearSelectedDiscount());
       dispatch(clearDiscountFeedback());
+      setAppliedByManualCode(false);
       return;
     }
+    setAppliedByManualCode(false);
     dispatch(
       setSelectedDiscount({
         discountId: voucher._id,
@@ -294,6 +309,37 @@ export default function CheckoutPage() {
   const handleRemoveVoucher = () => {
     dispatch(clearSelectedDiscount());
     dispatch(clearDiscountFeedback());
+    setManualCode("");
+    setAppliedByManualCode(false);
+    lastManualCodeRef.current = null;
+  };
+
+  // Khi validate mã nhập tay thành công → chọn luôn voucher và lưu discountAmount/finalAmount vào selectedDiscount (vì reducer sẽ xóa validationResult)
+  useEffect(() => {
+    if (
+      validationResult?.data?.discountId &&
+      lastManualCodeRef.current !== null
+    ) {
+      dispatch(
+        setSelectedDiscount({
+          discountId: validationResult.data.discountId,
+          code: lastManualCodeRef.current,
+          discountAmount: validationResult.data.discountAmount,
+          finalAmount: validationResult.data.finalAmount,
+        }),
+      );
+      setManualCode("");
+      setAppliedByManualCode(true);
+      lastManualCodeRef.current = null;
+    }
+  }, [validationResult?.data?.discountId, validationResult?.data?.discountAmount, validationResult?.data?.finalAmount, dispatch]);
+
+  const handleApplyManualCode = () => {
+    const code = manualCode.trim();
+    if (!code || total < 1) return;
+    lastManualCodeRef.current = code;
+    dispatch(clearDiscountFeedback());
+    dispatch(discountValidateRequest(code, total));
   };
 
   return (
@@ -574,13 +620,44 @@ export default function CheckoutPage() {
                     )}
                   </div>
 
+                  {/* Nhập mã giảm giá (ví dụ mã sinh nhật) */}
+                  <div className="px-4 pb-4 border-b border-gray-100">
+                    <p className="text-sm font-medium text-gray-700 mb-2">Enter voucher here</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={manualCode}
+                        onChange={(e) => setManualCode(e.target.value.toUpperCase())}
+                        placeholder="Sample: YOURVOUCHER"
+                        className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyManualCode}
+                        disabled={discountLoading || !manualCode.trim() || total < 1}
+                        className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Áp dụng
+                      </button>
+                    </div>
+                    {validationError && (
+                      <p className="text-sm text-red-600 mt-2">{validationError}</p>
+                    )}
+                  </div>
+
                   <div className="p-4">
+                    <p className="text-sm font-medium text-gray-700 mb-2">Voucher suggestions base on your order</p>
+                    {appliedByManualCode ? (
+                      <p className="text-sm text-gray-500 py-4">
+                        You have applied a manual code. Click Remove to choose a suggested voucher below. each order can only apply 1 voucher.
+                      </p>
+                    ) : null}
                     {discountLoading ? (
                       <div className="flex items-center justify-center py-8">
                         <div className="w-8 h-8 border-2 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />
                       </div>
                     ) : !validDiscounts?.length ? (
-                      <div className="text-center py-8 px-4">
+                      <div className="text-center py-6 px-4">
                         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 text-gray-400 mb-3">
                           <svg
                             className="w-6 h-6"
@@ -598,12 +675,20 @@ export default function CheckoutPage() {
                         </div>
                         <p className="text-sm font-medium text-gray-600">
                           {total < 1
-                            ? "Add products to see discount codes"
-                            : "No matching discount for this order"}
+
+                            ? "Add products to see vouchers"
+                            : "No suggested vouchers for this order"}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          You can still enter a code above (e.g. birthday voucher).
+
                         </p>
                       </div>
                     ) : (
-                      <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                      <div
+                        className={`space-y-2 max-h-52 overflow-y-auto pr-1 ${appliedByManualCode ? "pointer-events-none opacity-60" : ""}`}
+                        aria-disabled={appliedByManualCode}
+                      >
                         {validDiscounts.map((v) => {
                           const isSelected =
                             selectedDiscount?.discountId === v._id;
@@ -611,8 +696,9 @@ export default function CheckoutPage() {
                             <button
                               key={v._id}
                               type="button"
+                              disabled={appliedByManualCode}
                               onClick={() =>
-                                handleSelectVoucher(isSelected ? null : v)
+                                appliedByManualCode ? undefined : handleSelectVoucher(isSelected ? null : v)
                               }
                               className={`w-full text-left rounded-lg border-2 p-3 transition-all duration-200 ${
                                 isSelected

@@ -103,6 +103,13 @@ const StaffManagement = () => {
   // Check if any filters are active
   const hasActiveFilters = searchText.trim() || statusFilter !== "all" || roleFilter !== "all";
 
+  // Official staff roles (from roles collection)
+  const STAFF_ROLES = [
+    { value: "sales-staff", label: "Sales Staff", description: "Nhân viên bán hàng" },
+    { value: "warehouse_staff", label: "Warehouse Staff", description: "Nhân viên quản lý kho" },
+    { value: "feedbacked-staff", label: "Customer Support", description: "Nhân viên hỗ trợ khách hàng" },
+  ];
+
   // Create filter summary text
   const getFilterSummary = () => {
     const filters = [];
@@ -110,12 +117,8 @@ const StaffManagement = () => {
       filters.push(`Status: ${statusFilter === "active" ? "Active" : "Inactive"}`);
     }
     if (roleFilter !== "all") {
-      const roleNames = {
-        "sales-staff": "Sales Staff",
-        "finance-staff": "Finance Staff",
-        "inventory-staff": "Inventory Staff"
-      };
-      filters.push(`Role: ${roleNames[roleFilter] || roleFilter}`);
+      const roleLabel = STAFF_ROLES.find((r) => r.value === roleFilter)?.label || roleFilter;
+      filters.push(`Role: ${roleLabel}`);
     }
     if (searchText.trim()) {
       filters.push(`search: "${searchText.trim()}"`);
@@ -414,8 +417,8 @@ const StaffManagement = () => {
   const RoleBadge = ({ roleName }) => {
     const roleConfig = {
       "sales-staff": { label: "Sales Staff", color: "bg-blue-100 text-blue-700" },
-      "finance-staff": { label: "Finance Staff", color: "bg-purple-100 text-purple-700" },
-      "inventory-staff": { label: "Inventory Staff", color: "bg-green-100 text-green-700" }
+      "warehouse_staff": { label: "Warehouse Staff", color: "bg-amber-100 text-amber-700" },
+      "feedbacked-staff": { label: "Customer Support", color: "bg-green-100 text-green-700" }
     };
     const config = roleConfig[roleName] || { label: roleName || "N/A", color: "bg-gray-100 text-gray-700" };
     return (
@@ -503,9 +506,9 @@ const StaffManagement = () => {
                 className="px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white"
               >
                 <option value="all">All Roles</option>
-                <option value="sales-staff">Sales Staff</option>
-                <option value="finance-staff">Finance Staff</option>
-                <option value="inventory-staff">Inventory Staff</option>
+                {STAFF_ROLES.map((r) => (
+                  <option key={r.value} value={r.value}>{r.label}</option>
+                ))}
               </select>
 
               <select
@@ -859,9 +862,9 @@ const StaffManagement = () => {
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white"
                   >
                     <option value="">Select Role</option>
-                    <option value="sales-staff">Sales Staff</option>
-                    <option value="finance-staff">Finance Staff</option>
-                    <option value="inventory-staff">Inventory Staff</option>
+                    {STAFF_ROLES.map((r) => (
+                      <option key={r.value} value={r.value}>{r.label} ({r.description})</option>
+                    ))}
                   </select>
                   {formErrors.role && <p className="text-red-500 text-xs mt-1">{formErrors.role}</p>}
                 </div>
@@ -1015,7 +1018,7 @@ const StaffManagement = () => {
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Vai trò <span className="text-red-500">*</span>
+                    Role <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={formData.role}
@@ -1023,9 +1026,9 @@ const StaffManagement = () => {
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white"
                   >
                     <option value="">Select Role</option>
-                    <option value="sales-staff">Sales Staff</option>
-                    <option value="finance-staff">Finance Staff</option>
-                    <option value="inventory-staff">Inventory Staff</option>
+                    {STAFF_ROLES.map((r) => (
+                      <option key={r.value} value={r.value}>{r.label} ({r.description})</option>
+                    ))}
                   </select>
                   {formErrors.role && <p className="text-red-500 text-xs mt-1">{formErrors.role}</p>}
                 </div>

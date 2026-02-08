@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { User, Lock, Eye, EyeOff,ArrowLeft } from "lucide-react";
 import { loginRequest, loginGoogleRequest } from "../redux/actions/authActions";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import Header from "../components/Header/Header";
@@ -10,6 +10,8 @@ import Header from "../components/Header/Header";
 const LoginPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
   const { loading, error, isAuthenticated, role } = useSelector(
     (state) => state.auth
   );
@@ -23,12 +25,15 @@ const LoginPage = () => {
   useEffect(() => {
     if (isAuthenticated) {
       if (role === "admin") navigate("/admin", { replace: true });
-      if (role === "customer") navigate("/", { replace: true });
+      if (role === "customer") {
+        const path = redirectTo && redirectTo.startsWith("/") ? redirectTo : "/";
+        navigate(path, { replace: true });
+      }
       if (role === "feedbacked-staff" || role === "feedbacked-staff") navigate("/feedbacked-staff", { replace: true });
       if (role === "sales-staff" || role === "sales_staff") navigate("/sale-staff", { replace: true });
       if (role === "warehouse-staff" || role === "warehouse_staff") navigate("/warehouse-staff", { replace: true });
     }
-  }, [isAuthenticated, role, navigate]);
+  }, [isAuthenticated, role, navigate, redirectTo]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

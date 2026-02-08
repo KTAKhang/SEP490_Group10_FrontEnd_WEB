@@ -313,4 +313,3 @@ const OrderHistoryDetailRedirect = () => {
 
 
 export default OrderHistoryDetailRedirect;
-

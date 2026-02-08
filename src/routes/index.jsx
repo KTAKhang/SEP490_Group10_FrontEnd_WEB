@@ -47,6 +47,7 @@ import CheckoutPage from "../pages/CustomerView/CheckoutPage";
 import StaffManagement from "../pages/StaffManagement/StaffManagement";
 import CustomerManagement from "../pages/customerManagement/customerManagementPage";
 import AdminDiscountManagement from "../pages/discountManagement/AdminManagementPage";
+import BirthdayReportPage from "../pages/discountManagement/BirthdayReportPage";
 import StaffDiscountManagement from "../pages/discountManagement/StaffManagementPage";
 import SalesStaffPage from "../pages/SalesStaff/SalesStaffPage";
 import SalesStaffOrderManagement from "../pages/SalesStaff/OrderManagement/OrderManagement";
@@ -208,6 +209,7 @@ export const routes = [
       { path: "staff", element: <StaffManagement /> },
       { path: "customers", element: <CustomerManagement /> },
       { path: "discounts", element: <AdminDiscountManagement /> },
+      { path: "discounts/birthday-report", element: <BirthdayReportPage /> },
       { path: "orders", element: <OrderManagement /> },
       {
         path: "preorder",

@@ -55,7 +55,11 @@ export default function PreOrderImportPage() {
 
   const openForm = (row) => {
     const received = row?.receivedKgFromPreOrderStock ?? 0;
-    const remaining = Math.max(0, (row?.demandKg ?? 0) - received);
+    const allocated = row?.allocatedKg ?? 0;
+    const demandKg = row?.demandKg ?? 0;
+    const availableKg = Math.max(0, received - allocated);
+    const doneReceiving = received >= allocated && demandKg <= allocated;
+    const remaining = doneReceiving ? 0 : Math.max(0, demandKg - availableKg);
     setForm({
       fruitTypeId: row?.fruitTypeId?._id || row?.fruitTypeId || "",
       harvestBatchId: "",
@@ -103,7 +107,11 @@ export default function PreOrderImportPage() {
     }
     const row = demand.find((d) => (d.fruitTypeId?._id || d.fruitTypeId) === form.fruitTypeId);
     const received = row?.receivedKgFromPreOrderStock ?? 0;
-    const remainingDemandKg = row ? Math.max(0, (row.demandKg ?? 0) - received) : 0;
+    const allocated = row?.allocatedKg ?? 0;
+    const demandKg = row?.demandKg ?? 0;
+    const availableKg = Math.max(0, received - allocated);
+    const doneReceiving = received >= allocated && demandKg <= allocated;
+    const remainingDemandKg = row ? (doneReceiving ? 0 : Math.max(0, demandKg - availableKg)) : 0;
     if (row && qty > remainingDemandKg) {
       setErr(`Quantity cannot exceed remaining demand (${remainingDemandKg} kg).`);
       return;
@@ -157,8 +165,10 @@ export default function PreOrderImportPage() {
             const fid = d.fruitTypeId?._id || d.fruitTypeId;
             const received = d.receivedKgFromPreOrderStock ?? 0;
             const allocated = d.allocatedKg ?? 0;
+            const demandKg = d.demandKg ?? 0;
             const availableKg = Math.max(0, received - allocated);
-            const remainingDemandKg = Math.max(0, (d.demandKg ?? 0) - received);
+            const doneReceiving = received >= allocated && demandKg <= allocated;
+            const remainingDemandKg = doneReceiving ? 0 : Math.max(0, demandKg - availableKg);
             const noRemainingDemand = remainingDemandKg <= 0;
             return (
               <div
@@ -326,7 +336,13 @@ export default function PreOrderImportPage() {
                   max={(() => {
                     const row = demand.find((d) => (d.fruitTypeId?._id || d.fruitTypeId) === form.fruitTypeId);
                     const received = row?.receivedKgFromPreOrderStock ?? 0;
-                    return row ? Math.max(0, (row.demandKg ?? 0) - received) : undefined;
+                    const allocated = row?.allocatedKg ?? 0;
+                    const demandKg = row?.demandKg ?? 0;
+                    const availableKg = Math.max(0, received - allocated);
+                    const doneReceiving = received >= allocated && demandKg <= allocated;
+                    return row
+                      ? (doneReceiving ? 0 : Math.max(0, demandKg - availableKg)) || undefined
+                      : undefined;
                   })()}
                   value={form.quantityKg}
                   onChange={(e) => setForm((f) => ({ ...f, quantityKg: e.target.value }))}

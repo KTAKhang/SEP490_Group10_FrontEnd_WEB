@@ -8,6 +8,7 @@
  * - Can view all discounts with all statuses
  */
 import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
     discountListRequest,
@@ -269,9 +270,18 @@ const AdminManagementPage = () => {
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Discount Management (Admin)</h1>
-                    <p className="text-gray-600">Review, approve, reject, and manage discount codes</p>
+                <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Discount Management (Admin)</h1>
+                        <p className="text-gray-600">Review, approve, reject, and manage discount codes</p>
+                    </div>
+                    <Link
+                        to="/admin/discounts/birthday-report"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-full font-medium hover:bg-gray-800 transition-colors shrink-0"
+                    >
+                        <i className="ri-cake-2-line text-lg"></i>
+                        <span>Birthday Report</span>
+                    </Link>
                 </div>
                 {/* Main Content Card */}
                 {/* Statistics Cards */}
