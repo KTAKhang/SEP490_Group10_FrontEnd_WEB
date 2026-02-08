@@ -22,12 +22,20 @@ const HomePage = () => {
     }
   }, [dispatch, publicAssets]);
 
+useEffect(() => {
+    const existingSession = localStorage.getItem("checkout_session_id");
+    if (existingSession) {
+      navigate("/customer/checkout");
+    }
+  }, [navigate]);
+
   // Helper function to get asset URL by key
   const getAssetUrl = (key, fallbackUrl) => {
     if (!publicAssets || !Array.isArray(publicAssets)) return fallbackUrl;
     const asset = publicAssets.find(a => a.key === key);
     return asset?.imageUrl || fallbackUrl;
   };
+
 
   // Helper function to get asset alt text by key
   const getAssetAlt = (key, fallbackAlt) => {
@@ -36,8 +44,10 @@ const HomePage = () => {
     return asset?.altText || fallbackAlt;
   };
 
+
   // Fallback image URL (static, no API call - avoids failed requests in Network tab)
   const FALLBACK_IMAGE_URL = 'https://public.readdy.ai/ai/img_res/5bde7704-1cb0-4365-9e92-f123696b11d9.png';
+
 
   // Memoize asset URLs for performance
   const assets = useMemo(() => ({
@@ -49,18 +59,21 @@ const HomePage = () => {
     ctaImage: getAssetUrl('ctaImage', FALLBACK_IMAGE_URL),
   }), [publicAssets]);
 
+
   const assetAlts = useMemo(() => ({
     heroBackground: getAssetAlt('heroBackground', 'Organic farm field'),
     trustAvatar1: getAssetAlt('trustAvatar1', 'Customer'),
     trustAvatar2: getAssetAlt('trustAvatar2', 'Customer'),
     trustAvatar3: getAssetAlt('trustAvatar3', 'Customer'),
-    testimonialImage: getAssetAlt('testimonialImage', 'Khách hàng hài lòng'),
-    ctaImage: getAssetAlt('ctaImage', 'Đặt hàng ngay'),
+    testimonialImage: getAssetAlt('testimonialImage', 'Satisfied customer'),
+    ctaImage: getAssetAlt('ctaImage', 'Order now'),
   }), [publicAssets]);
+
 
   const handleProductClick = (productId) => {
     navigate(`/products/${productId}`);
   };
+
 
   // Testimonials data with corresponding images
   const testimonials = [
@@ -77,6 +90,7 @@ const HomePage = () => {
       fallbackImage: FALLBACK_IMAGE_URL
     }
   ];
+
 
   // Get testimonial image URL based on current index
   const getCurrentTestimonialImage = () => {
@@ -97,29 +111,33 @@ const HomePage = () => {
     return currentTestimonial.fallbackImage;
   };
 
+
   const getCurrentTestimonialAlt = () => {
     const currentTestimonial = testimonials[currentTestimonialIndex];
     if (currentTestimonial.imageKey === 'testimonialImage2') {
-      return getAssetAlt('testimonialImage2', getAssetAlt('testimonialImage', 'Khách hàng hài lòng'));
+      return getAssetAlt('testimonialImage2', getAssetAlt('testimonialImage', 'Satisfied customer'));
     }
-    return getAssetAlt('testimonialImage', 'Khách hàng hài lòng');
+    return getAssetAlt('testimonialImage', 'Satisfied customer');
   };
+
 
   // Handle testimonial navigation
   const handlePrevTestimonial = () => {
-    setCurrentTestimonialIndex((prev) => 
+    setCurrentTestimonialIndex((prev) =>
       prev === 0 ? testimonials.length - 1 : prev - 1
     );
   };
 
+
   const handleNextTestimonial = () => {
-    setCurrentTestimonialIndex((prev) => 
+    setCurrentTestimonialIndex((prev) =>
       prev === testimonials.length - 1 ? 0 : prev + 1
     );
   };
   return (
     <div className="min-h-screen bg-white">
       <Header />
+
 
       {/* HERO SECTION */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
@@ -132,6 +150,7 @@ const HomePage = () => {
         >
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/40"></div>
         </div>
+
 
         {/* Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -174,6 +193,7 @@ const HomePage = () => {
               From Farm To Table
             </p>
 
+
             {/* CTA Button */}
             <button
               onClick={() => navigate("/products")}
@@ -184,6 +204,7 @@ const HomePage = () => {
             </button>
           </div>
 
+
           {/* Description - Bottom Right */}
           <div className="absolute bottom-20 right-8 max-w-md hidden lg:block">
             <p className="text-white/90 text-lg leading-relaxed">
@@ -193,6 +214,7 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+
 
       {/* TRUST AVATARS SECTION */}
       <section className="py-16 bg-white">
@@ -205,6 +227,7 @@ const HomePage = () => {
               Our Happy Customers
             </h2>
           </div>
+
 
           {/* Trust Avatars Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
@@ -227,6 +250,7 @@ const HomePage = () => {
               <p className="text-gray-600 text-sm">Verified Purchase</p>
             </div>
 
+
             {/* Avatar 2 */}
             <div className="flex flex-col items-center text-center p-6 rounded-2xl hover:bg-gray-50 transition-colors">
               <div className="relative mb-4">
@@ -245,6 +269,7 @@ const HomePage = () => {
               <h3 className="text-lg font-bold text-gray-900 mb-2">Happy Customer</h3>
               <p className="text-gray-600 text-sm">Verified Purchase</p>
             </div>
+
 
             {/* Avatar 3 */}
             <div className="flex flex-col items-center text-center p-6 rounded-2xl hover:bg-gray-50 transition-colors">
@@ -266,6 +291,7 @@ const HomePage = () => {
             </div>
           </div>
 
+
           {/* Trust Stats */}
           <div className="mt-12 text-center">
             <p className="text-gray-600 text-lg">
@@ -274,6 +300,7 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+
 
       {/* FEATURES SECTION */}
       <section className="py-24 bg-gradient-to-b from-white to-gray-50">
@@ -289,6 +316,7 @@ const HomePage = () => {
               From the Source
             </h2>
           </div>
+
 
           {/* Feature Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -306,6 +334,7 @@ const HomePage = () => {
               </p>
             </div>
 
+
             {/* Card 2 */}
             <div className="bg-gray-50 rounded-3xl p-8 hover:shadow-xl transition-shadow">
               <div className="w-14 h-14 flex items-center justify-center mb-6">
@@ -319,6 +348,7 @@ const HomePage = () => {
                 and quality of products when they reach you.
               </p>
             </div>
+
 
             {/* Card 3 */}
             <div className="bg-gray-50 rounded-3xl p-8 hover:shadow-xl transition-shadow">
@@ -337,6 +367,7 @@ const HomePage = () => {
         </div>
       </section>
 
+
       {/* FEATURED PRODUCTS SECTION */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -350,6 +381,7 @@ const HomePage = () => {
               highest organic quality.
             </p>
           </div>
+
 
           {/* Products Grid */}
           {featuredProductsLoading ? (
@@ -380,6 +412,7 @@ const HomePage = () => {
                     />
                   </div>
 
+
                   {/* Product Info */}
                   <div className="p-6">
                     <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
@@ -392,10 +425,21 @@ const HomePage = () => {
                       {product.description || ""}
                     </p>
 
+
                     <div className="flex items-center justify-between">
                       <div>
+                        {product.isNearExpiry && product.originalPrice != null && product.originalPrice > 0 && (
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-medium px-2 py-0.5 rounded bg-amber-100 text-amber-800">
+                              Near expiry - {Math.round((1 - (product.price || 0) / product.originalPrice) * 100)}% off
+                            </span>
+                            <span className="text-sm text-gray-500 line-through">
+                              {product.originalPrice?.toLocaleString("en-US")}
+                            </span>
+                          </div>
+                        )}
                         <span className="text-2xl font-bold text-gray-900">
-                          {product.price?.toLocaleString("vi-VN") || "0"}đ
+                          {product.price?.toLocaleString("en-US") || "0"}
                         </span>
                       </div>
                       <button
@@ -413,6 +457,7 @@ const HomePage = () => {
             </div>
           )}
 
+
           {/* View All Button */}
           <div className="text-center mt-12">
             <button
@@ -425,6 +470,7 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+
 
       {/* TESTIMONIAL SECTION */}
       <section className="py-24 bg-gradient-to-b from-gray-50 to-white">
@@ -447,11 +493,13 @@ const HomePage = () => {
               </div>
             </div>
 
+
             {/* Right - Content */}
             <div className="lg:col-span-3">
               <p className="text-gray-500 text-sm font-medium uppercase tracking-wider mb-4">
                 WHAT CUSTOMERS SAY
               </p>
+
 
               <h2 className="text-5xl md:text-6xl font-black mb-4">
                 <span className="text-gray-900">Amazing Experience</span>
@@ -459,28 +507,32 @@ const HomePage = () => {
                 <span className="text-gray-400">From Customers</span>
               </h2>
 
+
               <div className="mt-12">
                 {/* Current Testimonial */}
                 <div className="min-h-[200px] transition-all duration-300">
                   <p className="text-gray-700 text-lg leading-relaxed mb-4">
 
+
                     "{testimonials[currentTestimonialIndex].text}"
                   </p>
                   <p className="text-gray-900 font-bold">— {testimonials[currentTestimonialIndex].author}</p>
 
+
                 </div>
               </div>
 
+
               {/* Navigation Buttons */}
               <div className="flex items-center space-x-4 mt-12">
-                <button 
+                <button
                   onClick={handlePrevTestimonial}
-                  className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors cursor-pointer" 
+                  className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors cursor-pointer"
                   aria-label="Previous"
                 >
                   <i className="ri-arrow-left-line text-xl"></i>
                 </button>
-              
+             
                 {/* Dots indicator */}
                 <div className="flex items-center space-x-2">
                   {testimonials.map((_, index) => (
@@ -488,18 +540,19 @@ const HomePage = () => {
                       key={index}
                       onClick={() => setCurrentTestimonialIndex(index)}
                       className={`w-2 h-2 rounded-full transition-all ${
-                        index === currentTestimonialIndex 
-                          ? 'bg-gray-900 w-8' 
+                        index === currentTestimonialIndex
+                          ? 'bg-gray-900 w-8'
                           : 'bg-gray-300 hover:bg-gray-400'
                       }`}
                       aria-label={`Go to testimonial ${index + 1}`}
                     />
                   ))}
                 </div>
-                
-                <button 
+               
+                <button
                   onClick={handleNextTestimonial}
-                  className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-900 text-white hover:bg-gray-800 transition-colors cursor-pointer" 
+                  className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-900 text-white hover:bg-gray-800 transition-colors cursor-pointer"
+
 
                   aria-label="Next"
                 >
@@ -511,12 +564,14 @@ const HomePage = () => {
         </div>
       </section>
 
+
       {/* ABOUT SECTION */}
       <section className="py-32 bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 text-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-6">
             ABOUT US
           </p>
+
 
           <h2 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-8">
             Green Farm
@@ -525,6 +580,7 @@ const HomePage = () => {
             <br />
             Bringing Health to Every Home
           </h2>
+
 
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 mt-12">
             <a
@@ -541,14 +597,15 @@ const HomePage = () => {
             </a>
           </div>
 
+
           {/* Feature Tags */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-20">
             {[
-              { icon: "ri-leaf-line", text: "Hữu Cơ" },
-              { icon: "ri-truck-line", text: "Giao Nhanh" },
-              { icon: "ri-shield-check-line", text: "Chứng Nhận" },
-              { icon: "ri-heart-line", text: "Tận Tâm" },
-              { icon: "ri-star-line", text: "Chất Lượng" },
+              { icon: "ri-leaf-line", text: "Organic" },
+              { icon: "ri-truck-line", text: "Fast Delivery" },
+              { icon: "ri-shield-check-line", text: "Certified" },
+              { icon: "ri-heart-line", text: "Dedicated" },
+              { icon: "ri-star-line", text: "Quality" },
             ].map((item, index) => (
               <div
                 key={index}
@@ -561,6 +618,7 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+
 
       {/* CTA SECTION */}
       <section className="py-24 bg-gradient-to-b from-white to-gray-50">
@@ -579,6 +637,7 @@ const HomePage = () => {
             </div>
           </div>
 
+
           {/* Text */}
           <div className="space-y-2 mb-12">
             <p className="text-4xl md:text-5xl font-normal text-gray-900">
@@ -591,6 +650,7 @@ const HomePage = () => {
               Up To 20%
             </p>
           </div>
+
 
           {/* Button */}
           <button
@@ -606,3 +666,7 @@ const HomePage = () => {
   );
 };
 export default HomePage;
+
+
+
+

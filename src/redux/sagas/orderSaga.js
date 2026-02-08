@@ -2,6 +2,7 @@ import { call, put, takeLatest } from "redux-saga/effects";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+
 import {
   ORDER_CREATE_REQUEST,
   RETRY_PAYMENT_REQUEST,
@@ -12,6 +13,7 @@ import {
   ORDER_ADMIN_UPDATE_REQUEST,
   ORDER_ADMIN_DETAIL_REQUEST,
   ORDER_ADMIN_STATS_REQUEST,
+  ORDER_STATUS_LOGS_REQUEST,
   orderCreateSuccess,
   orderCreateFailure,
   retryPaymentSuccess,
@@ -30,9 +32,13 @@ import {
   orderAdminDetailFailure,
   orderAdminStatsSuccess,
   orderAdminStatsFailure,
+  orderStatusLogsSuccess,
+  orderStatusLogsFailure,
 } from "../actions/orderActions";
 
+
 const API_BASE_URL = "http://localhost:3001";
+
 
 // ===== AUTH HEADER =====
 const authHeader = () => {
@@ -40,15 +46,17 @@ const authHeader = () => {
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
+
 // ===== API =====
 const apiCreateOrder = async (
   selected_product_ids,
   receiverInfo,
-  payment_method
+  payment_method,
+  city
 ) => {
   const res = await axios.post(
     `${API_BASE_URL}/order/create`,
-    { selected_product_ids, receiverInfo, payment_method },
+    { selected_product_ids, receiverInfo, payment_method,city },
     {
       withCredentials: true,
       headers: authHeader(),
@@ -57,10 +65,31 @@ const apiCreateOrder = async (
   return res.data;
 };
 
+
+const apiApplyDiscount = async (orderId, discountId, orderValue) => {
+  const res = await axios.post(
+    `${API_BASE_URL}/discounts/customer/apply`,
+    { discountId, orderValue, orderId },
+    { withCredentials: true, headers: authHeader() }
+  );
+  return res.data;
+};
+
+
+const apiGetVnpayUrl = async (order_id) => {
+  const res = await axios.post(
+    `${API_BASE_URL}/payment/vnpay/create`,
+    { order_id },
+    { withCredentials: true, headers: authHeader() }
+  );
+  return res.data;
+};
+
+
 const apiRetryPayment = async (order_id) => {
-  const res = await axios.put(
-    `${API_BASE_URL}/order/retry-payment/${order_id}`,
-    {},
+  const res = await axios.post(
+    `${API_BASE_URL}/order/retry-payment`,
+    {order_id},
     {
       withCredentials: true,
       headers: authHeader(),
@@ -68,6 +97,7 @@ const apiRetryPayment = async (order_id) => {
   );
   return res.data;
 };
+
 
 const apiCancelOrder = async (order_id) => {
   const res = await axios.put(
@@ -81,10 +111,14 @@ const apiCancelOrder = async (order_id) => {
   return res.data;
 };
 
+
 const apiGetMyOrders = async (params = {}) => {
   const queryParams = new URLSearchParams();
   if (params.page) queryParams.append("page", params.page);
   if (params.limit) queryParams.append("limit", params.limit);
+  if (params.search && String(params.search).trim()) {
+    queryParams.append("search", String(params.search).trim());
+  }
   if (Array.isArray(params.status_names) && params.status_names.length > 0) {
     queryParams.append("status_names", params.status_names.join(","));
   } else if (params.status_name && params.status_name !== "ALL") {
@@ -92,6 +126,7 @@ const apiGetMyOrders = async (params = {}) => {
   }
   if (params.sortBy) queryParams.append("sortBy", params.sortBy);
   if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
+
 
   const res = await axios.get(
     `${API_BASE_URL}/order/my-orders?${queryParams.toString()}`,
@@ -103,6 +138,7 @@ const apiGetMyOrders = async (params = {}) => {
   return res.data;
 };
 
+
 const apiGetMyOrderById = async (order_id) => {
   const res = await axios.get(`${API_BASE_URL}/order/my-orders/${order_id}`, {
     withCredentials: true,
@@ -110,6 +146,7 @@ const apiGetMyOrderById = async (order_id) => {
   });
   return res.data;
 };
+
 
 const apiGetAdminOrders = async (params = {}) => {
   const queryParams = new URLSearchParams();
@@ -124,12 +161,14 @@ const apiGetAdminOrders = async (params = {}) => {
   if (params.sortBy) queryParams.append("sortBy", params.sortBy);
   if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
 
+
   const res = await axios.get(`${API_BASE_URL}/order?${queryParams.toString()}`, {
     withCredentials: true,
     headers: authHeader(),
   });
   return res.data;
 };
+
 
 const apiUpdateOrderAdmin = async (order_id, status_name, note) => {
   const res = await axios.put(
@@ -143,6 +182,7 @@ const apiUpdateOrderAdmin = async (order_id, status_name, note) => {
   return res.data;
 };
 
+
 const apiGetAdminOrderDetail = async (order_id) => {
   const res = await axios.get(`${API_BASE_URL}/order/${order_id}`, {
     withCredentials: true,
@@ -150,6 +190,7 @@ const apiGetAdminOrderDetail = async (order_id) => {
   });
   return res.data;
 };
+
 
 const apiGetAdminOrderStats = async () => {
   const res = await axios.get(`${API_BASE_URL}/order/stats`, {
@@ -159,32 +200,69 @@ const apiGetAdminOrderStats = async () => {
   return res.data;
 };
 
+
+/** GET /order/status-logs với query: page, limit, sortBy, sortOrder, search, changed_by_role, order_id, changedAtFrom, changedAtTo */
+const apiGetOrderStatusLogsList = async (filters = {}) => {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      params.append(key, value);
+    }
+  });
+  const query = params.toString();
+  const url = `${API_BASE_URL}/order/status-logs${query ? `?${query}` : ""}`;
+  const res = await axios.get(url, {
+    withCredentials: true,
+    headers: authHeader(),
+  });
+  return res.data;
+};
+
+
 // ===== SAGAS =====
+
 
 // CREATE ORDER
 function* orderCreateSaga(action) {
   try {
-    const { selected_product_ids, receiverInfo, payment_method } =
-      action.payload;
-
+    const { selected_product_ids, receiverInfo, payment_method, icity, discountInfo } = action.payload;
     const res = yield call(
       apiCreateOrder,
       selected_product_ids,
       receiverInfo,
-      payment_method
+      payment_method,
+      icity
     );
+
 
     if (res.success) {
       yield put(orderCreateSuccess(res));
 
-       if (res.redirect_url) {
+
+      if (res.redirect_url) {
         window.location.href = res.redirect_url;
-      } else {
-        toast.success("Đặt hàng thành công");
+        return;
       }
 
-      // 🔥 VNPAY → redirect
+
+      // VNPAY: nếu có discount thì áp discount trước (giống flow COD), lấy URL mới rồi mới redirect
       if (res.payment_url) {
+        if (discountInfo && res.order_id) {
+          const applyRes = yield call(
+            apiApplyDiscount,
+            res.order_id,
+            discountInfo.discountId,
+            discountInfo.orderValue
+          );
+          if (applyRes?.status !== "OK") {
+            throw new Error(applyRes?.message || "Áp dụng mã giảm giá thất bại");
+          }
+          const urlRes = yield call(apiGetVnpayUrl, res.order_id);
+          if (urlRes?.success && urlRes?.payUrl) {
+            window.location.href = urlRes.payUrl;
+            return;
+          }
+        }
         window.location.href = res.payment_url;
       } else {
         toast.success("Đặt hàng thành công");
@@ -195,18 +273,26 @@ function* orderCreateSaga(action) {
   } catch (error) {
     const msg = error.response?.data?.message || error.message;
     yield put(orderCreateFailure(msg));
-    toast.error(msg);
+    if (msg && String(msg).toLowerCase().includes("holding period has expired")) {
+      toast.error("The holding period has expired. Please return to your cart and complete checkout again.");
+    } else {
+      toast.error(msg);
+    }
   }
 }
+
 
 function* retryPaymentSaga(action) {
   try {
     const { order_id } = action.payload;
 
+
    const res = yield call(apiRetryPayment, order_id);
+
 
     if (res.success) {
       yield put(retryPaymentSuccess(res));
+
 
       // 🔥 VNPAY → redirect
       if (res.payment_url) {
@@ -223,13 +309,16 @@ function* retryPaymentSaga(action) {
     toast.error(msg);
   }
 }
+
 
 // CANCEL ORDER (CUSTOMER)
 function* orderCancelSaga(action) {
   try {
     const { order_id } = action.payload;
 
+
     const res = yield call(apiCancelOrder, order_id);
+
 
     if (res.success) {
       yield put(orderCancelSuccess(res.message));
@@ -243,6 +332,7 @@ function* orderCancelSaga(action) {
     toast.error(msg);
   }
 }
+
 
 // CUSTOMER ORDER HISTORY
 function* orderHistorySaga(action) {
@@ -258,6 +348,7 @@ function* orderHistorySaga(action) {
     yield put(orderHistoryFailure(msg));
   }
 }
+
 
 // CUSTOMER ORDER DETAIL
 function* orderDetailSaga(action) {
@@ -275,6 +366,7 @@ function* orderDetailSaga(action) {
   }
 }
 
+
 // ADMIN ORDER LIST
 function* orderAdminListSaga(action) {
   try {
@@ -289,6 +381,7 @@ function* orderAdminListSaga(action) {
     yield put(orderAdminListFailure(msg));
   }
 }
+
 
 // ADMIN UPDATE ORDER STATUS
 function* orderAdminUpdateSaga(action) {
@@ -308,6 +401,7 @@ function* orderAdminUpdateSaga(action) {
   }
 }
 
+
 // ADMIN ORDER DETAIL
 function* orderAdminDetailSaga(action) {
   try {
@@ -324,6 +418,7 @@ function* orderAdminDetailSaga(action) {
   }
 }
 
+
 // ADMIN ORDER STATS
 function* orderAdminStatsSaga() {
   try {
@@ -339,6 +434,26 @@ function* orderAdminStatsSaga() {
   }
 }
 
+
+// ORDER STATUS LOGS (admin: list with filters, sort, pagination)
+function* orderStatusLogsSaga(action) {
+  try {
+    const filters = action.payload || {};
+    const res = yield call(apiGetOrderStatusLogsList, filters);
+    if (res.status === "OK") {
+      const data = Array.isArray(res.data) ? res.data : res.data?.data ?? [];
+      const pagination = res.pagination || null;
+      yield put(orderStatusLogsSuccess(data, pagination));
+    } else {
+      throw new Error(res.message || "Lấy lịch sử thay đổi trạng thái thất bại");
+    }
+  } catch (error) {
+    const msg = error.response?.data?.message || error.message;
+    yield put(orderStatusLogsFailure(msg));
+  }
+}
+
+
 export default function* orderSaga() {
   yield takeLatest(ORDER_CREATE_REQUEST, orderCreateSaga);
   yield takeLatest(ORDER_CANCEL_REQUEST, orderCancelSaga);
@@ -349,4 +464,9 @@ export default function* orderSaga() {
   yield takeLatest(ORDER_ADMIN_UPDATE_REQUEST, orderAdminUpdateSaga);
   yield takeLatest(ORDER_ADMIN_DETAIL_REQUEST, orderAdminDetailSaga);
   yield takeLatest(ORDER_ADMIN_STATS_REQUEST, orderAdminStatsSaga);
+  yield takeLatest(ORDER_STATUS_LOGS_REQUEST, orderStatusLogsSaga);
 }
+
+
+
+

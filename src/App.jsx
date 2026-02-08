@@ -4,6 +4,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AuthProvider } from "./contexts/AuthContext";
 import FirebaseNotificationProvider from "./components/FirebaseNotificationProvider";
+import ScrollToTop from "./components/ScrollToTop";
 
 export default function App() {
   // Khi load/reload trang luôn scroll lên đầu
@@ -17,6 +18,7 @@ export default function App() {
   return (
     <AuthProvider>
       <FirebaseNotificationProvider>
+        <ScrollToTop />
         <AllRoutes />
         <ToastContainer
           position="top-right"

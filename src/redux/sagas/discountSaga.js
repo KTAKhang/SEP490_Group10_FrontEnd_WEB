@@ -72,11 +72,13 @@ function* fetchDiscountList(action) {
             payload = {
                 data: payload.data || [],
                 pagination: payload.pagination || { page: 1, limit: 10, total: 0 },
+                statistics: payload.statistics || null,
             };
         } else {
             payload = {
                 data: [],
                 pagination: { page: 1, limit: 10, total: 0 },
+                statistics: null,
             };
         }
 
@@ -314,10 +316,11 @@ function* applyDiscountCode(action) {
     }
 }
 
-// Get valid discounts for customer
+// Get valid discounts for customer (optional orderValue: lọc mã phù hợp đơn hàng)
 function* getValidDiscounts(action) {
     try {
-        const res = yield call(() => apiClient.get("/discounts/customer/valid"));
+        const params = action.payload?.orderValue != null ? { orderValue: action.payload.orderValue } : {};
+        const res = yield call(() => apiClient.get("/discounts/customer/valid", { params }));
 
         if (res.data?.status === "OK") {
             yield put({ type: DISCOUNT_GET_VALID_SUCCESS, payload: res.data });

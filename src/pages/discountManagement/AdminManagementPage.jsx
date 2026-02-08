@@ -8,6 +8,7 @@
  * - Can view all discounts with all statuses
  */
 import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
     discountListRequest,
@@ -21,7 +22,7 @@ import {
 
 const AdminManagementPage = () => {
     const dispatch = useDispatch();
-    const { list = [], loading, pagination: pageMeta = { page: 1, limit: 10, total: 0 } } = useSelector(
+    const { list = [], loading, pagination: pageMeta = { page: 1, limit: 10, total: 0 }, statistics: statsFromApi } = useSelector(
         (state) => state.discount || {}
     );
 
@@ -127,28 +128,28 @@ const AdminManagementPage = () => {
         setFormErrors({});
         setIsUpdateOpen(true);
     };
-    // Calculate statistics
+    // Statistics từ API (toàn bộ theo bộ lọc), fallback tính từ list nếu API chưa trả về
     const statistics = useMemo(() => {
-        const stats = {
-            pending: 0,
-            approved: 0,
-            rejected: 0,
-            active: 0,
-            inactive: 0,
-            total: list.length
-        };
-
+        if (statsFromApi && typeof statsFromApi.total === "number") {
+            return {
+                total: statsFromApi.total,
+                pending: statsFromApi.pending ?? 0,
+                approved: statsFromApi.approved ?? 0,
+                rejected: statsFromApi.rejected ?? 0,
+                active: statsFromApi.active ?? 0,
+                inactive: statsFromApi.inactive ?? 0,
+            };
+        }
+        const stats = { pending: 0, approved: 0, rejected: 0, active: 0, inactive: 0, total: list.length };
         list.forEach(discount => {
             if (discount.status === "PENDING") stats.pending++;
             else if (discount.status === "APPROVED") stats.approved++;
             else if (discount.status === "REJECTED") stats.rejected++;
-
             if (discount.isActive) stats.active++;
             else stats.inactive++;
         });
-
         return stats;
-    }, [list]);
+    }, [statsFromApi, list]);
 
     const handleRefresh = useCallback(() => {
         setLoadingRefresh(true);
@@ -269,9 +270,18 @@ const AdminManagementPage = () => {
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Discount Management (Admin)</h1>
-                    <p className="text-gray-600">Review, approve, reject, and manage discount codes</p>
+                <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Discount Management (Admin)</h1>
+                        <p className="text-gray-600">Review, approve, reject, and manage discount codes</p>
+                    </div>
+                    <Link
+                        to="/admin/discounts/birthday-report"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-full font-medium hover:bg-gray-800 transition-colors shrink-0"
+                    >
+                        <i className="ri-cake-2-line text-lg"></i>
+                        <span>Birthday Report</span>
+                    </Link>
                 </div>
                 {/* Main Content Card */}
                 {/* Statistics Cards */}
@@ -494,9 +504,14 @@ const AdminManagementPage = () => {
                                                                 </button>
                                                             )}
                                                             <button
-                                                                onClick={() => handleEdit(discount)}
-                                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                                                title="Edit"
+                                                                onClick={() => (discount.usedCount > 0 ? null : handleEdit(discount))}
+                                                                disabled={discount.usedCount > 0}
+                                                                className={`p-2 rounded-lg transition-colors ${
+                                                                    discount.usedCount > 0
+                                                                        ? "text-gray-300 cursor-not-allowed"
+                                                                        : "text-blue-600 hover:bg-blue-50"
+                                                                }`}
+                                                                title={discount.usedCount > 0 ? "Đã có khách dùng mã, không thể chỉnh sửa" : "Edit"}
                                                             >
                                                                 <i className="ri-edit-line text-lg"></i>
                                                             </button>

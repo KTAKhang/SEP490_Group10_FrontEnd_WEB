@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 
+
 const UpdateOrderStatus = ({
   isOpen,
   selectedOrder,
@@ -16,17 +17,19 @@ const UpdateOrderStatus = ({
 }) => {
   if (!isOpen || !selectedOrder) return null;
 
+
   const availableStatuses = getNextStatuses(
     selectedOrder.payment_method,
     selectedOrder.order_status_id?.name
   );
+
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg w-full max-w-lg">
         <div className="flex items-center justify-between p-5 border-b">
           <h2 className="text-lg font-semibold text-gray-900">
-            Cập nhật trạng thái đơn hàng
+            Update order status
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X size={20} />
@@ -34,16 +37,17 @@ const UpdateOrderStatus = ({
         </div>
         <div className="p-5 space-y-4">
           <div className="text-sm text-gray-700">
-            Mã đơn: <span className="font-medium">{selectedOrder._id}</span>
+            Order ID: <span className="font-medium">{selectedOrder._id}</span>
           </div>
           <div className="text-sm text-gray-700">
-            Trạng thái hiện tại:{" "}
+            Current status:{" "}
             {renderStatusBadge(selectedOrder.order_status_id?.name)}
           </div>
 
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Trạng thái mới
+              New status
             </label>
             <select
               value={nextStatus}
@@ -62,14 +66,15 @@ const UpdateOrderStatus = ({
             </select>
             {availableStatuses.length === 0 && (
               <p className="text-xs text-gray-500 mt-1">
-                Không có trạng thái hợp lệ để chuyển tiếp.
+                No valid status to transition to.
               </p>
             )}
           </div>
 
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Ghi chú (tuỳ chọn)
+              Note (optional)
             </label>
             <textarea
               value={note}
@@ -77,7 +82,7 @@ const UpdateOrderStatus = ({
               rows={3}
               maxLength={200}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              placeholder="Ghi chú cho lần cập nhật trạng thái"
+              placeholder="Note for this status update"
             />
           </div>
         </div>
@@ -86,19 +91,20 @@ const UpdateOrderStatus = ({
             onClick={onClose}
             className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
-            Hủy
+            Cancel
           </button>
           <button
             onClick={onSubmit}
             disabled={!nextStatus || adminUpdateLoading}
             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {adminUpdateLoading ? "Đang cập nhật..." : "Cập nhật"}
+            {adminUpdateLoading ? "Updating..." : "Update"}
           </button>
         </div>
       </div>
     </div>
   );
 };
+
 
 export default UpdateOrderStatus;

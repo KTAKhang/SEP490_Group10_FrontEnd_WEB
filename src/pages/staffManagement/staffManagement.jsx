@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 const StaffManagement = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { list = [], loading, pagination: pageMeta = { page: 1, limit: 10, total: 0 } } = useSelector((state) => state.staff || {});
+  const { list = [], loading, pagination: pageMeta = { page: 1, limit: 10, total: 0 }, statistics: statsFromApi } = useSelector((state) => state.staff || {});
 
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -36,6 +36,16 @@ const StaffManagement = () => {
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState("");
   const [formErrors, setFormErrors] = useState({});
+
+  // Confirmation modal: ban/unban staff
+  const [isConfirmStatusModalOpen, setIsConfirmStatusModalOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null); // 'ban' | 'unban'
+  const [confirmStaff, setConfirmStaff] = useState(null);
+  const [confirmationText, setConfirmationText] = useState("");
+
+  // Confirmation modal: update staff info
+  const [isConfirmUpdateModalOpen, setIsConfirmUpdateModalOpen] = useState(false);
+  const [pendingUpdateData, setPendingUpdateData] = useState(null); // { submitData, useFormData: true/false }
 
   // Load staff with current filters
   const loadStaff = useCallback((query = {}) => {
@@ -93,6 +103,13 @@ const StaffManagement = () => {
   // Check if any filters are active
   const hasActiveFilters = searchText.trim() || statusFilter !== "all" || roleFilter !== "all";
 
+  // Official staff roles (from roles collection)
+  const STAFF_ROLES = [
+    { value: "sales-staff", label: "Sales Staff", description: "Nhân viên bán hàng" },
+    { value: "warehouse_staff", label: "Warehouse Staff", description: "Nhân viên quản lý kho" },
+    { value: "feedbacked-staff", label: "Customer Support", description: "Nhân viên hỗ trợ khách hàng" },
+  ];
+
   // Create filter summary text
   const getFilterSummary = () => {
     const filters = [];
@@ -100,12 +117,8 @@ const StaffManagement = () => {
       filters.push(`Status: ${statusFilter === "active" ? "Active" : "Inactive"}`);
     }
     if (roleFilter !== "all") {
-      const roleNames = {
-        "sales-staff": "Sales Staff",
-        "finance-staff": "Finance Staff",
-        "inventory-staff": "Inventory Staff"
-      };
-      filters.push(`Role: ${roleNames[roleFilter] || roleFilter}`);
+      const roleLabel = STAFF_ROLES.find((r) => r.value === roleFilter)?.label || roleFilter;
+      filters.push(`Role: ${roleLabel}`);
     }
     if (searchText.trim()) {
       filters.push(`search: "${searchText.trim()}"`);
@@ -117,12 +130,21 @@ const StaffManagement = () => {
   const isActive = (status) => status === true || status === "active";
   const toDisplayStatusText = (status) => (isActive(status) ? "active" : "inactive");
 
-  // Calculate stats from current list (filtered/paginated)
-  const displayStats = {
-    total: pageMeta.total || 0,
-    active: staff.filter(s => isActive(s.status)).length,
-    inactive: staff.filter(s => !isActive(s.status)).length,
-  };
+  // Statistics từ API (toàn bộ theo bộ lọc), fallback tính từ list nếu API chưa trả về
+  const displayStats = useMemo(() => {
+    if (statsFromApi && typeof statsFromApi.total === "number") {
+      return {
+        total: statsFromApi.total,
+        active: statsFromApi.active ?? 0,
+        inactive: statsFromApi.inactive ?? 0,
+      };
+    }
+    return {
+      total: pageMeta.total || 0,
+      active: staff.filter(s => isActive(s.status)).length,
+      inactive: staff.filter(s => !isActive(s.status)).length,
+    };
+  }, [statsFromApi, pageMeta.total, staff]);
 
   const handleCreate = () => {
     setIsCreateOpen(true);
@@ -197,11 +219,28 @@ const StaffManagement = () => {
     loadStaff(query);
     setTimeout(() => setLoadingRefresh(false), 450);
   }, [loadStaff, statusFilter, roleFilter, searchText, pageMeta.page, pageMeta.limit, sortBy, sortOrder]);
-  // Toggle staff active/inactive status
+  // Open confirm modal for ban/unban
   const handleStatusToggle = (record) => {
-    const current = record.status;
+    const active = isActive(record.status);
+    setConfirmStaff(record);
+    setConfirmAction(active ? "ban" : "unban");
+    setConfirmationText("");
+    setIsConfirmStatusModalOpen(true);
+  };
+
+  const handleConfirmStatusChange = () => {
+    const requiredText = confirmAction === "ban" ? "BAN" : "UNBAN";
+    if (confirmationText.trim().toUpperCase() !== requiredText) return;
+
+    const current = confirmStaff.status;
     const newStatus = typeof current === "boolean" ? !current : (current === "active" ? "inactive" : "active");
-    dispatch(updateStaffStatusRequest(record._id || record.id, newStatus));
+    dispatch(updateStaffStatusRequest(confirmStaff._id || confirmStaff.id, newStatus));
+
+    setIsConfirmStatusModalOpen(false);
+    setConfirmStaff(null);
+    setConfirmAction(null);
+    setConfirmationText("");
+    setTimeout(() => handleRefresh(), 600);
   };
 
   const handleViewDetail = (record) => {
@@ -312,15 +351,13 @@ const StaffManagement = () => {
     }
 
     const submitData = { ...formData };
-    //for case update, not submit confirmPassword and email
     delete submitData.confirmPassword;
     delete submitData.email;
 
-    // Remove password if empty (if admin don't update staff account password)
     if (!submitData.password) {
       delete submitData.password;
     }
-    // If there's an avatar file, create FormData, otherwise send JSON
+
     if (avatarFile) {
       const formDataToSend = new FormData();
       formDataToSend.append("user_name", submitData.user_name);
@@ -329,22 +366,25 @@ const StaffManagement = () => {
       formDataToSend.append("address", submitData.address);
       formDataToSend.append("role", submitData.role);
       formDataToSend.append("avatar", avatarFile);
-
-      // Log FormData contents
-      console.log("[Frontend] Sending FormData with fields:");
-      for (let pair of formDataToSend.entries()) {
-        console.log(`  ${pair[0]}:`, pair[1] instanceof File ? `File: ${pair[1].name}` : pair[1]);
-      }
-
-      dispatch(updateStaffRequest(selectedStaff._id || selectedStaff.id, formDataToSend));
+      setPendingUpdateData({ payload: formDataToSend, useFormData: true });
     } else {
-      // If no new avatar file but has existing avatar URL, keep it
-      if (formData.avatar) {
-        submitData.avatar = formData.avatar;
-      }
-      dispatch(updateStaffRequest(selectedStaff._id || selectedStaff.id, submitData));
+      if (formData.avatar) submitData.avatar = formData.avatar;
+      setPendingUpdateData({ payload: submitData, useFormData: false });
+    }
+    setIsConfirmUpdateModalOpen(true);
+  };
+
+  const handleConfirmUpdate = () => {
+    if (!pendingUpdateData || !selectedStaff?._id && !selectedStaff?.id) return;
+
+    if (pendingUpdateData.useFormData) {
+      dispatch(updateStaffRequest(selectedStaff._id || selectedStaff.id, pendingUpdateData.payload));
+    } else {
+      dispatch(updateStaffRequest(selectedStaff._id || selectedStaff.id, pendingUpdateData.payload));
     }
 
+    setIsConfirmUpdateModalOpen(false);
+    setPendingUpdateData(null);
     setIsUpdateOpen(false);
     setTimeout(() => handleRefresh(), 600);
   };
@@ -377,8 +417,8 @@ const StaffManagement = () => {
   const RoleBadge = ({ roleName }) => {
     const roleConfig = {
       "sales-staff": { label: "Sales Staff", color: "bg-blue-100 text-blue-700" },
-      "finance-staff": { label: "Finance Staff", color: "bg-purple-100 text-purple-700" },
-      "inventory-staff": { label: "Inventory Staff", color: "bg-green-100 text-green-700" }
+      "warehouse_staff": { label: "Warehouse Staff", color: "bg-amber-100 text-amber-700" },
+      "feedbacked-staff": { label: "Customer Support", color: "bg-green-100 text-green-700" }
     };
     const config = roleConfig[roleName] || { label: roleName || "N/A", color: "bg-gray-100 text-gray-700" };
     return (
@@ -466,9 +506,9 @@ const StaffManagement = () => {
                 className="px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white"
               >
                 <option value="all">All Roles</option>
-                <option value="sales-staff">Sales Staff</option>
-                <option value="finance-staff">Finance Staff</option>
-                <option value="inventory-staff">Inventory Staff</option>
+                {STAFF_ROLES.map((r) => (
+                  <option key={r.value} value={r.value}>{r.label}</option>
+                ))}
               </select>
 
               <select
@@ -822,9 +862,9 @@ const StaffManagement = () => {
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white"
                   >
                     <option value="">Select Role</option>
-                    <option value="sales-staff">Sales Staff</option>
-                    <option value="finance-staff">Finance Staff</option>
-                    <option value="inventory-staff">Inventory Staff</option>
+                    {STAFF_ROLES.map((r) => (
+                      <option key={r.value} value={r.value}>{r.label} ({r.description})</option>
+                    ))}
                   </select>
                   {formErrors.role && <p className="text-red-500 text-xs mt-1">{formErrors.role}</p>}
                 </div>
@@ -978,7 +1018,7 @@ const StaffManagement = () => {
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Vai trò <span className="text-red-500">*</span>
+                    Role <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={formData.role}
@@ -986,9 +1026,9 @@ const StaffManagement = () => {
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white"
                   >
                     <option value="">Select Role</option>
-                    <option value="sales-staff">Sales Staff</option>
-                    <option value="finance-staff">Finance Staff</option>
-                    <option value="inventory-staff">Inventory Staff</option>
+                    {STAFF_ROLES.map((r) => (
+                      <option key={r.value} value={r.value}>{r.label} ({r.description})</option>
+                    ))}
                   </select>
                   {formErrors.role && <p className="text-red-500 text-xs mt-1">{formErrors.role}</p>}
                 </div>
@@ -1041,6 +1081,168 @@ const StaffManagement = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal: Ban/Unban Staff */}
+      {isConfirmStatusModalOpen && confirmStaff && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full">
+            <div className="p-6">
+              <div className="flex items-start gap-4 mb-6">
+                <div className={`w-12 h-12 rounded-full ${confirmAction === "ban" ? "bg-red-100" : "bg-green-100"} flex items-center justify-center flex-shrink-0`}>
+                  <i className={`${confirmAction === "ban" ? "ri-alert-line text-red-600" : "ri-checkbox-circle-line text-green-600"} text-2xl`}></i>
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">
+                    {confirmAction === "ban" ? "⚠️ Confirm Account Deactivation" : "✓ Confirm Account Activation"}
+                  </h2>
+                  <p className="text-gray-600 mb-4">
+                    {confirmAction === "ban"
+                      ? "You are about to deactivate the account of staff:"
+                      : "You are about to activate the account of staff:"}
+                  </p>
+
+                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2">
+                        <span className="text-gray-600 font-medium">•</span>
+                        <div>
+                          <span className="text-gray-600 font-medium">Name:</span>
+                          <span className="text-gray-900 ml-2">{confirmStaff.user_name}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-gray-600 font-medium">•</span>
+                        <div>
+                          <span className="text-gray-600 font-medium">Email:</span>
+                          <span className="text-gray-900 ml-2">{confirmStaff.email}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <p className="text-sm font-semibold text-blue-900 mb-2">
+                      {confirmAction === "ban" ? "This action will:" : "This action will:"}
+                    </p>
+                    <ul className="text-sm text-blue-800 space-y-1">
+                      {confirmAction === "ban" ? (
+                        <>
+                          <li className="flex items-start gap-2">
+                            <span>-</span>
+                            <span>Prevent the staff from logging in</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span>-</span>
+                            <span>Not delete existing data</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span>-</span>
+                            <span>Can be undone later</span>
+                          </li>
+                        </>
+                      ) : (
+                        <>
+                          <li className="flex items-start gap-2">
+                            <span>-</span>
+                            <span>Allow the staff to log in</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span>-</span>
+                            <span>Restore full account access</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span>-</span>
+                            <span>Can be deactivated again later</span>
+                          </li>
+                        </>
+                      )}
+                    </ul>
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      To confirm, type <span className="font-bold text-red-600">{confirmAction === "ban" ? "BAN" : "UNBAN"}</span> below:
+                    </label>
+                    <input
+                      type="text"
+                      value={confirmationText}
+                      onChange={(e) => setConfirmationText(e.target.value)}
+                      placeholder={confirmAction === "ban" ? "Type BAN to confirm" : "Type UNBAN to confirm"}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none"
+                      autoFocus
+                    />
+                  </div>
+
+                  <p className="text-sm text-gray-600 mb-6">Are you sure you want to proceed?</p>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setIsConfirmStatusModalOpen(false);
+                        setConfirmStaff(null);
+                        setConfirmAction(null);
+                        setConfirmationText("");
+                      }}
+                      className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleConfirmStatusChange}
+                      disabled={confirmationText.trim().toUpperCase() !== (confirmAction === "ban" ? "BAN" : "UNBAN")}
+                      className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-colors ${confirmAction === "ban"
+                        ? "bg-red-600 text-white hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                        : "bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                        }`}
+                    >
+                      {confirmAction === "ban" ? "Deactivate Account" : "Activate Account"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal: Update staff info */}
+      {isConfirmUpdateModalOpen && selectedStaff && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <i className="ri-edit-line text-2xl text-blue-600"></i>
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">Confirm Update Information</h2>
+                  <p className="text-gray-600 mb-4">
+                    Are you sure you want to update the information for staff <span className="font-semibold text-gray-900">{selectedStaff.user_name}</span>?
+                  </p>
+                  <p className="text-sm text-gray-500 mb-6">Changes will be applied immediately after confirmation.</p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setIsConfirmUpdateModalOpen(false);
+                        setPendingUpdateData(null);
+                      }}
+                      className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleConfirmUpdate}
+                      className="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                    >
+                      Update
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
