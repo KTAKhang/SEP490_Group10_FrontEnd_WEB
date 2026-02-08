@@ -4,6 +4,16 @@ import {
   LayoutDashboard,
   X,
   MessageSquare,
+  FileText,
+  Store,
+  FolderTree,
+  Building2,
+  Truck,
+  Package,
+  Ticket,
+  History,
+  ClipboardList,
+  Users,
   Star,
 } from "lucide-react";
 

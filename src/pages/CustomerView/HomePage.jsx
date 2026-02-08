@@ -22,6 +22,12 @@ const HomePage = () => {
     }
   }, [dispatch, publicAssets]);
 
+useEffect(() => {
+    const existingSession = localStorage.getItem("checkout_session_id");
+    if (existingSession) {
+      navigate("/customer/checkout");
+    }
+  }, [navigate]);
 
   // Helper function to get asset URL by key
   const getAssetUrl = (key, fallbackUrl) => {

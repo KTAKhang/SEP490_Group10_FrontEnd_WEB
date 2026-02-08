@@ -20,7 +20,6 @@ const WarehouseStaffSidebar = () => {
       exact: true,
     },
     {
-      icon: Package,
       label: "Products",
       path: "/warehouse-staff/warehouse",
     },

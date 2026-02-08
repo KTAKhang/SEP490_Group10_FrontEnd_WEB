@@ -25,7 +25,7 @@ const initialState = {
   shippingType: null,
   shippingFee: 0,
   totalWeight: 0,
-
+  updateLoading: false,
   loading: false,
   error: null,
   message: null,
@@ -62,18 +62,18 @@ const cartReducer = (state = initialState, action) => {
 
     // ===== UPDATE ITEM =====
     case CART_UPDATE_ITEM_REQUEST:
-      return { ...state, loading: true, error: null };
+      return { ...state, updateLoading: true, error: null };
 
     case CART_UPDATE_ITEM_SUCCESS:
       return {
         ...state,
-        loading: false,
+        updateLoading: false,
         sum: action.payload.total_items,
         item_count: action.payload.total_items,
       };
 
     case CART_UPDATE_ITEM_FAILURE:
-      return { ...state, loading: false, error: action.payload };
+      return { ...state, updateLoading: false, error: action.payload };
 
     // ===== REMOVE ITEM =====
     case CART_REMOVE_ITEM_REQUEST:

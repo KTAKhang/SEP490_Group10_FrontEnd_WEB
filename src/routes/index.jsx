@@ -177,6 +177,7 @@ export const routes = [
       { path: "profile", element: <ProfileManagement /> },
       { path: "change-password", element: <UpdatePassword /> },
       { path: "reviews", element: <FeedbackStaffReviewManagement /> },
+
     ],
   },
 
@@ -260,6 +261,8 @@ export const routes = [
       { path: "statistics", element: <SalesStaffPage /> },
       { path: "orders", element: <SalesStaffOrderManagement /> },
       { path: "discounts", element: <StaffDiscountManagement /> },
+      { path: "profile", element: <ProfileManagement /> },
+      { path: "change-password", element: <UpdatePassword /> },
     ],
   },
 
