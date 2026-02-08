@@ -735,10 +735,10 @@ const CustomerManagement = () => {
                                 order.status_name === 'COMPLETED' ? 'bg-green-100 text-green-700' :
                                 order.status_name === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
                                 order.status_name === 'CANCELLED' ? 'bg-red-100 text-red-700' :
-                                order.status_name === 'RETURNED' ? 'bg-amber-100 text-amber-700' :
+                                order.status_name === 'REFUND' ? 'bg-amber-100 text-amber-700' :
                                 'bg-gray-100 text-gray-700'
                               }`}>
-                                {order.status_name === 'RETURNED' ? 'Trả hàng' : (order.status_name || 'UNKNOWN')}
+                                {order.status_name === 'REFUND' ? 'Hoàn tiền' : (order.status_name || 'UNKNOWN')}
                               </span>
                             </div>
                             <p className="text-sm text-gray-600">

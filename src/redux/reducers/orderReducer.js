@@ -20,6 +20,7 @@ import {
   ORDER_ADMIN_UPDATE_REQUEST,
   ORDER_ADMIN_UPDATE_SUCCESS,
   ORDER_ADMIN_UPDATE_FAILURE,
+  ORDER_CONFIRM_REFUND_PAYMENT_REQUEST,
   ORDER_ADMIN_DETAIL_REQUEST,
   ORDER_ADMIN_DETAIL_SUCCESS,
   ORDER_ADMIN_DETAIL_FAILURE,
@@ -178,6 +179,7 @@ const orderReducer = (state = initialState, action) => {
 
     // ===== ADMIN UPDATE =====
     case ORDER_ADMIN_UPDATE_REQUEST:
+    case ORDER_CONFIRM_REFUND_PAYMENT_REQUEST:
       return { ...state, adminUpdateLoading: true, error: null };
 
 

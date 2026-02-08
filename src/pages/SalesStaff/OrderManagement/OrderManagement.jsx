@@ -15,6 +15,7 @@ import {
   orderAdminUpdateRequest,
   orderAdminDetailRequest,
   orderAdminStatsRequest,
+  orderConfirmRefundPaymentRequest,
   clearOrderMessages,
 } from "../../../redux/actions/orderActions";
 
@@ -34,7 +35,7 @@ const STATUS_OPTIONS = [
   { value: "READY-TO-SHIP", label: "Ready to ship" },
   { value: "SHIPPING", label: "Shipping" },
   { value: "COMPLETED", label: "Completed" },
-  { value: "RETURNED", label: "Returned" },
+  { value: "REFUND", label: "Refund" },
   { value: "CANCELLED", label: "Cancelled" },
 ];
 
@@ -45,7 +46,7 @@ const STATUS_BADGE = {
   "READY-TO-SHIP": "bg-purple-100 text-purple-800",
   SHIPPING: "bg-indigo-100 text-indigo-800",
   COMPLETED: "bg-green-100 text-green-800",
-  RETURNED: "bg-amber-100 text-amber-800",
+  REFUND: "bg-amber-100 text-amber-800",
   CANCELLED: "bg-red-100 text-red-800",
 };
 
@@ -80,7 +81,7 @@ const STATS_ORDER = [
   "READY-TO-SHIP",
   "SHIPPING",
   "COMPLETED",
-  "RETURNED",
+  "REFUND",
   "CANCELLED",
 ];
 
@@ -100,9 +101,9 @@ const getStatusLabel = (name) => {
 const getNextStatuses = (paymentMethod, currentStatus) => {
   const method = normalizeStatus(paymentMethod);
   const current = normalizeStatus(currentStatus);
-  // Only COMPLETED orders can be changed to RETURNED by admin (backend checks admin role)
+  // Only COMPLETED orders can be changed to REFUND by admin/sales-staff
   if (current === "COMPLETED") {
-    return ["RETURNED"];
+    return ["REFUND"];
   }
   const transitions = {
     COD: {
@@ -293,10 +294,11 @@ const OrderManagement = () => {
   };
 
 
-  // Hide "Update status" when order is VNPAY + PENDING + payment PENDING
+  // Hide "Update status" when: REFUND/CANCELLED (final states) or VNPAY + PENDING + payment PENDING
   const shouldHideUpdateStatusButton = (order) => {
-    const method = (order?.payment_method || "").toString().trim().toUpperCase();
     const orderStatus = normalizeStatus(order?.order_status_id?.name);
+    if (orderStatus === "REFUND" || orderStatus === "CANCELLED") return true;
+    const method = (order?.payment_method || "").toString().trim().toUpperCase();
     const paymentStatus = (order?.payment?.status || "").toString().trim().toUpperCase();
     return method === "VNPAY" && orderStatus === "PENDING" && paymentStatus === "PENDING";
   };
@@ -602,6 +604,8 @@ const OrderManagement = () => {
         renderStatusBadge={renderStatusBadge}
         renderPaymentBadge={renderPaymentBadge}
         formatCurrency={formatCurrency}
+        onConfirmRefund={(id) => dispatch(orderConfirmRefundPaymentRequest(id))}
+        confirmRefundLoading={adminUpdateLoading}
       />
     </div>
   );

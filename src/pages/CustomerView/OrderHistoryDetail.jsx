@@ -14,7 +14,7 @@ const STATUS_OPTIONS = [
   { value: "READY-TO-SHIP", label: "Ready to ship" },
   { value: "SHIPPING", label: "Shipping" },
   { value: "COMPLETED", label: "Completed" },
-  { value: "RETURNED", label: "Returned" },
+  { value: "REFUND", label: "Refund" },
   { value: "CANCELLED", label: "Cancelled" },
 ];
 
@@ -25,7 +25,7 @@ const STATUS_BADGE = {
   "READY-TO-SHIP": "bg-purple-100 text-purple-800",
   SHIPPING: "bg-indigo-100 text-indigo-800",
   COMPLETED: "bg-green-100 text-green-800",
-  RETURNED: "bg-amber-100 text-amber-800",
+  REFUND: "bg-amber-100 text-amber-800",
   CANCELLED: "bg-red-100 text-red-800",
 };
 

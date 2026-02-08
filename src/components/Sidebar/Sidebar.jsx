@@ -22,6 +22,7 @@ import {
   BarChart3,
   Star,
   Upload,
+  RotateCcw,
 } from "lucide-react";
 
 
@@ -71,6 +72,11 @@ const Sidebar = () => {
       icon: ShoppingCart,
       label: "Orders",
       path: "/admin/orders",
+    },
+    {
+      icon: RotateCcw,
+      label: "Quản lý hoàn tiền",
+      path: "/admin/refund-orders",
     },
     {
       icon: ScrollText,

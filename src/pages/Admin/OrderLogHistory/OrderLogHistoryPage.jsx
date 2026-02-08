@@ -19,7 +19,7 @@ const STATUS_OPTIONS = [
   { value: "READY-TO-SHIP", label: "Ready to ship" },
   { value: "SHIPPING", label: "Shipping" },
   { value: "COMPLETED", label: "Completed" },
-  { value: "RETURNED", label: "Returned" },
+  { value: "REFUND", label: "Refund" },
   { value: "CANCELLED", label: "Cancelled" },
 ];
 const STATUS_LABEL = Object.fromEntries(STATUS_OPTIONS.map((o) => [o.value, o.label]));

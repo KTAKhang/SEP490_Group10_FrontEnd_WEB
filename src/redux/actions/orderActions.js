@@ -33,6 +33,8 @@ export const ORDER_ADMIN_UPDATE_REQUEST = "ORDER_ADMIN_UPDATE_REQUEST";
 export const ORDER_ADMIN_UPDATE_SUCCESS = "ORDER_ADMIN_UPDATE_SUCCESS";
 export const ORDER_ADMIN_UPDATE_FAILURE = "ORDER_ADMIN_UPDATE_FAILURE";
 
+export const ORDER_CONFIRM_REFUND_PAYMENT_REQUEST = "ORDER_CONFIRM_REFUND_PAYMENT_REQUEST";
+
 
 export const ORDER_ADMIN_DETAIL_REQUEST = "ORDER_ADMIN_DETAIL_REQUEST";
 export const ORDER_ADMIN_DETAIL_SUCCESS = "ORDER_ADMIN_DETAIL_SUCCESS";
@@ -184,6 +186,12 @@ export const orderAdminListFailure = (error) => ({
 export const orderAdminUpdateRequest = (order_id, status_name, note) => ({
   type: ORDER_ADMIN_UPDATE_REQUEST,
   payload: { order_id, status_name, note },
+});
+
+// Xác nhận đã hoàn tiền khi đơn ở trạng thái REFUND và payment PENDING
+export const orderConfirmRefundPaymentRequest = (order_id) => ({
+  type: ORDER_CONFIRM_REFUND_PAYMENT_REQUEST,
+  payload: { order_id },
 });
 
 
