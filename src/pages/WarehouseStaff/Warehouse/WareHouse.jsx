@@ -199,7 +199,7 @@ const WareHouse = () => {
           <Package size={24} />
         </div>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Product management</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Warehouse Management</h1>
           <p className="text-sm text-gray-500 mt-0.5">View and receive products</p>
         </div>
       </div>

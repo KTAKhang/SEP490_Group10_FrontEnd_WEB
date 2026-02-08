@@ -4,16 +4,7 @@ import {
   LayoutDashboard,
   X,
   MessageSquare,
-  FileText,
-  Store,
-  FolderTree,
-  Building2,
-  Truck,
-  Package,
-  Ticket,
-  History,
-  ClipboardList,
-  Users,
+  Star,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -26,7 +17,12 @@ const Sidebar = () => {
       label: "Chat Management",
       path: "/feedbacked-staff",
       exact: true,
-    }
+    },
+    {
+      icon: Star,
+      label: "Review Management",
+      path: "/feedbacked-staff/reviews",
+    },
   ];
 
   const isActive = (path, exact = false) => {
