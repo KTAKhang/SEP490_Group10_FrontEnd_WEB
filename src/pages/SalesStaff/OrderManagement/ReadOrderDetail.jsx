@@ -1,6 +1,9 @@
 import { X } from "lucide-react";
 
 
+const normalizeStatus = (name) =>
+  (name || "").toString().trim().toUpperCase().replace(/[_\s]+/g, "-");
+
 const ReadOrderDetail = ({
   isOpen,
   adminDetailLoading,
@@ -10,6 +13,8 @@ const ReadOrderDetail = ({
   renderStatusBadge,
   renderPaymentBadge,
   formatCurrency,
+  onConfirmRefund,
+  confirmRefundLoading,
 }) => {
   if (!isOpen) return null;
 
@@ -100,12 +105,24 @@ const ReadOrderDetail = ({
                 <h3 className="text-sm font-semibold text-gray-800 mb-3">
                   Payment
                 </h3>
-                <div className="text-sm text-gray-700 flex items-center gap-3">
+                <div className="text-sm text-gray-700 flex flex-wrap items-center gap-3">
                   {renderPaymentBadge(adminDetail.payment)}
                   <span>
                     {adminDetail.payment?.method || "N/A"} •{" "}
                     {formatCurrency(adminDetail.payment?.amount)}
                   </span>
+                  {normalizeStatus(adminDetail.order?.order_status_id?.name) === "REFUND" &&
+                    normalizeStatus(adminDetail.payment?.status) === "PENDING" &&
+                    onConfirmRefund && (
+                      <button
+                        type="button"
+                        onClick={() => onConfirmRefund(adminDetail.order?._id)}
+                        disabled={confirmRefundLoading}
+                        className="ml-auto rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+                      >
+                        {confirmRefundLoading ? "Đang xử lý..." : "Xác nhận đã hoàn tiền"}
+                      </button>
+                    )}
                 </div>
               </div>
 

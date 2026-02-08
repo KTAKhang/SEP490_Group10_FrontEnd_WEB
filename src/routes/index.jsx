@@ -67,6 +67,7 @@ import VoucherPage from "../pages/CustomerView/VoucherPage";
 import OrderHistory from "../pages/CustomerView/OrderHistory";
 import OrderHistoryDetail from "../pages/CustomerView/OrderHistoryDetail";
 import OrderManagement from "../pages/Admin/OrderManagement/OrderManagement";
+import RefundOrdersPage from "../pages/Admin/OrderManagement/RefundOrdersPage";
 import FruitTypeManagement from "../pages/Admin/PreOrder/FruitTypeManagement";
 import PreOrderDemandPage from "../pages/Admin/PreOrder/PreOrderDemandPage";
 import PreOrderListPage from "../pages/Admin/PreOrder/PreOrderListPage";
@@ -208,6 +209,7 @@ export const routes = [
       { path: "customers", element: <CustomerManagement /> },
       { path: "discounts", element: <AdminDiscountManagement /> },
       { path: "orders", element: <OrderManagement /> },
+      { path: "refund-orders", element: <RefundOrdersPage /> },
       {
         path: "preorder",
         element: <AdminPreOrderLayout />,
@@ -259,6 +261,7 @@ export const routes = [
       { index: true, element: <FinanceLayout /> },
       { path: "statistics", element: <SalesStaffPage /> },
       { path: "orders", element: <SalesStaffOrderManagement /> },
+      { path: "refund-orders", element: <RefundOrdersPage /> },
       { path: "discounts", element: <StaffDiscountManagement /> },
     ],
   },

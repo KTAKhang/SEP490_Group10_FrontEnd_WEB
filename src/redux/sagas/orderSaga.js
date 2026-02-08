@@ -11,6 +11,7 @@ import {
   ORDER_DETAIL_REQUEST,
   ORDER_ADMIN_LIST_REQUEST,
   ORDER_ADMIN_UPDATE_REQUEST,
+  ORDER_CONFIRM_REFUND_PAYMENT_REQUEST,
   ORDER_ADMIN_DETAIL_REQUEST,
   ORDER_ADMIN_STATS_REQUEST,
   ORDER_STATUS_LOGS_REQUEST,
@@ -28,6 +29,7 @@ import {
   orderAdminListFailure,
   orderAdminUpdateSuccess,
   orderAdminUpdateFailure,
+  orderAdminDetailRequest,
   orderAdminDetailSuccess,
   orderAdminDetailFailure,
   orderAdminStatsSuccess,
@@ -174,6 +176,18 @@ const apiUpdateOrderAdmin = async (order_id, status_name, note) => {
   const res = await axios.put(
     `${API_BASE_URL}/order/update/${order_id}`,
     { status_name, note },
+    {
+      withCredentials: true,
+      headers: authHeader(),
+    }
+  );
+  return res.data;
+};
+
+const apiConfirmRefundPayment = async (order_id) => {
+  const res = await axios.put(
+    `${API_BASE_URL}/order/${order_id}/payment-refund-done`,
+    {},
     {
       withCredentials: true,
       headers: authHeader(),
@@ -402,6 +416,26 @@ function* orderAdminUpdateSaga(action) {
 }
 
 
+// CONFIRM REFUND PAYMENT (admin/sales-staff: đơn REFUND + payment PENDING → xác nhận đã hoàn tiền)
+function* confirmRefundPaymentSaga(action) {
+  try {
+    const { order_id } = action.payload;
+    const res = yield call(apiConfirmRefundPayment, order_id);
+    if (res.success) {
+      yield put(orderAdminUpdateSuccess(res.message));
+      toast.success(res.message || "Đã xác nhận hoàn tiền");
+      yield put(orderAdminDetailRequest(order_id));
+    } else {
+      throw new Error(res.message || "Xác nhận hoàn tiền thất bại");
+    }
+  } catch (error) {
+    const msg = error.response?.data?.message || error.message;
+    yield put(orderAdminUpdateFailure(msg));
+    toast.error(msg);
+  }
+}
+
+
 // ADMIN ORDER DETAIL
 function* orderAdminDetailSaga(action) {
   try {
@@ -462,6 +496,7 @@ export default function* orderSaga() {
   yield takeLatest(ORDER_DETAIL_REQUEST, orderDetailSaga);
   yield takeLatest(ORDER_ADMIN_LIST_REQUEST, orderAdminListSaga);
   yield takeLatest(ORDER_ADMIN_UPDATE_REQUEST, orderAdminUpdateSaga);
+  yield takeLatest(ORDER_CONFIRM_REFUND_PAYMENT_REQUEST, confirmRefundPaymentSaga);
   yield takeLatest(ORDER_ADMIN_DETAIL_REQUEST, orderAdminDetailSaga);
   yield takeLatest(ORDER_ADMIN_STATS_REQUEST, orderAdminStatsSaga);
   yield takeLatest(ORDER_STATUS_LOGS_REQUEST, orderStatusLogsSaga);

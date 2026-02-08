@@ -10,6 +10,7 @@ import {
   Ticket,
   ShoppingCart,
   X,
+  RotateCcw,
 } from "lucide-react";
 
 
@@ -29,6 +30,11 @@ const SalesStaffSidebar = () => {
       icon: ShoppingCart,
       label: "Quản lý đơn hàng",
       path: "/sale-staff/orders",
+    },
+    {
+      icon: RotateCcw,
+      label: "Quản lý hoàn tiền",
+      path: "/sale-staff/refund-orders",
     },
     {
       icon: Ticket,
