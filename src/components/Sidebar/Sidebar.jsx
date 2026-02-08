@@ -21,6 +21,7 @@ import {
   Apple,
   BarChart3,
   Star,
+  Upload,
 } from "lucide-react";
 
 
@@ -42,19 +43,24 @@ const Sidebar = () => {
       path: "/admin/category",
     },
     {
-      icon: Store,
-      label: "Product",
-      path: "/admin/warehouse",
-    },
-    {
       icon: Truck,
       label: "Supplier",
       path: "/admin/suppliers",
     },
     {
+      icon: Store,
+      label: "Product",
+      path: "/admin/product",
+    },
+    {
       icon: Package,
       label: "Harvest Batch",
       path: "/admin/harvest-batches",
+    },
+    {
+      icon: Upload,
+      label: "Receive Stock",
+      path: "/admin/warehouse",
     },
     {
       icon: Gift,

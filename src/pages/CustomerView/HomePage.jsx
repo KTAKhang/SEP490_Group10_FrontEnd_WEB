@@ -28,6 +28,7 @@ useEffect(() => {
       navigate("/customer/checkout");
     }
   }, [navigate]);
+
   // Helper function to get asset URL by key
   const getAssetUrl = (key, fallbackUrl) => {
     if (!publicAssets || !Array.isArray(publicAssets)) return fallbackUrl;

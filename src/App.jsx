@@ -4,6 +4,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { AuthProvider } from "./contexts/AuthContext";
 import FirebaseNotificationProvider from "./components/FirebaseNotificationProvider";
 import ScrollToTop from "./components/ScrollToTop";
+
 export default function App() {
   return (
     <AuthProvider>

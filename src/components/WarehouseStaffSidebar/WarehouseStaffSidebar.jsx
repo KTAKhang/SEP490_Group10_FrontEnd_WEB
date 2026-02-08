@@ -5,6 +5,7 @@ import {
   Package,
   X,
   PackageCheck,
+  Sprout,
 } from "lucide-react";
 
 const WarehouseStaffSidebar = () => {
@@ -19,9 +20,13 @@ const WarehouseStaffSidebar = () => {
       exact: true,
     },
     {
-      icon: Package,
-      label: "Sản phẩm",
+      label: "Products",
       path: "/warehouse-staff/warehouse",
+    },
+    {
+      icon: Sprout,
+      label: "Harvest Batch",
+      path: "/warehouse-staff/harvest-batch",
     },
     {
       icon: PackageCheck,
@@ -62,7 +67,7 @@ const WarehouseStaffSidebar = () => {
               </div>
               {isOpen && (
                 <span className="text-lg font-bold text-gray-800">
-                  Nhân viên kho
+                  Warehouse Staff
                 </span>
               )}
             </Link>
