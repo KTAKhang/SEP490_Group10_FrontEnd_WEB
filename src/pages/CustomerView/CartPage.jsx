@@ -17,33 +17,25 @@ import {
 } from "../../redux/actions/cartActions";
 import { checkoutHoldRequest } from "../../redux/actions/checkoutActions";
 
-
 const CartPage = () => {
   const dispatch = useDispatch();
-
 
   const cart = useSelector((state) => state.cart || {});
   const items = cart.items || [];
 
-
   const [selectedItems, setSelectedItems] = useState([]);
   const [editingQuantity, setEditingQuantity] = useState({});
 
-
   const navigate = useNavigate();
 
-
   const checkout = useSelector((state) => state.checkout || {});
-
 
   const appliedDiscount = null;
   const totalItems = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
 
-
   useEffect(() => {
     dispatch(fetchCartRequest());
   }, [dispatch]);
-
 
   useEffect(() => {
     if (!items || items.length === 0) {
@@ -51,11 +43,9 @@ const CartPage = () => {
       return;
     }
 
-
     const preselected = items
       .filter((it) => it.selected === true)
       .map((it) => it.product_id ?? it.productId);
-
 
     if (preselected.length > 0) {
       setSelectedItems(preselected);
@@ -63,7 +53,6 @@ const CartPage = () => {
       setSelectedItems(items.map((it) => it.product_id ?? it.productId));
     }
   }, [JSON.stringify(items)]);
-
 
   const toggleSelectItem = (productId) => {
     setSelectedItems((prev) =>
@@ -73,7 +62,6 @@ const CartPage = () => {
     );
   };
 
-
   const toggleSelectAll = () => {
     if (selectedItems.length === items.length) {
       setSelectedItems([]);
@@ -81,7 +69,6 @@ const CartPage = () => {
       setSelectedItems(items.map((it) => it.product_id ?? it.productId));
     }
   };
-
 
   // Handle quantity input change
   const handleQuantityChange = (productId, value) => {
@@ -91,22 +78,18 @@ const CartPage = () => {
     }));
   };
 
-
   // Handle quantity input blur (when user clicks away)
   const handleQuantityBlur = (productId, currentQty) => {
     const newQty = editingQuantity[productId];
 
-
     if (newQty !== undefined && newQty !== "") {
       const parsedQty = parseInt(newQty, 10);
-
 
       // Validate quantity
       if (!isNaN(parsedQty) && parsedQty > 0 && parsedQty !== currentQty) {
         dispatch(updateCartItemRequest(productId, parsedQty));
       }
     }
-
 
     // Clear editing state
     setEditingQuantity((prev) => {
@@ -116,7 +99,6 @@ const CartPage = () => {
     });
   };
 
-
   // Handle Enter key press in quantity input
   const handleQuantityKeyPress = (e, productId, currentQty) => {
     if (e.key === "Enter") {
@@ -124,15 +106,12 @@ const CartPage = () => {
     }
   };
 
-
   const isAllSelected =
     selectedItems.length === cart.items?.length && cart.items?.length > 0;
-
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN").format(price) + "₫";
   };
-
 
   const calculateSubtotal = () => {
     return items
@@ -145,9 +124,7 @@ const CartPage = () => {
       }, 0);
   };
 
-
   const selectedCount = selectedItems.length;
-
 
   // If user previously started a checkout, automatically go to checkout page
   useEffect(() => {
@@ -156,7 +133,6 @@ const CartPage = () => {
       navigate("/customer/checkout");
     }
   }, [navigate]);
-
 
   // Watch checkout reducer: when hold is successful it will populate checkout_session_id
   useEffect(() => {
@@ -172,29 +148,24 @@ const CartPage = () => {
     }
   }, [checkout.checkout_session_id, checkout.message, navigate]);
 
-
   const handleCheckout = () => {
     if (!items || items.length === 0) {
       alert("Cart is empty");
       return;
     }
 
-
     if (!selectedItems || selectedItems.length === 0) {
-      alert("Vui lòng chọn ít nhất một sản phẩm để thanh toán");
+      alert("Please select at least one product to proceed to checkout");
       return;
     }
-
 
     const sessionId =
       window.crypto && crypto.randomUUID
         ? crypto.randomUUID()
         : `cs_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 
-
     dispatch(checkoutHoldRequest(selectedItems, sessionId));
   };
-
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 mt-20">
@@ -207,7 +178,26 @@ const CartPage = () => {
             {cart.items?.length} products in the shopping cart
           </p>
         </div>
-
+         {cart.updateLoading && (
+          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl shadow-xl p-8 flex flex-col items-center gap-4">
+              <div className="w-14 h-14 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+              <p className="text-green-600 font-semibold text-lg">
+                Processing Cart Updated...
+              </p>
+            </div>
+          </div>
+        )}
+        {checkout.loading && (
+          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl shadow-xl p-8 flex flex-col items-center gap-4">
+              <div className="w-14 h-14 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+              <p className="text-green-600 font-semibold text-lg">
+                Processing Checkout...
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
@@ -234,14 +224,15 @@ const CartPage = () => {
                     "../../../public/a1.png";
                   const price =
                     item.product?.price ?? item.price ?? item.unit_price ?? 0;
-                  const originalPrice = item.originalPrice ?? item.product?.originalPrice ?? null;
-                  const isNearExpiry = item.isNearExpiry ?? item.product?.isNearExpiry ?? false;
+                  const originalPrice =
+                    item.originalPrice ?? item.product?.originalPrice ?? null;
+                  const isNearExpiry =
+                    item.isNearExpiry ?? item.product?.isNearExpiry ?? false;
                   const qty = item.quantity || 0;
                   const displayQty =
                     editingQuantity[pid] !== undefined
                       ? editingQuantity[pid]
                       : qty;
-
 
                   return (
                     <div
@@ -275,11 +266,13 @@ const CartPage = () => {
                               Near expiry - Special price
                             </span>
                           )}
-                          {isNearExpiry && originalPrice != null && originalPrice > 0 && (
-                            <span className="text-sm text-gray-500 line-through block mb-1">
-                              Original price: {formatPrice(originalPrice)}
-                            </span>
-                          )}
+                          {isNearExpiry &&
+                            originalPrice != null &&
+                            originalPrice > 0 && (
+                              <span className="text-sm text-gray-500 line-through block mb-1">
+                                Original price: {formatPrice(originalPrice)}
+                              </span>
+                            )}
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <div className="flex items-center border border-gray-200 rounded-lg">
@@ -377,7 +370,6 @@ const CartPage = () => {
                     return;
                   }
 
-
                   if (
                     window.confirm(
                       "Are you sure you want to clear your entire shopping cart?",
@@ -386,7 +378,6 @@ const CartPage = () => {
                     const allProductIds = cart.items.map(
                       (item) => item.product_id._id || item.product_id,
                     );
-
 
                     dispatch(removeCartItemRequest(allProductIds));
                   }
@@ -398,7 +389,6 @@ const CartPage = () => {
               </button>
             </div>
           </div>
-
 
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl shadow-sm p-6 sticky top-16">
@@ -412,7 +402,6 @@ const CartPage = () => {
                     {formatPrice(calculateSubtotal())}
                   </span>
                 </div>
-
 
                 {appliedDiscount && (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-3">
@@ -435,8 +424,6 @@ const CartPage = () => {
                   </div>
                 )}
 
-
-               
                 <div className="border-t border-gray-200 pt-4">
                   <div className="flex justify-between items-center">
                     <span className="text-lg font-bold text-gray-900">
@@ -448,7 +435,6 @@ const CartPage = () => {
                   </div>
                 </div>
               </div>
-
 
               <div className="space-y-3">
                 <button
@@ -467,9 +453,4 @@ const CartPage = () => {
   );
 };
 
-
 export default CartPage;
-
-
-
-

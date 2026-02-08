@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { User, Lock, Eye, EyeOff } from "lucide-react";
+import { User, Lock, Eye, EyeOff,ArrowLeft } from "lucide-react";
 import { loginRequest, loginGoogleRequest } from "../redux/actions/authActions";
 import { useNavigate, Link } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
@@ -68,6 +68,13 @@ const LoginPage = () => {
         </div>
 
         <div className="w-full max-w-3xl bg-white rounded-2xl shadow-lg p-8">
+            <Link
+            to="/"
+            className="flex items-center text-sm text-gray-500 hover:text-gray-700 mb-6"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" />
+           Back to home page
+          </Link>
           {/* Header */}
           <div className="text-center mb-6">
             <div className="w-14 h-14 bg-green-500 rounded-xl flex items-center justify-center mx-auto mb-4">
