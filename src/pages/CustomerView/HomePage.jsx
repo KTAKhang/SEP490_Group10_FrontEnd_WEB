@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/Header/Header';
-import Footer from '../components/Footer/Footer';
-import Loading from '../components/Loading/Loading';
-import { getFeaturedProductsRequest } from '../redux/actions/publicProductActions';
-import { getHomepageAssetsPublicRequest } from '../redux/actions/homepageAssetsActions';
+import Header from '../../components/Header/Header';
+import Footer from '../../components/Footer/Footer';
+import Loading from '../../components/Loading/Loading';
+import { getFeaturedProductsRequest } from '../../redux/actions/publicProductActions';
+import { getHomepageAssetsPublicRequest } from '../../redux/actions/homepageAssetsActions';
 import { addItemToCartRequest } from "../../redux/actions/cartActions";
 const HomePage = () => {
   const dispatch = useDispatch();

@@ -339,8 +339,8 @@ const ContactEditPage = () => {
               </div>
             )}
 
-            {/* Edit Form */}
-            <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Edit Form - chỉ phần status, nút cập nhật đặt ở cuối trang */}
+            <form id="contact-edit-form" onSubmit={handleSubmit} className="space-y-6">
               {/* Status */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-3">
@@ -359,38 +359,6 @@ const ContactEditPage = () => {
                 <div className="mt-3">
                   {getStatusBadge(formData.status)}
                 </div>
-              </div>
-
-              {/* Submit Buttons */}
-              <div className="flex gap-4 pt-6 border-t border-gray-200">
-                <button
-                  type="button"
-                  onClick={() => navigate(`/admin/contacts/${id}`)}
-                  className="px-6 py-3 border-2 border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={updateContactLoading}
-                  className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105 ${
-                    updateContactLoading
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700'
-                  }`}
-                >
-                  {updateContactLoading ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Saving...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-5 h-5" />
-                      <span>Save Changes</span>
-                    </>
-                  )}
-                </button>
               </div>
             </form>
           </div>
@@ -544,6 +512,39 @@ const ContactEditPage = () => {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Nút cập nhật đặt ở cuối trang */}
+          <div className="flex gap-4 pt-6">
+            <button
+              type="button"
+              onClick={() => navigate(`/admin/contacts/${id}`)}
+              className="px-6 py-3 border-2 border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="contact-edit-form"
+              disabled={updateContactLoading}
+              className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105 ${
+                updateContactLoading
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700'
+              }`}
+            >
+              {updateContactLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-5 h-5" />
+                  <span>Save Changes</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>

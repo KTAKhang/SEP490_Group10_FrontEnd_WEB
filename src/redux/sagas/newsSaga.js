@@ -27,6 +27,9 @@ import {
 import apiClient from "../../utils/axiosConfig";
 import apiClientNoCredentials from "../../utils/axiosConfigNoCredentials";
 
+// Message trả về khi bài đã xóa mềm (soft delete) - không hiển thị toast 404
+const NEWS_NOT_FOUND_MESSAGE = "Bài viết không tồn tại";
+
 // API call for getting news list (public or authenticated)
 const apiGetNews = async (params = {}, isPublic = false) => {
   const queryParams = new URLSearchParams();
@@ -147,17 +150,21 @@ function* newsGetNewsSaga(action) {
   }
 }
 
-// Saga for getting news by ID
+// Saga for getting news by ID (xử lý soft delete: backend trả 200 + status ERR "Bài viết không tồn tại")
 function* newsGetNewsByIdSaga(action) {
   try {
-    const { newsId, isPublic = false } = typeof action.payload === 'object' 
-      ? action.payload 
+    const { newsId, isPublic = false } = typeof action.payload === 'object'
+      ? action.payload
       : { newsId: action.payload, isPublic: false };
-    
+
     const response = yield call(apiGetNewsById, newsId, isPublic);
-    
+
     if (response.status === "OK" && response.data) {
       yield put(newsGetNewsByIdSuccess(response.data));
+    } else if (response.status === "ERR") {
+      const msg = response.message || NEWS_NOT_FOUND_MESSAGE;
+      yield put(newsGetNewsByIdFailure(msg));
+      // Không toast để trang hiển thị "Bài viết không tồn tại" / redirect thay vì popup
     } else {
       throw new Error(response.message || "News not found");
     }
@@ -195,15 +202,18 @@ function* newsCreateNewsSaga(action) {
   }
 }
 
-// Saga for updating news
+// Saga for updating news (bài đã xóa mềm: backend trả status ERR "Bài viết không tồn tại")
 function* newsUpdateNewsSaga(action) {
   try {
     const { newsId, formData } = action.payload;
     const response = yield call(apiUpdateNews, newsId, formData);
-    
+
     if (response.status === "OK" && response.data) {
       yield put(newsUpdateNewsSuccess(response));
-      // Toast is handled in NewsFormPage component
+    } else if (response.status === "ERR") {
+      const msg = response.message || NEWS_NOT_FOUND_MESSAGE;
+      yield put(newsUpdateNewsFailure(msg));
+      toast.error(msg);
     } else {
       throw new Error(response.message || "Failed to update news");
     }
@@ -217,15 +227,15 @@ function* newsUpdateNewsSaga(action) {
   }
 }
 
-// Saga for deleting news
+// Saga for deleting news (soft delete: backend chỉ đánh dấu deleted_at, response vẫn OK)
 function* newsDeleteNewsSaga(action) {
   try {
     const newsId = action.payload;
     const response = yield call(apiDeleteNews, newsId);
-    
+
     if (response.status === "OK") {
       yield put(newsDeleteNewsSuccess(response));
-      toast.success(response.message || "News deleted successfully");
+      toast.success(response.message || "Đã xóa bài viết");
     } else {
       throw new Error(response.message || "Failed to delete news");
     }

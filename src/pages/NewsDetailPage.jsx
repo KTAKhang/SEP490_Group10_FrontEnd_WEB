@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Calendar, Eye, User, ArrowLeft, Share2 } from 'lucide-react';
+import { Calendar, Eye, User, ArrowLeft } from 'lucide-react';
 import Header from '../components/Header/Header';
 import Footer from '../components/Footer/Footer';
 import CommentSection from '../components/Comments/CommentSection';
@@ -33,20 +33,6 @@ const NewsDetailPage = () => {
       hour: '2-digit',
       minute: '2-digit',
     });
-  };
-
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: newsDetail?.title,
-        text: newsDetail?.excerpt,
-        url: window.location.href,
-      });
-    } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
-    }
   };
 
   if (newsDetailLoading) {
@@ -142,15 +128,6 @@ const NewsDetailPage = () => {
                 </span>
               )}
             </div>
-
-            {/* Share Button */}
-            <button
-              onClick={handleShare}
-              className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              <Share2 className="w-4 h-4 mr-2" />
-              Share
-            </button>
           </div>
 
           {/* Thumbnail */}
@@ -182,22 +159,13 @@ const NewsDetailPage = () => {
 
           {/* Footer Actions */}
           <div className="border-t border-gray-200 pt-8 mt-12">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => navigate(-1)}
-                className="flex items-center px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                Back to News
-              </button>
-              <button
-                onClick={handleShare}
-                className="flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                <Share2 className="w-5 h-5 mr-2" />
-                Share Article
-              </button>
-            </div>
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              Back to News
+            </button>
           </div>
         </div>
       </article>

@@ -1,10 +1,27 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../contexts/AuthContext';
-import CommentItem from './CommentItem';
 import CommentForm from './CommentForm';
-import { MessageSquare, Filter, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import CommentTreeNode, { getTailAndDepth, getBranchReplyCount } from './CommentTreeNode';
+import { MessageSquare, Filter, Eye, EyeOff } from 'lucide-react';
 import * as commentApi from '../../utils/commentApi';
+
+const MAX_REPLY_DEPTH = 5;
+
+const loadRepliesRecursive = async (newsId, parentId, currentDepth, repliesData) => {
+  if (currentDepth > MAX_REPLY_DEPTH) return;
+  try {
+    const res = await commentApi.getComments(newsId, parentId);
+    const children = res.status === 'OK' ? (res.data || []) : [];
+    repliesData[parentId] = children;
+    for (const child of children) {
+      await loadRepliesRecursive(newsId, child._id, currentDepth + 1, repliesData);
+    }
+  } catch (err) {
+    console.error(`Error loading replies for comment ${parentId}:`, err);
+    repliesData[parentId] = repliesData[parentId] || [];
+  }
+};
 
 const AdminCommentSection = ({ newsId }) => {
   const { user } = useAuth();
@@ -13,13 +30,15 @@ const AdminCommentSection = ({ newsId }) => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
-  const [filterStatus, setFilterStatus] = useState('ALL'); // ALL, VISIBLE, HIDDEN, DELETED
-  const [showHidden, setShowHidden] = useState(true);
+  const [filterStatus, setFilterStatus] = useState('ALL');
+  const [expandedReplies, setExpandedReplies] = useState({});
 
-  // Admin always has full permissions
   const isAdmin = true;
 
-  // Load root comments (including hidden ones for admin)
+  const handleToggleExpand = useCallback((commentId) => {
+    setExpandedReplies((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
+  }, []);
+
   const loadComments = useCallback(async () => {
     if (!newsId) return;
 
@@ -33,18 +52,9 @@ const AdminCommentSection = ({ newsId }) => {
         const rootComments = response.data || [];
         setComments(rootComments);
 
-        // Load replies for each comment
         const repliesData = {};
         for (const comment of rootComments) {
-          try {
-            const repliesResponse = await commentApi.getComments(newsId, comment._id);
-            if (repliesResponse.status === 'OK') {
-              repliesData[comment._id] = repliesResponse.data || [];
-            }
-          } catch (err) {
-            console.error(`Error loading replies for comment ${comment._id}:`, err);
-            repliesData[comment._id] = [];
-          }
+          await loadRepliesRecursive(newsId, comment._id, 1, repliesData);
         }
         setReplies(repliesData);
       } else {
@@ -54,7 +64,7 @@ const AdminCommentSection = ({ newsId }) => {
       console.error('Error loading comments:', err);
       const errorMessage = err.response?.data?.message || 'Không thể tải bình luận';
       setError(errorMessage);
-      
+
       if (err.response?.status === 404) {
         toast.error('API endpoint không tồn tại. Vui lòng kiểm tra backend có route /api/news-comments/:newsId hoặc /news-comments/:newsId');
       } else if (err.response?.status !== 404) {
@@ -125,32 +135,10 @@ const AdminCommentSection = ({ newsId }) => {
     }
   };
 
-  // Delete comment (admin can delete any comment)
-  const handleDeleteComment = async (commentId) => {
-    try {
-      setSubmitting(true);
+  // No-op for delete: admin chỉ ẩn (moderate), không xóa mềm
+  const handleDeleteCommentNoOp = () => {};
 
-      const response = await commentApi.deleteComment(commentId);
-
-      if (response.status === 'OK') {
-        toast.success('Xóa bình luận thành công');
-        await loadComments();
-      } else {
-        toast.error(response.message || 'Không thể xóa bình luận');
-      }
-    } catch (err) {
-      console.error('Error deleting comment:', err);
-      let errorMessage = err.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại';
-      if (err.response?.status === 404) {
-        errorMessage = 'API endpoint không tồn tại. Vui lòng kiểm tra backend có route DELETE /api/news-comments/:id hoặc /news-comments/:id';
-      }
-      toast.error(errorMessage);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // Moderate comment
+  // Moderate comment (ẩn / hiện)
   const handleModerateComment = async (commentId, newStatus) => {
     try {
       setSubmitting(true);
@@ -180,12 +168,11 @@ const AdminCommentSection = ({ newsId }) => {
     await handleCreateComment(content, parentId);
   };
 
-  // Statistics
+  // Statistics (chỉ dùng VISIBLE / HIDDEN; DELETED chỉ để hiển thị data cũ)
   const stats = {
     total: comments.length,
     visible: comments.filter(c => c.status === 'VISIBLE').length,
     hidden: comments.filter(c => c.status === 'HIDDEN').length,
-    deleted: comments.filter(c => c.status === 'DELETED').length,
   };
 
   const filteredComments = filterComments(comments);
@@ -203,6 +190,15 @@ const AdminCommentSection = ({ newsId }) => {
     );
   }
 
+  // Bài đã xóa mềm / không tồn tại: không hiển thị form comment (theo spec soft delete)
+  if (error && (error.includes('không tồn tại') || error.includes('Bài viết không tồn tại'))) {
+    return (
+      <div className="admin-comment-section py-8 border-t border-gray-200 mt-8">
+        <p className="text-gray-600">{error}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="admin-comment-section py-8 border-t border-gray-200 mt-8">
       {/* Header with Stats */}
@@ -214,8 +210,8 @@ const AdminCommentSection = ({ newsId }) => {
           </h3>
         </div>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-4 gap-4 mb-4">
+        {/* Statistics Cards (chỉ Tổng / Đang hiển thị / Đã ẩn) */}
+        <div className="grid grid-cols-3 gap-4 mb-4">
           <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
             <div className="text-sm text-blue-600 font-medium mb-1">Tổng số</div>
             <div className="text-2xl font-bold text-blue-900">{stats.total}</div>
@@ -227,10 +223,6 @@ const AdminCommentSection = ({ newsId }) => {
           <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
             <div className="text-sm text-yellow-600 font-medium mb-1">Đã ẩn</div>
             <div className="text-2xl font-bold text-yellow-900">{stats.hidden}</div>
-          </div>
-          <div className="bg-red-50 rounded-lg p-4 border border-red-200">
-            <div className="text-sm text-red-600 font-medium mb-1">Đã xóa</div>
-            <div className="text-2xl font-bold text-red-900">{stats.deleted}</div>
           </div>
         </div>
 
@@ -271,17 +263,6 @@ const AdminCommentSection = ({ newsId }) => {
               <EyeOff className="w-4 h-4 inline mr-1" />
               Đã ẩn
             </button>
-            <button
-              onClick={() => setFilterStatus('DELETED')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                filterStatus === 'DELETED'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <AlertCircle className="w-4 h-4 inline mr-1" />
-              Đã xóa
-            </button>
           </div>
         </div>
       </div>
@@ -308,48 +289,37 @@ const AdminCommentSection = ({ newsId }) => {
         <div className="text-center py-12 bg-gray-50 rounded-lg">
           <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-600 text-lg mb-2">
-            {filterStatus === 'ALL' ? 'Chưa có bình luận nào' : `Không có bình luận ${filterStatus === 'VISIBLE' ? 'đang hiển thị' : filterStatus === 'HIDDEN' ? 'đã ẩn' : 'đã xóa'}`}
+            {filterStatus === 'ALL' ? 'Chưa có bình luận nào' : `Không có bình luận ${filterStatus === 'VISIBLE' ? 'đang hiển thị' : 'đã ẩn'}`}
           </p>
         </div>
       ) : (
         <div className="comments-list space-y-6">
-          {filteredComments.map((comment) => (
-            <div key={comment._id} className="comment-wrapper">
-              <CommentItem
+          {filteredComments.map((comment) => {
+            const { tail, depth: tailDepth } = getTailAndDepth(comment, replies);
+            const branchReplyCount = getBranchReplyCount(comment, replies);
+            return (
+              <CommentTreeNode
+                key={comment._id}
                 comment={comment}
-                currentUser={user}
-                isReply={false}
+                depth={0}
+                tailId={tail._id}
+                tailDepth={tailDepth}
+                branchReplyCount={branchReplyCount}
+                replies={replies}
+                expandedReplies={expandedReplies}
+                onToggleExpand={handleToggleExpand}
                 onReply={handleReply}
                 onEdit={handleUpdateComment}
-                onDelete={handleDeleteComment}
+                onDelete={handleDeleteCommentNoOp}
                 onModerate={handleModerateComment}
-                isLoading={submitting}
+                currentUser={user}
                 isAdmin={isAdmin}
-                adminMode={true} // Enable admin mode
+                adminMode={true}
+                isLoading={submitting}
+                filterComments={filterComments}
               />
-
-              {/* Replies */}
-              {replies[comment._id] && replies[comment._id].length > 0 && (
-                <div className="replies-container ml-8 mt-4 space-y-4">
-                  {filterComments(replies[comment._id]).map((reply) => (
-                    <CommentItem
-                      key={reply._id}
-                      comment={reply}
-                      currentUser={user}
-                      isReply={true}
-                      onReply={handleReply}
-                      onEdit={handleUpdateComment}
-                      onDelete={handleDeleteComment}
-                      onModerate={handleModerateComment}
-                      isLoading={submitting}
-                      isAdmin={isAdmin}
-                      adminMode={true} // Enable admin mode
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

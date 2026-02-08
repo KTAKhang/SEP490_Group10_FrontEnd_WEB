@@ -1,9 +1,27 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../contexts/AuthContext';
-import CommentItem from './CommentItem';
 import CommentForm from './CommentForm';
+import CommentTreeNode, { getTailAndDepth, getBranchReplyCount } from './CommentTreeNode';
 import * as commentApi from '../../utils/commentApi';
+
+const MAX_REPLY_DEPTH = 5;
+
+/** Load replies đệ quy đến tối đa 5 tầng (dừng khi currentDepth > 5), lưu repliesData[parentId] = Comment[] */
+const loadRepliesRecursive = async (newsId, parentId, currentDepth, repliesData) => {
+  if (currentDepth > MAX_REPLY_DEPTH) return;
+  try {
+    const res = await commentApi.getComments(newsId, parentId);
+    const children = res.status === 'OK' ? (res.data || []) : [];
+    repliesData[parentId] = children;
+    for (const child of children) {
+      await loadRepliesRecursive(newsId, child._id, currentDepth + 1, repliesData);
+    }
+  } catch (err) {
+    console.error(`Error loading replies for comment ${parentId}:`, err);
+    repliesData[parentId] = repliesData[parentId] || [];
+  }
+};
 
 const CommentSection = ({ newsId }) => {
   const { user, isAuthenticated } = useAuth();
@@ -12,11 +30,14 @@ const CommentSection = ({ newsId }) => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [expandedReplies, setExpandedReplies] = useState({});
 
-  // Check if user is admin
   const isAdmin = user?.role === 'admin' || localStorage.getItem('role') === 'admin';
 
-  // Load root comments
+  const handleToggleExpand = useCallback((commentId) => {
+    setExpandedReplies((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
+  }, []);
+
   const loadComments = useCallback(async () => {
     if (!newsId) return;
 
@@ -30,18 +51,9 @@ const CommentSection = ({ newsId }) => {
         const rootComments = response.data || [];
         setComments(rootComments);
 
-        // Load replies for each comment
         const repliesData = {};
         for (const comment of rootComments) {
-          try {
-            const repliesResponse = await commentApi.getComments(newsId, comment._id);
-            if (repliesResponse.status === 'OK') {
-              repliesData[comment._id] = repliesResponse.data || [];
-            }
-          } catch (err) {
-            console.error(`Error loading replies for comment ${comment._id}:`, err);
-            repliesData[comment._id] = [];
-          }
+          await loadRepliesRecursive(newsId, comment._id, 1, repliesData);
         }
         setReplies(repliesData);
       } else {
@@ -50,8 +62,7 @@ const CommentSection = ({ newsId }) => {
     } catch (err) {
       console.error('Error loading comments:', err);
       let errorMessage = err.response?.data?.message || 'Không thể tải bình luận.';
-      
-      // Provide helpful error message for 404
+
       if (err.response?.status === 404) {
         errorMessage = 'API endpoint không tồn tại. Vui lòng:\n1. Kiểm tra backend đã được restart chưa\n2. Kiểm tra route /api/news-comments/:newsId đã được register\n3. Kiểm tra server đang chạy ở đúng port (3001)';
         console.error('🔴 404 Error - Backend route not found:', {
@@ -59,10 +70,9 @@ const CommentSection = ({ newsId }) => {
           suggestion: 'Check if backend server is running and routes are registered'
         });
       }
-      
+
       setError(errorMessage);
-      
-      // Show toast for errors
+
       if (err.response?.status === 404) {
         toast.error('Không tìm thấy API endpoint. Vui lòng kiểm tra backend server.', {
           autoClose: 5000,
@@ -220,6 +230,15 @@ const CommentSection = ({ newsId }) => {
     );
   }
 
+  // Bài đã xóa mềm / không tồn tại: không hiển thị form comment (theo spec soft delete)
+  if (error && (error.includes('không tồn tại') || error.includes('Bài viết không tồn tại'))) {
+    return (
+      <div className="comment-section py-8 border-t border-gray-200 mt-12">
+        <p className="text-gray-600">{error}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="comment-section py-8 border-t border-gray-200 mt-12">
       <h3 className="text-2xl font-bold text-gray-900 mb-6">
@@ -262,41 +281,31 @@ const CommentSection = ({ newsId }) => {
         </div>
       ) : (
         <div className="comments-list space-y-6">
-          {comments.map((comment) => (
-            <div key={comment._id} className="comment-wrapper">
-              <CommentItem
+          {comments.map((comment) => {
+            const { tail, depth: tailDepth } = getTailAndDepth(comment, replies);
+            const branchReplyCount = getBranchReplyCount(comment, replies);
+            return (
+              <CommentTreeNode
+                key={comment._id}
                 comment={comment}
-                currentUser={user}
-                isReply={false}
+                depth={0}
+                tailId={tail._id}
+                tailDepth={tailDepth}
+                branchReplyCount={branchReplyCount}
+                replies={replies}
+                expandedReplies={expandedReplies}
+                onToggleExpand={handleToggleExpand}
                 onReply={handleReply}
                 onEdit={handleUpdateComment}
                 onDelete={handleDeleteComment}
                 onModerate={handleModerateComment}
-                isLoading={submitting}
+                currentUser={user}
                 isAdmin={isAdmin}
+                adminMode={false}
+                isLoading={submitting}
               />
-
-              {/* Replies */}
-              {replies[comment._id] && replies[comment._id].length > 0 && (
-                <div className="replies-container ml-8 mt-4 space-y-4">
-                  {replies[comment._id].map((reply) => (
-                    <CommentItem
-                      key={reply._id}
-                      comment={reply}
-                      currentUser={user}
-                      isReply={true}
-                      onReply={handleReply}
-                      onEdit={handleUpdateComment}
-                      onDelete={handleDeleteComment}
-                      onModerate={handleModerateComment}
-                      isLoading={submitting}
-                      isAdmin={isAdmin}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

@@ -106,6 +106,7 @@ const newsReducer = (state = initialState, action) => {
     case NEWS_GET_NEWS_BY_ID_FAILURE:
       return {
         ...state,
+        newsDetail: null,
         newsDetailLoading: false,
         newsDetailError: action.payload,
       };
