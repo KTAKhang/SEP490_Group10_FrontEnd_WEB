@@ -28,12 +28,12 @@ const SalesStaffSidebar = () => {
     },
     {
       icon: ShoppingCart,
-      label: "Quản lý đơn hàng",
+      label: "Order Management",
       path: "/sale-staff/orders",
     },
     {
       icon: RotateCcw,
-      label: "Quản lý hoàn tiền",
+      label: "Refund Management",
       path: "/sale-staff/refund-orders",
     },
     {

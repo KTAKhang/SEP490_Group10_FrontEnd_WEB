@@ -236,8 +236,13 @@ const OrderLogHistoryPage = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      {logs.map((log) => (
-                        <tr key={log._id} className="hover:bg-gray-50">
+                      {logs.map((log, idx) => {
+                        const orderIdVal = typeof log.order_id === "object" && log.order_id?._id != null
+                          ? String(log.order_id._id)
+                          : "";
+                        const key = `${orderIdVal}-${log.changed_at ?? ''}-${idx}`;
+                        return (
+                        <tr key={key} className="hover:bg-gray-50">
                           <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
                             {formatDate(log.changed_at)}
                           </td>
@@ -288,7 +293,8 @@ const OrderLogHistoryPage = () => {
                             </button>
                           </td>
                         </tr>
-                      ))}
+                      );
+                      })}
                     </tbody>
                   </table>
                 </div>

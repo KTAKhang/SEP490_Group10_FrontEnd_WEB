@@ -404,6 +404,14 @@ const HomePage = () => {
                       alt={product.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
+                    {/* Out of Stock Badge */}
+                    {product.onHandQuantity === 0 && (
+                      <div className="absolute top-4 left-4">
+                        <span className="inline-flex items-center px-3 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold shadow-lg">
+                          Out of stock
+                        </span>
+                      </div>
+                    )}
                   </div>
 
 
@@ -437,10 +445,17 @@ const HomePage = () => {
                         </span>
                       </div>
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (product.onHandQuantity === 0) return;
                           dispatch(addItemToCartRequest(product._id, 1));
                         }}
-                        className="bg-gray-900 text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-gray-800 transition-colors whitespace-nowrap cursor-pointer"
+                        disabled={product.onHandQuantity === 0}
+                        className={`px-6 py-3 rounded-full text-sm font-semibold transition-colors whitespace-nowrap ${
+                          product.onHandQuantity === 0
+                            ? "bg-gray-400 text-white cursor-not-allowed"
+                            : "bg-gray-900 text-white hover:bg-gray-800 cursor-pointer"
+                        }`}
                       >
                         Add to Cart
                       </button>

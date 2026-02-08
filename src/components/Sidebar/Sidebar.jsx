@@ -75,7 +75,7 @@ const Sidebar = () => {
     },
     {
       icon: RotateCcw,
-      label: "Quản lý hoàn tiền",
+      label: "Refund Management",
       path: "/admin/refund-orders",
     },
     {
