@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import {
   Search,
   Package,
+  Eye,
   ChevronLeft,
   ChevronRight,
   ArrowRightLeft,
@@ -523,28 +524,36 @@ const OrderManagement = () => {
                   <div className="text-sm text-gray-700">
                     Payment: {order.payment_method}
                   </div>
+                  {!!(order.discount_code || (order.discount_amount != null && order.discount_amount > 0)) && (
+                    <div className="text-sm text-gray-700 space-y-0.5">
+                      <div>Original: <span className="font-medium">{formatCurrency(order.original_price ?? (order.total_price ?? 0) + (order.discount_amount ?? 0))} VND</span></div>
+                      <div>Discount code: <span className="font-medium">{order.discount_code}</span></div>
+                      <div>Discount: <span className="text-green-600 font-medium">-{formatCurrency(order.discount_amount)} VND</span></div>
+                    </div>
+                  )}
                 </div>
 
 
                 <div className="flex flex-col items-start lg:items-end gap-2">
                   <div className="text-lg font-semibold text-gray-900">
-                    {formatCurrency(order.total_price)}
+                    {formatCurrency(order.total_price)} VND
                   </div>
                   <div>{renderPaymentBadge(order.payment)}</div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap items-center gap-1">
                     <button
                       onClick={() => handleOpenDetail(order._id)}
-                      className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
+                      className="rounded-xl p-2 text-blue-600 transition hover:bg-blue-50 hover:text-blue-700"
+                      title="View details"
                     >
-                      View details
+                      <Eye size={18} />
                     </button>
                     {!shouldHideUpdateStatusButton(order) && (
                       <button
                         onClick={() => handleOpenUpdate(order)}
-                        className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
+                        className="rounded-xl p-2 text-emerald-600 transition hover:bg-emerald-50 hover:text-emerald-700"
+                        title="Update status"
                       >
-                        <ArrowRightLeft size={16} />
-                        Update status
+                        <ArrowRightLeft size={18} />
                       </button>
                     )}
                   </div>

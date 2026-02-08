@@ -240,10 +240,29 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
               </div>
 
 
+              {!!(orderDetail.order?.discount_code || (orderDetail.order?.discount_amount != null && orderDetail.order?.discount_amount > 0)) && (
+                <>
+                  <div className="flex items-center justify-between border-t pt-3 text-sm text-gray-700">
+                    <span>Original order total</span>
+                    <span>
+                      {formatCurrency(
+                        orderDetail.order?.original_price ??
+                        (orderDetail.order?.total_price ?? 0) + (orderDetail.order?.discount_amount ?? 0)
+                      )} VND
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 text-sm text-gray-700">
+                    <span>Discount ({orderDetail.order?.discount_code})</span>
+                    <span className="text-green-600 font-medium">
+                      -{formatCurrency(orderDetail.order?.discount_amount)} VND
+                    </span>
+                  </div>
+                </>
+              )}
               <div className="flex items-center justify-between border-t pt-3 text-sm text-gray-700">
                 <span>Total</span>
                 <span className="font-semibold text-gray-900">
-                  {formatCurrency(orderDetail.order?.total_price)}
+                  {formatCurrency(orderDetail.order?.total_price)} VND
                 </span>
               </div>
 

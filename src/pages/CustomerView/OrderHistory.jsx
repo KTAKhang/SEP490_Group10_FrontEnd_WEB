@@ -443,6 +443,11 @@ const OrderHistory = () => {
                           VND
                         </span>
                       </div>
+                      {!!(order.discount_code || (order.discount_amount != null && order.discount_amount > 0)) && (
+                        <div className="text-xs text-green-600 mt-0.5">
+                          Code: {order.discount_code} • -{formatCurrency(order.discount_amount)} VND
+                        </div>
+                      )}
                       <div className="flex items-center justify-end gap-1.5 text-gray-500 text-xs mt-0.5">
                         <CreditCard className="w-3.5 h-3.5" />
                         <span>{order.payment_method || "N/A"}</span>

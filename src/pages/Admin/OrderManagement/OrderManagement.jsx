@@ -511,11 +511,11 @@ const OrderManagement = () => {
                   <div className="text-sm text-gray-700">
                     Payment: {order.payment_method}
                   </div>
-                  {(order.discount_code || (order.discount_amount && order.discount_amount > 0)) && (
+                  {!!(order.discount_code || (order.discount_amount != null && order.discount_amount > 0)) && (
                     <div className="text-sm text-gray-700 space-y-0.5">
-                      <div>Mã giảm giá: <span className="font-medium">{order.discount_code}</span></div>
-                      <div>Giảm: <span className="text-green-600 font-medium">-{formatCurrency(order.discount_amount)}</span></div>
-                      <div>Tổng sau giảm: <span className="font-medium">{formatCurrency(order.total_price)}</span></div>
+                      <div>Original: <span className="font-medium">{formatCurrency(order.original_price ?? (order.total_price ?? 0) + (order.discount_amount ?? 0))} VND</span></div>
+                      <div>Discount code: <span className="font-medium">{order.discount_code}</span></div>
+                      <div>Discount: <span className="text-green-600 font-medium">-{formatCurrency(order.discount_amount)} VND</span></div>
                     </div>
                   )}
                 </div>
@@ -523,13 +523,8 @@ const OrderManagement = () => {
 
                 <div className="flex flex-col items-start lg:items-end gap-2">
                   <div className="text-lg font-semibold text-gray-900">
-                    {formatCurrency(order.total_price)}
+                    {formatCurrency(order.total_price)} VND
                   </div>
-                  {(order.discount_code || (order.discount_amount > 0)) && (
-                    <div className="text-sm text-gray-600">
-                      Mã: {order.discount_code} • Giảm {formatCurrency(order.discount_amount)}
-                    </div>
-                  )}
                   <div>{renderPaymentBadge(order.payment)}</div>
                   <div className="flex flex-wrap items-center gap-1">
                     <button
