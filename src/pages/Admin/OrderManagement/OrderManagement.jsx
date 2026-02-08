@@ -462,12 +462,24 @@ const OrderManagement = () => {
                   <div className="text-sm text-gray-700">
                     Thanh toán: {order.payment_method}
                   </div>
+                  {(order.discount_code || (order.discount_amount && order.discount_amount > 0)) && (
+                    <div className="text-sm text-gray-700 space-y-0.5">
+                      <div>Mã giảm giá: <span className="font-medium">{order.discount_code}</span></div>
+                      <div>Giảm: <span className="text-green-600 font-medium">-{formatCurrency(order.discount_amount)}</span></div>
+                      <div>Tổng sau giảm: <span className="font-medium">{formatCurrency(order.total_price)}</span></div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex flex-col items-start lg:items-end gap-2">
                   <div className="text-lg font-semibold text-gray-900">
                     {formatCurrency(order.total_price)}
                   </div>
+                  {(order.discount_code || (order.discount_amount > 0)) && (
+                    <div className="text-sm text-gray-600">
+                      Mã: {order.discount_code} • Giảm {formatCurrency(order.discount_amount)}
+                    </div>
+                  )}
                   <div>{renderPaymentBadge(order.payment)}</div>
                   <div className="flex flex-wrap gap-2">
                     <button

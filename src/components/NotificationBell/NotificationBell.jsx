@@ -31,6 +31,8 @@ import { useState, useEffect, useRef } from 'react';
 import apiClient from '../../utils/axiosConfig';
 import { handleNotificationClick as handleNotificationClickService } from '../../services/notificationService';
 
+const BODY_PREVIEW_LENGTH = 80; // Show "View detail" if body is longer
+
 const NotificationBell = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -38,6 +40,7 @@ const NotificationBell = () => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [expandedId, setExpandedId] = useState(null); // notification _id when detail is expanded
   const dropdownRef = useRef(null);
   const scrollRef = useRef(null);
 
@@ -112,11 +115,13 @@ const NotificationBell = () => {
     };
   }, [isOpen]);
 
-  // Fetch notifications when dropdown opens
+  // Fetch notifications when dropdown opens; reset expanded detail when closing
   useEffect(() => {
     if (isOpen) {
       fetchNotifications(1, false);
       setPage(1);
+    } else {
+      setExpandedId(null);
     }
   }, [isOpen]);
 
@@ -332,9 +337,21 @@ const NotificationBell = () => {
                             <span className="ml-2 w-2 h-2 bg-green-600 rounded-full flex-shrink-0 mt-1.5"></span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                        <p className={`text-sm text-gray-600 mb-2 ${expandedId === notification._id ? '' : 'line-clamp-2'}`}>
                           {notification.body}
                         </p>
+                        {notification.body && notification.body.length > BODY_PREVIEW_LENGTH && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setExpandedId(prev => prev === notification._id ? null : notification._id);
+                            }}
+                            className="text-xs font-medium text-green-600 hover:text-green-700 transition-colors mb-2"
+                          >
+                            {expandedId === notification._id ? 'Show less' : 'View detail'}
+                          </button>
+                        )}
                         <div className="flex items-center justify-between">
                           <p className="text-xs text-gray-500 font-medium">
                             {formatTime(notification.createdAt)}

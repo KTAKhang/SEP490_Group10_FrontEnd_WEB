@@ -10,14 +10,14 @@ import {
 import { OrderHistoryDetailContent } from "./OrderHistoryDetail";
 
 const STATUS_OPTIONS = [
-  { value: "ALL", label: "Tất cả" },
-  { value: "PENDING", label: "Chờ xử lý" },
-  { value: "PAID", label: "Đã thanh toán" },
-  { value: "READY-TO-SHIP", label: "Sẵn sàng giao" },
-  { value: "SHIPPING", label: "Đang giao" },
-  { value: "COMPLETED", label: "Hoàn thành" },
-  { value: "RETURNED", label: "Trả hàng" },
-  { value: "CANCELLED", label: "Đã hủy" },
+  { value: "ALL", label: "All" },
+  { value: "PENDING", label: "Pending" },
+  { value: "PAID", label: "Paid" },
+  { value: "READY-TO-SHIP", label: "Ready to ship" },
+  { value: "SHIPPING", label: "Shipping" },
+  { value: "COMPLETED", label: "Completed" },
+  { value: "RETURNED", label: "Returned" },
+  { value: "CANCELLED", label: "Cancelled" },
 ];
 
 const FILTERABLE_STATUSES = STATUS_OPTIONS.filter(
@@ -40,10 +40,10 @@ const normalizeStatus = (value) =>
 const toApiStatus = (value) => normalizeStatus(value).replace(/-/g, "_");
 
 const formatCurrency = (value) =>
-  (value || 0).toLocaleString("vi-VN", { maximumFractionDigits: 0 }) + "đ";
+  (value || 0).toLocaleString("en-US", { maximumFractionDigits: 0 }) + " VND";
 
 const formatDate = (value) =>
-  value ? new Date(value).toLocaleString("vi-VN") : "N/A";
+  value ? new Date(value).toLocaleString("en-US") : "N/A";
 
 const OrderHistory = () => {
   const dispatch = useDispatch();
@@ -107,7 +107,7 @@ const OrderHistory = () => {
 
   const handleCancelOrder = (orderId) => {
     if (!orderId) return;
-    const confirmed = window.confirm("Bạn có chắc muốn hủy đơn hàng này?");
+    const confirmed = window.confirm("Are you sure you want to cancel this order?");
     if (!confirmed) return;
     cancelingRef.current = orderId;
     dispatch(orderCancelRequest(orderId));
@@ -143,9 +143,9 @@ const OrderHistory = () => {
     <div className="p-6">
       <div className="bg-white rounded-lg border shadow-sm">
         <div className="p-6 border-b">
-          <h1 className="text-2xl font-bold text-gray-900">Lịch sử mua hàng</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Order History</h1>
           <p className="text-sm text-gray-600 mt-1">
-           
+            View and manage your orders
           </p>
         </div>
 
@@ -153,7 +153,7 @@ const OrderHistory = () => {
           <div className="flex flex-col md:flex-row md:items-start gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Trạng thái
+                Status
               </label>
               <div className="flex flex-wrap gap-2">
                 <button
@@ -167,7 +167,7 @@ const OrderHistory = () => {
                       : "border-gray-300 text-gray-700 hover:bg-gray-50"
                   }`}
                 >
-                  Tất cả
+                  All
                 </button>
                 {FILTERABLE_STATUSES.map((status) => {
                   const isActive = statusFilters.includes(status.value);
@@ -195,7 +195,7 @@ const OrderHistory = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Sắp xếp
+                Sort
               </label>
               <select
                 value={`${sortBy}:${sortOrder}`}
@@ -207,10 +207,10 @@ const OrderHistory = () => {
                 }}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
-                <option value="createdAt:desc">Mới nhất</option>
-                <option value="createdAt:asc">Cũ nhất</option>
-                <option value="total_price:desc">Tổng tiền giảm dần</option>
-                <option value="total_price:asc">Tổng tiền tăng dần</option>
+                <option value="createdAt:desc">Newest first</option>
+                <option value="createdAt:asc">Oldest first</option>
+                <option value="total_price:desc">Total: high to low</option>
+                <option value="total_price:asc">Total: low to high</option>
               </select>
             </div>
           </div>
@@ -219,12 +219,12 @@ const OrderHistory = () => {
         <div className="p-6">
           {historyLoading ? (
             <div className="py-10 text-center text-gray-600">
-              Đang tải lịch sử đơn hàng...
+              Loading order history...
             </div>
           ) : orders?.length === 0 ? (
             <div className="py-12 text-center text-gray-600">
               <Package className="mx-auto mb-3 text-gray-400" size={32} />
-              Chưa có đơn hàng nào
+              No orders yet
             </div>
           ) : (
             <div className="space-y-4">
@@ -236,19 +236,26 @@ const OrderHistory = () => {
                   <div className="space-y-2">
                     <div className="flex items-center gap-3">
                       <span className="text-sm text-gray-500">
-                        Mã đơn: {order._id}
+                        Order ID: {order._id}
                       </span>
                       {renderStatusBadge(order.order_status_id?.name)}
                     </div>
                     <div className="text-sm text-gray-700">
-                      Ngày đặt: {formatDate(order.createdAt)}
+                      Order date: {formatDate(order.createdAt)}
                     </div>
                     <div className="text-sm text-gray-700">
-                      Người nhận: {order.receiver_name} ({order.receiver_phone})
+                      Recipient: {order.receiver_name} ({order.receiver_phone})
                     </div>
                     <div className="text-sm text-gray-700">
-                      Địa chỉ: {order.receiver_address}
+                      Address: {order.receiver_address}
                     </div>
+                    {(order.discount_code || (order.discount_amount && order.discount_amount > 0)) && (
+                      <div className="text-sm text-gray-700 space-y-0.5">
+                        <div>Discount code: <span className="font-medium">{order.discount_code}</span></div>
+                        <div>Discount: <span className="text-green-600 font-medium">-{formatCurrency(order.discount_amount)}</span></div>
+                        <div>Total after discount: <span className="font-medium">{formatCurrency(order.total_price)}</span></div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex flex-col items-start lg:items-end gap-2">
@@ -256,21 +263,24 @@ const OrderHistory = () => {
                       {formatCurrency(order.total_price)}
                     </div>
                     <div className="text-sm text-gray-600">
-                      Thanh toán: {order.payment_method || "N/A"}
+                      {(order.discount_code || (order.discount_amount > 0)) && (
+                        <div>Code: {order.discount_code} • Discount {formatCurrency(order.discount_amount)}</div>
+                      )}
+                      <div>Payment: {order.payment_method || "N/A"}</div>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleViewDetail(order._id)}
                         className="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
                       >
-                        Xem chi tiết
+                        View details
                       </button>
                       {canCancelOrder(order) && (
                         <button
                           onClick={() => handleCancelOrder(order._id)}
                           className="px-3 py-2 border border-red-300 text-red-600 rounded-lg text-sm hover:bg-red-50"
                         >
-                          Hủy đơn
+                          Cancel order
                         </button>
                       )}
                     </div>
@@ -291,7 +301,7 @@ const OrderHistory = () => {
               <ChevronLeft size={18} />
             </button>
             <span className="text-sm text-gray-600">
-              Trang {page} / {totalPages}
+              Page {page} / {totalPages}
             </span>
             <button
               onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}

@@ -8,13 +8,13 @@ import {
 } from "../../redux/actions/orderActions";
 
 const STATUS_OPTIONS = [
-  { value: "PENDING", label: "Chờ xử lý" },
-  { value: "PAID", label: "Đã thanh toán" },
-  { value: "READY-TO-SHIP", label: "Sẵn sàng giao" },
-  { value: "SHIPPING", label: "Đang giao" },
-  { value: "COMPLETED", label: "Hoàn thành" },
-  { value: "RETURNED", label: "Trả hàng" },
-  { value: "CANCELLED", label: "Đã hủy" },
+  { value: "PENDING", label: "Pending" },
+  { value: "PAID", label: "Paid" },
+  { value: "READY-TO-SHIP", label: "Ready to ship" },
+  { value: "SHIPPING", label: "Shipping" },
+  { value: "COMPLETED", label: "Completed" },
+  { value: "RETURNED", label: "Returned" },
+  { value: "CANCELLED", label: "Cancelled" },
 ];
 
 const STATUS_BADGE = {
@@ -31,10 +31,10 @@ const normalizeStatus = (value) =>
   value ? value.toString().trim().toUpperCase().replace(/[_\s]+/g, "-") : "";
 
 const formatCurrency = (value) =>
-  (value || 0).toLocaleString("vi-VN", { maximumFractionDigits: 0 }) + "đ";
+  (value || 0).toLocaleString("en-US", { maximumFractionDigits: 0 }) + " VND";
 
 const formatDate = (value) =>
-  value ? new Date(value).toLocaleString("vi-VN") : "N/A";
+  value ? new Date(value).toLocaleString("en-US") : "N/A";
 
 /**
  * Nội dung popup chi tiết đơn hàng.
@@ -78,12 +78,12 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between p-4 border-b shrink-0">
-          <h2 className="text-lg font-bold text-gray-900">Chi tiết đơn hàng</h2>
+          <h2 className="text-lg font-bold text-gray-900">Order Details</h2>
           <button
             type="button"
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
-            aria-label="Đóng"
+            aria-label="Close"
           >
             <X size={20} />
           </button>
@@ -91,28 +91,28 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
         <div className="p-4 overflow-y-auto flex-1">
           {detailLoading || !orderDetail ? (
             <div className="py-10 text-center text-gray-600">
-              Đang tải chi tiết đơn hàng...
+              Loading order details...
             </div>
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="space-y-2 text-sm text-gray-700">
-                  <div>Mã đơn: {orderDetail.order?._id}</div>
-                  <div>Ngày đặt: {formatDate(orderDetail.order?.createdAt)}</div>
+                  <div>Order ID: {orderDetail.order?._id}</div>
+                  <div>Order date: {formatDate(orderDetail.order?.createdAt)}</div>
                   <div>
-                    Trạng thái:{" "}
+                    Status:{" "}
                     {renderStatusBadge(orderDetail.order?.order_status_id?.name)}
                   </div>
                 </div>
                 <div className="space-y-2 text-sm text-gray-700">
-                  <div>Người nhận: {orderDetail.order?.receiver_name}</div>
-                  <div>Điện thoại: {orderDetail.order?.receiver_phone}</div>
-                  <div>Địa chỉ: {orderDetail.order?.receiver_address}</div>
+                  <div>Recipient: {orderDetail.order?.receiver_name}</div>
+                  <div>Phone: {orderDetail.order?.receiver_phone}</div>
+                  <div>Address: {orderDetail.order?.receiver_address}</div>
                 </div>
               </div>
 
               <div className="mb-4">
-                <h3 className="text-sm font-semibold text-gray-800 mb-2">Sản phẩm</h3>
+                <h3 className="text-sm font-semibold text-gray-800 mb-2">Products</h3>
                 <div className="space-y-2">
                   {orderDetail.details?.map((item) => {
                     const productId = item.product_id?._id || item.product_id;
@@ -171,7 +171,7 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
                           </div>
                         </div>
                         <div className="text-right text-sm text-gray-700">
-                          <div>Số lượng: {item.quantity}</div>
+                          <div>Qty: {item.quantity}</div>
                           <div>{formatCurrency(item.price)}</div>
                           {isCompleted && productId && (
                             <div className="mt-1 flex flex-col gap-0.5">
@@ -184,15 +184,15 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
                                       className="inline-flex text-xs font-medium px-2 py-1 rounded border border-green-600 text-green-600 bg-green-50 hover:bg-green-100"
                                       onClick={onClose}
                                     >
-                                      Sửa đánh giá
+                                      Edit review
                                     </Link>
                                     <span className="block text-xs text-gray-500">
-                                      Đã đánh giá {review.rating}⭐
+                                      Rated {review.rating}⭐
                                     </span>
                                   </>
                                 ) : (
                                   <span className="text-xs text-gray-500">
-                                    Đã đánh giá {review.rating}⭐
+                                    Rated {review.rating}⭐
                                   </span>
                                 )
                               ) : (
@@ -201,7 +201,7 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
                                   className="inline-block text-xs px-2 py-1 rounded text-green-600 hover:bg-green-50"
                                   onClick={onClose}
                                 >
-                                  Đánh giá
+                                  Write review
                                 </Link>
                               )}
                             </div>
@@ -213,17 +213,41 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between border-t pt-3 text-sm text-gray-700">
-                <span>Tổng tiền</span>
-                <span className="font-semibold text-gray-900">
-                  {formatCurrency(orderDetail.order?.total_price)}
-                </span>
+              <div className="border-t pt-3 space-y-2 text-sm text-gray-700">
+                {(orderDetail.order?.discount_code || (orderDetail.order?.discount_amount > 0)) && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span>Discount code</span>
+                      <span className="font-medium">{orderDetail.order.discount_code}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Discount amount</span>
+                      <span className="text-green-600 font-medium">
+                        -{formatCurrency(orderDetail.order.discount_amount)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-gray-500">
+                      <span>Subtotal (before discount)</span>
+                      <span>
+                        {formatCurrency(
+                          (orderDetail.order?.total_price || 0) + (orderDetail.order?.discount_amount || 0)
+                        )}
+                      </span>
+                    </div>
+                  </>
+                )}
+                <div className="flex items-center justify-between pt-1">
+                  <span className="font-medium text-gray-900">Total</span>
+                  <span className="font-semibold text-gray-900">
+                    {formatCurrency(orderDetail.order?.total_price)}
+                  </span>
+                </div>
               </div>
 
               {orderDetail.order?.status_history?.length > 0 && (
                 <div className="mt-4">
                   <h3 className="text-sm font-semibold text-gray-800 mb-2">
-                    Lịch sử trạng thái
+                    Status history
                   </h3>
                   <div className="space-y-2 text-sm text-gray-700">
                     {orderDetail.order.status_history.map((history, idx) => (
@@ -275,7 +299,7 @@ const OrderHistoryDetailRedirect = () => {
 
   return (
     <div className="p-6 flex items-center justify-center min-h-[200px] text-gray-600">
-      Đang chuyển đến lịch sử đơn hàng...
+      Redirecting to order history...
     </div>
   );
 };

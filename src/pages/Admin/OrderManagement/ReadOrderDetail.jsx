@@ -97,11 +97,35 @@ const ReadOrderDetail = ({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between border-t pt-4 text-sm text-gray-700">
-                <span>Tổng tiền</span>
-                <span className="text-lg font-semibold text-gray-900">
-                  {formatCurrency(adminDetail.order?.total_price)}
-                </span>
+              <div className="border-t pt-4 space-y-2 text-sm text-gray-700">
+                {(adminDetail.order?.discount_code || (adminDetail.order?.discount_amount > 0)) && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span>Mã giảm giá</span>
+                      <span className="font-medium">{adminDetail.order.discount_code}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Số tiền giảm</span>
+                      <span className="text-green-600 font-medium">
+                        -{formatCurrency(adminDetail.order.discount_amount)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-gray-500">
+                      <span>Tạm tính (trước giảm)</span>
+                      <span>
+                        {formatCurrency(
+                          (adminDetail.order?.total_price || 0) + (adminDetail.order?.discount_amount || 0)
+                        )}
+                      </span>
+                    </div>
+                  </>
+                )}
+                <div className="flex items-center justify-between pt-1">
+                  <span className="font-medium text-gray-900">Tổng thanh toán</span>
+                  <span className="text-lg font-semibold text-gray-900">
+                    {formatCurrency(adminDetail.order?.total_price)}
+                  </span>
+                </div>
               </div>
 
               {adminDetail.order?.status_history?.length > 0 && (
