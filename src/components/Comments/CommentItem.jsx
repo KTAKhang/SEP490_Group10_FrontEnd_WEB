@@ -3,17 +3,23 @@ import { formatRelativeTime, formatAbsoluteTime } from '../../utils/commentUtils
 import CommentForm from './CommentForm';
 import { MoreVertical, Edit, Trash2, Reply, Eye, EyeOff, Shield } from 'lucide-react';
 
+/** Ẩn nút Trả lời khi comment reply ở mức 4 (depth 0=root, 1..4=reply; từ mức 4 trở đi ẩn) */
+const REPLY_HIDE_AT_LEVEL = 4;
+
 const CommentItem = ({
   comment,
   currentUser,
   isReply = false,
+  depth = 0,
+  canShowReply = false,
+  maxDepthReached = false, // true khi nhánh đã đạt mức 4 (ẩn nút Trả lời)
   onReply,
   onEdit,
   onDelete,
   onModerate,
   isLoading = false,
   isAdmin = false,
-  adminMode = false, // Admin mode: admin can edit/delete any comment
+  adminMode = false,
 }) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
@@ -24,7 +30,10 @@ const CommentItem = ({
   const isDeleted = comment.status === 'DELETED';
   const isHidden = comment.status === 'HIDDEN';
 
-  // In admin mode, admin can edit/delete any comment
+  // Ẩn nút Trả lời khi reply ở mức 4 (depth >= 4) hoặc nhánh đã chạm ngưỡng
+  const atReplyLimit = depth >= REPLY_HIDE_AT_LEVEL || maxDepthReached;
+  const replyAllowed = canShowReply && !atReplyLimit;
+
   const canEdit = adminMode ? isAdmin : isOwner;
   const canDelete = adminMode ? isAdmin : isOwner;
 
@@ -56,7 +65,7 @@ const CommentItem = ({
   };
 
   return (
-    <div className={`comment-item ${isReply ? 'ml-8 mt-4' : 'mb-6'}`}>
+    <div className={`comment-item ${isReply ? 'mt-4' : 'mb-6'}`}>
       <div className="flex items-start space-x-3">
         {/* Avatar */}
         <div className="flex-shrink-0">
@@ -139,7 +148,7 @@ const CommentItem = ({
                       onClick={() => setShowActionsMenu(false)}
                     />
                     <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-20 py-1">
-                      {currentUser && !isReply && !isDeleted && (
+                      {currentUser && !isDeleted && replyAllowed && (
                         <button
                           onClick={() => {
                             setShowReplyForm(true);
@@ -163,7 +172,8 @@ const CommentItem = ({
                           <span>{adminMode ? 'Chỉnh sửa (Admin)' : 'Chỉnh sửa'}</span>
                         </button>
                       )}
-                      {canDelete && (
+                      {/* Chỉ hiện nút Xóa cho chủ comment (user), không hiện khi admin - admin chỉ dùng Ẩn/Hiện */}
+                      {canDelete && !adminMode && (
                         <button
                           onClick={() => {
                             handleDelete();
@@ -172,7 +182,7 @@ const CommentItem = ({
                           className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
                         >
                           <Trash2 className="w-4 h-4" />
-                          <span>{adminMode ? 'Xóa (Admin)' : 'Xóa'}</span>
+                          <span>Xóa</span>
                         </button>
                       )}
                       {isAdmin && !isDeleted && (
@@ -224,12 +234,12 @@ const CommentItem = ({
                 {comment.content}
               </div>
 
-              {/* Quick Reply Button (if not deleted, user is logged in, and not a reply) */}
-              {currentUser && !isDeleted && !isReply && (
+              {/* Ẩn nút Trả lời khi đã chạm ngưỡng giới hạn (tối đa 5 tầng) */}
+              {currentUser && !isDeleted && replyAllowed && (
                 <button
                   onClick={() => setShowReplyForm(true)}
                   className="text-sm text-green-600 hover:text-green-700 font-medium"
-                  title="Chỉ có thể trả lời comment gốc"
+                  title="Trả lời"
                 >
                   Trả lời
                 </button>
@@ -237,8 +247,8 @@ const CommentItem = ({
             </>
           )}
 
-          {/* Reply Form - Only show for root comments (not replies) */}
-          {showReplyForm && currentUser && !isDeleted && !isReply && (
+          {/* Reply Form - ẩn khi đã chạm ngưỡng */}
+          {showReplyForm && currentUser && !isDeleted && replyAllowed && (
             <div className="mt-4">
               <CommentForm
                 onSubmit={handleReply}

@@ -67,6 +67,7 @@ const NewsFormPage = () => {
   const {
     newsDetail,
     newsDetailLoading,
+    newsDetailError,
     createNewsLoading,
     createNewsSuccess,
     createNewsError,
@@ -311,6 +312,26 @@ const NewsFormPage = () => {
           <div className="text-center">
             <div className="inline-block w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin mb-4"></div>
             <p className="text-gray-600">Loading news...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Bài đã xóa mềm hoặc không tồn tại (soft delete)
+  if (isEditMode && newsDetailError && !newsDetailLoading) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <p className="text-red-600 text-lg mb-4">{newsDetailError}</p>
+            <button
+              onClick={() => navigate('/admin/news')}
+              className="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              Back to News List
+            </button>
           </div>
         </div>
       </div>

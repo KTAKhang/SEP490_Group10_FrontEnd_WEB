@@ -193,3 +193,22 @@ figure.image.image-style-align-right {
 .ck-editor__main {
   width: 100%;
 }
+
+/* Con trỏ chuột & caret màu đen trên ô nhập (contact, news, shop - customer & admin) */
+input:not([type="file"]):not([type="image"]):not([type="submit"]):not([type="button"]):not([type="reset"]),
+textarea {
+  caret-color: #000;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='14' viewBox='0 0 1 14'%3E%3Crect width='1' height='14' fill='%23000'/%3E%3C/svg%3E") 0 7, text;
+}
+
+select {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 32 32'%3E%3Cpath fill='%23000' d='M4 4l12 16 12-16H4z'/%3E%3C/svg%3E") 6 4, pointer;
+}
+
+.ck-editor__editable,
+.ck-editor__editable_inline {
+  caret-color: #000;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='14' viewBox='0 0 1 14'%3E%3Crect width='1' height='14' fill='%23000'/%3E%3C/svg%3E") 0 7, text;
+}
+
+

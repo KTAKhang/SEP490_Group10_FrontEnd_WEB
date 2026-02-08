@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import AllRoutes from "./components/AllRoutes";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -6,6 +7,14 @@ import FirebaseNotificationProvider from "./components/FirebaseNotificationProvi
 import ScrollToTop from "./components/ScrollToTop";
 
 export default function App() {
+  // Khi load/reload trang luôn scroll lên đầu
+  useEffect(() => {
+    if (typeof window !== "undefined" && "scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <AuthProvider>
       <FirebaseNotificationProvider>
