@@ -200,7 +200,12 @@ const RefundOrdersPage = () => {
                           {order.receiver_name || "—"}
                         </td>
                         <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                          {formatCurrency(order.total_price)} VND
+                          <div>{formatCurrency(order.total_price)} VND</div>
+                          {!!(order.discount_code || (order.discount_amount != null && order.discount_amount > 0)) && (
+                            <div className="text-xs text-green-600 font-normal mt-0.5">
+                              Code: {order.discount_code} • -{formatCurrency(order.discount_amount)} VND
+                            </div>
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           {renderPaymentBadge(order.payment)}

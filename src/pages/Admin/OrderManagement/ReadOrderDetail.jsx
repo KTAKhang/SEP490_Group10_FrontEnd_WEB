@@ -89,7 +89,7 @@ const ReadOrderDetail = ({
                           <div className="space-y-0.5">
                             <div className="line-through text-gray-500">{formatCurrency(item.original_price)} VND</div>
                             <div className="font-medium text-green-600">{formatCurrency(item.price)} VND</div>
-                            <span className="inline-block text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">Giảm giá</span>
+                            <span className="inline-block text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">Discount</span>
                           </div>
                         ) : (
                           <div>{formatCurrency(item.price)} VND</div>
@@ -120,17 +120,36 @@ const ReadOrderDetail = ({
                         disabled={confirmRefundLoading}
                         className="ml-auto rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
                       >
-                        {confirmRefundLoading ? "Đang xử lý..." : "Xác nhận đã hoàn tiền"}
+                        {confirmRefundLoading ? "Processing..." : "Confirm refund"}
                       </button>
                     )}
                 </div>
               </div>
 
 
+              {!!(adminDetail.order?.discount_code || (adminDetail.order?.discount_amount != null && adminDetail.order?.discount_amount > 0)) && (
+                <>
+                  <div className="flex items-center justify-between border-t pt-4 text-sm text-gray-700">
+                    <span>Original order total</span>
+                    <span>
+                      {formatCurrency(
+                        adminDetail.order?.original_price ??
+                        (adminDetail.order?.total_price ?? 0) + (adminDetail.order?.discount_amount ?? 0)
+                      )} VND
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 text-sm text-gray-700">
+                    <span>Discount ({adminDetail.order?.discount_code})</span>
+                    <span className="text-green-600 font-medium">
+                      -{formatCurrency(adminDetail.order?.discount_amount)} VND
+                    </span>
+                  </div>
+                </>
+              )}
               <div className="flex items-center justify-between border-t pt-4 text-sm text-gray-700">
                 <span>Total</span>
                 <span className="text-lg font-semibold text-gray-900">
-                  {formatCurrency(adminDetail.order?.total_price)}
+                  {formatCurrency(adminDetail.order?.total_price)} VND
                 </span>
               </div>
 
