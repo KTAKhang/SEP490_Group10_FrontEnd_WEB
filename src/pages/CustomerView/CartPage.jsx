@@ -150,12 +150,12 @@ const CartPage = () => {
 
   const handleCheckout = () => {
     if (!items || items.length === 0) {
-      alert("Giỏ hàng đang trống");
+      alert("Cart is empty");
       return;
     }
 
     if (!selectedItems || selectedItems.length === 0) {
-      alert("Vui lòng chọn ít nhất một sản phẩm để thanh toán");
+      alert("Please select at least one product to proceed to checkout");
       return;
     }
 
@@ -178,6 +178,26 @@ const CartPage = () => {
             {cart.items?.length} products in the shopping cart
           </p>
         </div>
+         {cart.updateLoading && (
+          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl shadow-xl p-8 flex flex-col items-center gap-4">
+              <div className="w-14 h-14 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+              <p className="text-green-600 font-semibold text-lg">
+                Processing Cart Updated...
+              </p>
+            </div>
+          </div>
+        )}
+        {checkout.loading && (
+          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl shadow-xl p-8 flex flex-col items-center gap-4">
+              <div className="w-14 h-14 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+              <p className="text-green-600 font-semibold text-lg">
+                Processing Checkout...
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
@@ -204,6 +224,10 @@ const CartPage = () => {
                     "../../../public/a1.png";
                   const price =
                     item.product?.price ?? item.price ?? item.unit_price ?? 0;
+                  const originalPrice =
+                    item.originalPrice ?? item.product?.originalPrice ?? null;
+                  const isNearExpiry =
+                    item.isNearExpiry ?? item.product?.isNearExpiry ?? false;
                   const qty = item.quantity || 0;
                   const displayQty =
                     editingQuantity[pid] !== undefined
@@ -237,7 +261,18 @@ const CartPage = () => {
                           <h3 className="font-bold text-gray-900 mb-2">
                             {name}
                           </h3>
-
+                          {isNearExpiry && (
+                            <span className="inline-block text-xs font-medium px-2 py-0.5 rounded bg-amber-100 text-amber-800 mb-2">
+                              Near expiry - Special price
+                            </span>
+                          )}
+                          {isNearExpiry &&
+                            originalPrice != null &&
+                            originalPrice > 0 && (
+                              <span className="text-sm text-gray-500 line-through block mb-1">
+                                Original price: {formatPrice(originalPrice)}
+                              </span>
+                            )}
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <div className="flex items-center border border-gray-200 rounded-lg">
@@ -389,7 +424,6 @@ const CartPage = () => {
                   </div>
                 )}
 
-               
                 <div className="border-t border-gray-200 pt-4">
                   <div className="flex justify-between items-center">
                     <span className="text-lg font-bold text-gray-900">

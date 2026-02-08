@@ -8,8 +8,8 @@ const Footer = () => {
 
   // Log when publicShopInfo changes
   useEffect(() => {
-    console.log('🔄 Footer - publicShopInfo updated:', publicShopInfo);
-    console.log('📸 Footer - Logo URL:', publicShopInfo?.logo);
+    // console.log('🔄 Footer - publicShopInfo updated:', publicShopInfo);
+    // console.log('📸 Footer - Logo URL:', publicShopInfo?.logo);
   }, [publicShopInfo]);
 
   useEffect(() => {

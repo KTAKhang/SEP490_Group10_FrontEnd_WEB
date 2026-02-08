@@ -12,6 +12,7 @@ import {
   Package,
   Ticket,
   History,
+  ScrollText,
   ClipboardList,
   Users,
   Image,
@@ -20,11 +21,14 @@ import {
   Apple,
   BarChart3,
   Star,
+  Upload,
 } from "lucide-react";
+
 
 const Sidebar = () => {
   const { isOpen, toggleSidebar } = useSidebar();
   const location = useLocation();
+
 
   const menuItems = [
     {
@@ -39,19 +43,24 @@ const Sidebar = () => {
       path: "/admin/category",
     },
     {
-      icon: Store,
-      label: "Product",
-      path: "/admin/warehouse",
-    },
-    {
       icon: Truck,
       label: "Supplier",
       path: "/admin/suppliers",
     },
     {
+      icon: Store,
+      label: "Product",
+      path: "/admin/product",
+    },
+    {
       icon: Package,
       label: "Harvest Batch",
       path: "/admin/harvest-batches",
+    },
+    {
+      icon: Upload,
+      label: "Receive Stock",
+      path: "/admin/warehouse",
     },
     {
       icon: Gift,
@@ -62,6 +71,11 @@ const Sidebar = () => {
       icon: ShoppingCart,
       label: "Orders",
       path: "/admin/orders",
+    },
+    {
+      icon: ScrollText,
+      label: "Order Log History",
+      path: "/admin/order-log-history",
     },
     {
       icon: Apple,
@@ -120,12 +134,14 @@ const Sidebar = () => {
     },
   ];
 
+
   const isActive = (path, exact = false) => {
     if (exact) {
       return location.pathname === path;
     }
     return location.pathname.startsWith(path);
   };
+
 
   return (
     <>
@@ -136,6 +152,7 @@ const Sidebar = () => {
           onClick={toggleSidebar}
         />
       )}
+
 
       {/* Sidebar */}
       <aside
@@ -162,6 +179,7 @@ const Sidebar = () => {
               <X size={20} />
             </button>
           </div>
+
 
           {/* Menu Items */}
           <nav className="flex-1 overflow-y-auto p-4">
@@ -191,5 +209,6 @@ const Sidebar = () => {
     </>
   );
 };
+
 
 export default Sidebar;

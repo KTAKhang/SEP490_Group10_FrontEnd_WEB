@@ -7,6 +7,7 @@ import {
   clearOrderMessages,
 } from "../../redux/actions/orderActions";
 
+
 const STATUS_OPTIONS = [
   { value: "PENDING", label: "Pending" },
   { value: "PAID", label: "Paid" },
@@ -16,6 +17,7 @@ const STATUS_OPTIONS = [
   { value: "RETURNED", label: "Returned" },
   { value: "CANCELLED", label: "Cancelled" },
 ];
+
 
 const STATUS_BADGE = {
   PENDING: "bg-yellow-100 text-yellow-800",
@@ -27,22 +29,35 @@ const STATUS_BADGE = {
   CANCELLED: "bg-red-100 text-red-800",
 };
 
+
 const normalizeStatus = (value) =>
   value ? value.toString().trim().toUpperCase().replace(/[_\s]+/g, "-") : "";
 
+
+/** Normalize status name from backend (e.g. READY_TO_SHIP) then get display label. */
+const getStatusLabel = (name) => {
+  if (!name) return "N/A";
+  const normalized = normalizeStatus(name);
+  return STATUS_OPTIONS.find((o) => o.value === normalized)?.label || name;
+};
+
+
 const formatCurrency = (value) =>
-  (value || 0).toLocaleString("en-US", { maximumFractionDigits: 0 }) + " VND";
+  (value || 0).toLocaleString("en-US", { maximumFractionDigits: 0 });
+
 
 const formatDate = (value) =>
   value ? new Date(value).toLocaleString("en-US") : "N/A";
 
+
 /**
- * Nội dung popup chi tiết đơn hàng.
- * Dùng trong OrderHistory: <OrderHistoryDetailContent orderId={...} onClose={...} />
+ * Order detail popup content.
+ * Used in OrderHistory: <OrderHistoryDetailContent orderId={...} onClose={...} />
  */
 export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
   const dispatch = useDispatch();
   const { orderDetail, detailLoading } = useSelector((state) => state.order || {});
+
 
   useEffect(() => {
     if (orderId) {
@@ -50,19 +65,18 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
     }
   }, [dispatch, orderId]);
 
+
   useEffect(() => {
     return () => {
       dispatch(clearOrderMessages());
     };
   }, [dispatch]);
 
+
   const renderStatusBadge = (statusName) => {
     const normalized = normalizeStatus(statusName);
     const badgeClass = STATUS_BADGE[normalized] || "bg-gray-100 text-gray-800";
-    const label =
-      STATUS_OPTIONS.find((option) => option.value === normalized)?.label ||
-      statusName ||
-      "N/A";
+    const label = getStatusLabel(statusName);
     return (
       <span
         className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${badgeClass}`}
@@ -72,13 +86,15 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
     );
   };
 
+
   const isCompleted = normalizeStatus(orderDetail?.order?.order_status_id?.name) === "COMPLETED";
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between p-4 border-b shrink-0">
-          <h2 className="text-lg font-bold text-gray-900">Order Details</h2>
+          <h2 className="text-lg font-bold text-gray-900">Order details</h2>
           <button
             type="button"
             onClick={onClose}
@@ -110,6 +126,7 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
                   <div>Address: {orderDetail.order?.receiver_address}</div>
                 </div>
               </div>
+
 
               <div className="mb-4">
                 <h3 className="text-sm font-semibold text-gray-800 mb-2">Products</h3>
@@ -147,6 +164,7 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
                         return diffDays <= 3;
                       })();
 
+
                     return (
                       <div
                         key={item._id}
@@ -171,8 +189,16 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
                           </div>
                         </div>
                         <div className="text-right text-sm text-gray-700">
-                          <div>Qty: {item.quantity}</div>
-                          <div>{formatCurrency(item.price)}</div>
+                          <div>Quantity: {item.quantity}</div>
+                          {item.original_price != null && item.original_price > item.price ? (
+                            <div className="space-y-0.5">
+                              <div className="line-through text-gray-500">{formatCurrency(item.original_price)} VND</div>
+                              <div className="font-medium text-green-600">{formatCurrency(item.price)} VND</div>
+                              <span className="inline-block text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">Discount</span>
+                            </div>
+                          ) : (
+                            <div>{formatCurrency(item.price)} VND</div>
+                          )}
                           {isCompleted && productId && (
                             <div className="mt-1 flex flex-col gap-0.5">
                               {review ? (
@@ -187,12 +213,12 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
                                       Edit review
                                     </Link>
                                     <span className="block text-xs text-gray-500">
-                                      Rated {review.rating}⭐
+                                      Reviewed {review.rating}⭐
                                     </span>
                                   </>
                                 ) : (
                                   <span className="text-xs text-gray-500">
-                                    Rated {review.rating}⭐
+                                    Reviewed {review.rating}⭐
                                   </span>
                                 )
                               ) : (
@@ -201,7 +227,7 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
                                   className="inline-block text-xs px-2 py-1 rounded text-green-600 hover:bg-green-50"
                                   onClick={onClose}
                                 >
-                                  Write review
+                                  Review
                                 </Link>
                               )}
                             </div>
@@ -213,36 +239,14 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
                 </div>
               </div>
 
-              <div className="border-t pt-3 space-y-2 text-sm text-gray-700">
-                {(orderDetail.order?.discount_code || (orderDetail.order?.discount_amount > 0)) && (
-                  <>
-                    <div className="flex items-center justify-between">
-                      <span>Discount code</span>
-                      <span className="font-medium">{orderDetail.order.discount_code}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Discount amount</span>
-                      <span className="text-green-600 font-medium">
-                        -{formatCurrency(orderDetail.order.discount_amount)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-gray-500">
-                      <span>Subtotal (before discount)</span>
-                      <span>
-                        {formatCurrency(
-                          (orderDetail.order?.total_price || 0) + (orderDetail.order?.discount_amount || 0)
-                        )}
-                      </span>
-                    </div>
-                  </>
-                )}
-                <div className="flex items-center justify-between pt-1">
-                  <span className="font-medium text-gray-900">Total</span>
-                  <span className="font-semibold text-gray-900">
-                    {formatCurrency(orderDetail.order?.total_price)}
-                  </span>
-                </div>
+
+              <div className="flex items-center justify-between border-t pt-3 text-sm text-gray-700">
+                <span>Total</span>
+                <span className="font-semibold text-gray-900">
+                  {formatCurrency(orderDetail.order?.total_price)}
+                </span>
               </div>
+
 
               {orderDetail.order?.status_history?.length > 0 && (
                 <div className="mt-4">
@@ -256,8 +260,8 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
                         className="border rounded-lg p-2 bg-gray-50 text-xs"
                       >
                         <div>
-                          {history.from_status?.name || "N/A"} →{" "}
-                          {history.to_status?.name || "N/A"}
+                          {getStatusLabel(history.from_status?.name)} →{" "}
+                          {getStatusLabel(history.to_status?.name)}
                         </div>
                         <div className="text-gray-500">
                           {formatDate(history.changed_at)} •{" "}
@@ -279,13 +283,15 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
   );
 };
 
+
 /**
  * Redirect /customer/orders/:orderId → /customer/orders?orderId=...
- * Để link cũ vẫn mở popup chi tiết tại trang Lịch sử đơn hàng.
+ * So old links still open the detail popup on the order history page.
  */
 const OrderHistoryDetailRedirect = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
+
 
   useEffect(() => {
     if (orderId) {
@@ -297,11 +303,13 @@ const OrderHistoryDetailRedirect = () => {
     }
   }, [orderId, navigate]);
 
+
   return (
     <div className="p-6 flex items-center justify-center min-h-[200px] text-gray-600">
       Redirecting to order history...
     </div>
   );
 };
+
 
 export default OrderHistoryDetailRedirect;

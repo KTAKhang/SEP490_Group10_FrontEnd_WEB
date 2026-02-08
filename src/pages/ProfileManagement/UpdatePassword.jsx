@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { changePasswordRequest, clearProfileMessages } from "../../redux/actions/profileAction";
 import PropTypes from 'prop-types';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from "react-toastify";
 const { Title, Text } = Typography;
 
 
@@ -27,6 +28,7 @@ export default function UpdatePassword() {
   const navigate = useNavigate();
   useEffect(() => {
     if (storedUser?.isGoogleAccount === true) {
+      toast.warn("Google account can not use this");
       navigate(-1);
     }
   }, [storedUser]);

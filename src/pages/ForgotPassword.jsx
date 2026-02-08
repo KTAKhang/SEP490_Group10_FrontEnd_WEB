@@ -9,9 +9,11 @@ import {
 } from "../redux/actions/authActions";
 import Header from "../components/Header/Header";
 
+
 const ForgotPassword = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
 
   const {
     forgotPasswordLoading,
@@ -22,9 +24,11 @@ const ForgotPassword = () => {
     resetPasswordError,
   } = useSelector((state) => state.auth);
 
+
   const [step, setStep] = useState(1);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
 
   const [formData, setFormData] = useState({
     email: "",
@@ -33,12 +37,15 @@ const ForgotPassword = () => {
     confirmPassword: "",
   });
 
+
   const [errors, setErrors] = useState({});
+
 
   useEffect(() => {
     dispatch(clearAuthMessages());
     return () => dispatch(clearAuthMessages());
   }, [dispatch]);
+
 
   useEffect(() => {
     if (forgotPasswordMessage && step === 1) {
@@ -46,11 +53,13 @@ const ForgotPassword = () => {
     }
   }, [forgotPasswordMessage, step]);
 
+
   useEffect(() => {
     if (resetPasswordMessage) {
       setTimeout(() => navigate("/login"), 1000);
     }
   }, [resetPasswordMessage, navigate]);
+
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -58,6 +67,7 @@ const ForgotPassword = () => {
       setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
+
 
   const handleSendOTP = (e) => {
     e.preventDefault();
@@ -68,28 +78,35 @@ const ForgotPassword = () => {
     dispatch(forgotPasswordRequest(formData.email));
   };
 
+
   const handleResetPassword = (e) => {
     e.preventDefault();
+
 
     const newErrors = {};
     if (!formData.otp || formData.otp.length !== 6)
       newErrors.otp = "The OTP consists of 6 numbers.";
 
+
     if (!formData.newPassword || formData.newPassword.length < 8)
       newErrors.newPassword = "Password must be at least 8 characters.";
 
+
     if (formData.newPassword !== formData.confirmPassword)
       newErrors.confirmPassword = "Password doesn't match.";
+
 
     if (Object.keys(newErrors).length) {
       setErrors(newErrors);
       return;
     }
 
+
     dispatch(
       resetPasswordRequest(formData.email, formData.otp, formData.newPassword)
     );
   };
+
 
   return (
     <>
@@ -97,7 +114,8 @@ const ForgotPassword = () => {
       <div className="min-h-screen flex items-center justify-center bg-[#F9FEFB] px-5">
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
           {/* Particles */}
-        
+       
+
 
           {/* Fruits */}
           <img
@@ -106,11 +124,13 @@ const ForgotPassword = () => {
             style={{ top: "12%", left: "6%", animationDuration: "8s" }}
           />
 
+
           <img
             src="/a2.png"
             className="absolute w-28 opacity-15 animate-float hidden md:block"
             style={{ bottom: "18%", right: "8%", animationDuration: "10s" }}
           />
+
 
           <img
             src="/a1.png"
@@ -127,6 +147,7 @@ const ForgotPassword = () => {
             <ArrowLeft className="w-4 h-4 mr-1" />
            Back to login
           </Link>
+
 
           {/* Header */}
           <div className="text-center mb-6">
@@ -147,6 +168,7 @@ const ForgotPassword = () => {
             </p>
           </div>
 
+
           {/* Error */}
           {(forgotPasswordError || resetPasswordError) && (
             <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3">
@@ -155,6 +177,7 @@ const ForgotPassword = () => {
               </p>
             </div>
           )}
+
 
           {/* Step 1 */}
           {step === 1 && (
@@ -184,6 +207,7 @@ const ForgotPassword = () => {
                 )}
               </div>
 
+
               <button
                 type="submit"
                 disabled={forgotPasswordLoading}
@@ -198,12 +222,13 @@ const ForgotPassword = () => {
             </form>
           )}
 
+
           {/* Step 2 */}
           {step === 2 && (
             <form onSubmit={handleResetPassword} className="space-y-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Mã OTP
+                  OTP code
                 </label>
                 <input
                   type="text"
@@ -225,6 +250,7 @@ const ForgotPassword = () => {
                   <p className="text-sm text-red-500 mt-1">{errors.otp}</p>
                 )}
               </div>
+
 
               {/* New password */}
               <div className="relative">
@@ -248,6 +274,7 @@ const ForgotPassword = () => {
                   {showNewPassword ? <EyeOff /> : <Eye />}
                 </button>
               </div>
+
 
               {/* Confirm password */}
               <div className="relative">
@@ -273,6 +300,7 @@ const ForgotPassword = () => {
                   {showConfirmPassword ? <EyeOff /> : <Eye />}
                 </button>
               </div>
+
 
               <button
                 type="submit"
@@ -307,6 +335,7 @@ const ForgotPassword = () => {
   }
 }
 
+
 .animate-float {
   animation-name: float;
   animation-timing-function: ease-in-out;
@@ -318,4 +347,6 @@ const ForgotPassword = () => {
   );
 };
 
+
 export default ForgotPassword;
+

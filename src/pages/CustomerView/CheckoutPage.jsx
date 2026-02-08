@@ -7,7 +7,10 @@ import {
   fetchCartRequest,
   shippingCheckRequest,
 } from "../../redux/actions/cartActions";
-import { orderCreateRequest } from "../../redux/actions/orderActions";
+import {
+  orderCreateRequest,
+  clearOrderMessages,
+} from "../../redux/actions/orderActions";
 import {
   clearDiscountFeedback,
   clearSelectedDiscount,
@@ -154,7 +157,7 @@ export default function CheckoutPage() {
     e.preventDefault();
 
     if (!cartItems.length) {
-      alert("Giỏ hàng trống");
+      alert("Cart is empty");
       return;
     }
 
@@ -206,6 +209,22 @@ export default function CheckoutPage() {
     }
   }, [discount.applyError, selectedDiscount, dispatch]);
 
+  // When holding period expired, show message and offer to go back to cart
+  const holdingExpired =
+    order.error &&
+    String(order.error).toLowerCase().includes("holding period has expired");
+
+  useEffect(() => {
+    if (holdingExpired) {
+      dispatch(fetchCartRequest());
+    }
+  }, [holdingExpired, dispatch]);
+
+  const handleBackToCartAfterExpired = () => {
+    dispatch(clearOrderMessages());
+    navigate("/customer/cart");
+  };
+
   useEffect(() => {
     dispatch(clearDiscountFeedback());
   }, [total, dispatch]);
@@ -234,15 +253,27 @@ export default function CheckoutPage() {
     const sessionId =
       checkout.checkout_session_id ||
       localStorage.getItem("checkout_session_id");
+
     if (!sessionId) {
-      alert("Không có phiên thanh toán nào để hủy.");
+      alert("No checkout session to cancel.");
       return;
     }
 
-    if (!window.confirm("Bạn có chắc muốn hủy phiên thanh toán này?")) return;
+    if (
+      !window.confirm("Are you sure you want to cancel this checkout session?")
+    )
+      return;
 
     dispatch(checkoutCancelRequest(sessionId));
-    navigate("/customer/cart");
+
+    // clear session local luôn cho chắc
+    localStorage.removeItem("checkout_session_id");
+
+    // navigate rồi reload
+
+    setTimeout(() => {
+      navigate("/customer/cart");
+    }, 1000); // delay nhẹ để router kịp chuyển trang
   };
 
   const formatPrice = (price) => {
@@ -318,6 +349,32 @@ export default function CheckoutPage() {
           <h1 className="text-3xl font-bold text-green-600 mt-20">Payments</h1>
           <p className="text-gray-600">Please fill on all order information</p>
         </div>
+        {order.loading && (
+          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl shadow-xl p-8 flex flex-col items-center gap-4">
+              <div className="w-14 h-14 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+              <p className="text-green-600 font-semibold text-lg">
+                Processing Order Created...
+              </p>
+            </div>
+          </div>
+        )}
+
+        {holdingExpired && (
+          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <p className="text-amber-800 font-medium">
+              The holding period has expired. Your cart items are still saved.
+              Please return to your cart and complete checkout again.
+            </p>
+            <button
+              type="button"
+              onClick={handleBackToCartAfterExpired}
+              className="shrink-0 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-medium"
+            >
+              Back to cart
+            </button>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -339,7 +396,7 @@ export default function CheckoutPage() {
                       value={formData.fullName}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Nhập họ và tên"
+                      placeholder="Enter full name"
                       type="text"
                     />
                   </div>
@@ -353,7 +410,7 @@ export default function CheckoutPage() {
                       value={formData.phone}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Nhập số điện thoại"
+                      placeholder="Enter phone number"
                       type="tel"
                     />
                   </div>
@@ -366,7 +423,7 @@ export default function CheckoutPage() {
                       value={formData.email}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Nhập email"
+                      placeholder="Enter email"
                       type="email"
                     />
                   </div>
@@ -380,7 +437,7 @@ export default function CheckoutPage() {
                       value={formData.address}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Số nhà, tên đường"
+                      placeholder="Street address"
                       type="text"
                     />
                   </div>
@@ -434,7 +491,7 @@ export default function CheckoutPage() {
                       onChange={handleInputChange}
                       rows="3"
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                      placeholder="Ghi chú về đơn hàng, ví dụ: thời gian hay chỉ dẫn địa điểm giao hàng chi tiết hơn"
+                      placeholder="Add notes about the order, for example, more detailed delivery times or delivery location instructions."
                     />
                   </div>
                 </div>
@@ -507,6 +564,11 @@ export default function CheckoutPage() {
                         <h3 className="font-medium text-gray-900 text-sm mb-1 line-clamp-2">
                           {item.name}
                         </h3>
+                        {item.isNearExpiry && (
+                          <span className="inline-block text-xs font-medium px-2 py-0.5 rounded bg-amber-100 text-amber-800 mb-1">
+                            Near expiry - Special price
+                          </span>
+                        )}
                         <div className="flex flex-wrap gap-1 mb-1">
                           {item.specs?.map((spec, idx) => (
                             <span
@@ -553,7 +615,7 @@ export default function CheckoutPage() {
                         onClick={handleRemoveVoucher}
                         className="text-sm text-red-600 hover:text-red-700 font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
                       >
-                       Remove
+                        Remove
                       </button>
                     )}
                   </div>
@@ -613,11 +675,13 @@ export default function CheckoutPage() {
                         </div>
                         <p className="text-sm font-medium text-gray-600">
                           {total < 1
+
                             ? "Add products to see vouchers"
                             : "No suggested vouchers for this order"}
                         </p>
                         <p className="text-xs text-gray-500 mt-2">
                           You can still enter a code above (e.g. birthday voucher).
+
                         </p>
                       </div>
                     ) : (
@@ -649,7 +713,7 @@ export default function CheckoutPage() {
                                       {v.code}
                                     </span>
                                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
-                                      Giảm {v.discountPercent}%
+                                      {v.discountPercent}% off
                                     </span>
                                   </div>
                                   <p className="text-xs text-gray-500 mt-1">
@@ -674,7 +738,7 @@ export default function CheckoutPage() {
                                     </span>
                                   ) : (
                                     <span className="text-sm font-medium text-emerald-600">
-                                      Áp dụng
+                                      Apply
                                     </span>
                                   )}
                                 </div>
@@ -710,12 +774,14 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Shipping fee:</span>
-                    <span className="font-medium">{formatPrice(shippingCost)}</span>
+                    <span className="font-medium">
+                      {formatPrice(shippingCost)}
+                    </span>
                   </div>
                   <div className="border-t border-gray-200 pt-3">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold text-gray-900">
-                       Total:
+                        Total:
                       </span>
                       <span className="text-2xl font-bold text-red-600">
                         {formatPrice(finalAmount)}
@@ -737,7 +803,7 @@ export default function CheckoutPage() {
                     onClick={handleCancel}
                     className="w-full mt-3 bg-red-50 text-red-600 py-2 rounded-lg hover:bg-red-100 transition-colors font-medium"
                   >
-                   Cancel payment
+                    Cancel payment
                   </button>
                 )}
                 <div className="mt-4 text-center text-xs text-gray-500">
@@ -745,7 +811,7 @@ export default function CheckoutPage() {
                   <a href="#" className="text-blue-600 hover:underline">
                     Terms of Use
                   </a>{" "}
-                 our
+                  our
                 </div>
               </div>
             </div>

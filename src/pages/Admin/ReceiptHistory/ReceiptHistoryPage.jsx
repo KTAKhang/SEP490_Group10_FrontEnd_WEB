@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  ClipboardList,
   Package,
   Search,
   Filter,
@@ -14,12 +15,14 @@ import { getProductsRequest } from "../../../redux/actions/productActions";
 import Loading from "../../../components/Loading/Loading";
 import ReceiptDetailModal from "./ReceiptDetailModal";
 
+
 const ReceiptHistoryPage = () => {
   const dispatch = useDispatch();
   const { receiptHistory, receiptHistoryPagination, receiptHistoryLoading } = useSelector(
     (state) => state.inventory
   );
   const { products } = useSelector((state) => state.product);
+
 
   const [selectedProductId, setSelectedProductId] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -31,10 +34,12 @@ const ReceiptHistoryPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReceiptId, setSelectedReceiptId] = useState(null);
 
+
   // Fetch products on mount for filter
   useEffect(() => {
     dispatch(getProductsRequest({ page: 1, limit: 1000, sortBy: "name", sortOrder: "asc" }));
   }, [dispatch]);
+
 
   // Fetch receipt history when filters change
   useEffect(() => {
@@ -51,6 +56,7 @@ const ReceiptHistoryPage = () => {
     dispatch(getReceiptHistoryRequest(params));
   }, [dispatch, currentPage, selectedProductId, searchTerm, startDate, endDate, sortBy, sortOrder]);
 
+
   const handleResetFilters = () => {
     setSelectedProductId("");
     setSearchTerm("");
@@ -60,6 +66,7 @@ const ReceiptHistoryPage = () => {
     setSortOrder("desc");
     setCurrentPage(1);
   };
+
 
   const handleSortChange = (field) => {
     if (sortBy === field) {
@@ -73,35 +80,40 @@ const ReceiptHistoryPage = () => {
     setCurrentPage(1);
   };
 
+
   const handleViewDetail = (receiptId) => {
     setSelectedReceiptId(receiptId);
     setIsModalOpen(true);
   };
+
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedReceiptId(null);
   };
 
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+          <ClipboardList size={24} />
+        </div>
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 flex items-center space-x-2">
-            <Package size={32} />
-            <span>Receipt History</span>
-          </h1>
-          <p className="text-gray-600 mt-1">Track stock receipt history by warehouse staff</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Receipt History</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Track stock receipt history by warehouse staff</p>
         </div>
       </div>
 
+
       {/* Filters Card */}
-      <div className="bg-white rounded-lg border shadow-sm p-6">
+      <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm">
         <div className="flex items-center space-x-2 mb-4">
           <Filter className="text-gray-400" size={20} />
           <h2 className="text-lg font-semibold text-gray-800">Filters</h2>
         </div>
+
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Product Filter */}
@@ -115,7 +127,7 @@ const ReceiptHistoryPage = () => {
                 setSelectedProductId(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
             >
               <option value="">All products</option>
               {products.map((product) => (
@@ -125,6 +137,7 @@ const ReceiptHistoryPage = () => {
               ))}
             </select>
           </div>
+
 
           {/* Search by Note */}
           <div>
@@ -141,10 +154,11 @@ const ReceiptHistoryPage = () => {
                   setSearchTerm(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
               />
             </div>
           </div>
+
 
           {/* Start Date */}
           <div>
@@ -160,10 +174,11 @@ const ReceiptHistoryPage = () => {
                   setStartDate(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
               />
             </div>
           </div>
+
 
           {/* End Date */}
           <div>
@@ -180,11 +195,12 @@ const ReceiptHistoryPage = () => {
                   setCurrentPage(1);
                 }}
                 min={startDate || undefined}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
               />
             </div>
           </div>
         </div>
+
 
         {/* Sort Options */}
         <div className="mt-4 flex items-center space-x-4">
@@ -196,7 +212,7 @@ const ReceiptHistoryPage = () => {
                 setSortBy(e.target.value);
                 setCurrentPage(1);
               }}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+              className="rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
             >
               <option value="createdAt">Date</option>
               <option value="quantity">Quantity</option>
@@ -207,7 +223,7 @@ const ReceiptHistoryPage = () => {
                 setSortOrder(sortOrder === "asc" ? "desc" : "asc");
                 setCurrentPage(1);
               }}
-              className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm"
+              className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm transition hover:bg-gray-50"
               title={sortOrder === "asc" ? "Ascending" : "Descending"}
             >
               {sortOrder === "asc" ? "↑" : "↓"}
@@ -215,12 +231,13 @@ const ReceiptHistoryPage = () => {
           </div>
         </div>
 
+
         {/* Reset Filters Button */}
         {(selectedProductId || searchTerm || startDate || endDate || sortBy !== "createdAt" || sortOrder !== "desc") && (
           <div className="mt-4">
             <button
               onClick={handleResetFilters}
-              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
             >
               Reset filters
             </button>
@@ -228,8 +245,9 @@ const ReceiptHistoryPage = () => {
         )}
       </div>
 
+
       {/* Receipt History Table */}
-      <div className="bg-white rounded-lg border shadow-sm">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="p-6 border-b">
           <h2 className="text-lg font-semibold text-gray-800">Receipt History</h2>
           {receiptHistoryPagination && (
@@ -238,6 +256,7 @@ const ReceiptHistoryPage = () => {
             </p>
           )}
         </div>
+
 
         <div className="p-6">
           {receiptHistoryLoading ? (
@@ -259,14 +278,14 @@ const ReceiptHistoryPage = () => {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Product
                       </th>
-                      <th 
+                      <th
                         className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         onClick={() => handleSortChange("quantity")}
                       >
                         <div className="flex items-center space-x-1">
                           <span>Quantity</span>
                           {sortBy === "quantity" && (
-                            <span className="text-green-600">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                            <span className="text-emerald-600">{sortOrder === "asc" ? "↑" : "↓"}</span>
                           )}
                         </div>
                       </th>
@@ -279,14 +298,14 @@ const ReceiptHistoryPage = () => {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Note
                       </th>
-                      <th 
+                      <th
                         className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         onClick={() => handleSortChange("createdAt")}
                       >
                         <div className="flex items-center space-x-1">
                           <span>Date</span>
                           {sortBy === "createdAt" && (
-                            <span className="text-green-600">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                            <span className="text-emerald-600">{sortOrder === "asc" ? "↑" : "↓"}</span>
                           )}
                         </div>
                       </th>
@@ -375,7 +394,7 @@ const ReceiptHistoryPage = () => {
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                           {receipt.createdAt
-                            ? new Date(receipt.createdAt).toLocaleString("vi-VN", {
+                            ? new Date(receipt.createdAt).toLocaleString("en-US", {
                                 year: "numeric",
                                 month: "2-digit",
                                 day: "2-digit",
@@ -387,11 +406,10 @@ const ReceiptHistoryPage = () => {
                         <td className="px-4 py-3 whitespace-nowrap">
                           <button
                             onClick={() => handleViewDetail(receipt._id)}
-                            className="flex items-center space-x-2 px-3 py-1.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
-                            title="Xem chi tiết"
+                            className="rounded-xl p-2 text-blue-600 transition hover:bg-blue-50 hover:text-blue-700"
+                            title="View detail"
                           >
-                            <Eye size={16} />
-                            <span className="text-sm font-medium">Chi tiết</span>
+                            <Eye size={18} />
                           </button>
                         </td>
                       </tr>
@@ -399,6 +417,7 @@ const ReceiptHistoryPage = () => {
                   </tbody>
                 </table>
               </div>
+
 
               {/* Pagination */}
               {receiptHistoryPagination && receiptHistoryPagination.totalPages > 1 && (
@@ -419,7 +438,7 @@ const ReceiptHistoryPage = () => {
                     <button
                       onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
-                      className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition disabled:opacity-50 hover:bg-gray-50"
                     >
                       Previous
                     </button>
@@ -427,11 +446,7 @@ const ReceiptHistoryPage = () => {
                       <button
                         key={index + 1}
                         onClick={() => setCurrentPage(index + 1)}
-                        className={`px-3 py-1 border rounded-lg ${
-                          currentPage === index + 1
-                            ? "bg-green-600 text-white border-green-600"
-                            : "border-gray-300 hover:bg-gray-50"
-                        }`}
+                        className={`min-w-[2.25rem] rounded-xl px-3 py-2 text-sm font-medium transition ${currentPage === index + 1 ? "bg-emerald-600 text-white shadow-sm" : "border border-gray-200 text-gray-700 hover:bg-gray-50"}`}
                       >
                         {index + 1}
                       </button>
@@ -441,7 +456,7 @@ const ReceiptHistoryPage = () => {
                         setCurrentPage((prev) => Math.min(receiptHistoryPagination.totalPages, prev + 1))
                       }
                       disabled={currentPage === receiptHistoryPagination.totalPages}
-                      className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition disabled:opacity-50 hover:bg-gray-50"
                     >
                       Next
                     </button>
@@ -453,6 +468,7 @@ const ReceiptHistoryPage = () => {
         </div>
       </div>
 
+
       {/* Receipt Detail Modal */}
       <ReceiptDetailModal
         isOpen={isModalOpen}
@@ -463,4 +479,9 @@ const ReceiptHistoryPage = () => {
   );
 };
 
+
 export default ReceiptHistoryPage;
+
+
+
+
