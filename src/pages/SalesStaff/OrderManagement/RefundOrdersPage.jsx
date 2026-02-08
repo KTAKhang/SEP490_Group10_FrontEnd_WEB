@@ -1,7 +1,7 @@
 /**
- * RefundOrdersPage.jsx
- * Dedicated page for REFUND orders - "Confirm refund" action.
- * Separate from regular Update order status.
+ * RefundOrdersPage.jsx (Sales Staff)
+ * Dedicated page for REFUND orders — "Confirm refund" action.
+ * Standalone page for Sales Staff, separate from Admin.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,7 +14,6 @@ import {
   clearOrderMessages,
 } from "../../../redux/actions/orderActions";
 
-
 const PAYMENT_STATUS_BADGE = {
   PENDING: "bg-yellow-50 text-yellow-700",
   SUCCESS: "bg-green-50 text-green-700",
@@ -26,18 +25,14 @@ const PAYMENT_STATUS_BADGE = {
   REFUND_FAILED: "bg-red-50 text-red-700",
 };
 
-
 const normalizeStatus = (value) =>
   (value || "").toString().trim().toUpperCase().replace(/[_\s]+/g, "-");
-
 
 const formatCurrency = (value) =>
   (value || 0).toLocaleString("en-US", { maximumFractionDigits: 0 });
 
-
 const formatDate = (value) =>
   value ? new Date(value).toLocaleString("en-US") : "N/A";
-
 
 const RefundOrdersPage = () => {
   const dispatch = useDispatch();
@@ -291,6 +286,5 @@ const RefundOrdersPage = () => {
     </div>
   );
 };
-
 
 export default RefundOrdersPage;
