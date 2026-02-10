@@ -196,317 +196,230 @@ export default function Contact() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <Header />
 
-      {/* Hero Section */}
-      <section className="relative pt-32 pb-20 bg-gradient-to-br from-green-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-5xl md:text-6xl font-black text-gray-900 mb-6">
-              Contact Us
-            </h1>
-            <p className="text-xl text-gray-600 leading-relaxed">
-              We are always ready to listen and support you. Please leave your information, and we will respond as soon as possible!
-            </p>
-          </div>
+      {/* Hero */}
+      <section className="pt-28 pb-10 bg-white border-b border-gray-100">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+            Liên hệ
+          </h1>
+          <p className="text-gray-600">
+            Gửi tin nhắn cho chúng tôi, chúng tôi sẽ phản hồi sớm nhất có thể.
+          </p>
         </div>
       </section>
 
-      {/* Contact Info Cards */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Contact Info + Form */}
+      <section className="py-10 md:py-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Contact info strip */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
             {contactInfo.map((info, index) => (
               <div
                 key={index}
-                className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-6 border border-gray-200 hover:shadow-lg transition-shadow"
+                className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
               >
-                <div className="w-12 h-12 flex items-center justify-center bg-green-100 rounded-xl mb-4">
-                  <span className="text-2xl">{info.icon}</span>
-                </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">{info.title}</h3>
+                <span className="text-xl" aria-hidden>{info.icon}</span>
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mt-2 mb-1">{info.title}</h3>
                 {info.link ? (
                   <a
                     href={info.link}
                     target={info.link.startsWith('http') ? '_blank' : undefined}
                     rel={info.link.startsWith('http') ? 'noopener noreferrer' : undefined}
-                    className="text-gray-600 hover:text-green-600 transition-colors"
+                    className="text-sm text-gray-900 hover:text-green-600 transition-colors break-words line-clamp-2"
                   >
                     {info.content}
                   </a>
                 ) : (
-                  <p className="text-gray-600">{info.content}</p>
+                  <p className="text-sm text-gray-900 break-words line-clamp-2">{info.content}</p>
                 )}
               </div>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* Contact Form & Map */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-            {/* Contact Form */}
-            <div>
-              <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-6">
-                Send Us a Message
+          {/* Form card */}
+          <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
+            <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
+              <h2 className="text-xl font-bold text-gray-900">
+                Gửi tin nhắn
               </h2>
-              <p className="text-gray-600 mb-8">
-                Fill out the form below, and we will get back to you as soon as possible.
+              <p className="text-sm text-gray-500 mt-0.5">
+                Điền form bên dưới và gửi, chúng tôi sẽ xử lý và phản hồi qua email hoặc trong mục Lịch sử liên hệ.
               </p>
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Subject */}
-                <div>
-                  <label htmlFor="subject" className="block text-sm font-semibold text-gray-900 mb-2">
-                    Subject <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="subject"
-                    name="subject"
-                    value={formData.subject}
-                    onChange={(e) => handleInputChange('subject', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 text-sm ${
-                      errors.subject ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Enter your contact subject"
-                  />
-                  {errors.subject && (
-                    <div className="flex items-center mt-1 text-red-500 text-sm">
-                      <AlertCircle className="w-4 h-4 mr-1" />
-                      {errors.subject}
-                    </div>
-                  )}
-                </div>
-
-                {/* Category */}
-                <div>
-                  <label htmlFor="category" className="block text-sm font-semibold text-gray-900 mb-2">
-                    Category <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    id="category"
-                    name="category"
-                    value={formData.category}
-                    onChange={(e) => handleInputChange('category', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 text-sm cursor-pointer ${
-                      errors.category ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
-                    }`}
-                  >
-                    <option value="">-- Select category --</option>
-                    {categories.map((cat) => (
-                      <option key={cat.value || cat} value={cat.value || cat}>
-                        {cat.label || cat}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.category && (
-                    <div className="flex items-center mt-1 text-red-500 text-sm">
-                      <AlertCircle className="w-4 h-4 mr-1" />
-                      {errors.category}
-                    </div>
-                  )}
-                </div>
-
-                {/* Message */}
-                <div>
-                  <label htmlFor="message" className="block text-sm font-semibold text-gray-900 mb-2">
-                    Message <span className="text-red-500">*</span>
-                  </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    value={formData.message}
-                    onChange={(e) => handleInputChange('message', e.target.value)}
-                    rows={6}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 resize-none text-sm ${
-                      errors.message ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Enter detailed information about your issue..."
-                  ></textarea>
-                  {errors.message && (
-                    <div className="flex items-center mt-1 text-red-500 text-sm">
-                      <AlertCircle className="w-4 h-4 mr-1" />
-                      {errors.message}
-                    </div>
-                  )}
-                </div>
-
-                {/* Files */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    <Paperclip className="inline w-4 h-4 mr-1" />
-                    Attachments <span className="text-gray-500 font-normal text-xs">(max 5 files, 5MB each)</span>
-                  </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-green-400 hover:bg-green-50/50 transition cursor-pointer">
-                    <input
-                      type="file"
-                      multiple
-                      onChange={handleFileChange}
-                      className="hidden"
-                      id="file-upload"
-                      accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.txt"
-                    />
-                    <label
-                      htmlFor="file-upload"
-                      className="cursor-pointer flex flex-col items-center"
-                    >
-                      <Paperclip className="w-8 h-8 text-gray-400 mb-2" />
-                      <span className="text-sm text-gray-600">
-                        Click to select files or drag and drop here
-                      </span>
-                      <span className="text-xs text-gray-400 mt-1">
-                        Supported: JPG, PNG, GIF, PDF, DOC, DOCX, TXT
-                      </span>
-                    </label>
-                  </div>
-
-                  {/* File List */}
-                  {files.length > 0 && (
-                    <div className="mt-4 space-y-2">
-                      {files.map((file, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between bg-gray-50 px-4 py-2 rounded-lg border border-gray-200"
-                        >
-                          <div className="flex items-center space-x-3 flex-1 min-w-0">
-                            <Paperclip className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-700 truncate">
-                                {file.name}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {formatFileSize(file.size)}
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removeFile(index)}
-                            className="ml-2 p-1 text-red-500 hover:bg-red-50 rounded transition flex-shrink-0"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {createContactSuccess && createContactMessage && (
-                  <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl">✓</span>
-                      <span className="font-medium">{createContactMessage}</span>
-                    </div>
-                  </div>
-                )}
-
-                {createContactError && (
-                  <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl">⚠</span>
-                      <span className="font-medium">{createContactError}</span>
-                    </div>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={createContactLoading}
-                  className="w-full bg-gray-900 text-white px-8 py-4 rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                >
-                  {createContactLoading ? (
-                    <span className="flex items-center justify-center space-x-2">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>{files.length > 0 ? 'Uploading attachments...' : 'Sending...'}</span>
-                    </span>
-                  ) : (
-                    'Send Message'
-                  )}
-                </button>
-              </form>
             </div>
-
-            {/* Map */}
-            <div>
-              <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-6">
-                Our Location
-              </h2>
-              <p className="text-gray-600 mb-8">
-                Visit our store to experience fresh organic agricultural products firsthand.
-              </p>
-
-              <div className="rounded-2xl overflow-hidden shadow-lg h-[500px]">
-                <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3929.0532902991586!2d105.72985667569752!3d10.012457072818897!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31a0882139720a77%3A0x3916a227d0b95a64!2zVHLGsOG7nW5nIMSQ4bqhaSBo4buNYyBGUFQgQ-G6p24gVGjGoQ!5e0!3m2!1sen!2s!4v1768101333349!5m2!1sen!2s"
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title="Vị trí cửa hàng"
-                ></iframe>
+            <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-5">
+              <div>
+                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Chủ đề <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="subject"
+                  name="subject"
+                  value={formData.subject}
+                  onChange={(e) => handleInputChange('subject', e.target.value)}
+                  className={`w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder-gray-400 ${
+                    errors.subject ? 'border-red-400 focus:ring-red-400' : 'border-gray-300'
+                  }`}
+                  placeholder="VD: Đặt hàng sỉ, Hỗ trợ đơn hàng..."
+                />
+                {errors.subject && (
+                  <p className="flex items-center gap-1 mt-1 text-red-500 text-sm">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    {errors.subject}
+                  </p>
+                )}
               </div>
-            </div>
+
+              <div>
+                <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Danh mục <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="category"
+                  name="category"
+                  value={formData.category}
+                  onChange={(e) => handleInputChange('category', e.target.value)}
+                  className={`w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 bg-white cursor-pointer ${
+                    errors.category ? 'border-red-400 focus:ring-red-400' : 'border-gray-300'
+                  }`}
+                >
+                  <option value="">-- Chọn danh mục --</option>
+                  {categories.map((cat) => (
+                    <option key={cat.value || cat} value={cat.value || cat}>
+                      {cat.label || cat}
+                    </option>
+                  ))}
+                </select>
+                {errors.category && (
+                  <p className="flex items-center gap-1 mt-1 text-red-500 text-sm">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    {errors.category}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Nội dung <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  value={formData.message}
+                  onChange={(e) => handleInputChange('message', e.target.value)}
+                  rows={5}
+                  className={`w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-400 ${
+                    errors.message ? 'border-red-400 focus:ring-red-400' : 'border-gray-300'
+                  }`}
+                  placeholder="Mô tả chi tiết vấn đề hoặc yêu cầu của bạn..."
+                />
+                {errors.message && (
+                  <p className="flex items-center gap-1 mt-1 text-red-500 text-sm">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    {errors.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <Paperclip className="inline w-4 h-4 mr-1.5 align-middle" />
+                  Đính kèm
+                  <span className="text-gray-400 font-normal ml-1">(tối đa 5 file, mỗi file 5MB)</span>
+                </label>
+                <div className="border-2 border-dashed border-gray-200 rounded-xl p-5 text-center hover:border-green-300 hover:bg-green-50/30 transition-colors cursor-pointer">
+                  <input
+                    type="file"
+                    multiple
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="file-upload"
+                    accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.txt"
+                  />
+                  <label htmlFor="file-upload" className="cursor-pointer block">
+                    <Paperclip className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <span className="text-sm text-gray-600">Chọn file hoặc kéo thả vào đây</span>
+                    <span className="block text-xs text-gray-400 mt-1">JPG, PNG, GIF, PDF, DOC, DOCX, TXT</span>
+                  </label>
+                </div>
+                {files.length > 0 && (
+                  <ul className="mt-3 space-y-2">
+                    {files.map((file, index) => (
+                      <li
+                        key={index}
+                        className="flex items-center justify-between gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200 text-sm"
+                      >
+                        <span className="truncate text-gray-700">{file.name}</span>
+                        <span className="text-gray-400 flex-shrink-0">{formatFileSize(file.size)}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeFile(index)}
+                          className="p-1 text-red-500 hover:bg-red-50 rounded flex-shrink-0"
+                          aria-label="Xóa file"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {(createContactSuccess && createContactMessage) && (
+                <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl text-sm">
+                  <span className="text-green-600" aria-hidden>✓</span>
+                  <span className="font-medium">{createContactMessage}</span>
+                </div>
+              )}
+
+              {createContactError && (
+                <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl text-sm">
+                  <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                  <span className="font-medium">{createContactError}</span>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={createContactLoading}
+                className="w-full py-3 px-4 rounded-xl font-semibold text-white bg-green-600 hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {createContactLoading ? (
+                  <span className="inline-flex items-center justify-center gap-2">
+                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    {files.length > 0 ? 'Đang tải file...' : 'Đang gửi...'}
+                  </span>
+                ) : (
+                  'Gửi tin nhắn'
+                )}
+              </button>
+            </form>
           </div>
         </div>
       </section>
 
-      {/* Social Media Section */}
-      <section className="py-20 bg-gradient-to-br from-gray-900 to-green-900 text-white">
+      {/* Social */}
+      <section className="py-12 bg-white border-t border-gray-100">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl md:text-5xl font-black mb-6">
-            Connect with Us on Social Media
+          <h2 className="text-lg font-bold text-gray-900 mb-2">
+            Kết nối với chúng tôi
           </h2>
-          <p className="text-xl text-gray-300 mb-8">
-            Follow us on social media to stay updated with the latest news and offers
+          <p className="text-sm text-gray-500 mb-6">
+            Theo dõi để nhận tin mới và ưu đãi
           </p>
-          <div className="flex justify-center space-x-6">
-            <a
-              href="https://facebook.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-14 h-14 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors"
-              aria-label="Facebook"
-            >
-              <span className="text-2xl">f</span>
+          <div className="flex justify-center gap-4">
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-green-100 hover:text-green-600 transition-colors" aria-label="Facebook">
+              <span className="text-lg font-semibold">f</span>
             </a>
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-14 h-14 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors"
-              aria-label="Instagram"
-            >
-              <span className="text-2xl">📷</span>
-            </a>
-            <a
-              href="https://zalo.me"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-14 h-14 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors"
-              aria-label="Zalo"
-            >
-              <span className="text-2xl">💬</span>
-            </a>
-            <a
-              href="https://youtube.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-14 h-14 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors"
-              aria-label="YouTube"
-            >
-              <span className="text-2xl">▶️</span>
-            </a>
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-green-100 hover:text-green-600 transition-colors" aria-label="Instagram">📷</a>
+            <a href="https://zalo.me" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-green-100 hover:text-green-600 transition-colors" aria-label="Zalo">💬</a>
+            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-green-100 hover:text-green-600 transition-colors" aria-label="YouTube">▶️</a>
           </div>
         </div>
       </section>
-
     </div>
   );
 }

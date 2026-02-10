@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 // import { useAuth } from '../../contexts/AuthContext';
@@ -43,11 +43,30 @@ const ContactHistoryPage = () => {
   
   const [selectedContact, setSelectedContact] = useState(null);
   const [replyMessage, setReplyMessage] = useState('');
+  const [searchParams] = useSearchParams();
+  const hasAppliedContactIdFromUrl = useRef(false);
 
   // Fetch contacts using Redux
   useEffect(() => {
     dispatch(contactGetMyContactsRequest());
   }, [dispatch]);
+
+  // Khi vào trang từ thông báo (URL có contactId): auto-select và mở đúng contactt
+  useEffect(() => {
+    const contactIdFromUrl = searchParams.get('contactId');
+    if (!contactIdFromUrl || contactsLoading || hasAppliedContactIdFromUrl.current) return;
+    if (contacts.length === 0) return;
+
+    const contact = contacts.find(
+      (c) => (c._id || c.id) === contactIdFromUrl
+    );
+    if (contact) {
+      hasAppliedContactIdFromUrl.current = true;
+      setSelectedContact(contact);
+      setReplyMessage('');
+      dispatch(contactGetContactDetailRequest(contactIdFromUrl));
+    }
+  }, [contacts, contactsLoading, searchParams, dispatch]);
 
   // Update selected contact when contactDetail changes
   useEffect(() => {
@@ -224,7 +243,7 @@ const ContactHistoryPage = () => {
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-2">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
               Contact History
             </h1>
             <p className="text-lg text-gray-600">
@@ -313,7 +332,7 @@ const ContactHistoryPage = () => {
                 <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
                   <div className="flex items-start justify-between mb-6">
                     <div className="flex-1">
-                      <h2 className="text-2xl font-black text-gray-900 mb-2">
+                      <h2 className="text-2xl font-bold text-gray-900 mb-2">
                         {selectedContact.subject}
                       </h2>
                       <div className="flex items-center gap-3 flex-wrap">
@@ -350,36 +369,59 @@ const ContactHistoryPage = () => {
                   {selectedContact.attachments && selectedContact.attachments.length > 0 && (
                     <div className="mb-6">
                       <h3 className="text-sm font-semibold text-gray-700 mb-3">Attachments</h3>
-                      <div className="space-y-2">
-                        {selectedContact.attachments.map((attachment, index) => (
-                          <div
-                            key={attachment._id || attachment.id || index}
-                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
-                          >
-                            <div className="flex items-center gap-3 flex-1 min-w-0">
-                              <FileText className="w-5 h-5 text-gray-600 flex-shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-900 truncate">
-                                  {attachment.file_name || attachment.fileName || `File ${index + 1}`}
-                                </p>
-                                {attachment.file_size && (
-                                  <p className="text-xs text-gray-500">
-                                    {(attachment.file_size / 1024 / 1024).toFixed(2)} MB
-                                  </p>
-                                )}
+                      <div className="space-y-3">
+                        {selectedContact.attachments.map((attachment, index) => {
+                          const fileName = attachment.file_name || attachment.fileName || `File ${index + 1}`;
+                          const fileUrl = attachment.file_url || attachment.fileUrl;
+                          const isImage = /\.(jpg|jpeg|png|gif|bmp|webp|svg)(\?|$)/i.test(fileName);
+                          return isImage ? (
+                            <div
+                              key={attachment._id || attachment.id || index}
+                              className="p-3 bg-gray-50 rounded-lg border border-gray-200 overflow-hidden"
+                            >
+                              <img
+                                src={fileUrl}
+                                alt={fileName}
+                                className="w-full max-h-64 object-contain rounded-lg bg-white border border-gray-100"
+                                onError={(e) => { e.target.style.display = 'none'; e.target.nextElementSibling?.classList.remove('hidden'); }}
+                              />
+                              <p className="hidden text-sm text-gray-500 mt-2">Không thể tải ảnh</p>
+                              <div className="flex items-center justify-between mt-2">
+                                <p className="text-sm font-medium text-gray-900 truncate flex-1 min-w-0">{fileName}</p>
+                                <button
+                                  onClick={() => handleDownloadAttachment(fileUrl, fileName)}
+                                  className="ml-2 p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors flex-shrink-0"
+                                  title="Tải xuống"
+                                >
+                                  <Download className="w-5 h-5" />
+                                </button>
                               </div>
                             </div>
-                            <button
-                              onClick={() => handleDownloadAttachment(
-                                attachment.file_url || attachment.fileUrl,
-                                attachment.file_name || attachment.fileName || `attachment-${index + 1}`
-                              )}
-                              className="ml-3 p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          ) : (
+                            <div
+                              key={attachment._id || attachment.id || index}
+                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
                             >
-                              <Download className="w-5 h-5" />
-                            </button>
-                          </div>
-                        ))}
+                              <div className="flex items-center gap-3 flex-1 min-w-0">
+                                <FileText className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 truncate">{fileName}</p>
+                                  {attachment.file_size && (
+                                    <p className="text-xs text-gray-500">
+                                      {(attachment.file_size / 1024 / 1024).toFixed(2)} MB
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => handleDownloadAttachment(fileUrl, fileName)}
+                                className="ml-3 p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                              >
+                                <Download className="w-5 h-5" />
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
