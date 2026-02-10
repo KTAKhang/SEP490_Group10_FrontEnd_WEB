@@ -309,7 +309,11 @@ const HarvestBatchManagement = () => {
                           <p className="text-sm text-gray-900">{batch.supplier?.name || "N/A"}</p>
                         </td>
                         <td className="px-4 py-3">
-                          <p className="text-sm text-gray-900">{batch.product?.name || "N/A"}</p>
+                          {batch.isPreOrderBatch ? (
+                            <p className="text-sm text-gray-900">Pre-order: {batch.fruitTypeId?.name || "—"}</p>
+                          ) : (
+                            <p className="text-sm text-gray-900">{batch.product?.name || "N/A"}</p>
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1.5">

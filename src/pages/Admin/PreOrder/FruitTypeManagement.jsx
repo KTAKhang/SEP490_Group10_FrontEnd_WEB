@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import apiClient from "../../../utils/axiosConfig";
 
+const DAYS_BEFORE_HARVEST_TO_LOCK = 3;
+const getMinHarvestDateStr = () => {
+  const d = new Date();
+  d.setDate(d.getDate() + DAYS_BEFORE_HARVEST_TO_LOCK + 1);
+  return d.toISOString().slice(0, 10);
+};
+
 export default function FruitTypeManagement() {
   const [list, setList] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 });
@@ -103,6 +110,7 @@ export default function FruitTypeManagement() {
 
   const openEdit = (row) => {
     if ((row.demandKg ?? 0) > 0) return;
+    if (row.status === "INACTIVE" || (row.hasClosedPreOrders && (row.demandKg ?? 0) === 0)) return;
     setModal("edit");
     setEditingId(row._id);
     setForm({
@@ -124,6 +132,7 @@ export default function FruitTypeManagement() {
 
   const handleDelete = (row) => {
     if ((row.demandKg ?? 0) > 0) return;
+    if (row.status === "INACTIVE" || (row.hasClosedPreOrders && (row.demandKg ?? 0) === 0)) return;
     if (!window.confirm(`Delete fruit type "${row.name}"? This cannot be undone.`)) return;
     setDeletingId(row._id);
     setErr("");
@@ -300,7 +309,8 @@ export default function FruitTypeManagement() {
             </thead>
             <tbody>
               {list.map((row) => {
-                const canEditDelete = (row.demandKg ?? 0) === 0 && row.status !== "INACTIVE";
+                const isCampaignClosed = row.status === "INACTIVE" || (row.hasClosedPreOrders && (row.demandKg ?? 0) === 0);
+                const canEditDelete = (row.demandKg ?? 0) === 0 && !isCampaignClosed;
                 return (
                   <tr key={row._id} className="border-t">
                     <td className="px-4 py-2">
@@ -342,8 +352,8 @@ export default function FruitTypeManagement() {
                           </button>
                         </div>
                       ) : (
-                        <span className="text-xs text-gray-500" title={row.status === "INACTIVE" ? "Closed (inactive). Edit/delete not allowed." : "Edit/delete allowed only when demand = 0."}>
-                          {row.status === "INACTIVE" ? "Closed" : "Locked (demand &gt; 0)"}
+                        <span className="text-xs text-gray-500" title={isCampaignClosed ? "Campaign closed. Edit/delete not allowed." : "Edit/delete allowed only when demand = 0."}>
+                          {isCampaignClosed ? "Closed" : "Locked (demand &gt; 0)"}
                         </span>
                       )}
                     </td>
@@ -519,10 +529,13 @@ export default function FruitTypeManagement() {
                 </label>
                 <input
                   type="date"
+                  min={getMinHarvestDateStr()}
                   value={form.estimatedHarvestDate}
                   onChange={(e) => setForm((f) => ({ ...f, estimatedHarvestDate: e.target.value }))}
                   className="w-full border rounded px-3 py-2"
+                  title="Cannot select today or the next 3 days (fruit would be hidden from pre-order)"
                 />
+                <p className="text-xs text-gray-500 mt-1">Must be at least 4 days from today (today and the next 3 days are not allowed).</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Status</label>

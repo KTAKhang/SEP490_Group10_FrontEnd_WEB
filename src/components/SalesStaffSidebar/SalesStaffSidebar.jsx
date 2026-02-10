@@ -11,6 +11,7 @@ import {
   ShoppingCart,
   X,
   RotateCcw,
+  Package,
 } from "lucide-react";
 
 
@@ -35,6 +36,11 @@ const SalesStaffSidebar = () => {
       icon: RotateCcw,
       label: "Refund Management",
       path: "/sale-staff/refund-orders",
+    },
+    {
+      icon: Package,
+      label: "Pre-order Management",
+      path: "/sale-staff/preorder",
     },
     {
       icon: Ticket,
