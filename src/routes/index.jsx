@@ -171,6 +171,7 @@ export const routes = [
     ),
     children: [
       { index: true, element: <ChatForStaffPage /> },
+       { path: "chat", element: <ChatForStaffPage /> },
       { path: "profile", element: <ProfileManagement /> },
       { path: "change-password", element: <UpdatePassword /> },
     ],

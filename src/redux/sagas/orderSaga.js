@@ -237,8 +237,7 @@ function* orderCreateSaga(action) {
 
     if (res.success) {
       yield put(orderCreateSuccess(res));
-
-
+      localStorage.removeItem("checkout_session_id");
       if (res.redirect_url) {
         window.location.href = res.redirect_url;
         return;

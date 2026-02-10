@@ -172,10 +172,10 @@ export const useFirebaseNotifications = () => {
           });
         }
 
-        // Handle notification data
-        if (event.data.data) {
-          handleNotificationClick(event.data.data);
-        }
+        // // Handle notification data
+        // if (event.data.data) {
+        //   handleNotificationClick(event.data.data);
+        // }
       }
     };
 

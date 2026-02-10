@@ -117,6 +117,17 @@ export const handleNotificationClick = (notificationData) => {
     }
   }
 
+  if (notificationData?.type === 'chat') {
+    if (notificationData?.action === 'chat_message') {
+      const normalizedRole = userRole.replace(/_/g, '-');
+      
+        
+     if (normalizedRole === 'feedbacked-staff') {
+        window.location.href = `/feedbacked-staff/chat`;
+      }
+    }
+  }
+
 
   // Order: backend chỉ gửi thông báo khi admin cập nhật trạng thái đơn (action: view_order)
   if (notificationData?.type === 'order') {
@@ -126,7 +137,13 @@ export const handleNotificationClick = (notificationData) => {
       return;
     }
     if (orderId) {
-      window.location.href = `/customer/orders/${orderId}`;
+      const normalizedRole = userRole.replace(/_/g, '-');
+      
+        window.location.href = `/customer/orders/${orderId}`;
+     if (normalizedRole === 'sales-staff') {
+        window.location.href = `/sale-staff/orders`;
+      }
+      
     }
   }
 };
