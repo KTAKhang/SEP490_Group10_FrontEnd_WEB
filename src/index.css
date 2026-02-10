@@ -8,6 +8,11 @@
   font-weight: 400;
 }
 
+/* Dùng cho các trang cần đồng bộ font với toàn site (contact, contact-history, admin contacts) */
+.font-site {
+  font-family: Arial, sans-serif;
+}
+
 /* CKEditor Wrapper Styles */
 .ckeditor-wrapper {
   display: flex;

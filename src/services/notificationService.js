@@ -111,6 +111,19 @@ export const handleNotificationClick = (notificationData) => {
   }
 
 
+  // Contact: admin đã phản hồi liên hệ → mở trang Lịch sử liên hệ (có thể mở đúng contact)
+  if (notificationData?.type === 'contact') {
+    if (notificationData?.action === 'view_contact') {
+      const contactId = notificationData?.contactId;
+      if (contactId) {
+        window.location.href = `/customer/contact-history?contactId=${encodeURIComponent(contactId)}`;
+      } else {
+        window.location.href = '/customer/contact-history';
+      }
+      return;
+    }
+  }
+
   if (notificationData?.type === 'preorder') {
     if (notificationData?.action === 'view_my_preorders') {
       window.location.href = '/customer/my-pre-orders';

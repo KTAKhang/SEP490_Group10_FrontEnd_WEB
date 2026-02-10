@@ -212,7 +212,7 @@ const ContactDetailPage = () => {
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
             <div className="flex items-start justify-between mb-6">
               <div className="flex-1">
-                <h2 className="text-2xl font-black text-gray-900 mb-4">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">
                   {contactDetail.subject}
                 </h2>
                 <div className="flex items-center gap-3 flex-wrap mb-4">
@@ -270,27 +270,56 @@ const ContactDetailPage = () => {
             {contactDetail.attachments && contactDetail.attachments.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-sm font-semibold text-gray-700 mb-4">Attachments</h3>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {contactDetail.attachments.map((attachment, index) => {
                     const fileName = attachment.file_name || attachment.fileName || `File ${index + 1}`;
                     const fileUrl = attachment.file_url || attachment.fileUrl;
                     const isImage = isImageFile(fileName);
                     
+                    if (isImage) {
+                      return (
+                        <div
+                          key={attachment._id || attachment.id || index}
+                          className="p-4 bg-gray-50 rounded-xl border border-gray-200 overflow-hidden"
+                        >
+                          <img
+                            src={fileUrl}
+                            alt={fileName}
+                            className="w-full max-h-72 object-contain rounded-lg bg-white border border-gray-100"
+                            onError={(e) => { e.target.style.display = 'none'; e.target.nextElementSibling?.classList.remove('hidden'); }}
+                          />
+                          <p className="hidden text-sm text-gray-500 mt-2">Không thể tải ảnh</p>
+                          <div className="flex items-center justify-between mt-3">
+                            <p className="text-sm font-semibold text-gray-900 truncate flex-1 min-w-0">{fileName}</p>
+                            <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                              <button
+                                onClick={() => handleViewAttachment(fileUrl, fileName)}
+                                className="p-2.5 text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200"
+                                title="View Image"
+                              >
+                                <Eye className="w-5 h-5" />
+                              </button>
+                              <button
+                                onClick={() => handleDownloadAttachment(fileUrl, fileName)}
+                                className="p-2.5 text-green-600 hover:bg-green-50 rounded-xl transition-all duration-200"
+                                title="Download"
+                              >
+                                <Download className="w-5 h-5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
                     return (
                       <div
                         key={attachment._id || attachment.id || index}
                         className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors"
                       >
                         <div className="flex items-center gap-3 flex-1 min-w-0">
-                          {isImage ? (
-                            <ImageIcon className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                          ) : (
-                            <FileText className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                          )}
+                          <FileText className="w-5 h-5 text-blue-600 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">
-                              {fileName}
-                            </p>
+                            <p className="text-sm font-semibold text-gray-900 truncate">{fileName}</p>
                             {attachment.file_size && (
                               <p className="text-xs text-gray-500">
                                 {(attachment.file_size / 1024 / 1024).toFixed(2)} MB
@@ -299,15 +328,6 @@ const ContactDetailPage = () => {
                           </div>
                         </div>
                         <div className="flex items-center gap-2 ml-3">
-                          {isImage && (
-                            <button
-                              onClick={() => handleViewAttachment(fileUrl, fileName)}
-                              className="p-2.5 text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 hover:scale-110"
-                              title="View Image"
-                            >
-                              <Eye className="w-5 h-5" />
-                            </button>
-                          )}
                           <button
                             onClick={() => handleDownloadAttachment(fileUrl, fileName)}
                             className="p-2.5 text-green-600 hover:bg-green-50 rounded-xl transition-all duration-200 hover:scale-110"
