@@ -51,7 +51,7 @@ const ContactHistoryPage = () => {
     dispatch(contactGetMyContactsRequest());
   }, [dispatch]);
 
-  // Khi vào trang từ thông báo (URL có contactId): auto-select và mở đúng contact
+  // Khi vào trang từ thông báo (URL có contactId): auto-select và mở đúng contactt
   useEffect(() => {
     const contactIdFromUrl = searchParams.get('contactId');
     if (!contactIdFromUrl || contactsLoading || hasAppliedContactIdFromUrl.current) return;
