@@ -277,7 +277,7 @@ const AdminManagementPage = () => {
                     </div>
                     <Link
                         to="/admin/discounts/birthday-report"
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-full font-medium hover:bg-gray-800 transition-colors shrink-0"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-full font-medium hover:bg-green-700 transition-colors shrink-0"
                     >
                         <i className="ri-cake-2-line text-lg"></i>
                         <span>Birthday Report</span>

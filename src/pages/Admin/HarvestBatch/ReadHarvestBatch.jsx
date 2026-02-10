@@ -126,12 +126,14 @@ const ReadHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                 <div>
                   <p className="text-sm text-gray-500 mb-1 flex items-center space-x-1">
                     <Package size={16} className="text-gray-400" />
-                    <span>Product</span>
+                    <span>{harvestBatchDetail.isPreOrderBatch ? "Fruit type (pre-order)" : "Product"}</span>
                   </p>
                   <p className="text-base font-medium text-gray-900">
-                    {harvestBatchDetail.product?.name || "N/A"}
+                    {harvestBatchDetail.isPreOrderBatch
+                      ? (harvestBatchDetail.fruitTypeId?.name || "N/A")
+                      : (harvestBatchDetail.product?.name || "N/A")}
                   </p>
-                  {harvestBatchDetail.product?.brand && (
+                  {!harvestBatchDetail.isPreOrderBatch && harvestBatchDetail.product?.brand && (
                     <p className="text-xs text-gray-500 mt-1">
                       Brand: {harvestBatchDetail.product.brand}
                     </p>

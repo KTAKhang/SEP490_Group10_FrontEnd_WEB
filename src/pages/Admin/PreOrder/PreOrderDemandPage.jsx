@@ -52,12 +52,14 @@ export default function PreOrderDemandPage() {
         fruitTypeId: allocModal.fruitTypeId?._id || allocModal.fruitTypeId,
         allocatedKg: availableKg,
       })
-      .then(() => {
+      .then((res) => {
+        const msg = res.data?.data?.message;
         setAllocModal(null);
         setShowAllocConfirm(false);
         load(pagination.page);
+        if (msg) setErr(msg);
       })
-      .catch((e) => setErr(e.response?.data?.message || "Error."))
+      .catch((e) => setErr(e.response?.data?.message || "Lỗi khi chạy allocation."))
       .finally(() => setIsAllocating(false));
   };
 

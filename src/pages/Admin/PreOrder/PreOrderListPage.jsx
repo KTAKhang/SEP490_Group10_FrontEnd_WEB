@@ -7,6 +7,8 @@ const STATUS_LABEL = {
   ALLOCATED_WAITING_PAYMENT: "Allocated, waiting payment",
   READY_FOR_FULFILLMENT: "Ready for fulfillment",
   COMPLETED: "Completed",
+  REFUND: "Refund",
+  CANCELLED: "Cancelled",
   WAITING_FOR_PRODUCT: "Waiting for allocation (legacy)",
 };
 const formatDate = (d) => (d ? new Date(d).toLocaleString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—");
@@ -19,6 +21,9 @@ export default function PreOrderListPage() {
   const [err, setErr] = useState("");
   const [detail, setDetail] = useState(null);
   const [completingId, setCompletingId] = useState(null);
+  const [refundingId, setRefundingId] = useState(null);
+  const [refundConfirmId, setRefundConfirmId] = useState(null);
+  const [completeConfirmId, setCompleteConfirmId] = useState(null);
   const [filterStatus, setFilterStatus] = useState("");
   const [searchText, setSearchText] = useState("");
   const [sortBy, setSortBy] = useState("createdAt");
@@ -63,8 +68,14 @@ export default function PreOrderListPage() {
       .catch(() => setErr("Could not load detail."));
   };
 
-  const handleMarkCompleted = (id) => {
-    if (!window.confirm("Mark this pre-order as Completed (delivery done)?")) return;
+  const handleMarkCompletedClick = (id) => {
+    setCompleteConfirmId(id);
+  };
+
+  const handleCompleteConfirm = () => {
+    const id = completeConfirmId;
+    if (!id) return;
+    setCompleteConfirmId(null);
     setCompletingId(id);
     apiClient
       .put(`/admin/preorder/pre-orders/${id}/complete`)
@@ -74,6 +85,25 @@ export default function PreOrderListPage() {
       })
       .catch((e) => setErr(e.response?.data?.message || "Could not mark as completed."))
       .finally(() => setCompletingId(null));
+  };
+
+  const handleRefundClick = (id) => {
+    setRefundConfirmId(id);
+  };
+
+  const handleRefundConfirm = () => {
+    const id = refundConfirmId;
+    if (!id) return;
+    setRefundConfirmId(null);
+    setRefundingId(id);
+    apiClient
+      .put(`/admin/preorder/pre-orders/${id}/refund`)
+      .then((res) => {
+        if (res.data && res.data.data) setDetail(res.data.data);
+        load(pagination.page);
+      })
+      .catch((e) => setErr(e.response?.data?.message || "Could not mark as refund."))
+      .finally(() => setRefundingId(null));
   };
 
   return (
@@ -125,6 +155,7 @@ export default function PreOrderListPage() {
           <option value="ALLOCATED_WAITING_PAYMENT">Allocated, waiting payment</option>
           <option value="READY_FOR_FULFILLMENT">Ready for fulfillment</option>
           <option value="COMPLETED">Completed</option>
+          <option value="REFUND">Refund</option>
         </select>
       </div>
 
@@ -162,6 +193,8 @@ export default function PreOrderListPage() {
                       po.status === "READY_FOR_FULFILLMENT" ? "bg-blue-100 text-blue-800" :
                       po.status === "ALLOCATED_WAITING_PAYMENT" ? "bg-purple-100 text-purple-800" :
                       po.status === "WAITING_FOR_NEXT_BATCH" ? "bg-amber-100 text-amber-800" :
+                      po.status === "REFUND" ? "bg-red-100 text-red-800" :
+                      po.status === "CANCELLED" ? "bg-gray-200 text-gray-700" :
                       "bg-gray-100 text-gray-800"
                     }`}>
                       {STATUS_LABEL[po.status] || po.status}
@@ -242,6 +275,82 @@ export default function PreOrderListPage() {
         </div>
       )}
 
+      {/* Mark completed confirmation modal */}
+      {completeConfirmId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onClick={() => setCompleteConfirmId(null)}>
+          <div
+            className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                <i className="ri-checkbox-circle-line text-2xl text-green-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">Mark as completed</h3>
+                <p className="text-sm text-gray-600">
+                  Confirm that delivery has been done for this pre-order. The status will be set to <strong>Completed</strong>.
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setCompleteConfirmId(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleCompleteConfirm}
+                className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-xl transition-colors"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Refund confirmation modal */}
+      {refundConfirmId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onClick={() => setRefundConfirmId(null)}>
+          <div
+            className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <i className="ri-error-warning-line text-2xl text-red-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">Confirm refund</h3>
+                <p className="text-sm text-gray-600">
+                  This pre-order will be marked as <strong>Refund</strong>. Please process the refund with the customer separately. This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setRefundConfirmId(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleRefundConfirm}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors"
+              >
+                Confirm refund
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {detail && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
@@ -268,23 +377,38 @@ export default function PreOrderListPage() {
               <div><span className="text-gray-500 font-medium">Receiver phone:</span><br /><span className="text-gray-700">{detail.receiver_phone || "—"}</span></div>
               <div><span className="text-gray-500 font-medium">Delivery address:</span><br /><span className="text-gray-700">{detail.receiver_address || "—"}</span></div>
             </div>
-            {detail.status === "READY_FOR_FULFILLMENT" && (
-              <div className="p-6 pt-0 flex justify-end">
+            <div className="p-6 pt-0 flex flex-wrap justify-end gap-2">
+              {detail.status === "READY_FOR_FULFILLMENT" && (
                 <button
                   type="button"
-                  onClick={() => handleMarkCompleted(detail._id)}
+                  onClick={() => handleMarkCompletedClick(detail._id)}
                   disabled={completingId === detail._id}
                   className="px-4 py-2 bg-green-600 text-white rounded-full text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {completingId === detail._id ? (
                     <><i className="ri-loader-4-line animate-spin inline-block mr-1" /> Marking…
-                  </>
+                    </>
                   ) : (
                     "Mark completed (delivery done)"
                   )}
                 </button>
-              </div>
-            )}
+              )}
+              {detail.status !== "REFUND" && (
+                <button
+                  type="button"
+                  onClick={() => handleRefundClick(detail._id)}
+                  disabled={refundingId === detail._id}
+                  className="px-4 py-2 border border-red-200 text-red-600 rounded-full text-sm font-medium hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {refundingId === detail._id ? (
+                    <><i className="ri-loader-4-line animate-spin inline-block mr-1" /> Processing…
+                    </>
+                  ) : (
+                    "Refund"
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

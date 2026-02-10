@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X, Calendar, Package, MapPin } from "lucide-react";
 import axios from "axios";
+import apiClient from "../../../utils/axiosConfig";
 import { createHarvestBatchRequest } from "../../../redux/actions/supplierActions";
 import { getSuppliersRequest } from "../../../redux/actions/supplierActions";
 import { getProductsRequest } from "../../../redux/actions/productActions";
@@ -20,6 +21,8 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
     supplierId: "",
     productId: "",
+    fruitTypeId: "",
+    isPreOrderBatch: false,
     batchNumber: "",
     harvestDate: "",
     location: "",
@@ -27,6 +30,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
     ward: "",
     notes: "",
   });
+  const [preOrderFruitTypes, setPreOrderFruitTypes] = useState([]);
 
 
   const [provinces, setProvinces] = useState([]);
@@ -39,12 +43,28 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
     if (isOpen) {
       dispatch(getSuppliersRequest({ page: 1, limit: 1000, status: true }));
       dispatch(getProductsRequest({ page: 1, limit: 1000 }));
+      apiClient.get("/admin/preorder/demand", { params: { limit: 500 } })
+        .then((r) => {
+          const data = r.data?.data || [];
+          const seen = new Set();
+          const list = data
+            .filter((d) => {
+              const id = d.fruitTypeId?._id || d.fruitTypeId;
+              if (!id || seen.has(String(id))) return false;
+              seen.add(String(id));
+              return true;
+            })
+            .map((d) => ({ id: d.fruitTypeId?._id || d.fruitTypeId, name: d.fruitTypeName || "—" }));
+          setPreOrderFruitTypes(list);
+        })
+        .catch(() => setPreOrderFruitTypes([]));
     } else {
-      // Reset form when modal is closed
       setHasSubmitted(false);
       setFormData({
         supplierId: "",
         productId: "",
+        fruitTypeId: "",
+        isPreOrderBatch: false,
         batchNumber: "",
         harvestDate: "",
         location: "",
@@ -103,6 +123,8 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
       setFormData({
         supplierId: "",
         productId: "",
+        fruitTypeId: "",
+        isPreOrderBatch: false,
         batchNumber: "",
         harvestDate: "",
         location: "",
@@ -111,7 +133,6 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
         notes: "",
       });
       setIcity("");
-      // Close modal after successful creation
       onClose();
     } else if (hasSubmitted && !createHarvestBatchLoading && createHarvestBatchError) {
       // Reset hasSubmitted on error so user can try again
@@ -123,49 +144,51 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-
-    if (!formData.supplierId || !formData.productId || !formData.harvestDate) {
+    const isPreOrder = formData.isPreOrderBatch === true;
+    if (!formData.supplierId || !formData.harvestDate) {
       return;
     }
-
-
-    // ✅ Validation: Batch Number không được để trống
+    if (isPreOrder) {
+      if (!formData.fruitTypeId) {
+        alert("Please select a fruit type for pre-order harvest batch.");
+        return;
+      }
+    } else {
+      if (!formData.productId) {
+        alert("Please select a product from the supplier.");
+        return;
+      }
+    }
     const batchNumberTrimmed = formData.batchNumber?.trim() || "";
     if (!batchNumberTrimmed) {
       alert("Harvest Batch Number is required and cannot be empty");
       return;
     }
-
-
-    // ✅ BR-SUP-12: Validation harvestDate không được lớn hơn ngày hiện tại
     const harvestDateObj = new Date(formData.harvestDate);
     harvestDateObj.setHours(0, 0, 0, 0);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (harvestDateObj > today) {
-      alert("Ngày thu hoạch không được lớn hơn ngày hiện tại");
+      alert("Harvest date cannot be later than today");
       return;
     }
-
-
-    // Clean data - đã xóa quantity trên HarvestBatch
     const locationLine = formData.location?.trim() || "";
     const wardName = formData.ward?.toString().trim() || "";
     const provinceName = icity?.toString().trim() || "";
     const locationParts = [locationLine, wardName, provinceName].filter(Boolean);
-
-
     const cleanedData = {
       supplierId: formData.supplierId,
-      productId: formData.productId,
       batchNumber: batchNumberTrimmed,
       harvestDate: formData.harvestDate,
       location: locationParts.join(", "),
       notes: formData.notes?.trim() || "",
+      isPreOrderBatch: isPreOrder,
     };
-
-
+    if (isPreOrder) {
+      cleanedData.fruitTypeId = formData.fruitTypeId;
+    } else {
+      cleanedData.productId = formData.productId;
+    }
     setHasSubmitted(true);
     dispatch(createHarvestBatchRequest(cleanedData));
   };
@@ -173,16 +196,18 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
 
   const handleCancel = () => {
     setHasSubmitted(false);
-      setFormData({
-        supplierId: "",
-        productId: "",
-        batchNumber: "",
-        harvestDate: "",
-        location: "",
-        city: "",
-        ward: "",
-        notes: "",
-      });
+    setFormData({
+      supplierId: "",
+      productId: "",
+      fruitTypeId: "",
+      isPreOrderBatch: false,
+      batchNumber: "",
+      harvestDate: "",
+      location: "",
+      city: "",
+      ward: "",
+      notes: "",
+    });
     setIcity("");
     onClose();
   };
@@ -223,6 +248,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
         </div>
         <form onSubmit={handleSubmit}>
           <div className="p-6 space-y-4">
+            {/* Normal product harvest batch flow (same as before): Supplier + Product first */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -230,7 +256,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
                 </label>
                 <select
                   value={formData.supplierId}
-                  onChange={(e) => setFormData({ ...formData, supplierId: e.target.value, productId: "" })}
+                  onChange={(e) => setFormData({ ...formData, supplierId: e.target.value, productId: "", fruitTypeId: "" })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   required
                 >
@@ -243,29 +269,53 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
                 </select>
               </div>
 
+              {!formData.isPreOrderBatch && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Product <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.productId}
+                    onChange={(e) => setFormData({ ...formData, productId: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    required={!formData.isPreOrderBatch}
+                    disabled={!formData.supplierId}
+                  >
+                    <option value="">Select product</option>
+                    {filteredProducts.length === 0 && formData.supplierId && (
+                      <option value="" disabled>No products for this supplier</option>
+                    )}
+                    {filteredProducts.map((product) => (
+                      <option key={product._id} value={product._id}>
+                        {product.name} {product.brand && `(${product.brand})`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Product <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={formData.productId}
-                  onChange={(e) => setFormData({ ...formData, productId: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  required
-                  disabled={!formData.supplierId}
-                >
-                  <option value="">Select product</option>
-                  {filteredProducts.length === 0 && formData.supplierId && (
-                    <option value="" disabled>No products for this supplier</option>
-                  )}
-                  {filteredProducts.map((product) => (
-                    <option key={product._id} value={product._id}>
-                      {product.name} {product.brand && `(${product.brand})`}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {formData.isPreOrderBatch && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Fruit type (pre-order) <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.fruitTypeId}
+                    onChange={(e) => setFormData({ ...formData, fruitTypeId: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    required={formData.isPreOrderBatch}
+                    disabled={!formData.supplierId}
+                  >
+                    <option value="">Select fruit type</option>
+                    {preOrderFruitTypes.length === 0 && formData.supplierId && (
+                      <option value="" disabled>No fruit types in pre-order demand</option>
+                    )}
+                    {preOrderFruitTypes.map((ft) => (
+                      <option key={ft.id} value={ft.id}>{ft.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
 
 
@@ -305,6 +355,26 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
               </div>
             </div>
 
+            {/* Chỉ khi tích mới chuyển sang flow pre-order (Fruit type); không tích = lô product như cũ */}
+            <div className="pt-2 pb-2 border-t border-gray-100">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.isPreOrderBatch === true}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    isPreOrderBatch: e.target.checked,
+                    productId: e.target.checked ? "" : formData.productId,
+                    fruitTypeId: e.target.checked ? formData.fruitTypeId : "",
+                  })}
+                  className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                />
+                <span className="text-sm font-medium text-gray-700">Pre-order harvest batch</span>
+              </label>
+              <p className="text-xs text-gray-500 mt-1 ml-6">
+                Leave unchecked for <strong>normal product harvest batch</strong> (same as before: supplier + product). Check only when creating a batch for pre-order; then select fruit type above instead of product.
+              </p>
+            </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center space-x-2">

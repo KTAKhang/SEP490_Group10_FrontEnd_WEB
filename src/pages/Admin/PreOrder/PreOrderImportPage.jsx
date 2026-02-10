@@ -7,6 +7,7 @@ export default function PreOrderImportPage() {
   const [demandPagination, setDemandPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 });
   const [searchText, setSearchText] = useState("");
   const [harvestBatches, setHarvestBatches] = useState([]);
+  const [harvestBatchesForForm, setHarvestBatchesForForm] = useState([]);
   const [existingPreOrderBatches, setExistingPreOrderBatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
@@ -43,6 +44,18 @@ export default function PreOrderImportPage() {
       .catch(() => setErr("Could not load demand or harvest batch list."))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!showForm || !form.fruitTypeId) {
+      setHarvestBatchesForForm([]);
+      return;
+    }
+    apiClient.get("/admin/harvest-batch", {
+      params: { limit: 500, fruitTypeId: form.fruitTypeId, isPreOrderBatch: "true" },
+    })
+      .then((r) => { if (r.data?.data) setHarvestBatchesForForm(r.data.data); })
+      .catch(() => setHarvestBatchesForForm([]));
+  }, [showForm, form.fruitTypeId]);
 
   useEffect(() => {
     if (searchText.trim() === "") return;
@@ -120,9 +133,9 @@ export default function PreOrderImportPage() {
     setShowConfirmCreate(true);
   };
 
-  /** Chỉ hiển thị lô thu hoạch của nhà cung cấp ACTIVE (optional: có thể bỏ filter) */
-  const usableBatches = harvestBatches.filter(
-    (b) => !b.supplier?.cooperationStatus || b.supplier?.cooperationStatus === "ACTIVE"
+  /** Khi tạo receive batch: chỉ hiển thị lô pre-order (isPreOrderBatch) đúng fruit type, supplier ACTIVE */
+  const usableBatches = harvestBatchesForForm.filter(
+    (b) => b.isPreOrderBatch === true && (b.fruitTypeId?._id || b.fruitTypeId) === form.fruitTypeId && (!b.supplier?.cooperationStatus || b.supplier?.cooperationStatus === "ACTIVE")
   );
 
   return (
@@ -277,29 +290,7 @@ export default function PreOrderImportPage() {
             )}
             <div className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Harvest batch <span className="text-gray-500 font-normal">(manage at Harvest Batch)</span>
-                </label>
-                <select
-                  value={form.harvestBatchId}
-                  onChange={(e) => setForm((f) => ({ ...f, harvestBatchId: e.target.value }))}
-                  className="w-full border rounded px-3 py-2 mt-1"
-                >
-                  <option value="">— Select batch —</option>
-                  {usableBatches.map((b) => (
-                    <option key={b._id} value={b._id}>
-                      {b.batchCode || b.batchNumber || b._id} — {b.supplier?.name || "NCC"} — {b.product?.name || "SP"}
-                    </option>
-                  ))}
-                </select>
-                {harvestBatches.length === 0 && !loading && (
-                  <p className="text-amber-600 text-xs mt-1">
-                    No batches. <Link to="/admin/harvest-batches" className="underline">Create at Harvest Batch</Link>.
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Fruit type</label>
+                <label className="block text-sm font-medium text-gray-700">Fruit type <span className="text-red-500">*</span></label>
                 <select
                   value={form.fruitTypeId}
                   onChange={(e) => {
@@ -309,12 +300,13 @@ export default function PreOrderImportPage() {
                     setForm((f) => ({
                       ...f,
                       fruitTypeId: e.target.value,
+                      harvestBatchId: "",
                       quantityKg: row?.demandKg ?? f.quantityKg,
                     }));
                   }}
                   className="w-full border rounded px-3 py-2 mt-1"
                 >
-                  <option value="">— Select —</option>
+                  <option value="">— Select fruit type —</option>
                   {demand.map((d) => {
                     const id = d.fruitTypeId?._id || d.fruitTypeId;
                     return (
@@ -324,6 +316,30 @@ export default function PreOrderImportPage() {
                     );
                   })}
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Harvest batch <span className="text-gray-500 font-normal">(manage at Harvest Batch — must match fruit type above)</span>
+                </label>
+                <select
+                  value={form.harvestBatchId}
+                  onChange={(e) => setForm((f) => ({ ...f, harvestBatchId: e.target.value }))}
+                  className="w-full border rounded px-3 py-2 mt-1"
+                  disabled={!form.fruitTypeId}
+                >
+                  <option value="">— Select batch —</option>
+                  {!form.fruitTypeId && <option value="" disabled>Select fruit type first</option>}
+                  {usableBatches.map((b) => (
+                    <option key={b._id} value={b._id}>
+                      {b.batchCode || b.batchNumber || b._id} — {b.supplier?.name || "NCC"} — {b.fruitTypeId?.name || "—"}
+                    </option>
+                  ))}
+                </select>
+                {form.fruitTypeId && usableBatches.length === 0 && !loading && (
+                  <p className="text-amber-600 text-xs mt-1">
+                    No pre-order harvest batches for this fruit type. <Link to="/admin/harvest-batches" className="underline">Create at Harvest Batch</Link> (check &quot;Pre-order harvest batch&quot; and select this fruit type).
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">

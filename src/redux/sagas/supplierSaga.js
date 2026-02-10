@@ -136,6 +136,7 @@ const apiGetHarvestBatches = async (params = {}) => {
   if (params.hasInventoryTransactions !== undefined) queryParams.append("hasInventoryTransactions", params.hasInventoryTransactions);
   if (params.receiptEligible !== undefined) queryParams.append("receiptEligible", String(params.receiptEligible));
   if (params.visibleInReceipt !== undefined) queryParams.append("visibleInReceipt", String(params.visibleInReceipt));
+  if (params.isPreOrderBatch !== undefined) queryParams.append("isPreOrderBatch", String(params.isPreOrderBatch));
   if (params.createdBy) queryParams.append("createdBy", params.createdBy);
   if (params.sortBy) queryParams.append("sortBy", params.sortBy);
   if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
