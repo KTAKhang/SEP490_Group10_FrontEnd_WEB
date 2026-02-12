@@ -129,7 +129,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
             {/* Inventory Info */}
             <div className="border-t border-gray-100 pt-5">
               <h3 className="text-sm font-semibold text-gray-800 mb-4">Inventory info</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div className="rounded-xl border border-blue-200/60 bg-blue-50/50 p-4">
                   <p className="text-xs font-medium text-blue-700/80 mb-0.5">Planned</p>
                   <p className="text-xl font-bold text-blue-600">{product.plannedQuantity || 0}</p>
@@ -141,18 +141,6 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
                 <div className="rounded-xl border border-emerald-200/60 bg-emerald-50/50 p-4">
                   <p className="text-xs font-medium text-emerald-700/80 mb-0.5">On-hand</p>
                   <p className="text-xl font-bold text-emerald-600">{product.onHandQuantity || 0}</p>
-                </div>
-                <div className="rounded-xl border border-amber-200/60 bg-amber-50/50 p-4">
-                  <p className="text-xs font-medium text-amber-700/80 mb-0.5">Reserved</p>
-                  <p className="text-xl font-bold text-amber-600">{product.reservedQuantity || 0}</p>
-                </div>
-                <div className="rounded-xl border border-teal-200/60 bg-teal-50/50 p-4">
-                  <p className="text-xs font-medium text-teal-700/80 mb-0.5">Available</p>
-                  <p className="text-xl font-bold text-teal-600">
-                    {product.availableQuantity !== undefined
-                      ? product.availableQuantity
-                      : Math.max(0, (product.onHandQuantity || 0) - (product.reservedQuantity || 0))}
-                  </p>
                 </div>
               </div>
 

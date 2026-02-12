@@ -271,10 +271,10 @@ const ProductBatchHistory = ({ isOpen, onClose, product }) => {
                         Inventory loss
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Bán đúng giá (SL)
+                        Full price (qty)
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Bán xả kho (SL)
+                        Clearance (qty)
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions

@@ -37,7 +37,7 @@ const SupplierManagement = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all"); // all, FARM, COOPERATIVE
-  const [filterCooperationStatus, setFilterCooperationStatus] = useState("all"); // all, ACTIVE, SUSPENDED, TERMINATED
+  const [filterCooperationStatus, setFilterCooperationStatus] = useState("all"); // all, ACTIVE, TERMINATED
   const [filterStatus, setFilterStatus] = useState("all"); // all, true, false
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState("createdAt");
@@ -140,13 +140,6 @@ const SupplierManagement = () => {
             Active
           </span>
         );
-      case "SUSPENDED":
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-            <AlertCircle size={12} className="mr-1" />
-            Suspended
-          </span>
-        );
       case "TERMINATED":
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
@@ -243,7 +236,6 @@ const SupplierManagement = () => {
             >
               <option value="all">All Status</option>
               <option value="ACTIVE">Active</option>
-              <option value="SUSPENDED">Suspended</option>
               <option value="TERMINATED">Terminated</option>
             </select>
           </div>

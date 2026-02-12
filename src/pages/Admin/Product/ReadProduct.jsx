@@ -34,9 +34,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
       setShowUpdateExpiryModal(false);
       // The product will be updated in Redux state automatically
     }
-    if (updateProductExpiryDateError) {
-      toast.error(updateProductExpiryDateError);
-    }
+    // Error toast is shown by saga; avoid duplicate toast here
   }, [updateProductExpiryDateLoading, updateProductExpiryDateError, showUpdateExpiryModal]);
 
 
@@ -55,7 +53,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
     selectedDate.setHours(0, 0, 0, 0);
    
     if (selectedDate < tomorrow) {
-      toast.error(`Hạn sử dụng phải tối thiểu từ ngày ${tomorrow.toISOString().split('T')[0]} (ngày mai)`);
+      toast.error(`Expiry date must be at least ${tomorrow.toISOString().split('T')[0]} (tomorrow)`);
       return;
     }
 
@@ -69,12 +67,12 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
 
   const getStockStatus = (product) => {
     if (product.stockStatus === "OUT_OF_STOCK" || product.onHandQuantity === 0) {
-      return { label: "Hết hàng", color: "bg-red-100 text-red-800", icon: AlertCircle };
+      return { label: "Out of stock", color: "bg-red-100 text-red-800", icon: AlertCircle };
     }
     if (product.onHandQuantity <= 10) {
-      return { label: "Sắp hết", color: "bg-yellow-100 text-yellow-800", icon: TrendingDown };
+      return { label: "Low stock", color: "bg-yellow-100 text-yellow-800", icon: TrendingDown };
     }
-    return { label: "Còn hàng", color: "bg-green-100 text-green-800", icon: CheckCircle };
+    return { label: "In stock", color: "bg-green-100 text-green-800", icon: CheckCircle };
   };
 
 
@@ -104,7 +102,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
           <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-bold text-gray-800 flex items-center space-x-2">
             <Eye size={24} />
-            <span>Chi tiết sản phẩm</span>
+            <span>Product details</span>
           </h2>
           <button
             onClick={onClose}
@@ -117,7 +115,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
           {/* Images */}
           {product.images && product.images.length > 0 && (
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-3">Hình ảnh</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-3">Images</h3>
               <div className="grid grid-cols-4 gap-4">
                 {product.images.map((img, index) => (
                   <img
@@ -138,21 +136,21 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
           {/* Basic Info */}
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Tên sản phẩm</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Product name</h3>
               <p className="text-lg font-semibold text-gray-900">{product.name}</p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Danh mục</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Category</h3>
               <p className="text-gray-900">{product.category?.name || "N/A"}</p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Thương hiệu</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Brand</h3>
               <p className="text-gray-900">{product.brand || "N/A"}</p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Giá</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Price</h3>
               <p className="text-lg font-semibold text-green-600">
-                {new Intl.NumberFormat("vi-VN", {
+                {new Intl.NumberFormat("en-US", {
                   style: "currency",
                   currency: "VND",
                 }).format(product.price || 0)}
@@ -164,7 +162,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
           {/* Status */}
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Trạng thái tồn kho</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Stock status</h3>
               <span
                 className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-medium ${stockStatus.color}`}
               >
@@ -173,7 +171,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
               </span>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Trạng thái nhập kho</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Receiving status</h3>
               <span
                 className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${receivingStatus.color}`}
               >
@@ -181,7 +179,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
               </span>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Hiển thị</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Visibility</h3>
               <span
                 className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                   product.status
@@ -189,7 +187,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
                     : "bg-gray-100 text-gray-800"
                 }`}
               >
-                {product.status ? "Đang hiển thị" : "Đã ẩn"}
+                {product.status ? "Visible" : "Hidden"}
               </span>
             </div>
           </div>
@@ -197,10 +195,10 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
 
           {/* Inventory Info */}
           <div className="border-t pt-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-4">Thông tin tồn kho</h3>
-            <div className="grid grid-cols-4 gap-4">
+            <h3 className="text-sm font-medium text-gray-700 mb-4">Stock information</h3>
+            <div className="grid grid-cols-3 gap-4">
               <div className="bg-blue-50 p-4 rounded-lg">
-                <p className="text-xs text-gray-600 mb-1">Kế hoạch</p>
+                <p className="text-xs text-gray-600 mb-1">Planned</p>
                 <p className="text-2xl font-bold text-blue-600">{product.plannedQuantity || 0}</p>
               </div>
               <div className="bg-purple-50 p-4 rounded-lg">
@@ -208,19 +206,9 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
                 <p className="text-2xl font-bold text-purple-600">{product.receivedQuantity || 0}</p>
               </div>
               <div className="bg-green-50 p-4 rounded-lg">
-                <p className="text-xs text-gray-600 mb-1">Tồn thực tế</p>
+                <p className="text-xs text-gray-600 mb-1">On hand (available)</p>
                 <p className="text-2xl font-bold text-green-600">{product.onHandQuantity || 0}</p>
               </div>
-              <div className="bg-orange-50 p-4 rounded-lg">
-                <p className="text-xs text-gray-600 mb-1">Reserved</p>
-                <p className="text-2xl font-bold text-orange-600">{product.reservedQuantity || 0}</p>
-              </div>
-            </div>
-            <div className="mt-4 bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">Số lượng có sẵn (có thể bán)</p>
-              <p className="text-xl font-bold text-gray-900">
-                {Math.max(0, (product.onHandQuantity || 0) - (product.reservedQuantity || 0))}
-              </p>
             </div>
 
 
@@ -229,9 +217,9 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
               <div className="mt-4 grid grid-cols-3 gap-4">
                 {product.warehouseEntryDate && (
                   <div className="bg-indigo-50 p-4 rounded-lg">
-                    <p className="text-xs text-gray-600 mb-1">Ngày nhập kho</p>
+                    <p className="text-xs text-gray-600 mb-1">Warehouse entry date</p>
                     <p className="text-lg font-semibold text-indigo-600">
-                      {new Date(product.warehouseEntryDate).toLocaleDateString("vi-VN")}
+                      {new Date(product.warehouseEntryDate).toLocaleDateString("en-US")}
                     </p>
                   </div>
                 )}
@@ -249,15 +237,15 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
                     })()
                   }`}>
                     <div className="flex items-center justify-between mb-1">
-                      <p className="text-xs text-gray-600">Hạn sử dụng</p>
+                      <p className="text-xs text-gray-600">Expiry date</p>
                       {product.warehouseEntryDate && (
                         <button
                           onClick={() => setShowUpdateExpiryModal(true)}
                           className="text-xs text-blue-600 hover:text-blue-800 flex items-center space-x-1"
-                          title="Cập nhật hạn sử dụng"
+                          title="Update expiry date"
                         >
                           <Edit size={12} />
-                          <span>Sửa</span>
+                          <span>Edit</span>
                         </button>
                       )}
                     </div>
@@ -273,7 +261,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
                         return "text-green-600";
                       })()
                     }`}>
-                      {new Date(product.expiryDate).toLocaleDateString("vi-VN")}
+                      {new Date(product.expiryDate).toLocaleDateString("en-US")}
                     </p>
                     {(() => {
                       const expiry = new Date(product.expiryDate);
@@ -282,20 +270,20 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
                       expiry.setHours(0, 0, 0, 0);
                       const diffDays = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
                       if (diffDays < 0) {
-                        return <p className="text-xs text-red-600 mt-1">Đã hết hạn</p>;
+                        return <p className="text-xs text-red-600 mt-1">Expired</p>;
                       } else if (diffDays <= 7) {
-                        return <p className="text-xs text-yellow-600 mt-1">Còn {diffDays} ngày</p>;
+                        return <p className="text-xs text-yellow-600 mt-1">{diffDays} days left</p>;
                       } else {
-                        return <p className="text-xs text-gray-500 mt-1">Còn {diffDays} ngày</p>;
+                        return <p className="text-xs text-gray-500 mt-1">{diffDays} days left</p>;
                       }
                     })()}
                   </div>
                 )}
                 {product.shelfLifeDays && (
                   <div className="bg-cyan-50 p-4 rounded-lg">
-                    <p className="text-xs text-gray-600 mb-1">Thời hạn sử dụng</p>
+                    <p className="text-xs text-gray-600 mb-1">Shelf life</p>
                     <p className="text-lg font-semibold text-cyan-600">
-                      {product.shelfLifeDays} ngày
+                      {product.shelfLifeDays} days
                     </p>
                   </div>
                 )}
@@ -307,7 +295,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
           {/* Descriptions */}
           {product.short_desc && (
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Mô tả ngắn</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Short description</h3>
               <p className="text-gray-900">{product.short_desc}</p>
             </div>
           )}
@@ -315,7 +303,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
 
           {product.detail_desc && (
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Mô tả chi tiết</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Detail description</h3>
               <p className="text-gray-900 whitespace-pre-wrap">{product.detail_desc}</p>
             </div>
           )}
@@ -324,10 +312,10 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
           {/* Timestamps */}
           <div className="border-t pt-4 grid grid-cols-2 gap-4 text-sm text-gray-500">
             <div>
-              <p>Ngày tạo: {product.createdAt ? new Date(product.createdAt).toLocaleString("vi-VN") : "N/A"}</p>
+              <p>Created: {product.createdAt ? new Date(product.createdAt).toLocaleString("en-US") : "N/A"}</p>
             </div>
             <div>
-              <p>Cập nhật lần cuối: {product.updatedAt ? new Date(product.updatedAt).toLocaleString("vi-VN") : "N/A"}</p>
+              <p>Last updated: {product.updatedAt ? new Date(product.updatedAt).toLocaleString("en-US") : "N/A"}</p>
             </div>
           </div>
         </div>
@@ -336,7 +324,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
               onClick={onClose}
               className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
             >
-              Đóng
+              Close
             </button>
           </div>
         </div>
@@ -348,7 +336,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-md w-full">
             <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-xl font-bold text-gray-800">Cập nhật hạn sử dụng</h2>
+              <h2 className="text-xl font-bold text-gray-800">Update expiry date</h2>
               <button
                 onClick={() => setShowUpdateExpiryModal(false)}
                 className="text-gray-400 hover:text-gray-600"
@@ -359,7 +347,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Sản phẩm
+                  Product
                 </label>
                 <input
                   type="text"
@@ -370,7 +358,7 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Hạn sử dụng <span className="text-red-500">*</span>
+                  Expiry date <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
@@ -393,14 +381,14 @@ const ReadProduct = ({ isOpen, onClose, product }) => {
                 onClick={() => setShowUpdateExpiryModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Hủy
+                Cancel
               </button>
               <button
                 onClick={handleUpdateExpiryDate}
                 disabled={updateProductExpiryDateLoading}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {updateProductExpiryDateLoading ? "Đang cập nhật..." : "Cập nhật"}
+                {updateProductExpiryDateLoading ? "Updating..." : "Update"}
               </button>
             </div>
           </div>

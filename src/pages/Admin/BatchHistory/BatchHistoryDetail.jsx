@@ -39,8 +39,8 @@ const getCompletionReasonLabel = (reason, apiLabel) => {
 
 
 /**
- * Popup chi tiết một lô đã hoàn thành (batch).
- * Nhận batch, product (tùy chọn) và hiển thị thông tin lô, tài chính, ngày tháng, tỷ lệ.
+ * Detail popup for a completed batch.
+ * Receives batch, product (optional) and displays batch info, financials, dates, and ratios.
  */
 const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
   if (!isOpen || !batch) return null;
@@ -59,7 +59,7 @@ const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
             <h2 className="text-2xl font-bold text-gray-800 flex items-center space-x-2">
               <Package size={24} />
               <span>
-                Batch #{selectedBatch.batchNumber} - {selectedProduct?.name || ""}
+                Batch #{selectedBatch.batchNumber} - {selectedProduct?.name || selectedBatch.productNameSnapshot || "Product"}
               </span>
             </h2>
             <p className="text-sm text-gray-500 mt-1">Completed batch details</p>
@@ -75,8 +75,8 @@ const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
 
         {/* Modal Content */}
         <div className="p-6 space-y-6">
-          {/* Product Info */}
-          {selectedProduct && (
+          {/* Product Info - from product prop or batch snapshots */}
+          {(selectedProduct || selectedBatch.productNameSnapshot || selectedBatch.productBrandSnapshot) && (
             <div className="bg-gray-50 rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center space-x-2">
                 <Package2 size={20} />
@@ -85,18 +85,20 @@ const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-500">Product name</p>
-                  <p className="text-base font-medium text-gray-900">{selectedProduct.name}</p>
+                  <p className="text-base font-medium text-gray-900">
+                    {selectedProduct?.name || selectedBatch.productNameSnapshot || "N/A"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Brand</p>
                   <p className="text-base font-medium text-gray-900">
-                    {selectedProduct.brand || "N/A"}
+                    {selectedProduct?.brand || selectedBatch.productBrandSnapshot || "N/A"}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Category</p>
                   <p className="text-base font-medium text-gray-900">
-                    {selectedProduct.category?.name || "N/A"}
+                    {selectedProduct?.category?.name || selectedBatch.productCategoryNameSnapshot || "N/A"}
                   </p>
                 </div>
               </div>
@@ -234,10 +236,11 @@ const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
           </div>
 
 
-          {/* Financial summary */}
+          {/* Financial summary - use schema fields (actualRevenue, fullPriceRevenue, etc.) with fallback to financial */}
           {(selectedBatch.financial ||
             selectedBatch.unitCostPrice != null ||
-            selectedBatch.unitSellPrice != null) && (
+            selectedBatch.unitSellPrice != null ||
+            selectedBatch.actualRevenue != null) && (
             <div>
               <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
                 <DollarSign size={20} />
@@ -276,7 +279,7 @@ const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
                 <div className="border border-green-200 rounded-lg p-4 bg-green-50">
                   <p className="text-sm text-green-700 mb-1">Revenue</p>
                   <p className="text-base font-semibold text-green-900">
-                    {formatVND(selectedBatch.financial?.revenue)}
+                    {formatVND(selectedBatch.actualRevenue ?? selectedBatch.financial?.revenue)}
                   </p>
                 </div>
                 <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
@@ -298,7 +301,12 @@ const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
                   </p>
                 </div>
               </div>
-              {(selectedBatch.financial?.actualRevenue != null ||
+              {(selectedBatch.actualRevenue != null ||
+                selectedBatch.fullPriceQuantity != null ||
+                selectedBatch.fullPriceRevenue != null ||
+                selectedBatch.clearanceQuantity != null ||
+                selectedBatch.clearanceRevenue != null ||
+                selectedBatch.financial?.actualRevenue != null ||
                 selectedBatch.financial?.fullPriceQuantity != null ||
                 selectedBatch.financial?.clearanceQuantity != null) && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
@@ -306,36 +314,34 @@ const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
                     Full price / Clearance (from orders)
                   </h4>
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                    {selectedBatch.financial?.actualRevenue != null && (
-                      <div className="border border-gray-200 rounded-lg p-3">
-                        <p className="text-xs text-gray-500 mb-0.5">Actual revenue</p>
-                        <p className="text-sm font-semibold text-gray-900">
-                          {formatVND(selectedBatch.financial.actualRevenue)}
-                        </p>
-                      </div>
-                    )}
+                    <div className="border border-gray-200 rounded-lg p-3">
+                      <p className="text-xs text-gray-500 mb-0.5">Actual revenue</p>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {formatVND(selectedBatch.actualRevenue ?? selectedBatch.financial?.actualRevenue)}
+                      </p>
+                    </div>
                     <div className="border border-green-200 rounded-lg p-3 bg-green-50">
-                      <p className="text-xs text-green-700 mb-0.5">Full price qty</p>
+                      <p className="text-xs text-green-700 mb-0.5">Full price (qty)</p>
                       <p className="text-sm font-semibold text-green-900">
-                        {selectedBatch.financial?.fullPriceQuantity ?? 0}
+                        {selectedBatch.fullPriceQuantity ?? selectedBatch.financial?.fullPriceQuantity ?? 0}
                       </p>
                     </div>
                     <div className="border border-green-200 rounded-lg p-3 bg-green-50">
                       <p className="text-xs text-green-700 mb-0.5">Full price revenue</p>
                       <p className="text-sm font-semibold text-green-900">
-                        {formatVND(selectedBatch.financial?.fullPriceRevenue)}
+                        {formatVND(selectedBatch.fullPriceRevenue ?? selectedBatch.financial?.fullPriceRevenue)}
                       </p>
                     </div>
                     <div className="border border-amber-200 rounded-lg p-3 bg-amber-50">
-                      <p className="text-xs text-amber-700 mb-0.5">Clearance sale quantity</p>
+                      <p className="text-xs text-amber-700 mb-0.5">Clearance (qty)</p>
                       <p className="text-sm font-semibold text-amber-900">
-                        {selectedBatch.financial?.clearanceQuantity ?? 0}
+                        {selectedBatch.clearanceQuantity ?? selectedBatch.financial?.clearanceQuantity ?? 0}
                       </p>
                     </div>
                     <div className="border border-amber-200 rounded-lg p-3 bg-amber-50">
                       <p className="text-xs text-amber-700 mb-0.5">Clearance revenue</p>
                       <p className="text-sm font-semibold text-amber-900">
-                        {formatVND(selectedBatch.financial?.clearanceRevenue)}
+                        {formatVND(selectedBatch.clearanceRevenue ?? selectedBatch.financial?.clearanceRevenue)}
                       </p>
                     </div>
                   </div>

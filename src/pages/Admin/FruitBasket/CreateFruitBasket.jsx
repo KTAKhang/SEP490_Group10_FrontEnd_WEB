@@ -43,10 +43,7 @@ const CreateFruitBasket = ({ isOpen, onClose }) => {
       handleReset();
       onClose();
     }
-    if (hasSubmitted && createFruitBasketError && !toastShownRef.current) {
-      toast.error(createFruitBasketError);
-      toastShownRef.current = true;
-    }
+    // Lỗi đã được saga hiển thị toast, không gọi toast ở đây để tránh 2 thông báo
   }, [hasSubmitted, createFruitBasketLoading, createFruitBasketError, onClose]);
 
 

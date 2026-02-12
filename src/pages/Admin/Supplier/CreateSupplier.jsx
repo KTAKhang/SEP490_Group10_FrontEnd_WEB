@@ -2,8 +2,36 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X } from "lucide-react";
 import axios from "axios";
+import { toast } from "react-toastify";
 import { createSupplierRequest } from "../../../redux/actions/supplierActions";
 
+/** Phone: only digits, spaces, + - ( ); digit count 10–12. Returns { valid, message }. */
+function validatePhone(phoneStr) {
+  if (!phoneStr || !phoneStr.toString().trim()) return { valid: true };
+  const s = phoneStr.toString().trim();
+  if (!/^[0-9+\-\s()]+$/.test(s)) {
+    return { valid: false, message: "Phone number can only contain digits, spaces, and + - ( )" };
+  }
+  const digitCount = (s.match(/\d/g) || []).length;
+  if (digitCount < 10 || digitCount > 12) {
+    return { valid: false, message: "Phone number must contain 10 to 12 digits" };
+  }
+  return { valid: true };
+}
+
+/** Email: detailed validation. Returns { valid, message }. */
+function validateEmail(emailStr) {
+  if (!emailStr || !emailStr.toString().trim()) return { valid: true };
+  const s = emailStr.toString().trim();
+  if (s.indexOf("@") === -1) return { valid: false, message: "Email must contain @" };
+  if ((s.match(/@/g) || []).length > 1) return { valid: false, message: "Email must contain exactly one @" };
+  const [local, domain] = s.split("@");
+  if (!local || !local.length) return { valid: false, message: "Email must have a local part before @" };
+  if (!domain || !domain.length) return { valid: false, message: "Email must have a domain after @" };
+  if (domain.indexOf(".") === -1) return { valid: false, message: "Email domain must contain a dot (e.g. example.com)" };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)) return { valid: false, message: "Invalid email format (e.g. name@example.com)" };
+  return { valid: true };
+}
 
 const API_BASE = "https://provinces.open-api.vn/api/v2";
 
@@ -96,20 +124,63 @@ const CreateSupplier = ({ isOpen, onClose }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-
-    if (!formData.name || !formData.name.trim()) {
+    const nameStr = formData.name?.toString().trim() || "";
+    if (!nameStr) {
+      toast.error("Supplier name is required");
+      return;
+    }
+    if (nameStr.length < 2) {
+      toast.error("Supplier name must be at least 2 characters");
+      return;
+    }
+    if (nameStr.length > 100) {
+      toast.error("Supplier name must be at most 100 characters");
+      return;
+    }
+    if (!["FARM", "COOPERATIVE", "BUSINESS"].includes(formData.type)) {
+      toast.error("Supplier type must be FARM, COOPERATIVE, or BUSINESS");
+      return;
+    }
+    const contactPersonStr = (formData.contactPerson ?? "").toString().trim();
+    if (contactPersonStr.length > 50) {
+      toast.error("Contact person name must be at most 50 characters");
       return;
     }
 
-
-    // BR-SUP-02: At least phone or email is required
     const phone = formData.phone?.toString().trim() || "";
     const email = formData.email?.toString().trim() || "";
     if (!phone && !email) {
-      alert("At least phone or email is required");
+      toast.error("At least one phone number or email is required");
       return;
     }
+    if (phone) {
+      const phoneCheck = validatePhone(phone);
+      if (!phoneCheck.valid) {
+        toast.error(phoneCheck.message);
+        return;
+      }
+    }
+    if (email) {
+      const emailCheck = validateEmail(email);
+      if (!emailCheck.valid) {
+        toast.error(emailCheck.message);
+        return;
+      }
+    }
 
+    const addressLine = formData.address?.toString().trim() || "";
+    const wardName = formData.ward?.toString().trim() || "";
+    const provinceName = icity?.toString().trim() || "";
+    const fullAddress = [addressLine, wardName, provinceName].filter(Boolean).join(", ");
+    if (fullAddress.length > 500) {
+      toast.error("Address must be at most 500 characters");
+      return;
+    }
+    const notesStr = (formData.notes ?? "").toString().trim();
+    if (notesStr.length > 1000) {
+      toast.error("Notes must be at most 1000 characters");
+      return;
+    }
 
     // Clean data
     const cleanedData = {
@@ -129,12 +200,8 @@ const CreateSupplier = ({ isOpen, onClose }) => {
     if (email) {
       cleanedData.email = email;
     }
-    const addressLine = formData.address?.toString().trim() || "";
-    const wardName = formData.ward?.toString().trim() || "";
-    const provinceName = icity?.toString().trim() || "";
-    if (addressLine || wardName || provinceName) {
-      const parts = [addressLine, wardName, provinceName].filter(Boolean);
-      cleanedData.address = parts.join(", ");
+    if (fullAddress) {
+      cleanedData.address = fullAddress;
     }
     if (formData.notes && formData.notes.trim()) {
       cleanedData.notes = formData.notes.trim();
@@ -188,9 +255,12 @@ const CreateSupplier = ({ isOpen, onClose }) => {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Enter supplier name"
+                placeholder="Enter supplier name (2–100 characters)"
+                minLength={2}
+                maxLength={100}
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">{formData.name.length}/100</p>
             </div>
 
 
@@ -224,8 +294,10 @@ const CreateSupplier = ({ isOpen, onClose }) => {
                 onChange={handleInputChange}
                 name="contactPerson"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Enter contact person name"
+                placeholder="Enter contact person name (max 50 characters)"
+                maxLength={50}
               />
+              <p className="text-xs text-gray-500 mt-1">{formData.contactPerson.length}/50</p>
             </div>
 
 
@@ -238,13 +310,15 @@ const CreateSupplier = ({ isOpen, onClose }) => {
                   onChange={handleInputChange}
                   name="phone"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Enter phone number"
+                  placeholder="Enter phone number (10–12 digits)"
                 />
+                <p className="text-xs text-gray-500 mt-1">Only digits, spaces, + - ( ). Must have 10–12 digits.</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <input
-                  type="email"
+                  type="text"
+                  autoComplete="email"
                   value={formData.email}
                   onChange={handleInputChange}
                   name="email"
@@ -307,22 +381,13 @@ const CreateSupplier = ({ isOpen, onClose }) => {
                 name="notes"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 rows="3"
-                placeholder="Enter notes"
+                placeholder="Enter notes (max 1000 characters)"
+                maxLength={1000}
               />
+              <p className="text-xs text-gray-500 mt-1">{formData.notes.length}/1000</p>
             </div>
 
 
-            <div>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.checked })}
-                  className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                />
-                <span className="text-sm text-gray-700">Active</span>
-              </label>
-            </div>
           </div>
 
 
