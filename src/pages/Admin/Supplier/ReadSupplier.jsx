@@ -26,13 +26,6 @@ const ReadSupplier = ({ isOpen, onClose, supplierId }) => {
             Active
           </span>
         );
-      case "SUSPENDED":
-        return (
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-            <AlertCircle size={16} className="mr-1" />
-            Suspended
-          </span>
-        );
       case "TERMINATED":
         return (
           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">

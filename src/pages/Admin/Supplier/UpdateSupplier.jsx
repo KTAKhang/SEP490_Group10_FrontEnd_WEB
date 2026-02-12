@@ -1,8 +1,39 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X } from "lucide-react";
+import axios from "axios";
+import { toast } from "react-toastify";
 import { updateSupplierRequest } from "../../../redux/actions/supplierActions";
 
+const API_BASE = "https://provinces.open-api.vn/api/v2";
+
+/** Phone: only digits, spaces, + - ( ); digit count 10–12. Returns { valid, message }. */
+function validatePhone(phoneStr) {
+  if (!phoneStr || !phoneStr.toString().trim()) return { valid: true };
+  const s = phoneStr.toString().trim();
+  if (!/^[0-9+\-\s()]+$/.test(s)) {
+    return { valid: false, message: "Phone number can only contain digits, spaces, and + - ( )" };
+  }
+  const digitCount = (s.match(/\d/g) || []).length;
+  if (digitCount < 10 || digitCount > 12) {
+    return { valid: false, message: "Phone number must contain 10 to 12 digits" };
+  }
+  return { valid: true };
+}
+
+/** Email: detailed validation. Returns { valid, message }. */
+function validateEmail(emailStr) {
+  if (!emailStr || !emailStr.toString().trim()) return { valid: true };
+  const s = emailStr.toString().trim();
+  if (s.indexOf("@") === -1) return { valid: false, message: "Email must contain @" };
+  if ((s.match(/@/g) || []).length > 1) return { valid: false, message: "Email must contain exactly one @" };
+  const [local, domain] = s.split("@");
+  if (!local || !local.length) return { valid: false, message: "Email must have a local part before @" };
+  if (!domain || !domain.length) return { valid: false, message: "Email must have a domain after @" };
+  if (domain.indexOf(".") === -1) return { valid: false, message: "Email domain must contain a dot (e.g. example.com)" };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)) return { valid: false, message: "Invalid email format (e.g. name@example.com)" };
+  return { valid: true };
+}
 
 const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
   const dispatch = useDispatch();
@@ -16,13 +47,41 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
     phone: "",
     email: "",
     address: "",
+    city: "",
+    ward: "",
     notes: "",
     status: true,
   });
 
-
+  const [provinces, setProvinces] = useState([]);
+  const [wards, setWards] = useState([]);
+  const [icity, setIcity] = useState("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
+  useEffect(() => {
+    axios
+      .get(`${API_BASE}/p/`)
+      .then((res) => setProvinces(res.data))
+      .catch((err) => console.error("Error loading provinces:", err));
+  }, []);
+
+  useEffect(() => {
+    if (!formData.city) {
+      setWards([]);
+      setFormData((prev) => ({ ...prev, ward: "" }));
+      setIcity("");
+      return;
+    }
+    axios
+      .get(`${API_BASE}/w/`)
+      .then((res) => {
+        const filtered = res.data.filter(
+          (ward) => ward.province_code === Number(formData.city),
+        );
+        setWards(filtered);
+      })
+      .catch((err) => console.error("Error loading wards:", err));
+  }, [formData.city]);
 
   useEffect(() => {
     if (supplier) {
@@ -32,10 +91,13 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
         contactPerson: supplier.contactPerson || "",
         phone: supplier.phone || "",
         email: supplier.email || "",
-        address: supplier.address || "",
+        address: "",
+        city: "",
+        ward: "",
         notes: supplier.notes || "",
         status: supplier.status !== undefined ? supplier.status : true,
       });
+      setIcity("");
     }
   }, [supplier]);
 
@@ -51,20 +113,62 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-
-    if (!formData.name || !formData.name.trim()) {
+    const nameStr = formData.name?.toString().trim() || "";
+    if (!nameStr) {
+      toast.error("Supplier name is required");
+      return;
+    }
+    if (nameStr.length < 2) {
+      toast.error("Supplier name must be at least 2 characters");
+      return;
+    }
+    if (nameStr.length > 100) {
+      toast.error("Supplier name must be at most 100 characters");
+      return;
+    }
+    if (!["FARM", "COOPERATIVE", "BUSINESS"].includes(formData.type)) {
+      toast.error("Supplier type must be FARM, COOPERATIVE, or BUSINESS");
+      return;
+    }
+    const contactPersonStr = (formData.contactPerson ?? "").toString().trim();
+    if (contactPersonStr.length > 50) {
+      toast.error("Contact person name must be at most 50 characters");
       return;
     }
 
-
-    // BR-SUP-02: At least phone or email is required
     const phone = formData.phone?.toString().trim() || "";
     const email = formData.email?.toString().trim() || "";
     if (!phone && !email) {
-      alert("At least phone or email is required");
+      toast.error("At least one phone number or email is required");
       return;
     }
-
+    if (phone) {
+      const phoneCheck = validatePhone(phone);
+      if (!phoneCheck.valid) {
+        toast.error(phoneCheck.message);
+        return;
+      }
+    }
+    if (email) {
+      const emailCheck = validateEmail(email);
+      if (!emailCheck.valid) {
+        toast.error(emailCheck.message);
+        return;
+      }
+    }
+    const addressLine = (formData.address ?? "").toString().trim();
+    const wardName = (formData.ward ?? "").toString().trim();
+    const provinceName = icity?.toString().trim() || "";
+    const fullAddress = [addressLine, wardName, provinceName].filter(Boolean).join(", ");
+    if (fullAddress.length > 500) {
+      toast.error("Address must be at most 500 characters");
+      return;
+    }
+    const notesStr = (formData.notes ?? "").toString().trim();
+    if (notesStr.length > 1000) {
+      toast.error("Notes must be at most 1000 characters");
+      return;
+    }
 
     // Clean data: remove empty strings and undefined values
     const cleanedData = {
@@ -84,8 +188,8 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
     if (formData.email !== undefined) {
       cleanedData.email = email || "";
     }
-    if (formData.address !== undefined) {
-      cleanedData.address = formData.address?.toString().trim() || "";
+    if (fullAddress) {
+      cleanedData.address = fullAddress;
     }
     if (formData.notes !== undefined) {
       cleanedData.notes = formData.notes?.toString().trim() || "";
@@ -96,6 +200,15 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
     dispatch(updateSupplierRequest(supplier._id, cleanedData));
   };
 
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "city") {
+      const selectedProvince = provinces.find((p) => p.code === Number(value));
+      setIcity(selectedProvince ? selectedProvince.name : "");
+    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleCancel = () => {
     setHasSubmitted(false);
@@ -126,9 +239,12 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Enter supplier name"
+                placeholder="Enter supplier name (2–100 characters)"
+                minLength={2}
+                maxLength={100}
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">{formData.name.length}/100</p>
             </div>
 
 
@@ -160,8 +276,10 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
                 value={formData.contactPerson}
                 onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Enter contact person name"
+                placeholder="Enter contact person name (max 50 characters)"
+                maxLength={50}
               />
+              <p className="text-xs text-gray-500 mt-1">{formData.contactPerson.length}/50</p>
             </div>
 
 
@@ -173,13 +291,15 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Enter phone number"
+                  placeholder="Enter phone number (10–12 digits)"
                 />
+                <p className="text-xs text-gray-500 mt-1">Only digits, spaces, + - ( ). Must have 10–12 digits.</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <input
-                  type="email"
+                  type="text"
+                  autoComplete="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
@@ -191,13 +311,45 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-              <textarea
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                rows="3"
-                placeholder="Enter address"
-              />
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Street address"
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <select
+                    name="city"
+                    value={formData.city}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  >
+                    <option value="">Select province/city</option>
+                    {provinces.map((province) => (
+                      <option key={province.code} value={province.code}>
+                        {province.name}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    name="ward"
+                    value={formData.ward}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    disabled={!formData.city}
+                  >
+                    <option value="">Select ward</option>
+                    {wards.map((ward) => (
+                      <option key={ward.code} value={ward.name}>
+                        {ward.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
 
 
@@ -208,22 +360,13 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 rows="3"
-                placeholder="Enter notes"
+                placeholder="Enter notes (max 1000 characters)"
+                maxLength={1000}
               />
+              <p className="text-xs text-gray-500 mt-1">{formData.notes.length}/1000</p>
             </div>
 
 
-            <div>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.checked })}
-                  className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                />
-                <span className="text-sm text-gray-700">Active</span>
-              </label>
-            </div>
           </div>
 
 

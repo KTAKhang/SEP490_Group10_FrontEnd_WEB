@@ -124,7 +124,7 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
     e.preventDefault();
 
     if (!product?._id) {
-      toast.error("Product not found");
+      toast.error("Product does not exist");
       return;
     }
 
@@ -133,13 +133,43 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
     const canFullUpdate = received === 0 && onHand === 0;
 
     if (canFullUpdate) {
-      // Validation for full update
-      if (!formData.name || !formData.category || !formData.brand || formData.price <= 0 || formData.plannedQuantity < 0) {
+      const nameStr = (formData.name ?? "").toString().trim();
+      if (!nameStr) {
+        toast.error("Product name is required");
+        return;
+      }
+      if (nameStr.length > 200) {
+        toast.error("Product name must be at most 200 characters");
+        return;
+      }
+      if (!formData.category || !formData.brand || formData.price <= 0 || formData.plannedQuantity < 0) {
         toast.error("Please fill in all required fields (name, category, brand, price, planned quantity)");
         return;
       }
+      const plannedNum = Number(formData.plannedQuantity);
+      if (!Number.isInteger(plannedNum)) {
+        toast.error("plannedQuantity must be an integer");
+        return;
+      }
+      if ((formData.short_desc ?? "").toString().length > 200) {
+        toast.error("Short description (short_desc) must be at most 200 characters");
+        return;
+      }
+      if ((formData.detail_desc ?? "").toString().length > 1000) {
+        toast.error("Detail description (detail_desc) must be at most 1000 characters");
+        return;
+      }
       if (formData.purchasePrice < 0) {
-        toast.error("Purchase price must be >= 0");
+        toast.error("Purchase price must be greater than or equal to 0");
+        return;
+      }
+      if (Number(formData.purchasePrice) >= Number(formData.price)) {
+        toast.error("Purchase price must be lower than selling price");
+        return;
+      }
+      const totalImages = existingImages.length + newImageFiles.length;
+      if (totalImages > 10) {
+        toast.error("Number of images must not exceed 10");
         return;
       }
     }
@@ -239,9 +269,11 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="Enter product name"
+                      placeholder="Enter product name (max 200 characters)"
+                      maxLength={200}
                       required
                     />
+                    <p className="text-xs text-gray-500 mt-1">{formData.name.length}/200</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -290,7 +322,7 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
                       step="1000"
                       placeholder="Enter purchase price"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Giá nhập hàng từ supplier</p>
+                    <p className="text-xs text-gray-500 mt-1">Purchase price from supplier; must be lower than selling price</p>
                   </div>
                 </div>
                 <div>
@@ -300,13 +332,20 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
                   <input
                     type="number"
                     value={formData.plannedQuantity}
-                    onChange={(e) =>
-                      setFormData({ ...formData, plannedQuantity: parseInt(e.target.value) || 0 })
-                    }
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      const n = parseInt(v, 10);
+                      setFormData({
+                        ...formData,
+                        plannedQuantity: (v === "" || Number.isNaN(n) || n < 0) ? 0 : n,
+                      });
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     min="0"
+                    step="1"
                     required
                   />
+                  <p className="text-xs text-gray-500 mt-1">Must be a whole number; cannot be less than received quantity</p>
                   <p className="text-xs text-gray-500 mt-1">
                     Received: {product.receivedQuantity || 0} | Cannot reduce below received amount
                   </p>

@@ -52,7 +52,7 @@ const NewsDetailPage = () => {
       navigate('/admin/news');
     }
     if (deleteNewsError) {
-      toast.error(deleteNewsError);
+      // Lỗi đã được saga hiển thị toast, chỉ clear state
       dispatch(newsClearMessages());
     }
   }, [deleteNewsSuccess, deleteNewsError, dispatch, navigate]);

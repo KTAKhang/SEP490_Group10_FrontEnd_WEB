@@ -162,7 +162,7 @@ const DetailProduct = ({ isOpen, onClose, product }) => {
           {/* Inventory Info */}
           <div className="border-t pt-4">
             <h3 className="text-sm font-medium text-gray-700 mb-4">Inventory info</h3>
-            <div className="grid grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               <div className="bg-blue-50 p-4 rounded-lg">
                 <p className="text-xs text-gray-600 mb-1">Planned</p>
                 <p className="text-2xl font-bold text-blue-600">{product.plannedQuantity || 0}</p>
@@ -174,18 +174,6 @@ const DetailProduct = ({ isOpen, onClose, product }) => {
               <div className="bg-green-50 p-4 rounded-lg">
                 <p className="text-xs text-gray-600 mb-1">On-hand</p>
                 <p className="text-2xl font-bold text-green-600">{product.onHandQuantity || 0}</p>
-              </div>
-              <div className="bg-orange-50 p-4 rounded-lg">
-                <p className="text-xs text-gray-600 mb-1">Reserved</p>
-                <p className="text-2xl font-bold text-orange-600">{product.reservedQuantity || 0}</p>
-              </div>
-              <div className="bg-teal-50 p-4 rounded-lg">
-                <p className="text-xs text-gray-600 mb-1">Available</p>
-                <p className="text-2xl font-bold text-teal-600">
-                  {product.availableQuantity !== undefined 
-                    ? product.availableQuantity 
-                    : Math.max(0, (product.onHandQuantity || 0) - (product.reservedQuantity || 0))}
-                </p>
               </div>
             </div>
 

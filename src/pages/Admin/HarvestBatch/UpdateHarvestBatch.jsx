@@ -54,7 +54,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
       setFormData({
         batchNumber: harvestBatchDetail.batchNumber || "",
         harvestDate: harvestDate,
-        location: harvestBatchDetail.location || "",
+        location: "",
         city: "",
         ward: "",
         notes: harvestBatchDetail.notes || "",

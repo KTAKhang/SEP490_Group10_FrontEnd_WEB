@@ -35,10 +35,7 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
       setHasSubmitted(false);
       onClose();
     }
-    if (hasSubmitted && updateCategoryError && !toastShownRef.current) {
-      toast.error(updateCategoryError);
-      toastShownRef.current = true;
-    }
+    // Lỗi đã được saga hiển thị toast, không gọi toast ở đây để tránh 2 thông báo
   }, [hasSubmitted, updateCategoryLoading, updateCategoryError, onClose]);
 
 
@@ -93,15 +90,23 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
     e.preventDefault();
 
 
-    // Validation
-    if (!formData.name || !formData.name.trim()) {
-      toast.error("Please enter category name");
+    const nameStr = (formData.name ?? "").toString().trim();
+    if (!nameStr) {
+      toast.error("Category name is required");
+      return;
+    }
+    if (nameStr.length > 100) {
+      toast.error("Category name must be at most 100 characters");
+      return;
+    }
+    const descStr = (formData.description ?? "").toString();
+    if (descStr.length > 500) {
+      toast.error("Category description must be at most 500 characters");
       return;
     }
 
-
     if (!category?._id) {
-      toast.error("Category not found");
+      toast.error("Category does not exist");
       return;
     }
 
@@ -181,9 +186,11 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Enter category name"
+                placeholder="Enter category name (max 100 characters)"
+                maxLength={100}
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">{formData.name.length}/100</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -194,8 +201,10 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 rows="4"
-                placeholder="Enter category description"
+                placeholder="Enter category description (max 500 characters)"
+                maxLength={500}
               />
+              <p className="text-xs text-gray-500 mt-1">{formData.description.length}/500</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
