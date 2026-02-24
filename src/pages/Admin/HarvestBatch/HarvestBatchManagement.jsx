@@ -39,6 +39,7 @@ const HarvestBatchManagement = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSupplier, setFilterSupplier] = useState("all");
+  const [filterPreOrder, setFilterPreOrder] = useState("all");
   const [filterReceiptEligible, setFilterReceiptEligible] = useState("all");
   const [filterVisibleInReceipt, setFilterVisibleInReceipt] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -60,13 +61,14 @@ const HarvestBatchManagement = () => {
       limit: 10,
       search: searchTerm || undefined,
       supplierId: filterSupplier !== "all" ? filterSupplier : undefined,
+      isPreOrderBatch: filterPreOrder !== "all" ? filterPreOrder === "true" : undefined,
       receiptEligible: filterReceiptEligible !== "all" ? filterReceiptEligible === "true" : undefined,
       visibleInReceipt: filterVisibleInReceipt !== "all" ? filterVisibleInReceipt === "true" : undefined,
       sortBy,
       sortOrder,
     };
     dispatch(getHarvestBatchesRequest(params));
-  }, [dispatch, currentPage, searchTerm, filterSupplier, filterReceiptEligible, filterVisibleInReceipt, sortBy, sortOrder]);
+  }, [dispatch, currentPage, searchTerm, filterSupplier, filterPreOrder, filterReceiptEligible, filterVisibleInReceipt, sortBy, sortOrder]);
 
 
   const handleAddBatch = () => {
@@ -105,13 +107,14 @@ const HarvestBatchManagement = () => {
       limit: 10,
       search: searchTerm || undefined,
       supplierId: filterSupplier !== "all" ? filterSupplier : undefined,
+      isPreOrderBatch: filterPreOrder !== "all" ? filterPreOrder === "true" : undefined,
       receiptEligible: filterReceiptEligible !== "all" ? filterReceiptEligible === "true" : undefined,
       visibleInReceipt: filterVisibleInReceipt !== "all" ? filterVisibleInReceipt === "true" : undefined,
       sortBy,
       sortOrder,
     };
     dispatch(getHarvestBatchesRequest(params));
-  }, [dispatch, currentPage, searchTerm, filterSupplier, filterReceiptEligible, filterVisibleInReceipt, sortBy, sortOrder]);
+  }, [dispatch, currentPage, searchTerm, filterSupplier, filterPreOrder, filterReceiptEligible, filterVisibleInReceipt, sortBy, sortOrder]);
 
 
   const handleDeleteBatch = (batch) => {
@@ -158,7 +161,7 @@ const HarvestBatchManagement = () => {
         <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Search & filters</p>
 
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Search */}
           <div className="relative min-w-0">
             <label className="block text-xs font-medium text-gray-500 mb-1">Search</label>
@@ -175,6 +178,24 @@ const HarvestBatchManagement = () => {
                 className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50/50 pl-10 pr-4 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
               />
             </div>
+          </div>
+
+
+          {/* Batch type (Product / Pre-order) */}
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Batch type</label>
+            <select
+              value={filterPreOrder}
+              onChange={(e) => {
+                setFilterPreOrder(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50/50 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+            >
+              <option value="all">All</option>
+              <option value="false">Product only</option>
+              <option value="true">Pre-order only</option>
+            </select>
           </div>
 
 
@@ -333,20 +354,24 @@ const HarvestBatchManagement = () => {
                             >
                               <Eye size={18} />
                             </button>
-                            <button
-                              onClick={() => handleUpdateEligible(batch)}
-                              className="rounded-xl p-2 text-green-600 transition hover:bg-green-50 hover:text-green-700"
-                              title="Receipt eligible"
-                            >
-                              <CheckCircle size={18} />
-                            </button>
-                            <button
-                              onClick={() => handleUpdateVisible(batch)}
-                              className="rounded-xl p-2 text-sky-600 transition hover:bg-sky-50 hover:text-sky-700"
-                              title="Visible in receipt"
-                            >
-                              <EyeOff size={18} />
-                            </button>
+                            {!batch.isPreOrderBatch && (
+                              <>
+                                <button
+                                  onClick={() => handleUpdateEligible(batch)}
+                                  className="rounded-xl p-2 text-green-600 transition hover:bg-green-50 hover:text-green-700"
+                                  title="Receipt eligible"
+                                >
+                                  <CheckCircle size={18} />
+                                </button>
+                                <button
+                                  onClick={() => handleUpdateVisible(batch)}
+                                  className="rounded-xl p-2 text-sky-600 transition hover:bg-sky-50 hover:text-sky-700"
+                                  title="Visible in receipt"
+                                >
+                                  <EyeOff size={18} />
+                                </button>
+                              </>
+                            )}
                             {batch.receivedQuantity === 0 && (
                               <>
                                 <button
