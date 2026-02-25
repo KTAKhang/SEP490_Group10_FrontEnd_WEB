@@ -80,10 +80,10 @@ export const registerFCMToken = async (fcmToken) => {
  */
 export const handleNotificationClick = (notificationData) => {
   console.log('Notification clicked:', notificationData);
- 
+
   // Get user role from localStorage (role is stored separately, not in user object)
   const userRole = localStorage.getItem('role') || '';
- 
+
   // Handle different notification types
   if (notificationData?.type === 'discount') {
     // Navigate to discount/voucher page based on user role
@@ -111,10 +111,15 @@ export const handleNotificationClick = (notificationData) => {
   }
 
 
-  // Contact: admin đã phản hồi liên hệ → mở trang Lịch sử liên hệ (có thể mở đúng contact)
-  if (notificationData?.type === 'contact') {
-    if (notificationData?.action === 'view_contact') {
-      const contactId = notificationData?.contactId;
+  // Contact: admin cập nhật trạng thái / phản hồi liên hệ → mở trang Lịch sử liên hệ (có thể mở đúng contact)
+  // Backend gửi payload có thể là { type, data: { type, action, contactId } } → lấy data bên trong cho contact
+  const contactPayload =
+    notificationData?.type === 'contact' && notificationData?.data && typeof notificationData.data === 'object'
+      ? notificationData.data
+      : notificationData;
+  if (contactPayload?.type === 'contact') {
+    if (contactPayload?.action === 'view_contact') {
+      const contactId = contactPayload?.contactId;
       if (contactId) {
         window.location.href = `/customer/contact-history?contactId=${encodeURIComponent(contactId)}`;
       } else {

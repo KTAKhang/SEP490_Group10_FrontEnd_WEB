@@ -94,6 +94,7 @@ const ShopManagement = () => {
     email: "",
     phone: "",
     logo: "",
+    mapEmbedUrl: "",
   });
   const [logoFile, setLogoFile] = useState(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -104,7 +105,7 @@ const ShopManagement = () => {
   const [uploadingImages, setUploadingImages] = useState(false);
   const [errors, setErrors] = useState({});
   const editorRef = useRef(null);
-  // Theo dõi khi user nhấn "Lưu thông tin" để hiện thông báo "Đã cập nhật thông tin thành công"
+  // Track when user clicks "Save Information" to show "Successfully updated information"
   const [lastBasicInfoAction, setLastBasicInfoAction] = useState(null); // 'save_form'
 
   // Load shop info on mount
@@ -121,6 +122,7 @@ const ShopManagement = () => {
         email: shopInfo.email || "",
         phone: shopInfo.phone || "",
         logo: shopInfo.logo || "",
+        mapEmbedUrl: shopInfo.mapEmbedUrl || "",
       });
       setDescription(shopInfo.description || "");
       setWorkingHours(shopInfo.workingHours || "");
@@ -134,6 +136,7 @@ const ShopManagement = () => {
         email: "",
         phone: "",
         logo: "",
+        mapEmbedUrl: "",
       });
       setDescription("");
       setWorkingHours("");
@@ -146,7 +149,7 @@ const ShopManagement = () => {
   useEffect(() => {
     if (success) {
       if (lastBasicInfoAction === 'save_form') {
-        toast.success('Đã cập nhật thông tin thành công');
+        toast.success('Successfully updated information');
       } else {
         toast.success(success);
       }
@@ -237,24 +240,24 @@ const ShopManagement = () => {
           const updatedFormData = { ...formData, logo: imageUrl };
           setFormData(updatedFormData);
           setLogoFile(null);
-          toast.info('Đã chọn logo mới. Nhấn "Lưu thông tin" để lưu thay đổi.');
+          toast.info('New logo selected. Click "Save Information" to save changes.');
         } else {
-          throw new Error('Response không chứa URL hình ảnh');
+          throw new Error('Response does not contain image URL');
         }
       } else {
-        throw new Error(response.data?.message || 'Upload logo thất bại');
+        throw new Error(response.data?.message || 'Failed to upload logo');
       }
     } catch (error) {
       console.error('Error uploading logo:', error);
       
-      let errorMessage = 'Có lỗi xảy ra khi upload logo';
+      let errorMessage = 'An error occurred while uploading logo';
       
       if (error.response?.status === 404) {
-        errorMessage = 'Endpoint /upload/shop-image không tồn tại. Vui lòng kiểm tra backend.';
+        errorMessage = 'Endpoint /upload/shop-image does not exist. Please check the backend.';
       } else if (error.response?.status === 400) {
-        errorMessage = error.response.data?.message || 'File không hợp lệ. Vui lòng kiểm tra định dạng và kích thước.';
+        errorMessage = error.response.data?.message || 'Invalid file. Please check the format and size.';
       } else if (error.response?.status === 401 || error.response?.status === 403) {
-        errorMessage = 'Không có quyền truy cập. Vui lòng đăng nhập lại.';
+        errorMessage = 'No access. Please login again.';
       } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.message) {
@@ -271,7 +274,7 @@ const ShopManagement = () => {
   const handleBasicInfoSubmit = (e) => {
     e.preventDefault();
     if (!validateBasicInfo()) {
-      toast.error("Vui lòng kiểm tra lại thông tin");
+      toast.error("Please check the information again");
       return;
     }
     setLastBasicInfoAction('save_form'); // Để khi success hiện "Đã cập nhật thông tin thành công"
@@ -439,10 +442,10 @@ const ShopManagement = () => {
   };
 
   const tabs = [
-    { id: "basic", label: "Thông tin cơ bản", icon: Store },
-    { id: "description", label: "Mô tả shop", icon: FileText },
-    { id: "working-hours", label: "Giờ hoạt động", icon: Clock },
-    { id: "images", label: "Hình ảnh", icon: ImageIcon },
+    { id: "basic", label: "Shop Basic Information", icon: Store },
+    { id: "description", label: "Shop Description", icon: FileText },
+    { id: "working-hours", label: "Working Hours", icon: Clock },
+    { id: "images", label: "Shop Images", icon: ImageIcon },
   ];
 
   if (getShopInfoLoading && !shopInfo) {
@@ -450,7 +453,7 @@ const ShopManagement = () => {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-green-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Đang tải thông tin shop...</p>
+          <p className="text-gray-600">Loading shop information...</p>
         </div>
       </div>
     );
@@ -462,10 +465,10 @@ const ShopManagement = () => {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Quản lý thông tin shop
+              Manage Shop Information
           </h1>
           <p className="text-gray-600">
-            Quản lý và cập nhật thông tin shop của bạn
+            Manage and update your shop information.          
           </p>
         </div>
 
@@ -499,7 +502,7 @@ const ShopManagement = () => {
                 {/* Logo Upload */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Logo Shop
+                    Shop Logo
                   </label>
                   <div className="flex items-start space-x-6">
                     {/* Logo Preview */}
@@ -525,7 +528,7 @@ const ShopManagement = () => {
                         ) : (
                           <div className="text-center text-gray-400">
                             <ImageIcon className="w-8 h-8 mx-auto mb-2" />
-                            <span className="text-xs">Chưa có logo</span>
+                            <span className="text-xs">No logo</span>
                           </div>
                         )}
                       </div>
@@ -571,11 +574,11 @@ const ShopManagement = () => {
                             className="text-sm text-red-600 hover:text-red-700 flex items-center"
                           >
                             <X className="w-4 h-4 mr-1" />
-                            Xóa logo
+                            Delete Logo
                           </button>
                         )}
                         <p className="text-xs text-gray-500">
-                          Định dạng: JPG, PNG, GIF, WEBP. Kích thước tối đa: 5MB
+                          Format: JPG, PNG, GIF, WEBP. Maximum size: 5MB
                         </p>
                       </div>
                     </div>
@@ -584,7 +587,7 @@ const ShopManagement = () => {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Tên shop <span className="text-red-500">*</span>
+                    Shop Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -597,7 +600,7 @@ const ShopManagement = () => {
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300"
                     }`}
-                    placeholder="Nhập tên shop"
+                    placeholder="Enter shop name"
                   />
                   {errors.shopName && (
                     <div className="flex items-center mt-1 text-red-500 text-sm">
@@ -609,7 +612,7 @@ const ShopManagement = () => {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Địa chỉ <span className="text-red-500">*</span>
+                    Address <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -622,7 +625,7 @@ const ShopManagement = () => {
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300"
                     }`}
-                    placeholder="Nhập địa chỉ shop"
+                    placeholder="Enter shop address"
                   />
                   {errors.address && (
                     <div className="flex items-center mt-1 text-red-500 text-sm">
@@ -635,7 +638,7 @@ const ShopManagement = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Email
+                      Email Address
                     </label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -650,7 +653,7 @@ const ShopManagement = () => {
                             ? "border-red-500 focus:ring-red-500"
                             : "border-gray-300"
                         }`}
-                        placeholder="shop@example.com"
+                        placeholder="shop@example.email.com"
                       />
                     </div>
                     {errors.email && (
@@ -663,7 +666,7 @@ const ShopManagement = () => {
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Số điện thoại
+                      Phone Number
                     </label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -678,7 +681,7 @@ const ShopManagement = () => {
                             ? "border-red-500 focus:ring-red-500"
                             : "border-gray-300"
                         }`}
-                        placeholder="0123456789"
+                          placeholder="+84... (ex: +84123456789)"
                       />
                     </div>
                     {errors.phone && (
@@ -690,6 +693,48 @@ const ShopManagement = () => {
                   </div>
                 </div>
 
+                {/* Google Maps Embed URL */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    Google Maps Embed URL (Copy from Google Maps)
+                  </label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                      type="url"
+                      value={formData.mapEmbedUrl}
+                      onChange={(e) =>
+                        setFormData({ ...formData, mapEmbedUrl: e.target.value })
+                      }
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      placeholder="Copy from Google Maps"
+                    />
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500">
+                    Get URL from Google Maps → Share → Embed Map → Copy the src part of the iframe
+                  </p>
+                  {formData.mapEmbedUrl && formData.mapEmbedUrl.trim() !== "" && (
+                    <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <p className="text-xs font-semibold text-gray-700 mb-2">Preview Map:</p>
+                      <div className="w-full rounded overflow-hidden" style={{ height: '400px' }}>
+                        <iframe
+                          src={formData.mapEmbedUrl}
+                          width="100%"
+                          height="100%"
+                          style={{
+                            border: 0,
+                            display: 'block',
+                          }}
+                          allowFullScreen
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                          title="Map Preview"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex justify-end">
                   <button
                     type="submit"
@@ -699,12 +744,12 @@ const ShopManagement = () => {
                     {updateBasicInfoLoading ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        <span>Đang lưu...</span>
+                        <span>Saving...</span>
                       </>
                     ) : (
                       <>
                         <Save className="w-5 h-5" />
-                        <span>Lưu thông tin</span>
+                        <span>Save Information</span>
                       </>
                     )}
                   </button>
@@ -717,9 +762,9 @@ const ShopManagement = () => {
               <form onSubmit={handleDescriptionSubmit} className="space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Mô tả shop
+                    Shop Description
                     <span className="text-gray-500 font-normal text-xs ml-2">
-                      (Rich text editor, tối đa 5000 ký tự, tối thiểu 10 ký tự)
+                      (Rich text editor, maximum 5000 characters, minimum 10 characters)
                     </span>
                   </label>
                   <div className="border rounded-lg border-gray-300">
@@ -747,7 +792,7 @@ const ShopManagement = () => {
                     />
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
-                    {description.replace(/<[^>]*>/g, '').length}/5000 ký tự (không tính HTML tags)
+                    {description.replace(/<[^>]*>/g, '').length}/5000 characters (excluding HTML tags)
                   </div>
                 </div>
 
@@ -760,12 +805,12 @@ const ShopManagement = () => {
                     {updateDescriptionLoading ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        <span>Đang lưu...</span>
+                        <span>Saving...</span>
                       </>
                     ) : (
                       <>
                         <Save className="w-5 h-5" />
-                        <span>Lưu mô tả</span>
+                        <span>Save Description</span>
                       </>
                     )}
                   </button>
@@ -789,7 +834,7 @@ const ShopManagement = () => {
                   />
                   <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-sm text-blue-800">
-                      <strong>Lưu ý:</strong> Giờ hoạt động sẽ được hiển thị trên các trang About Us, Contact và Footer.
+                      <strong>Note:</strong> Working hours will be displayed on the About Us, Contact and Footer pages. 
                     </p>
                   </div>
                 </div>
@@ -821,9 +866,9 @@ const ShopManagement = () => {
               <form onSubmit={handleImagesSubmit} className="space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Hình ảnh shop
+                    Shop Images
                     <span className="text-gray-500 font-normal text-xs ml-2">
-                      (JPG, PNG, WEBP, tối đa 5MB mỗi ảnh)
+                      (JPG, PNG, WEBP, maximum 5MB per image)
                     </span>
                   </label>
 
@@ -847,16 +892,16 @@ const ShopManagement = () => {
                       {uploadingImages ? (
                         <>
                           <Loader2 className="w-12 h-12 text-green-600 animate-spin mb-4" />
-                          <p className="text-gray-600">Đang upload ảnh...</p>
+                          <p className="text-gray-600">Uploading images...</p>
                         </>
                       ) : (
                         <>
                           <Upload className="w-12 h-12 text-gray-400 mb-4" />
                           <p className="text-gray-600 mb-2">
-                            Click để chọn ảnh hoặc kéo thả ảnh vào đây
+                            Click to select images or drag and drop images here
                           </p>
                           <p className="text-sm text-gray-500">
-                            Hỗ trợ JPG, PNG, WEBP (tối đa 5MB)
+                            Supported formats: JPG, PNG, WEBP (maximum 5MB)
                           </p>
                         </>
                       )}
@@ -867,7 +912,7 @@ const ShopManagement = () => {
                   {images.length > 0 && (
                     <div className="mt-6">
                       <h3 className="text-sm font-semibold text-gray-900 mb-4">
-                        Ảnh đã upload ({images.length})
+                        Uploaded Images ({images.length})
                       </h3>
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {images.map((imageUrl, index) => (
@@ -903,12 +948,12 @@ const ShopManagement = () => {
                     {updateImagesLoading ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        <span>Đang lưu...</span>
+                        <span>Saving...</span>
                       </>
                     ) : (
                       <>
                         <Save className="w-5 h-5" />
-                        <span>Lưu ảnh</span>
+                        <span>Save Images</span>
                       </>
                     )}
                   </button>

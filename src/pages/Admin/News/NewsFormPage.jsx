@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeft, Upload, X, AlertCircle } from 'lucide-react';
 import CustomCKEditor from '../../../components/CustomCKEditor/CustomCKEditor';
 import {
@@ -61,8 +61,18 @@ class Adapter {
 const NewsFormPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const isEditMode = !!id;
+
+  // Detect base path from current location
+  const getBasePath = () => {
+    if (location.pathname.startsWith('/sale-staff')) {
+      return '/sale-staff';
+    }
+    return '/admin';
+  };
+  const basePath = getBasePath();
 
   const {
     newsDetail,
@@ -117,9 +127,9 @@ const NewsFormPage = () => {
     if (createNewsSuccess || updateNewsSuccess) {
       toast.success(isEditMode ? 'News updated successfully!' : 'News created successfully!');
       dispatch(newsClearMessages());
-      navigate('/admin/news');
+      navigate(`${basePath}/news`);
     }
-  }, [createNewsSuccess, updateNewsSuccess, dispatch, navigate, isEditMode]);
+  }, [createNewsSuccess, updateNewsSuccess, dispatch, navigate, isEditMode, basePath]);
 
   // Handle errors
   useEffect(() => {
@@ -326,7 +336,7 @@ const NewsFormPage = () => {
           <div className="text-center">
             <p className="text-red-600 text-lg mb-4">{newsDetailError}</p>
             <button
-              onClick={() => navigate('/admin/news')}
+              onClick={() => navigate(`${basePath}/news`)}
               className="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
               <ArrowLeft className="w-5 h-5 mr-2" />
@@ -344,7 +354,7 @@ const NewsFormPage = () => {
         {/* Header */}
         <div className="mb-6">
           <button
-            onClick={() => navigate('/admin/news')}
+            onClick={() => navigate(`${basePath}/news`)}
             className="flex items-center text-gray-600 hover:text-green-600 mb-4 transition-colors"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
@@ -558,7 +568,7 @@ const NewsFormPage = () => {
           <div className="flex items-center justify-end space-x-4 pt-4 border-t">
             <button
               type="button"
-              onClick={() => navigate('/admin/news')}
+              onClick={() => navigate(`${basePath}/news`)}
               className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel

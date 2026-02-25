@@ -15,6 +15,7 @@ import {
   ClipboardList,
   Users,
   Star,
+  Mail,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -27,6 +28,11 @@ const Sidebar = () => {
       label: "Chat Management",
       path: "/feedbacked-staff",
       exact: true,
+    },
+    {
+      icon: Mail,
+      label: "Contact Management",
+      path: "/feedbacked-staff/contacts",
     },
     {
       icon: Star,

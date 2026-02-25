@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import {
@@ -32,7 +32,17 @@ import {
 const ContactDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
+
+  // Detect base path from current location
+  const getBasePath = () => {
+    if (location.pathname.startsWith('/feedbacked-staff')) {
+      return '/feedbacked-staff';
+    }
+    return '/admin';
+  };
+  const basePath = getBasePath();
 
   // Local state for editing replies
   const [editingReplyId, setEditingReplyId] = useState(null);
@@ -192,14 +202,14 @@ const ContactDetailPage = () => {
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <button
-            onClick={() => navigate('/admin/contacts')}
+            onClick={() => navigate(`${basePath}/contacts`)}
             className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200 font-medium"
           >
             <ArrowLeft className="w-5 h-5" />
             <span>Back to List</span>
           </button>
           <button
-            onClick={() => navigate(`/admin/contacts/${id}/edit`)}
+            onClick={() => navigate(`${basePath}/contacts/${id}/edit`)}
             className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105 font-semibold"
           >
             <Edit className="w-4 h-4" />
@@ -288,7 +298,7 @@ const ContactDetailPage = () => {
                             className="w-full max-h-72 object-contain rounded-lg bg-white border border-gray-100"
                             onError={(e) => { e.target.style.display = 'none'; e.target.nextElementSibling?.classList.remove('hidden'); }}
                           />
-                          <p className="hidden text-sm text-gray-500 mt-2">Không thể tải ảnh</p>
+                          <p className="hidden text-sm text-gray-500 mt-2">Unable to load image</p>
                           <div className="flex items-center justify-between mt-3">
                             <p className="text-sm font-semibold text-gray-900 truncate flex-1 min-w-0">{fileName}</p>
                             <div className="flex items-center gap-2 flex-shrink-0 ml-2">

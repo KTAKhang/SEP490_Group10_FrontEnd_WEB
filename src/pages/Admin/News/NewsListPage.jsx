@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Plus, Search, Edit, Trash2, Eye, Calendar, User, Filter } from 'lucide-react';
 import {
   newsGetNewsRequest,
@@ -11,9 +11,19 @@ import { toast } from 'react-toastify';
 
 const NewsListPage = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Detect base path from current location
+  const getBasePath = () => {
+    if (location.pathname.startsWith('/sale-staff')) {
+      return '/sale-staff';
+    }
+    return '/admin';
+  };
+  const basePath = getBasePath();
 
   const {
     newsList,
@@ -81,7 +91,7 @@ const NewsListPage = () => {
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-3xl font-bold text-gray-900">News Management</h1>
           <Link
-            to="/admin/news/create"
+            to={`${basePath}/news/create`}
             className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
           >
             <Plus className="w-5 h-5 mr-2" />
@@ -221,14 +231,14 @@ const NewsListPage = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end space-x-2">
                           <Link
-                            to={`/admin/news/${news._id}`}
+                            to={`${basePath}/news/${news._id}`}
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
                             title="View Details"
                           >
                             <Eye className="w-4 h-4" />
                           </Link>
                           <Link
-                            to={`/admin/news/edit/${news._id}`}
+                            to={`${basePath}/news/edit/${news._id}`}
                             className="p-2 text-green-600 hover:bg-green-50 rounded transition-colors"
                             title="Edit"
                           >

@@ -385,13 +385,13 @@ const ContactHistoryPage = () => {
                                 className="w-full max-h-64 object-contain rounded-lg bg-white border border-gray-100"
                                 onError={(e) => { e.target.style.display = 'none'; e.target.nextElementSibling?.classList.remove('hidden'); }}
                               />
-                              <p className="hidden text-sm text-gray-500 mt-2">Không thể tải ảnh</p>
+                              <p className="hidden text-sm text-gray-500 mt-2">Unable to load image</p>
                               <div className="flex items-center justify-between mt-2">
                                 <p className="text-sm font-medium text-gray-900 truncate flex-1 min-w-0">{fileName}</p>
                                 <button
                                   onClick={() => handleDownloadAttachment(fileUrl, fileName)}
                                   className="ml-2 p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors flex-shrink-0"
-                                  title="Tải xuống"
+                                  title="Download"
                                 >
                                   <Download className="w-5 h-5" />
                                 </button>
