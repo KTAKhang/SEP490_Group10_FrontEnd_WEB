@@ -42,6 +42,43 @@ import {
 const API_BASE_URL = "http://localhost:3001";
 
 
+// ===== NORMALIZE API RESPONSE (support both snake_case and camelCase) =====
+const getOrderDiscount = (order) => ({
+  discount_code: order?.discount_code ?? order?.discountCode ?? null,
+  discount_amount: order?.discount_amount ?? order?.discountAmount ?? 0,
+});
+
+const normalizeOrderForDisplay = (order) => {
+  if (!order) return order;
+  const { discount_code, discount_amount } = getOrderDiscount(order);
+  return {
+    ...order,
+    discount_code,
+    discount_amount,
+    total_price: order.total_price ?? order.totalPrice ?? order.total_price,
+    shipping_fee: order.shipping_fee ?? order.shippingFee ?? order.shipping_fee,
+    subtotal_products: order.subtotal_products ?? order.subtotalProducts ?? null,
+  };
+};
+
+const normalizeOrderDetailItem = (item) => {
+  if (!item) return item;
+  const original_price = item.original_price ?? item.originalPrice ?? null;
+  const price = item.price ?? null;
+  return { ...item, price, original_price };
+};
+
+const normalizeOrderDetailPayload = (payload) => {
+  const order = normalizeOrderForDisplay(payload?.order);
+  const details = (payload?.details ?? []).map(normalizeOrderDetailItem);
+  return {
+    ...payload,
+    order,
+    details,
+  };
+};
+
+
 // ===== AUTH HEADER =====
 const authHeader = () => {
   const token = localStorage.getItem("token");
@@ -352,7 +389,8 @@ function* orderHistorySaga(action) {
   try {
     const res = yield call(apiGetMyOrders, action.payload || {});
     if (res.status === "OK") {
-      yield put(orderHistorySuccess(res));
+      const data = (res.data || []).map(normalizeOrderForDisplay);
+      yield put(orderHistorySuccess({ ...res, data }));
     } else {
       throw new Error(res.message || "Lấy lịch sử mua hàng thất bại");
     }
@@ -369,7 +407,8 @@ function* orderDetailSaga(action) {
     const { order_id } = action.payload;
     const res = yield call(apiGetMyOrderById, order_id);
     if (res.status === "OK") {
-      yield put(orderDetailSuccess(res.data));
+      const normalized = normalizeOrderDetailPayload(res.data);
+      yield put(orderDetailSuccess(normalized));
     } else {
       throw new Error(res.message || "Lấy chi tiết đơn hàng thất bại");
     }
@@ -385,7 +424,8 @@ function* orderAdminListSaga(action) {
   try {
     const res = yield call(apiGetAdminOrders, action.payload || {});
     if (res.status === "OK") {
-      yield put(orderAdminListSuccess(res));
+      const data = (res.data || []).map(normalizeOrderForDisplay);
+      yield put(orderAdminListSuccess({ ...res, data }));
     } else {
       throw new Error(res.message || "Lấy danh sách đơn hàng thất bại");
     }
@@ -441,7 +481,8 @@ function* orderAdminDetailSaga(action) {
     const { order_id } = action.payload;
     const res = yield call(apiGetAdminOrderDetail, order_id);
     if (res.status === "OK") {
-      yield put(orderAdminDetailSuccess(res.data));
+      const normalized = normalizeOrderDetailPayload(res.data);
+      yield put(orderAdminDetailSuccess(normalized));
     } else {
       throw new Error(res.message || "Lấy chi tiết đơn hàng thất bại");
     }
