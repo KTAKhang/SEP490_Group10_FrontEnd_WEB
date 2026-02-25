@@ -11,6 +11,7 @@ import {
   ShoppingCart,
   X,
   RotateCcw,
+  FileText,
   Package,
 } from "lucide-react";
 
@@ -46,6 +47,11 @@ const SalesStaffSidebar = () => {
       icon: Ticket,
       label: "Discount Management",
       path: "/sale-staff/discounts",
+    },
+    {
+      icon: FileText,
+      label: "News Management",
+      path: "/sale-staff/news",
     },
   ];
 

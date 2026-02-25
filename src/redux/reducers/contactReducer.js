@@ -122,7 +122,7 @@ const contactReducer = (state = initialState, action) => {
         createContactLoading: false,
         createContactSuccess: true,
         createContactError: null,
-        createContactMessage: action.payload.message || "Gửi liên hệ thành công",
+        createContactMessage: action.payload.message || "Contact submitted successfully",
       };
     case CONTACT_CREATE_CONTACT_FAILURE:
       return {

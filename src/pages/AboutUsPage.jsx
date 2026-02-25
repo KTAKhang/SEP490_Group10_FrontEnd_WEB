@@ -42,6 +42,7 @@ const AboutUsPage = () => {
     description: "",
     workingHours: "",
     images: [],
+    mapEmbedUrl: "",
   };
 
   return (
@@ -59,7 +60,7 @@ const AboutUsPage = () => {
               {shop.shopName || "Về Chúng Tôi"}
             </h1>
             <p className="text-xl text-green-100 max-w-2xl mx-auto">
-              Chúng tôi cam kết mang đến những sản phẩm nông sản sạch và chất lượng nhất
+            We are committed to providing the cleanest and highest quality agricultural products.
             </p>
           </div>
         </div>
@@ -70,7 +71,7 @@ const AboutUsPage = () => {
         <section className="py-12 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-              Hình ảnh shop
+              Shop Images
             </h2>
             <div className="flex flex-wrap justify-center gap-6">
               {shop.images.map((imageUrl, index) => (
@@ -95,7 +96,7 @@ const AboutUsPage = () => {
         <section className="py-16 bg-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-              Giới thiệu
+              Introduction
             </h2>
             <div
               className="prose prose-lg max-w-none text-gray-700"
@@ -109,7 +110,7 @@ const AboutUsPage = () => {
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-12 text-center">
-            Thông tin liên hệ
+            Contact Information
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Address */}
@@ -119,7 +120,7 @@ const AboutUsPage = () => {
                   <MapPin className="w-8 h-8 text-green-600" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Địa chỉ
+                  Address
                 </h3>
                 <p className="text-gray-600">{shop.address}</p>
               </div>
@@ -132,7 +133,7 @@ const AboutUsPage = () => {
                   <Mail className="w-8 h-8 text-green-600" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Email
+                  Email Address
                 </h3>
                 <a
                   href={`mailto:${shop.email}`}
@@ -150,7 +151,7 @@ const AboutUsPage = () => {
                   <Phone className="w-8 h-8 text-green-600" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Điện thoại
+                  Phone Number
                 </h3>
                 <a
                   href={`tel:${shop.phone}`}
@@ -164,6 +165,42 @@ const AboutUsPage = () => {
         </div>
       </section>
 
+      {/* Google Maps Section */}
+      {shop.mapEmbedUrl && shop.mapEmbedUrl.trim() !== "" && (
+        <section className="py-16 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+              Our Location
+            </h2>
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+              <div className="w-full" style={{ height: '450px' }}>
+                <iframe
+                  src={shop.mapEmbedUrl}
+                  width="100%"
+                  height="100%"
+                  style={{
+                    border: 0,
+                    display: 'block',
+                  }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Shop Location Map"
+                />
+              </div>
+              {shop.address && (
+                <div className="p-6 bg-gray-50 border-t border-gray-200">
+                  <div className="flex items-center gap-3">
+                    <MapPin className="w-5 h-5 text-green-600 flex-shrink-0" />
+                    <p className="text-gray-700 font-medium">{shop.address}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Working Hours Section */}
       {shop.workingHours && (
         <section className="py-16 bg-white">
@@ -173,7 +210,7 @@ const AboutUsPage = () => {
                 <Clock className="w-8 h-8 text-white" />
               </div>
               <h2 className="text-3xl font-bold text-gray-900 mb-6">
-                Giờ hoạt động
+                Working Hours
               </h2>
               <div className="bg-white rounded-lg p-6 shadow-md">
                 <p className="text-lg text-gray-700 whitespace-pre-line">
@@ -189,16 +226,16 @@ const AboutUsPage = () => {
       <section className="py-16 bg-gradient-to-br from-green-600 to-green-800 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold mb-4">
-            Sẵn sàng mua sắm?
+            Ready to shop?
           </h2>
           <p className="text-xl text-green-100 mb-8">
-            Khám phá các sản phẩm nông sản sạch của chúng tôi
+            Discover our clean and high-quality agricultural products
           </p>
           <a
             href="/products"
             className="inline-block bg-white text-green-600 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transition-all transform hover:scale-105 shadow-xl"
           >
-            Xem sản phẩm
+            View Products
           </a>
         </div>
       </section>

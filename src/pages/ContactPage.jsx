@@ -203,10 +203,10 @@ export default function Contact() {
       <section className="pt-28 pb-10 bg-white border-b border-gray-100">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-            Liên hệ
+            Contact
           </h1>
           <p className="text-gray-600">
-            Gửi tin nhắn cho chúng tôi, chúng tôi sẽ phản hồi sớm nhất có thể.
+            Send us a message and we will respond as soon as possible.
           </p>
         </div>
       </section>
@@ -243,16 +243,16 @@ export default function Contact() {
           <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
             <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
               <h2 className="text-xl font-bold text-gray-900">
-                Gửi tin nhắn
+                Send Message
               </h2>
               <p className="text-sm text-gray-500 mt-0.5">
-                Điền form bên dưới và gửi, chúng tôi sẽ xử lý và phản hồi qua email hoặc trong mục Lịch sử liên hệ.
+                Fill in the form below and submit; we will process and respond via email or in Contact History.
               </p>
             </div>
             <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-5">
               <div>
                 <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Chủ đề <span className="text-red-500">*</span>
+                  Subject <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -263,7 +263,7 @@ export default function Contact() {
                   className={`w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder-gray-400 ${
                     errors.subject ? 'border-red-400 focus:ring-red-400' : 'border-gray-300'
                   }`}
-                  placeholder="VD: Đặt hàng sỉ, Hỗ trợ đơn hàng..."
+                  placeholder="e.g. Bulk order, Order support..."
                 />
                 {errors.subject && (
                   <p className="flex items-center gap-1 mt-1 text-red-500 text-sm">
@@ -275,7 +275,7 @@ export default function Contact() {
 
               <div>
                 <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Danh mục <span className="text-red-500">*</span>
+                  Category <span className="text-red-500">*</span>
                 </label>
                 <select
                   id="category"
@@ -286,7 +286,7 @@ export default function Contact() {
                     errors.category ? 'border-red-400 focus:ring-red-400' : 'border-gray-300'
                   }`}
                 >
-                  <option value="">-- Chọn danh mục --</option>
+                  <option value="">-- Select category --</option>
                   {categories.map((cat) => (
                     <option key={cat.value || cat} value={cat.value || cat}>
                       {cat.label || cat}
@@ -303,7 +303,7 @@ export default function Contact() {
 
               <div>
                 <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Nội dung <span className="text-red-500">*</span>
+                  Content <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   id="message"
@@ -314,7 +314,7 @@ export default function Contact() {
                   className={`w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-400 ${
                     errors.message ? 'border-red-400 focus:ring-red-400' : 'border-gray-300'
                   }`}
-                  placeholder="Mô tả chi tiết vấn đề hoặc yêu cầu của bạn..."
+                  placeholder="Describe your issue or request in detail..."
                 />
                 {errors.message && (
                   <p className="flex items-center gap-1 mt-1 text-red-500 text-sm">
@@ -327,8 +327,8 @@ export default function Contact() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   <Paperclip className="inline w-4 h-4 mr-1.5 align-middle" />
-                  Đính kèm
-                  <span className="text-gray-400 font-normal ml-1">(tối đa 5 file, mỗi file 5MB)</span>
+                  Attachments
+                  <span className="text-gray-400 font-normal ml-1">(max 5 files, 5MB each)</span>
                 </label>
                 <div className="border-2 border-dashed border-gray-200 rounded-xl p-5 text-center hover:border-green-300 hover:bg-green-50/30 transition-colors cursor-pointer">
                   <input
@@ -341,7 +341,7 @@ export default function Contact() {
                   />
                   <label htmlFor="file-upload" className="cursor-pointer block">
                     <Paperclip className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <span className="text-sm text-gray-600">Chọn file hoặc kéo thả vào đây</span>
+                    <span className="text-sm text-gray-600">Choose files or drag and drop here</span>
                     <span className="block text-xs text-gray-400 mt-1">JPG, PNG, GIF, PDF, DOC, DOCX, TXT</span>
                   </label>
                 </div>
@@ -358,7 +358,7 @@ export default function Contact() {
                           type="button"
                           onClick={() => removeFile(index)}
                           className="p-1 text-red-500 hover:bg-red-50 rounded flex-shrink-0"
-                          aria-label="Xóa file"
+                          aria-label="Remove file"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -390,10 +390,10 @@ export default function Contact() {
                 {createContactLoading ? (
                   <span className="inline-flex items-center justify-center gap-2">
                     <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    {files.length > 0 ? 'Đang tải file...' : 'Đang gửi...'}
+                    {files.length > 0 ? 'Uploading files...' : 'Sending...'}
                   </span>
                 ) : (
-                  'Gửi tin nhắn'
+                  'Send Message'
                 )}
               </button>
             </form>
@@ -405,10 +405,10 @@ export default function Contact() {
       <section className="py-12 bg-white border-t border-gray-100">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-lg font-bold text-gray-900 mb-2">
-            Kết nối với chúng tôi
+            Connect with us
           </h2>
           <p className="text-sm text-gray-500 mb-6">
-            Theo dõi để nhận tin mới và ưu đãi
+            Follow us for news and offers
           </p>
           <div className="flex justify-center gap-4">
             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-green-100 hover:text-green-600 transition-colors" aria-label="Facebook">
