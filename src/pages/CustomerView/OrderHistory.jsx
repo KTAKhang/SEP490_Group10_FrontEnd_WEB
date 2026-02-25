@@ -423,9 +423,9 @@ const OrderHistory = () => {
                               </svg>
                             </div>
                             <div className="flex-1 space-y-2">
-                              <p className="text-red-800 font-medium">Payment Pailed</p>
+                              <p className="text-red-800 font-medium">Payment Failed</p>
                               <p className="text-red-600 text-sm leading-relaxed">
-                                Payment failed for yhis order. The order will disappear in 10 minutes. Please re-pay before then!
+                                Payment failed for this order. The order will disappear in 10 minutes. Please re-pay before then!
                               </p>
                             </div>
                           </div>

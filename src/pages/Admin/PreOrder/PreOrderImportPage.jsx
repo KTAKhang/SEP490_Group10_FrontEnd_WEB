@@ -7,6 +7,7 @@ export default function PreOrderImportPage() {
   const [demandPagination, setDemandPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 });
   const [searchText, setSearchText] = useState("");
   const [harvestBatches, setHarvestBatches] = useState([]);
+  const [harvestBatchesForForm, setHarvestBatchesForForm] = useState([]);
   const [existingPreOrderBatches, setExistingPreOrderBatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
@@ -19,6 +20,8 @@ export default function PreOrderImportPage() {
     notes: "",
   });
   const [submitting, setSubmitting] = useState(false);
+  const [simulationResult, setSimulationResult] = useState(null);
+  const [simulationLoading, setSimulationLoading] = useState(false);
 
   const loadDemand = (page = 1, limit) => {
     const params = { page, limit: limit ?? demandPagination.limit ?? 10 };
@@ -45,6 +48,24 @@ export default function PreOrderImportPage() {
   }, []);
 
   useEffect(() => {
+    if (!showForm || !form.fruitTypeId) {
+      setHarvestBatchesForForm([]);
+      return;
+    }
+    apiClient.get("/admin/harvest-batch", {
+      params: {
+        limit: 500,
+        fruitTypeId: form.fruitTypeId,
+        isPreOrderBatch: "true",
+        receiptEligible: "true",
+        visibleInReceipt: "true",
+      },
+    })
+      .then((r) => { if (r.data?.data) setHarvestBatchesForForm(r.data.data); })
+      .catch(() => setHarvestBatchesForForm([]));
+  }, [showForm, form.fruitTypeId]);
+
+  useEffect(() => {
     if (searchText.trim() === "") return;
     const t = setTimeout(() => {
       setLoading(true);
@@ -52,6 +73,34 @@ export default function PreOrderImportPage() {
     }, 400);
     return () => clearTimeout(t);
   }, [searchText]);
+
+  // Simulation: khi có fruit type + số nguyên dương thì gọi API simulate
+  useEffect(() => {
+    if (!showForm || !form.fruitTypeId) {
+      setSimulationResult(null);
+      return;
+    }
+    const qty = Number(form.quantityKg);
+    if (!Number.isFinite(qty) || !Number.isInteger(qty) || qty < 1) {
+      setSimulationResult(null);
+      return;
+    }
+    const t = setTimeout(() => {
+      setSimulationLoading(true);
+      setSimulationResult(null);
+      apiClient
+        .post("/inventory/preorder-stock/simulate-import", {
+          fruitTypeId: form.fruitTypeId,
+          supplierAvailableQuantity: qty,
+        })
+        .then((r) => {
+          if (r.data?.data) setSimulationResult(r.data.data);
+        })
+        .catch(() => setSimulationResult(null))
+        .finally(() => setSimulationLoading(false));
+    }, 400);
+    return () => clearTimeout(t);
+  }, [showForm, form.fruitTypeId, form.quantityKg]);
 
   const openForm = (row) => {
     const received = row?.receivedKgFromPreOrderStock ?? 0;
@@ -78,7 +127,7 @@ export default function PreOrderImportPage() {
       .post("/inventory/preorder-batches", {
         harvestBatchId: form.harvestBatchId,
         fruitTypeId: form.fruitTypeId,
-        quantityKg: qty,
+        supplierAvailableQuantity: qty,
         notes: (form.notes || "").trim(),
       })
       .then(() => {
@@ -101,28 +150,42 @@ export default function PreOrderImportPage() {
       return;
     }
     const qty = Number(form.quantityKg);
-    if (!Number.isFinite(qty) || qty <= 0) {
-      setErr("Quantity (kg) must be greater than 0.");
+    if (!Number.isFinite(qty) || !Number.isInteger(qty) || qty < 1) {
+      setErr("Supplier available quantity (kg) must be a positive integer (1, 2, 3, …).");
       return;
     }
-    const row = demand.find((d) => (d.fruitTypeId?._id || d.fruitTypeId) === form.fruitTypeId);
-    const received = row?.receivedKgFromPreOrderStock ?? 0;
-    const allocated = row?.allocatedKg ?? 0;
-    const demandKg = row?.demandKg ?? 0;
-    const availableKg = Math.max(0, received - allocated);
-    const doneReceiving = received >= allocated && demandKg <= allocated;
-    const remainingDemandKg = row ? (doneReceiving ? 0 : Math.max(0, demandKg - availableKg)) : 0;
-    if (row && qty > remainingDemandKg) {
-      setErr(`Quantity cannot exceed remaining demand (${remainingDemandKg} kg).`);
+    if (simulationLoading) {
+      setErr("Waiting for simulation result…");
+      return;
+    }
+    if (simulationResult) {
+      const rec = simulationResult.recommendedImportQuantity ?? 0;
+      if (rec === 0) {
+        setErr("No recommended quantity (no remaining pre-orders or quantity too small). Cannot create batch.");
+        return;
+      }
+      if (qty !== rec) {
+        setErr(
+          `Supplier quantity must equal the recommended quantity (${rec} kg) for full-order fulfillment. You entered ${qty} kg.`
+        );
+        return;
+      }
+    } else if (qty > 0) {
+      setErr("Enter supplier quantity and wait for recommendation, or quantity must match recommended.");
       return;
     }
     setErr("");
     setShowConfirmCreate(true);
   };
 
-  /** Chỉ hiển thị lô thu hoạch của nhà cung cấp ACTIVE (optional: có thể bỏ filter) */
-  const usableBatches = harvestBatches.filter(
-    (b) => !b.supplier?.cooperationStatus || b.supplier?.cooperationStatus === "ACTIVE"
+  /** Chỉ hiển thị lô pre-order đúng fruit type, supplier ACTIVE, còn eligible và còn hiện trong dropdown (chưa dùng nhập). */
+  const usableBatches = harvestBatchesForForm.filter(
+    (b) =>
+      b.isPreOrderBatch === true &&
+      (b.fruitTypeId?._id || b.fruitTypeId) === form.fruitTypeId &&
+      (!b.supplier?.cooperationStatus || b.supplier?.cooperationStatus === "ACTIVE") &&
+      b.receiptEligible !== false &&
+      b.visibleInReceipt !== false
   );
 
   return (
@@ -266,7 +329,7 @@ export default function PreOrderImportPage() {
               <h3 className="font-bold text-lg text-gray-900">Create receive batch</h3>
               <button
                 type="button"
-                onClick={() => { setShowForm(false); setErr(""); }}
+                onClick={() => { setShowForm(false); setErr(""); setSimulationResult(null); }}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
               >
                 <i className="ri-close-line text-xl text-gray-600" />
@@ -277,29 +340,7 @@ export default function PreOrderImportPage() {
             )}
             <div className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Harvest batch <span className="text-gray-500 font-normal">(manage at Harvest Batch)</span>
-                </label>
-                <select
-                  value={form.harvestBatchId}
-                  onChange={(e) => setForm((f) => ({ ...f, harvestBatchId: e.target.value }))}
-                  className="w-full border rounded px-3 py-2 mt-1"
-                >
-                  <option value="">— Select batch —</option>
-                  {usableBatches.map((b) => (
-                    <option key={b._id} value={b._id}>
-                      {b.batchCode || b.batchNumber || b._id} — {b.supplier?.name || "NCC"} — {b.product?.name || "SP"}
-                    </option>
-                  ))}
-                </select>
-                {harvestBatches.length === 0 && !loading && (
-                  <p className="text-amber-600 text-xs mt-1">
-                    No batches. <Link to="/admin/harvest-batches" className="underline">Create at Harvest Batch</Link>.
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Fruit type</label>
+                <label className="block text-sm font-medium text-gray-700">Fruit type <span className="text-red-500">*</span></label>
                 <select
                   value={form.fruitTypeId}
                   onChange={(e) => {
@@ -309,12 +350,13 @@ export default function PreOrderImportPage() {
                     setForm((f) => ({
                       ...f,
                       fruitTypeId: e.target.value,
+                      harvestBatchId: "",
                       quantityKg: row?.demandKg ?? f.quantityKg,
                     }));
                   }}
                   className="w-full border rounded px-3 py-2 mt-1"
                 >
-                  <option value="">— Select —</option>
+                  <option value="">— Select fruit type —</option>
                   {demand.map((d) => {
                     const id = d.fruitTypeId?._id || d.fruitTypeId;
                     return (
@@ -327,27 +369,93 @@ export default function PreOrderImportPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Quantity (kg) — greater than 0, not more than remaining demand
+                  Harvest batch <span className="text-gray-500 font-normal">(manage at Harvest Batch — must match fruit type above)</span>
+                </label>
+                <select
+                  value={form.harvestBatchId}
+                  onChange={(e) => setForm((f) => ({ ...f, harvestBatchId: e.target.value }))}
+                  className="w-full border rounded px-3 py-2 mt-1"
+                  disabled={!form.fruitTypeId}
+                >
+                  <option value="">— Select batch —</option>
+                  {!form.fruitTypeId && <option value="" disabled>Select fruit type first</option>}
+                  {usableBatches.map((b) => (
+                    <option key={b._id} value={b._id}>
+                      {b.batchCode || b.batchNumber || b._id} — {b.supplier?.name || "NCC"} — {b.fruitTypeId?.name || "—"}
+                    </option>
+                  ))}
+                </select>
+                {form.fruitTypeId && usableBatches.length === 0 && !loading && (
+                  <p className="text-amber-600 text-xs mt-1">
+                    No pre-order harvest batches for this fruit type. <Link to="/admin/harvest-batches" className="underline">Create at Harvest Batch</Link> (check &quot;Pre-order harvest batch&quot; and select this fruit type).
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Supplier available quantity (kg) — positive integers only
                 </label>
                 <input
-                  type="number"
-                  min={0.1}
-                  step={0.5}
-                  max={(() => {
-                    const row = demand.find((d) => (d.fruitTypeId?._id || d.fruitTypeId) === form.fruitTypeId);
-                    const received = row?.receivedKgFromPreOrderStock ?? 0;
-                    const allocated = row?.allocatedKg ?? 0;
-                    const demandKg = row?.demandKg ?? 0;
-                    const availableKg = Math.max(0, received - allocated);
-                    const doneReceiving = received >= allocated && demandKg <= allocated;
-                    return row
-                      ? (doneReceiving ? 0 : Math.max(0, demandKg - availableKg)) || undefined
-                      : undefined;
-                  })()}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
                   value={form.quantityKg}
-                  onChange={(e) => setForm((f) => ({ ...f, quantityKg: e.target.value }))}
+                  onKeyDown={(e) => {
+                    const allowed = ["Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight", "Home", "End"];
+                    if (allowed.includes(e.key)) return;
+                    if (e.key.length === 1 && !/^\d$/.test(e.key)) e.preventDefault();
+                  }}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/\D/g, "");
+                    if (raw === "") {
+                      setForm((f) => ({ ...f, quantityKg: "" }));
+                      return;
+                    }
+                    const n = parseInt(raw, 10);
+                    if (Number.isNaN(n) || n < 1) setForm((f) => ({ ...f, quantityKg: "1" }));
+                    else setForm((f) => ({ ...f, quantityKg: String(n) }));
+                  }}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    const pasted = (e.clipboardData?.getData("text") || "").replace(/\D/g, "");
+                    if (pasted === "") return;
+                    const n = parseInt(pasted, 10);
+                    if (Number.isNaN(n) || n < 1) setForm((f) => ({ ...f, quantityKg: "1" }));
+                    else setForm((f) => ({ ...f, quantityKg: String(n) }));
+                  }}
                   className="w-full border rounded px-3 py-2 mt-1"
+                  placeholder="e.g. 10"
                 />
+                {simulationLoading && (
+                  <p className="text-sm text-gray-500 mt-1">Checking recommendation…</p>
+                )}
+                {!simulationLoading && simulationResult != null && (
+                  <div className="mt-2 p-2 rounded-lg bg-gray-50 border border-gray-100 text-sm">
+                    <p className="font-medium text-gray-800">
+                      Recommended: <strong>{simulationResult.recommendedImportQuantity ?? 0} kg</strong>
+                      {typeof simulationResult.numberOfOrdersCanBeFulfilled === "number" && (
+                        <span className="text-gray-600 font-normal"> (fulfills {simulationResult.numberOfOrdersCanBeFulfilled} order(s))</span>
+                      )}
+                    </p>
+                    {Number(form.quantityKg) !== (simulationResult.recommendedImportQuantity ?? 0) && Number(form.quantityKg) > 0 && (
+                      <p className="text-amber-700 mt-1">
+                        Your entry ({form.quantityKg} kg) does not match recommended. Use recommended quantity to create batch.
+                      </p>
+                    )}
+                    {Number(form.quantityKg) === (simulationResult.recommendedImportQuantity ?? 0) && Number(form.quantityKg) > 0 && (
+                      <p className="text-green-700 mt-1">Quantity matches recommended. You can create batch.</p>
+                    )}
+                    {(simulationResult.recommendedImportQuantity ?? 0) > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, quantityKg: String(simulationResult.recommendedImportQuantity ?? 0) }))}
+                        className="mt-2 text-green-600 hover:underline text-sm font-medium"
+                      >
+                        Use recommended ({simulationResult.recommendedImportQuantity} kg)
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Notes (optional)</label>
@@ -362,7 +470,7 @@ export default function PreOrderImportPage() {
             <div className="flex gap-3 mt-6">
               <button
                 type="button"
-                onClick={() => { setShowForm(false); setErr(""); }}
+                onClick={() => { setShowForm(false); setErr(""); setSimulationResult(null); }}
                 className="flex-1 py-2.5 border border-gray-300 rounded-full font-medium text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Cancel

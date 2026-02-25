@@ -80,10 +80,10 @@ const DeleteHarvestBatch = ({ isOpen, onClose, batch, onSuccess }) => {
                   <span className="text-gray-500">Supplier: </span>
                   <span className="font-medium text-gray-900">{batch.supplier?.name || "N/A"}</span>
                 </p>
-                {batch.product?.name && (
+                {(batch.product?.name || (batch.isPreOrderBatch && batch.fruitTypeId?.name)) && (
                   <p className="text-sm text-gray-600">
-                    <span className="text-gray-500">Product: </span>
-                    <span className="font-medium text-gray-900">{batch.product.name}</span>
+                    <span className="text-gray-500">{batch.isPreOrderBatch ? "Fruit type: " : "Product: "}</span>
+                    <span className="font-medium text-gray-900">{batch.isPreOrderBatch ? batch.fruitTypeId?.name : batch.product?.name}</span>
                   </p>
                 )}
               </div>

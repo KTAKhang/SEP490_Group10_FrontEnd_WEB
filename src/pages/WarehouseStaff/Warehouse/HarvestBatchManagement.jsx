@@ -34,7 +34,7 @@ const HarvestBatchManagement = () => {
   const [selectedBatch, setSelectedBatch] = useState(null);
 
 
-  // Fetch harvest batches when filters change
+  // Fetch harvest batches when filters change (only product batches; pre-order batches are hidden on this page)
   useEffect(() => {
     const params = {
       page: currentPage,
@@ -45,6 +45,7 @@ const HarvestBatchManagement = () => {
       visibleInReceipt: filterVisibleInReceipt !== "all" ? filterVisibleInReceipt === "true" : undefined,
       sortBy,
       sortOrder,
+      isPreOrderBatch: "false",
     };
     dispatch(getHarvestBatchesRequest(params));
   }, [dispatch, currentPage, searchTerm, filterSupplier, filterReceiptEligible, filterVisibleInReceipt, sortBy, sortOrder]);

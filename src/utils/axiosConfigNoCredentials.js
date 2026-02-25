@@ -175,7 +175,12 @@ apiClientNoCredentials.interceptors.response.use(
       toast.error("Không có quyền truy cập. Vui lòng kiểm tra lại quyền của bạn!");
     } else if (error.response?.status >= 500) {
       console.log('🔥 Server error:', error.response?.status);
-      toast.error("Lỗi máy chủ. Vui lòng thử lại sau!");
+      const serverMessage = error.response?.data?.message;
+      if (serverMessage && typeof serverMessage === "string" && serverMessage.trim()) {
+        // Có message cụ thể từ server → saga/component sẽ hiển thị, không toast trùng ở đây
+      } else {
+        toast.error("Lỗi máy chủ. Vui lòng thử lại sau!");
+      }
     }
     
     return Promise.reject(error);

@@ -75,6 +75,7 @@ import PreOrderDemandPage from "../pages/Admin/PreOrder/PreOrderDemandPage";
 import PreOrderListPage from "../pages/Admin/PreOrder/PreOrderListPage";
 import PreOrderImportPage from "../pages/Admin/PreOrder/PreOrderImportPage";
 import AdminPreOrderLayout from "../layout/AdminPreOrderLayout";
+import SalesStaffPreOrderLayout from "../layout/SalesStaffPreOrderLayout";
 import PreOrdersPage from "../pages/CustomerView/PreOrdersPage";
 import PreOrderDetailPage from "../pages/CustomerView/PreOrderDetailPage";
 import PreOrderCheckoutPage from "../pages/CustomerView/PreOrderCheckoutPage";
@@ -275,6 +276,18 @@ export const routes = [
       { path: "news/create", element: <NewsFormPage /> },
       { path: "news/edit/:id", element: <NewsFormPage /> },
       { path: "news/:id", element: <AdminNewsDetailPage /> },
+
+      {
+        path: "preorder",
+        element: <SalesStaffPreOrderLayout />,
+        children: [
+          { index: true, element: <Navigate to="fruits" replace /> },
+          { path: "fruits", element: <FruitTypeManagement /> },
+          { path: "demand", element: <PreOrderDemandPage /> },
+          { path: "import", element: <PreOrderImportPage /> },
+          { path: "orders", element: <PreOrderListPage /> },
+        ],
+      },
       { path: "profile", element: <ProfileManagement /> },
       { path: "change-password", element: <UpdatePassword /> },
     ],

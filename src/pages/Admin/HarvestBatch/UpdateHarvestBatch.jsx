@@ -54,7 +54,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
       setFormData({
         batchNumber: harvestBatchDetail.batchNumber || "",
         harvestDate: harvestDate,
-        location: harvestBatchDetail.location || "",
+        location: "",
         city: "",
         ward: "",
         notes: harvestBatchDetail.notes || "",
@@ -226,9 +226,9 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">Product</p>
+                      <p className="text-xs text-gray-500 mb-1">{harvestBatchDetail.isPreOrderBatch ? "Fruit type (pre-order)" : "Product"}</p>
                       <p className="text-sm font-medium text-gray-900">
-                        {harvestBatchDetail.product?.name || "N/A"}
+                        {harvestBatchDetail.isPreOrderBatch ? (harvestBatchDetail.fruitTypeId?.name || "N/A") : (harvestBatchDetail.product?.name || "N/A")}
                       </p>
                     </div>
                     <div>

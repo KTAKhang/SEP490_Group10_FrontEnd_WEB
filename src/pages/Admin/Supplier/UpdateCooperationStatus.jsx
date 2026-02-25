@@ -71,14 +71,6 @@ const UpdateCooperationStatus = ({ isOpen, onClose, supplierId, supplierName, cu
           borderColor: "border-green-200",
           label: "Active",
         };
-      case "SUSPENDED":
-        return {
-          icon: AlertCircle,
-          color: "text-yellow-600",
-          bgColor: "bg-yellow-50",
-          borderColor: "border-yellow-200",
-          label: "Suspended",
-        };
       case "TERMINATED":
         return {
           icon: XCircle,
@@ -129,8 +121,8 @@ const UpdateCooperationStatus = ({ isOpen, onClose, supplierId, supplierName, cu
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Cooperation Status <span className="text-red-500">*</span>
               </label>
-              <div className="grid grid-cols-3 gap-4">
-                {["ACTIVE", "SUSPENDED", "TERMINATED"].map((status) => {
+              <div className="grid grid-cols-2 gap-4">
+                {["ACTIVE", "TERMINATED"].map((status) => {
                   const statusInfo = getStatusInfo(status);
                   const Icon = statusInfo.icon;
                   const isSelected = formData.cooperationStatus === status;
@@ -157,8 +149,6 @@ const UpdateCooperationStatus = ({ isOpen, onClose, supplierId, supplierName, cu
               <div className={`rounded-lg p-4 border-2 ${
                 formData.cooperationStatus === "ACTIVE"
                   ? "bg-green-50 border-green-200"
-                  : formData.cooperationStatus === "SUSPENDED"
-                  ? "bg-yellow-50 border-yellow-200"
                   : "bg-red-50 border-red-200"
               }`}>
                 <p className="text-sm font-medium">

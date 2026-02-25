@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import apiClient from "../../../utils/axiosConfig";
 
+const DAYS_BEFORE_HARVEST_TO_LOCK = 3;
+const getMinHarvestDateStr = () => {
+  const d = new Date();
+  d.setDate(d.getDate() + DAYS_BEFORE_HARVEST_TO_LOCK + 1);
+  return d.toISOString().slice(0, 10);
+};
+
 export default function FruitTypeManagement() {
   const [list, setList] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 });
@@ -22,13 +29,13 @@ export default function FruitTypeManagement() {
     estimatedHarvestDate: "",
     status: "ACTIVE",
   });
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [currentImageUrl, setCurrentImageUrl] = useState(null);
-  const [currentImagePublicId, setCurrentImagePublicId] = useState(null);
-  const [removeImage, setRemoveImage] = useState(false);
+  const [existingImages, setExistingImages] = useState([]);
+  const [existingImagePublicIds, setExistingImagePublicIds] = useState([]);
+  const [newImageFiles, setNewImageFiles] = useState([]);
+  const [newImagePreviews, setNewImagePreviews] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
+  const MAX_IMAGES = 10;
 
   const load = (params = {}) => {
     setLoading(true);
@@ -85,11 +92,10 @@ export default function FruitTypeManagement() {
       estimatedHarvestDate: "",
       status: "ACTIVE",
     });
-    setImageFile(null);
-    setImagePreview(null);
-    setCurrentImageUrl(null);
-    setCurrentImagePublicId(null);
-    setRemoveImage(false);
+    setExistingImages([]);
+    setExistingImagePublicIds([]);
+    setNewImageFiles([]);
+    setNewImagePreviews([]);
     setShowSaveConfirm(false);
   };
 
@@ -97,12 +103,15 @@ export default function FruitTypeManagement() {
     setModal(null);
     setEditingId(null);
     setErr("");
-    setImageFile(null);
-    setImagePreview(null);
+    setExistingImages([]);
+    setExistingImagePublicIds([]);
+    setNewImageFiles([]);
+    setNewImagePreviews([]);
   };
 
   const openEdit = (row) => {
     if ((row.demandKg ?? 0) > 0) return;
+    if (row.status === "INACTIVE" || (row.hasClosedPreOrders && (row.demandKg ?? 0) === 0)) return;
     setModal("edit");
     setEditingId(row._id);
     setForm({
@@ -114,16 +123,18 @@ export default function FruitTypeManagement() {
       estimatedHarvestDate: row.estimatedHarvestDate ? new Date(row.estimatedHarvestDate).toISOString().slice(0, 10) : "",
       status: row.status ?? "ACTIVE",
     });
-    setImageFile(null);
-    setImagePreview(null);
-    setCurrentImageUrl(row.image ?? null);
-    setCurrentImagePublicId(row.imagePublicId ?? null);
-    setRemoveImage(false);
+    const imgs = Array.isArray(row.images) && row.images.length > 0 ? row.images : (row.image ? [row.image] : []);
+    const pids = Array.isArray(row.imagePublicIds) && row.imagePublicIds.length > 0 ? row.imagePublicIds : (row.imagePublicId ? [row.imagePublicId] : []);
+    setExistingImages(imgs);
+    setExistingImagePublicIds(pids);
+    setNewImageFiles([]);
+    setNewImagePreviews([]);
     setShowSaveConfirm(false);
   };
 
   const handleDelete = (row) => {
     if ((row.demandKg ?? 0) > 0) return;
+    if (row.status === "INACTIVE" || (row.hasClosedPreOrders && (row.demandKg ?? 0) === 0)) return;
     if (!window.confirm(`Delete fruit type "${row.name}"? This cannot be undone.`)) return;
     setDeletingId(row._id);
     setErr("");
@@ -137,23 +148,31 @@ export default function FruitTypeManagement() {
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
+    const files = e.target.files ? [...e.target.files] : [];
+    if (files.length === 0) return;
+    const currentCount = existingImages.length + newImageFiles.length;
+    const allowed = Math.min(files.length, MAX_IMAGES - currentCount);
+    if (allowed <= 0) return;
+    const toAdd = files.slice(0, allowed);
+    setNewImageFiles((prev) => [...prev, ...toAdd]);
+    toAdd.forEach((file) => {
       const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result);
+      reader.onloadend = () => {
+        setNewImagePreviews((prev) => [...prev, reader.result]);
+      };
       reader.readAsDataURL(file);
-    } else {
-      setImageFile(null);
-      setImagePreview(null);
-    }
+    });
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const clearImage = () => {
-    setImageFile(null);
-    setImagePreview(null);
-    setRemoveImage(false);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+  const removeExistingImage = (index) => {
+    setExistingImages((prev) => prev.filter((_, i) => i !== index));
+    setExistingImagePublicIds((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const removeNewImage = (index) => {
+    setNewImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setNewImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const buildFormData = () => {
@@ -166,12 +185,9 @@ export default function FruitTypeManagement() {
     fd.append("estimatedHarvestDate", form.estimatedHarvestDate || "");
     fd.append("allowPreOrder", "true");
     fd.append("status", form.status);
-    if (imageFile) {
-      fd.append("image", imageFile);
-    }
-    if (removeImage) {
-      fd.append("removeImage", "true");
-    }
+    fd.append("existingImages", JSON.stringify(existingImages));
+    fd.append("existingImagePublicIds", JSON.stringify(existingImagePublicIds));
+    newImageFiles.forEach((file) => fd.append("images", file));
     return fd;
   };
 
@@ -243,7 +259,8 @@ export default function FruitTypeManagement() {
     setShowSaveConfirm(true);
   };
 
-  const displayImage = removeImage ? null : (imagePreview || currentImageUrl);
+  const allPreviews = [...existingImages, ...newImagePreviews];
+  const canAddMore = allPreviews.length < MAX_IMAGES;
 
   return (
     <div className="p-6">
@@ -300,13 +317,14 @@ export default function FruitTypeManagement() {
             </thead>
             <tbody>
               {list.map((row) => {
-                const canEditDelete = (row.demandKg ?? 0) === 0 && row.status !== "INACTIVE";
+                const isCampaignClosed = row.status === "INACTIVE" || (row.hasClosedPreOrders && (row.demandKg ?? 0) === 0);
+                const canEditDelete = (row.demandKg ?? 0) === 0 && !isCampaignClosed;
                 return (
                   <tr key={row._id} className="border-t">
                     <td className="px-4 py-2">
-                      {row.image ? (
+                      {(row.images && row.images[0]) || row.image ? (
                         <img
-                          src={row.image}
+                          src={(row.images && row.images[0]) || row.image}
                           alt={row.name}
                           className="h-10 w-10 rounded-lg object-cover"
                         />
@@ -342,8 +360,8 @@ export default function FruitTypeManagement() {
                           </button>
                         </div>
                       ) : (
-                        <span className="text-xs text-gray-500" title={row.status === "INACTIVE" ? "Closed (inactive). Edit/delete not allowed." : "Edit/delete allowed only when demand = 0."}>
-                          {row.status === "INACTIVE" ? "Closed" : "Locked (demand &gt; 0)"}
+                        <span className="text-xs text-gray-500" title={isCampaignClosed ? "Campaign closed. Edit/delete not allowed." : "Edit/delete allowed only when demand = 0."}>
+                          {isCampaignClosed ? "Closed" : "Locked (demand &gt; 0)"}
                         </span>
                       )}
                     </td>
@@ -424,48 +442,53 @@ export default function FruitTypeManagement() {
             )}
             <div className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Images (for detail gallery, max {MAX_IMAGES})</label>
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
+                  multiple
                   onChange={handleImageChange}
                   className="hidden"
                 />
-                {displayImage ? (
-                  <div className="flex items-start gap-3">
-                    <img
-                      src={displayImage}
-                      alt="Preview"
-                      className="h-24 w-24 object-cover rounded-lg border"
-                    />
-                    <div className="flex flex-col gap-1">
+                <div className="flex flex-wrap gap-3">
+                  {existingImages.map((url, index) => (
+                    <div key={`ex-${index}`} className="relative group">
+                      <img src={url} alt="" className="h-24 w-24 object-cover rounded-lg border" />
                       <button
                         type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+                        onClick={() => removeExistingImage(index)}
+                        className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                        title="Remove"
                       >
-                        <i className="ri-image-edit-line text-sm" /> Change image
-                      </button>
-                      <button
-                        type="button"
-                        onClick={clearImage}
-                        className="text-sm text-red-600 hover:underline"
-                      >
-                        Remove image
+                        ×
                       </button>
                     </div>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full py-8 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-green-500 hover:text-green-600 flex flex-col items-center gap-2"
-                  >
-                    <i className="ri-image-line text-4xl text-gray-400" />
-                    <span>Choose image</span>
-                  </button>
-                )}
+                  ))}
+                  {newImagePreviews.map((dataUrl, index) => (
+                    <div key={`new-${index}`} className="relative group">
+                      <img src={dataUrl} alt="" className="h-24 w-24 object-cover rounded-lg border" />
+                      <button
+                        type="button"
+                        onClick={() => removeNewImage(index)}
+                        className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                        title="Remove"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  {canAddMore && (
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="h-24 w-24 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-green-500 hover:text-green-600 flex flex-col items-center justify-center gap-1 shrink-0"
+                    >
+                      <i className="ri-image-add-line text-2xl" />
+                      <span className="text-xs">Add</span>
+                    </button>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Name</label>
@@ -519,22 +542,27 @@ export default function FruitTypeManagement() {
                 </label>
                 <input
                   type="date"
+                  min={getMinHarvestDateStr()}
                   value={form.estimatedHarvestDate}
                   onChange={(e) => setForm((f) => ({ ...f, estimatedHarvestDate: e.target.value }))}
                   className="w-full border rounded px-3 py-2"
+                  title="Cannot select today or the next 3 days (fruit would be hidden from pre-order)"
                 />
+                <p className="text-xs text-gray-500 mt-1">Must be at least 4 days from today (today and the next 3 days are not allowed).</p>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Status</label>
-                <select
-                  value={form.status}
-                  onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
-                  className="w-full border rounded px-3 py-2"
-                >
-                  <option value="ACTIVE">ACTIVE</option>
-                  <option value="INACTIVE">INACTIVE</option>
-                </select>
-              </div>
+              {modal === "edit" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Status</label>
+                  <select
+                    value={form.status}
+                    onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
+                    className="w-full border rounded px-3 py-2"
+                  >
+                    <option value="ACTIVE">ACTIVE</option>
+                    <option value="INACTIVE">INACTIVE</option>
+                  </select>
+                </div>
+              )}
             </div>
             <div className="flex gap-2 mt-6">
               <button type="button" onClick={closeModal} disabled={isSubmitting} className="flex-1 py-2.5 border border-gray-300 text-gray-700 rounded-full font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">

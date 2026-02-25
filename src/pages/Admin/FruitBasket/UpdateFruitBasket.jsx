@@ -75,10 +75,7 @@ const UpdateFruitBasket = ({ isOpen, onClose, basket }) => {
       setHasSubmitted(false);
       onClose();
     }
-    if (hasSubmitted && updateFruitBasketError && !toastShownRef.current) {
-      toast.error(updateFruitBasketError);
-      toastShownRef.current = true;
-    }
+    // Lỗi đã được saga hiển thị toast, không gọi toast ở đây để tránh 2 thông báo
   }, [hasSubmitted, updateFruitBasketLoading, updateFruitBasketError, onClose]);
 
 

@@ -71,8 +71,8 @@ const UpdateEligible = ({ isOpen, onClose, batch, onSuccess }) => {
               <p className="text-sm font-medium text-gray-900">
                 {batch.batchCode || batch.batchNumber || batch._id}
               </p>
-              {batch.product?.name && (
-                <p className="text-xs text-gray-600 mt-1">{batch.product.name}</p>
+              {(batch.product?.name || (batch.isPreOrderBatch && batch.fruitTypeId?.name)) && (
+                <p className="text-xs text-gray-600 mt-1">{batch.isPreOrderBatch ? batch.fruitTypeId?.name : batch.product?.name}</p>
               )}
             </div>
             <div>
