@@ -11,6 +11,9 @@ import {
   GET_RECEIPT_BY_ID_REQUEST,
   getReceiptByIdSuccess,
   getReceiptByIdFailure,
+  GET_WAREHOUSE_STATS_REQUEST,
+  getWarehouseStatsSuccess,
+  getWarehouseStatsFailure,
 } from "../actions/inventoryActions";
 import { GET_PRODUCTS_REQUEST } from "../actions/productActions";
 
@@ -40,6 +43,13 @@ const apiGetReceiptHistory = async (params = {}) => {
 
 const apiGetReceiptById = async (receiptId) => {
   const response = await apiClient.get(`/inventory/receipts/${receiptId}`);
+  return response.data;
+};
+
+const apiGetWarehouseStats = async (params = {}) => {
+  const response = await apiClient.get("/inventory/stats/warehouse", {
+    params: { page: params.page, limit: params.limit, year: params.year },
+  });
   return response.data;
 };
 
@@ -107,9 +117,27 @@ function* getReceiptByIdSaga(action) {
   }
 }
 
+function* getWarehouseStatsSaga(action) {
+  try {
+    const params = action.payload || {};
+    const response = yield call(apiGetWarehouseStats, params);
+    if (response.status === "OK") {
+      yield put(getWarehouseStatsSuccess(response.data));
+    } else {
+      throw new Error(response.message || "Không thể tải thống kê kho");
+    }
+  } catch (error) {
+    const errorMessage =
+      error.response?.data?.message || error.message || "Không thể tải thống kê kho";
+    yield put(getWarehouseStatsFailure(errorMessage));
+    toast.error(errorMessage);
+  }
+}
+
 // ===== ROOT SAGA =====
 export default function* inventorySaga() {
   yield takeLatest(CREATE_RECEIPT_REQUEST, createReceiptSaga);
   yield takeLatest(GET_RECEIPT_HISTORY_REQUEST, getReceiptHistorySaga);
   yield takeLatest(GET_RECEIPT_BY_ID_REQUEST, getReceiptByIdSaga);
+  yield takeLatest(GET_WAREHOUSE_STATS_REQUEST, getWarehouseStatsSaga);
 }

@@ -74,6 +74,9 @@ const toApiStatus = (value) => normalizeStatus(value).replace(/-/g, "_");
 const formatCurrency = (value) =>
   (value || 0).toLocaleString("en-US", { maximumFractionDigits: 0 });
 
+const orderDiscountCode = (order) => order?.discount_code ?? order?.discountCode ?? null;
+const orderDiscountAmount = (order) => order?.discount_amount ?? order?.discountAmount ?? 0;
+
 const formatDate = (value) =>
   value ? new Date(value).toLocaleString("en-US") : "N/A";
 
@@ -443,11 +446,19 @@ const OrderHistory = () => {
                           VND
                         </span>
                       </div>
-                      {!!(order.discount_code || (order.discount_amount != null && order.discount_amount > 0)) && (
-                        <div className="text-xs text-green-600 mt-0.5">
-                          Code: {order.discount_code} • -{formatCurrency(order.discount_amount)} VND
-                        </div>
-                      )}
+                      {(() => {
+                        const code = orderDiscountCode(order);
+                        const amount = orderDiscountAmount(order);
+                        const hasVoucher = !!code || (amount != null && amount > 0);
+                        if (!hasVoucher) return null;
+                        return (
+                          <div className="text-xs text-green-600 mt-0.5">
+                            {code
+                              ? `Used voucher: ${code}, -${formatCurrency(amount)} VND`
+                              : `Voucher discount: -${formatCurrency(amount)} VND`}
+                          </div>
+                        );
+                      })()}
                       <div className="flex items-center justify-end gap-1.5 text-gray-500 text-xs mt-0.5">
                         <CreditCard className="w-3.5 h-3.5" />
                         <span>{order.payment_method || "N/A"}</span>

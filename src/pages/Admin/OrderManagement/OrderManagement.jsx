@@ -511,13 +511,22 @@ const OrderManagement = () => {
                   <div className="text-sm text-gray-700">
                     Payment: {order.payment_method}
                   </div>
-                  {!!(order.discount_code || (order.discount_amount != null && order.discount_amount > 0)) && (
-                    <div className="text-sm text-gray-700 space-y-0.5">
-                      <div>Original: <span className="font-medium">{formatCurrency(order.original_price ?? (order.total_price ?? 0) + (order.discount_amount ?? 0))} VND</span></div>
-                      <div>Discount code: <span className="font-medium">{order.discount_code}</span></div>
-                      <div>Discount: <span className="text-green-600 font-medium">-{formatCurrency(order.discount_amount)} VND</span></div>
-                    </div>
-                  )}
+                  {(() => {
+                    const code = order.discount_code ?? order.discountCode ?? null;
+                    const amount = order.discount_amount ?? order.discountAmount ?? 0;
+                    const hasVoucher = !!code || (amount != null && amount > 0);
+                    if (!hasVoucher) return null;
+                    const totalPrice = order.total_price ?? order.totalPrice ?? 0;
+                    return (
+                      <div className="text-sm text-gray-700 space-y-0.5">
+                        <div>Subtotal (before voucher): <span className="font-medium">{formatCurrency(totalPrice + amount)} VND</span></div>
+                        <div>
+                          {code ? <>Used voucher: <span className="font-medium">{code}</span>, discount: </> : "Voucher discount: "}
+                          <span className="text-green-600 font-medium">-{formatCurrency(amount)} VND</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
 

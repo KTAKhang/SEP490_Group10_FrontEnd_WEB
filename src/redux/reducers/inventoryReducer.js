@@ -8,6 +8,9 @@ import {
   GET_RECEIPT_BY_ID_REQUEST,
   GET_RECEIPT_BY_ID_SUCCESS,
   GET_RECEIPT_BY_ID_FAILURE,
+  GET_WAREHOUSE_STATS_REQUEST,
+  GET_WAREHOUSE_STATS_SUCCESS,
+  GET_WAREHOUSE_STATS_FAILURE,
   CLEAR_INVENTORY_MESSAGES,
 } from "../actions/inventoryActions";
 
@@ -21,6 +24,9 @@ const initialState = {
   receiptDetail: null,
   receiptDetailLoading: false,
   receiptDetailError: null,
+  warehouseStats: null,
+  warehouseStatsLoading: false,
+  warehouseStatsError: null,
 };
 
 const inventoryReducer = (state = initialState, action) => {
@@ -88,6 +94,27 @@ const inventoryReducer = (state = initialState, action) => {
         receiptDetailLoading: false,
         receiptDetailError: action.payload,
         receiptDetail: null,
+      };
+
+    // ===== WAREHOUSE STAFF STATS =====
+    case GET_WAREHOUSE_STATS_REQUEST:
+      return {
+        ...state,
+        warehouseStatsLoading: true,
+        warehouseStatsError: null,
+      };
+    case GET_WAREHOUSE_STATS_SUCCESS:
+      return {
+        ...state,
+        warehouseStatsLoading: false,
+        warehouseStats: action.payload,
+        warehouseStatsError: null,
+      };
+    case GET_WAREHOUSE_STATS_FAILURE:
+      return {
+        ...state,
+        warehouseStatsLoading: false,
+        warehouseStatsError: action.payload,
       };
 
     // ===== CLEAR MESSAGES =====

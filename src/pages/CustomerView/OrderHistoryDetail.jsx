@@ -45,6 +45,16 @@ const getStatusLabel = (name) => {
 const formatCurrency = (value) =>
   (value || 0).toLocaleString("en-US", { maximumFractionDigits: 0 });
 
+/** Support both snake_case and camelCase from API */
+const orderDiscount = (order) => ({
+  code: order?.discount_code ?? order?.discountCode ?? null,
+  amount: order?.discount_amount ?? order?.discountAmount ?? 0,
+});
+const detailPrice = (item) => ({
+  price: item?.price ?? null,
+  originalPrice: item?.original_price ?? item?.originalPrice ?? null,
+});
+
 
 const formatDate = (value) =>
   value ? new Date(value).toLocaleString("en-US") : "N/A";
@@ -190,15 +200,23 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
                         </div>
                         <div className="text-right text-sm text-gray-700">
                           <div>Quantity: {item.quantity}</div>
-                          {item.original_price != null && item.original_price > item.price ? (
-                            <div className="space-y-0.5">
-                              <div className="line-through text-gray-500">{formatCurrency(item.original_price)} VND</div>
-                              <div className="font-medium text-green-600">{formatCurrency(item.price)} VND</div>
-                              <span className="inline-block text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">Discount</span>
-                            </div>
-                          ) : (
-                            <div>{formatCurrency(item.price)} VND</div>
-                          )}
+                          {(() => {
+                            const { price, originalPrice } = detailPrice(item);
+                            const hasDiscount = originalPrice != null && price != null && originalPrice > price;
+                            return hasDiscount ? (
+                              <div className="space-y-0.5">
+                                <div className="text-xs text-gray-500">Unit price</div>
+                                <div className="line-through text-gray-500">{formatCurrency(originalPrice)} VND</div>
+                                <div className="font-medium text-green-600">{formatCurrency(price)} VND</div>
+                                <span className="inline-block text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">Discount</span>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="text-xs text-gray-500">Unit price</div>
+                                <div>{formatCurrency(price)} VND</div>
+                              </>
+                            );
+                          })()}
                           {isCompleted && productId && (
                             <div className="mt-1 flex flex-col gap-0.5">
                               {review ? (
@@ -240,30 +258,48 @@ export const OrderHistoryDetailContent = ({ orderId, onClose }) => {
               </div>
 
 
-              {!!(orderDetail.order?.discount_code || (orderDetail.order?.discount_amount != null && orderDetail.order?.discount_amount > 0)) && (
-                <>
-                  <div className="flex items-center justify-between border-t pt-3 text-sm text-gray-700">
-                    <span>Original order total</span>
-                    <span>
-                      {formatCurrency(
-                        orderDetail.order?.original_price ??
-                        (orderDetail.order?.total_price ?? 0) + (orderDetail.order?.discount_amount ?? 0)
-                      )} VND
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between pt-2 text-sm text-gray-700">
-                    <span>Discount ({orderDetail.order?.discount_code})</span>
-                    <span className="text-green-600 font-medium">
-                      -{formatCurrency(orderDetail.order?.discount_amount)} VND
-                    </span>
-                  </div>
-                </>
-              )}
-              <div className="flex items-center justify-between border-t pt-3 text-sm text-gray-700">
-                <span>Total</span>
-                <span className="font-semibold text-gray-900">
-                  {formatCurrency(orderDetail.order?.total_price)} VND
-                </span>
+              <div className="mt-3 pt-3 border-t space-y-2">
+                {(() => {
+                  const o = orderDetail.order;
+                  const subtotalProducts = o?.subtotal_products ?? o?.subtotalProducts ?? null;
+                  const shippingFee = o?.shipping_fee ?? o?.shippingFee ?? 0;
+                  const totalPrice = o?.total_price ?? o?.totalPrice ?? 0;
+                  const { code, amount } = orderDiscount(o);
+                  const hasVoucher = !!code || (amount != null && amount > 0);
+                  const subtotalBeforeVoucher = totalPrice + amount;
+                  return (
+                    <>
+                      {subtotalProducts != null && (
+                        <div className="flex items-center justify-between text-sm text-gray-700">
+                          <span>Subtotal (products)</span>
+                          <span>{formatCurrency(subtotalProducts)} VND</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between text-sm text-gray-700">
+                        <span>Shipping fee</span>
+                        <span>{formatCurrency(shippingFee)} VND</span>
+                      </div>
+                      {hasVoucher && (
+                        <>
+                          <div className="flex items-center justify-between text-sm text-gray-700 pt-1">
+                            <span>Subtotal (before voucher)</span>
+                            <span>{formatCurrency(subtotalBeforeVoucher)} VND</span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm text-gray-700">
+                            <span>{code ? `Used voucher: ${code}, discount` : "Voucher discount"}</span>
+                            <span className="text-green-600 font-medium">-{formatCurrency(amount)} VND</span>
+                          </div>
+                        </>
+                      )}
+                    </>
+                  );
+                })()}
+                <div className="flex items-center justify-between pt-2 text-sm text-gray-700 border-t border-gray-100">
+                  <span>Total</span>
+                  <span className="font-semibold text-gray-900">
+                    {formatCurrency(orderDetail.order?.total_price ?? orderDetail.order?.totalPrice)} VND
+                  </span>
+                </div>
               </div>
 
 

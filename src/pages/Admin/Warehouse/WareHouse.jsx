@@ -152,9 +152,15 @@ const WareHouse = () => {
 
 
   // Helper function to check if product can receive more inventory
-  // According to new backend logic: Can receive multiple times on the same day,
-  // but cannot receive on a different day (even if expiryDate is already set)
+  // 1) Already fully received (full lot) → cannot receive more
+  // 2) Can receive multiple times on the same day only; cannot receive on a different day
   const canReceiveInventory = (product) => {
+    // Already fully received (full lot) → gray out
+    if (product.receivingStatus === "RECEIVED") return false;
+    const planned = product.plannedQuantity ?? product.planned_quantity ?? 0;
+    const received = product.receivedQuantity ?? product.received_quantity ?? 0;
+    if (planned > 0 && received >= planned) return false;
+
     // If product has warehouseEntryDate, check if it's the same day (using date string if available)
     if (product.warehouseEntryDateStr) {
       // Use date string comparison (more reliable with timezone)
@@ -181,6 +187,16 @@ const WareHouse = () => {
     return true;
   };
 
+  const getReceiveDisabledReason = (product) => {
+    if (product.receivingStatus === "RECEIVED") return "Already fully received (lot complete).";
+    const planned = product.plannedQuantity ?? product.planned_quantity ?? 0;
+    const received = product.receivedQuantity ?? product.received_quantity ?? 0;
+    if (planned > 0 && received >= planned) return "Already fully received (lot complete).";
+    if (product.warehouseEntryDateStr || product.warehouseEntryDate) {
+      return "Receipt must be completed on the same day (Asia/Ho_Chi_Minh). Cannot receive on a different day.";
+    }
+    return "";
+  };
 
   // Use stats from API
   const stats = {
@@ -418,7 +434,7 @@ const WareHouse = () => {
                                   <button
                                     disabled
                                     className="rounded-xl p-2 text-gray-400 cursor-not-allowed"
-                                    title="Receipt must be completed on the same day (Asia/Ho_Chi_Minh). Cannot receive on a different day."
+                                    title={getReceiveDisabledReason(product)}
                                   >
                                     <Upload size={18} />
                                   </button>
