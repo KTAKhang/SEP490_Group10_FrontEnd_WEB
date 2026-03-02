@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import {
@@ -30,12 +30,23 @@ import {
   Trash2,
   X,
   Check,
+  RefreshCw,
 } from 'lucide-react';
 
 const ContactEditPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
+
+  // Detect base path from current location
+  const getBasePath = () => {
+    if (location.pathname.startsWith('/feedbacked-staff')) {
+      return '/feedbacked-staff';
+    }
+    return '/admin';
+  };
+  const basePath = getBasePath();
 
   // Redux state
   const {
@@ -53,9 +64,13 @@ const ContactEditPage = () => {
   const [formData, setFormData] = useState({
     status: 'OPEN',
   });
+  const [originalStatus, setOriginalStatus] = useState(null);
   const [replyMessage, setReplyMessage] = useState('');
   const [editingReplyId, setEditingReplyId] = useState(null);
   const [editingReplyMessage, setEditingReplyMessage] = useState('');
+  // Status change confirmation modal
+  const [showStatusConfirmModal, setShowStatusConfirmModal] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState(null);
 
   // Fetch contact detail
   useEffect(() => {
@@ -67,9 +82,11 @@ const ContactEditPage = () => {
   // Update form data when contactDetail changes
   useEffect(() => {
     if (contactDetail) {
+      const currentStatus = contactDetail.status || 'OPEN';
       setFormData({
-        status: contactDetail.status || 'OPEN',
+        status: currentStatus,
       });
+      setOriginalStatus(currentStatus);
     }
   }, [contactDetail]);
 
@@ -78,10 +95,10 @@ const ContactEditPage = () => {
     if (updateContactSuccess && id) {
       dispatch(contactClearMessages());
       setTimeout(() => {
-        navigate(`/admin/contacts/${id}`);
+        navigate(`${basePath}/contacts/${id}`);
       }, 1500);
     }
-  }, [updateContactSuccess, id, navigate, dispatch]);
+  }, [updateContactSuccess, id, navigate, dispatch, basePath]);
 
   // Refresh contact detail and replies after successful reply
   useEffect(() => {
@@ -101,6 +118,16 @@ const ContactEditPage = () => {
       setEditingReplyMessage('');
     }
   }, [updateReplySuccess, deleteReplySuccess, id, dispatch]);
+
+  const getStatusLabel = (status) => {
+    const statusLabels = {
+      OPEN: 'Open',
+      IN_PROGRESS: 'In Progress',
+      RESOLVED: 'Resolved',
+      CLOSED: 'Closed',
+    };
+    return statusLabels[status] || status;
+  };
 
   const getStatusBadge = (status) => {
     const statusConfig = {
@@ -164,9 +191,35 @@ const ContactEditPage = () => {
     e.preventDefault();
     if (!id) return;
 
-    dispatch(contactUpdateContactRequest(id, {
-      status: formData.status,
-    }));
+    // Prevent changing back to OPEN if contact was already changed from OPEN
+    if (originalStatus !== 'OPEN' && formData.status === 'OPEN') {
+      toast.error('Cannot revert to "Open" status after it has been changed');
+      return;
+    }
+
+    // Check if status has changed
+    const hasStatusChanged = originalStatus && formData.status !== originalStatus;
+
+    if (hasStatusChanged) {
+      setPendingStatus(formData.status);
+      setShowStatusConfirmModal(true);
+    } else {
+      dispatch(contactUpdateContactRequest(id, {
+        status: formData.status,
+      }));
+    }
+  };
+
+  const handleConfirmStatusChange = () => {
+    if (!id || !pendingStatus) return;
+    dispatch(contactUpdateContactRequest(id, { status: pendingStatus }));
+    setShowStatusConfirmModal(false);
+    setPendingStatus(null);
+  };
+
+  const handleCloseStatusConfirmModal = () => {
+    setShowStatusConfirmModal(false);
+    setPendingStatus(null);
   };
 
   const handleSendReply = () => {
@@ -235,7 +288,7 @@ const ContactEditPage = () => {
         {/* Header */}
         <div className="mb-8">
           <button
-            onClick={() => navigate(`/admin/contacts/${id}`)}
+            onClick={() => navigate(`${basePath}/contacts/${id}`)}
             className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200 font-medium mb-4"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -304,7 +357,7 @@ const ContactEditPage = () => {
                             className="w-full max-h-72 object-contain rounded-lg bg-white border border-gray-100"
                             onError={(e) => { e.target.style.display = 'none'; e.target.nextElementSibling?.classList.remove('hidden'); }}
                           />
-                          <p className="hidden text-sm text-gray-500 mt-2">Không thể tải ảnh</p>
+                          <p className="hidden text-sm text-gray-500 mt-2">Unable to load image</p>
                           <div className="flex items-center justify-between mt-3">
                             <p className="text-sm font-semibold text-gray-900 truncate flex-1 min-w-0">{fileName}</p>
                             <div className="flex items-center gap-2 flex-shrink-0 ml-2">
@@ -359,7 +412,7 @@ const ContactEditPage = () => {
               </div>
             )}
 
-            {/* Edit Form - chỉ phần status, nút cập nhật đặt ở cuối trang */}
+            {/* Edit Form - status section only, update button at bottom */}
             <form id="contact-edit-form" onSubmit={handleSubmit} className="space-y-6">
               {/* Status */}
               <div>
@@ -368,14 +421,34 @@ const ContactEditPage = () => {
                 </label>
                 <select
                   value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                  onChange={(e) => {
+                    const newStatus = e.target.value;
+                    // Prevent changing back to OPEN if contact was already changed from OPEN
+                    if (originalStatus !== 'OPEN' && newStatus === 'OPEN') {
+                      toast.error('Cannot revert to "Open" status after it has been changed');
+                      // Reset to current status to prevent the change
+                      e.target.value = formData.status;
+                      return;
+                    }
+                    setFormData({ ...formData, status: newStatus });
+                  }}
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all cursor-pointer"
                 >
-                  <option value="OPEN">Open</option>
+                  <option 
+                    value="OPEN"
+                    disabled={originalStatus !== 'OPEN'}
+                  >
+                    Open
+                  </option>
                   <option value="IN_PROGRESS">In Progress</option>
                   <option value="RESOLVED">Resolved</option>
                   <option value="CLOSED">Closed</option>
                 </select>
+                {originalStatus !== 'OPEN' && (
+                  <p className="mt-2 text-sm text-yellow-600">
+                    ⚠️ Cannot revert to "Open" status after it has been changed
+                  </p>
+                )}
                 <div className="mt-3">
                   {getStatusBadge(formData.status)}
                 </div>
@@ -538,7 +611,7 @@ const ContactEditPage = () => {
           <div className="flex gap-4 pt-6">
             <button
               type="button"
-              onClick={() => navigate(`/admin/contacts/${id}`)}
+              onClick={() => navigate(`${basePath}/contacts/${id}`)}
               className="px-6 py-3 border-2 border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
             >
               Cancel
@@ -568,6 +641,64 @@ const ContactEditPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Status change confirmation modal */}
+      {showStatusConfirmModal && originalStatus && pendingStatus && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+            onClick={handleCloseStatusConfirmModal}
+            aria-hidden="true"
+          />
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+            <div className="p-6 sm:p-8">
+              <div className="flex justify-center mb-5">
+                <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+                  <RefreshCw className="w-8 h-8 text-blue-600" />
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+                Confirm status change
+              </h3>
+              <p className="text-gray-600 text-center mb-6">
+                Are you sure you want to change the status from{' '}
+                <span className="font-semibold text-gray-900">
+                  {getStatusLabel(originalStatus)}
+                </span>
+                {' '}to{' '}
+                <span className="font-semibold text-blue-600">
+                  {getStatusLabel(pendingStatus)}
+                </span>
+                ?
+              </p>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={handleCloseStatusConfirmModal}
+                  className="flex-1 px-4 py-3 rounded-xl font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmStatusChange}
+                  disabled={updateContactLoading}
+                  className="flex-1 px-4 py-3 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {updateContactLoading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Confirm'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

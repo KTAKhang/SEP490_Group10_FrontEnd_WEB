@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Calendar,
@@ -27,7 +27,17 @@ import AdminCommentSection from '../../../components/Comments/AdminCommentSectio
 const NewsDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
+
+  // Detect base path from current location
+  const getBasePath = () => {
+    if (location.pathname.startsWith('/sale-staff')) {
+      return '/sale-staff';
+    }
+    return '/admin';
+  };
+  const basePath = getBasePath();
 
   const {
     newsDetail,
@@ -49,13 +59,13 @@ const NewsDetailPage = () => {
     if (deleteNewsSuccess) {
       toast.success('News deleted successfully!');
       dispatch(newsClearMessages());
-      navigate('/admin/news');
+      navigate(`${basePath}/news`);
     }
     if (deleteNewsError) {
       // Lỗi đã được saga hiển thị toast, chỉ clear state
       dispatch(newsClearMessages());
     }
-  }, [deleteNewsSuccess, deleteNewsError, dispatch, navigate]);
+  }, [deleteNewsSuccess, deleteNewsError, dispatch, navigate, basePath]);
 
   const handleDelete = () => {
     if (newsDetail?.status === 'PUBLISHED') {
@@ -118,7 +128,7 @@ const NewsDetailPage = () => {
               {newsDetailError || 'News not found'}
             </p>
             <Link
-              to="/admin/news"
+              to={`${basePath}/news`}
               className="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
               <ArrowLeft className="w-5 h-5 mr-2" />
@@ -137,7 +147,7 @@ const NewsDetailPage = () => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-4">
             <Link
-              to="/admin/news"
+              to={`${basePath}/news`}
               className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -157,7 +167,7 @@ const NewsDetailPage = () => {
               View Public Page
             </Link>
             <Link
-              to={`/admin/news/edit/${newsDetail._id}`}
+              to={`${basePath}/news/edit/${newsDetail._id}`}
               className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
               <Edit className="w-4 h-4 mr-2" />

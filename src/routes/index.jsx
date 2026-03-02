@@ -166,8 +166,13 @@ export const routes = [
       </PrivateRoute>
     ),
     children: [
+
       { index: true, element: <FeedbackStaffDashboardPage /> },
-      { path: "chat", element: <ChatForStaffPage /> },
+     
+      { path: "contacts", element: <ContactListPage /> },
+      { path: "contacts/:id", element: <ContactDetailPage /> },
+      { path: "contacts/:id/edit", element: <ContactEditPage /> },
+
       { path: "profile", element: <ProfileManagement /> },
       { path: "change-password", element: <UpdatePassword /> },
       { path: "reviews", element: <FeedbackStaffReviewManagement /> },
@@ -257,6 +262,11 @@ export const routes = [
       { path: "orders", element: <SalesStaffOrderManagement /> },
       { path: "refund-orders", element: <SalesStaffRefundOrdersPage /> },
       { path: "discounts", element: <StaffDiscountManagement /> },
+      { path: "news", element: <NewsListPage /> },
+      { path: "news/create", element: <NewsFormPage /> },
+      { path: "news/edit/:id", element: <NewsFormPage /> },
+      { path: "news/:id", element: <AdminNewsDetailPage /> },
+
       {
         path: "preorder",
         element: <SalesStaffPreOrderLayout />,

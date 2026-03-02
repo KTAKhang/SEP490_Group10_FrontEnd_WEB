@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { ChevronLeft, ShoppingCart } from "lucide-react";
 import api from "../../api";
 import Loading from "../../components/Loading/Loading";
+import Header from "../../components/Header/Header";
+import Footer from "../../components/Footer/Footer";
+
 const formatCurrency = (n) => (n || 0).toLocaleString("en-US", { maximumFractionDigits: 0 }) + " VND";
 const formatDate = (d) => (d ? new Date(d).toLocaleDateString("en-GB") : "");
 const PLACEHOLDER_IMAGE = "https://via.placeholder.com/600x600?text=Pre-order";
@@ -13,6 +17,7 @@ export default function PreOrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [quantity, setQuantity] = useState("");
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
     if (!id) return;
@@ -21,7 +26,9 @@ export default function PreOrderDetailPage() {
       .then((res) => {
         if (res.data && res.data.data) {
           setItem(res.data.data);
-          setQuantity(String(res.data.data.minOrderKg || ""));
+          const minK = Number(res.data.data.minOrderKg);
+          setQuantity(String(Number.isFinite(minK) ? Math.round(minK) : ""));
+          setSelectedImageIndex(0);
         }
       })
       .catch((e) => setErr(e.response?.data?.message || "Could not load."))
@@ -30,9 +37,9 @@ export default function PreOrderDetailPage() {
 
   const handleProceed = () => {
     if (!item) return;
-    const qty = parseFloat(quantity, 10);
-    if (isNaN(qty) || qty < item.minOrderKg || qty > item.maxOrderKg) {
-      setErr("Quantity (kg) must be between " + item.minOrderKg + " and " + item.maxOrderKg);
+    const qty = parseInt(quantity, 10);
+    if (!Number.isInteger(qty) || qty < item.minOrderKg || qty > item.maxOrderKg) {
+      setErr("Quantity (kg) must be an integer between " + item.minOrderKg + " and " + item.maxOrderKg);
       return;
     }
     setErr("");
@@ -44,138 +51,207 @@ export default function PreOrderDetailPage() {
         estimatedPrice: item.estimatedPrice,
         minOrderKg: item.minOrderKg,
         maxOrderKg: item.maxOrderKg,
-        depositPercent: 50, // Đặt trước: luôn cọc 50%, 50% còn lại thanh toán sau phân bổ
+        depositPercent: 50,
       },
     });
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex justify-center items-center py-32">
-        <Loading message="Loading..." />
+      <div className="min-h-screen bg-stone-50">
+        <Header />
+        <div className="flex justify-center items-center py-32">
+          <Loading message="Loading..." />
+        </div>
+        <Footer />
       </div>
     );
   }
 
   if (err && !item) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center py-32 px-4">
-        <p className="text-gray-600 text-lg mb-4">{err}</p>
-        <button
-          onClick={() => navigate("/customer/pre-orders")}
-          className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
-        >
-          Back to Pre-order
-        </button>
+      <div className="min-h-screen bg-stone-50">
+        <Header />
+        <div className="flex flex-col items-center justify-center py-32 px-4">
+          <p className="text-stone-600 text-lg mb-4">{err}</p>
+          <button
+            onClick={() => navigate("/customer/pre-orders")}
+            className="px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors cursor-pointer font-medium"
+          >
+            Back to Pre-order
+          </button>
+        </div>
+        <Footer />
       </div>
     );
   }
 
   if (!item) return null;
 
-  const qtyNum = parseFloat(quantity, 10);
-  const validQty = !isNaN(qtyNum) && qtyNum >= item.minOrderKg && qtyNum <= item.maxOrderKg;
+  const images =
+    (item.images && Array.isArray(item.images) && item.images.length > 0)
+      ? item.images
+      : item.image ? [item.image] : [];
+  const mainImage = images[selectedImageIndex] || PLACEHOLDER_IMAGE;
+
+  const qtyNum = parseInt(quantity, 10);
+  const validQty = Number.isInteger(qtyNum) && qtyNum >= item.minOrderKg && qtyNum <= item.maxOrderKg;
   const estimatedTotal = validQty ? Math.round(item.estimatedPrice * qtyNum) : 0;
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Breadcrumb */}
-      <section className="pt-32 pb-8 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-stone-50">
+      <Header />
+
+      {/* Breadcrumb - same as ProductDetailPage */}
+      <section className="pt-28 pb-4 bg-white border-b border-stone-200/80">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <button
             onClick={() => navigate("/customer/pre-orders")}
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+            className="inline-flex items-center gap-2 text-stone-500 hover:text-emerald-600 transition-colors cursor-pointer text-sm font-medium"
           >
-            <i className="ri-arrow-left-line text-xl" />
-            <span>Back to Pre-order</span>
+            <ChevronLeft className="w-4 h-4" />
+            Back to Pre-order
           </button>
         </div>
       </section>
 
-      {/* Detail - layout giống ProductDetail */}
-      <section className="py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <div>
-              <div className="rounded-2xl overflow-hidden bg-gray-100 aspect-square">
-                <img
-                  src={item.image || PLACEHOLDER_IMAGE}
-                  alt={item.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-
-            <div>
-              <span className="text-sm text-gray-500 uppercase tracking-wider">Pre-order</span>
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 mt-2">
-                {item.name}
-              </h1>
-              <p className="text-2xl font-bold text-gray-900 mb-6">
-                {formatCurrency(item.estimatedPrice)}/kg
-              </p>
-              <div className="mb-6">
-                <span className="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                  Pre-order open
-                </span>
-              </div>
-
-              {item.description && (
-                <div className="mb-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-3">Description</h2>
-                  <p className="text-gray-700 leading-relaxed">{item.description}</p>
+      {/* Detail Hero - same grid/layout as ProductDetailPage */}
+      <section className="py-8 lg:py-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
+            {/* Image Gallery */}
+            <div className="lg:col-span-6">
+              <div className="sticky top-28 space-y-4">
+                <div className="relative rounded-2xl overflow-hidden bg-white shadow-lg ring-1 ring-stone-200/60 aspect-square">
+                  <img
+                    src={mainImage}
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-4 left-4">
+                    <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-emerald-500 text-white text-xs font-semibold shadow-md">
+                      Pre-order
+                    </span>
+                  </div>
                 </div>
-              )}
-
-              <div className="mb-8 space-y-4">
-                <div className="flex justify-between py-3 border-b border-gray-200">
-                  <span className="text-gray-600">Order quantity range</span>
-                  <span className="font-semibold">{item.minOrderKg} – {item.maxOrderKg} kg</span>
-                </div>
-                {item.estimatedHarvestDate && (
-                  <div className="flex justify-between py-3 border-b border-gray-200">
-                    <span className="text-gray-600">Est. harvest date</span>
-                    <span className="font-semibold">{formatDate(item.estimatedHarvestDate)}</span>
+                {images.length > 1 && (
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {images.map((img, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => setSelectedImageIndex(index)}
+                        className={`relative flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
+                          selectedImageIndex === index
+                            ? "border-emerald-500 ring-2 ring-emerald-200"
+                            : "border-stone-200 hover:border-stone-300"
+                        }`}
+                      >
+                        <img
+                          src={img}
+                          alt={`${item.name} ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
+            </div>
 
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Quantity (kg)</label>
-                <input
-                  type="number"
-                  min={item.minOrderKg}
-                  max={item.maxOrderKg}
-                  step="0.5"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  className="w-full max-w-[200px] px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                />
-                {validQty && (
-                  <p className="mt-2 text-lg font-semibold text-green-600">
-                    Est. total: {formatCurrency(estimatedTotal)}
-                  </p>
+            {/* Main Info + CTA - same card style as ProductDetailPage */}
+            <div className="lg:col-span-6">
+              <div className="lg:sticky lg:top-28 space-y-6">
+                <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-stone-200/60 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2 border-b border-stone-100 pb-4">
+                    <span className="text-stone-500 text-sm font-medium min-w-[7rem]">Name:</span>
+                    <span className="text-stone-900 font-semibold text-lg">{item.name}</span>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2 border-b border-stone-100 pb-4">
+                    <span className="text-stone-500 text-sm font-medium min-w-[7rem]">Price:</span>
+                    <span className="text-emerald-600 font-bold text-xl">
+                      {formatCurrency(item.estimatedPrice)}/kg
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2 border-b border-stone-100 pb-4">
+                    <span className="text-stone-500 text-sm font-medium min-w-[7rem]">Order range:</span>
+                    <span className="text-stone-900 font-medium">{item.minOrderKg} – {item.maxOrderKg} kg</span>
+                  </div>
+
+                  {item.estimatedHarvestDate && (
+                    <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2 border-b border-stone-100 pb-4">
+                      <span className="text-stone-500 text-sm font-medium min-w-[7rem]">Est. harvest:</span>
+                      <span className="text-stone-900 font-medium">{formatDate(item.estimatedHarvestDate)}</span>
+                    </div>
+                  )}
+
+                  {item.description && (
+                    <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2 border-b border-stone-100 pb-4">
+                      <span className="text-stone-500 text-sm font-medium min-w-[7rem]">Description:</span>
+                      <span className="text-stone-700 leading-relaxed">{item.description}</span>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2 pt-1">
+                    <span className="text-stone-500 text-sm font-medium min-w-[7rem]">Quantity (kg):</span>
+                    <div className="space-y-2">
+                      <input
+                        type="number"
+                        min={item.minOrderKg}
+                        max={item.maxOrderKg}
+                        step={1}
+                        value={quantity}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          if (v === "") {
+                            setQuantity("");
+                            return;
+                          }
+                          const n = parseInt(v, 10);
+                          if (Number.isNaN(n)) return;
+                          const clamped = Math.max(Number(item.minOrderKg) || 0, Math.min(Number(item.maxOrderKg) || 999, n));
+                          setQuantity(String(clamped));
+                        }}
+                        className="w-full max-w-[180px] px-4 py-2.5 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                      />
+                      {validQty && (
+                        <p className="text-emerald-600 font-semibold">
+                          Est. total: {formatCurrency(estimatedTotal)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {err && (
+                  <div className="p-3 bg-red-50 border border-red-100 text-red-700 rounded-xl text-sm">
+                    {err}
+                  </div>
                 )}
+
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleProceed}
+                    disabled={!validQty}
+                    className={`flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold transition-all ${
+                      validQty
+                        ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-md hover:shadow-lg cursor-pointer"
+                        : "bg-stone-300 text-stone-500 cursor-not-allowed"
+                    }`}
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    {validQty ? "Proceed to pre-order" : "Enter quantity"}
+                  </button>
+                </div>
               </div>
-
-              {err && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{err}</div>}
-
-              <button
-                onClick={handleProceed}
-                disabled={!validQty}
-                className={`flex items-center justify-center space-x-2 px-8 py-4 rounded-lg font-semibold w-full max-w-xs ${
-                  validQty
-                    ? "bg-green-600 text-white hover:bg-green-700 cursor-pointer"
-                    : "bg-gray-400 text-white cursor-not-allowed"
-                }`}
-              >
-                <i className="ri-shopping-cart-line text-xl" />
-                <span>Proceed to pre-order</span>
-              </button>
             </div>
           </div>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 }

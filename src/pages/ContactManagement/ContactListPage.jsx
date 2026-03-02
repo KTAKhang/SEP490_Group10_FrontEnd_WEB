@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   contactGetMyContactsRequest,
@@ -19,7 +19,17 @@ import {
 
 const ContactListPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
+
+  // Detect base path from current location
+  const getBasePath = () => {
+    if (location.pathname.startsWith('/feedbacked-staff')) {
+      return '/feedbacked-staff';
+    }
+    return '/admin';
+  };
+  const basePath = getBasePath();
 
   const {
     contacts,
@@ -102,12 +112,12 @@ const ContactListPage = () => {
 
   const handleViewDetail = (contact) => {
     const contactId = contact._id || contact.id;
-    navigate(`/admin/contacts/${contactId}`);
+    navigate(`${basePath}/contacts/${contactId}`);
   };
 
   const handleEdit = (contact) => {
     const contactId = contact._id || contact.id;
-    navigate(`/admin/contacts/${contactId}/edit`);
+    navigate(`${basePath}/contacts/${contactId}/edit`);
   };
 
   return (

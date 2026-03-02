@@ -31,8 +31,8 @@ const HomepageAssetsManagement = () => {
   } = useSelector((state) => state.homepageAssets || {});
 
   const [uploading, setUploading] = useState({});
-  const [uploadProgress, setUploadProgress] = useState({}); // % 0-100 cho từng key
-  const blobUrlsRef = useRef({}); // Blob URL tạm để revoke khi xong
+  const [uploadProgress, setUploadProgress] = useState({}); // % 0-100 per key
+  const blobUrlsRef = useRef({}); // Temporary Blob URLs to revoke when done
   const [assetData, setAssetData] = useState({
     heroBackground: { imageUrl: "", altText: "" },
     trustAvatar1: { imageUrl: "", altText: "" },
@@ -101,7 +101,7 @@ const HomepageAssetsManagement = () => {
     dispatch(getHomepageAssetsRequest());
   }, [dispatch]);
 
-  // Cleanup blob URLs khi unmount (tránh rò rỉ bộ nhớ)
+  // Cleanup blob URLs when unmounting (prevent memory leaks)
   useEffect(() => {
     return () => {
       Object.values(blobUrlsRef.current).forEach((url) => {
@@ -141,7 +141,7 @@ const HomepageAssetsManagement = () => {
     }
   }, [success, error, dispatch]);
 
-  // Nén ảnh bằng canvas khi file > 1MB để upload nhanh hơn (không đổi logic, chỉ giảm dung lượng)
+  // Compress image via canvas when file > 1MB for faster upload (no logic change, just smaller size)
   const compressImageIfNeeded = (file, key) => {
     const maxSizeBytes = 1024 * 1024; // 1MB
     if (file.size <= maxSizeBytes) return Promise.resolve(file);
@@ -183,19 +183,19 @@ const HomepageAssetsManagement = () => {
     });
   };
 
-  // Handle image upload: preview ngay (blob URL) + progress + nén nếu file lớn
+  // Handle image upload: instant preview (blob URL) + progress + compression if file is large
   const handleImageUpload = async (key, file) => {
     if (!file) return;
 
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Chỉ chấp nhận file ảnh (JPG, PNG, GIF, WEBP)');
+      toast.error('Only image files are accepted (JPG, PNG, GIF, WEBP)');
       return;
     }
 
     const maxSize = (key === 'heroBackground' || key === 'ctaImage') ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      toast.error(`Kích thước file không được vượt quá ${maxSize / 1024 / 1024}MB`);
+      toast.error(`File size must not exceed ${maxSize / 1024 / 1024}MB`);
       return;
     }
 
@@ -205,7 +205,7 @@ const HomepageAssetsManagement = () => {
       blobUrlsRef.current[key] = null;
     }
 
-    // Preview ngay bằng blob URL để user thấy ảnh ngay, không đợi upload
+    // Show preview immediately via blob URL so user sees the image without waiting for upload
     const blobUrl = URL.createObjectURL(file);
     blobUrlsRef.current[key] = blobUrl;
     const altText = assetData[key]?.altText || `${assetConfigs.find(c => c.key === key)?.label || key} image`;
@@ -236,7 +236,7 @@ const HomepageAssetsManagement = () => {
       if (response.data?.status === 'OK' && response.data?.data?.url) {
         uploadUrl = response.data.data.url;
       } else {
-        throw new Error(response.data?.message || 'Response format không đúng từ backend');
+        throw new Error(response.data?.message || 'Invalid response format from backend');
       }
 
       if (blobUrlsRef.current[key]) {
@@ -248,7 +248,7 @@ const HomepageAssetsManagement = () => {
         ...prev,
         [key]: { imageUrl: uploadUrl, altText },
       }));
-      toast.info('Đã chọn hình ảnh. Nhấn "Lưu" để lưu thay đổi.');
+      toast.info('Image selected. Click "Save" to apply changes.');
     } catch (error) {
       if (blobUrlsRef.current[key]) {
         URL.revokeObjectURL(blobUrlsRef.current[key]);
@@ -260,21 +260,21 @@ const HomepageAssetsManagement = () => {
       }));
 
       console.error('Error uploading image:', error);
-      let errorMessage = 'Có lỗi xảy ra khi upload hình ảnh';
+      let errorMessage = 'An error occurred while uploading the image';
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.status === 404) {
-        errorMessage = 'Endpoint POST /api/admin/homepage-assets/upload không tồn tại. Vui lòng kiểm tra backend.';
+        errorMessage = 'Endpoint POST /api/admin/homepage-assets/upload does not exist. Please check the backend.';
       } else if (error.response?.status === 400) {
-        errorMessage = error.response.data?.message || 'Dữ liệu không hợp lệ.';
+        errorMessage = error.response.data?.message || 'Invalid data.';
       } else if (error.response?.status === 401) {
-        errorMessage = 'Không có quyền truy cập. Vui lòng đăng nhập lại.';
+        errorMessage = 'Unauthorized. Please log in again.';
       } else if (error.response?.status === 403) {
-        errorMessage = 'Không có quyền truy cập. Chỉ admin mới có thể upload homepage assets.';
+        errorMessage = 'Access denied. Only admins can upload homepage assets.';
       } else if (error.response?.status === 500) {
-        errorMessage = 'Lỗi server. Vui lòng thử lại sau.';
+        errorMessage = 'Server error. Please try again later.';
       } else if (error.message?.includes('network') || error.code === 'ERR_NETWORK') {
-        errorMessage = 'Không thể kết nối đến server.';
+        errorMessage = 'Unable to connect to the server.';
       } else {
         errorMessage = error.message || errorMessage;
       }
@@ -285,13 +285,13 @@ const HomepageAssetsManagement = () => {
     }
   };
 
-  // Handle save asset (lưu vào DB - có thể lưu hình mới hoặc lưu "đã xóa" khi imageUrl rỗng)
+  // Handle save asset (save to DB - can save new image or "deleted" state when imageUrl is empty)
   const handleSaveAsset = (key) => {
     const asset = assetData[key];
     dispatch(updateHomepageAssetRequest(key, asset.imageUrl || '', asset.altText || ''));
   };
 
-  // Handle remove image - chỉ xóa trong form, chưa lưu. User phải nhấn "Lưu" để lưu thay đổi.
+  // Handle remove image - only clear in form, not yet saved. User must click "Save" to apply changes.
   const handleRemoveImage = (key) => {
     setAssetData({
       ...assetData,
@@ -300,7 +300,7 @@ const HomepageAssetsManagement = () => {
         altText: assetData[key]?.altText || "",
       }
     });
-    toast.info('Đã xóa hình trong form. Nhấn "Lưu" để lưu thay đổi.');
+    toast.info('Image removed from the form. Click "Save" to apply changes.');
   };
 
   if (getAssetsLoading && !assets) {
@@ -308,7 +308,7 @@ const HomepageAssetsManagement = () => {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-green-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Đang tải hình ảnh homepage...</p>
+          <p className="text-gray-600">Loading homepage images...</p>
         </div>
       </div>
     );
@@ -320,10 +320,10 @@ const HomepageAssetsManagement = () => {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Quản lý hình ảnh Homepage
+            Homepage Images Management
           </h1>
           <p className="text-gray-600">
-            Upload và quản lý các hình ảnh hiển thị trên trang chủ
+            Upload and manage images displayed on the homepage
           </p>
         </div>
 
@@ -345,12 +345,12 @@ const HomepageAssetsManagement = () => {
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">{config.label}</h3>
                       <p className="text-sm text-gray-500">{config.description}</p>
-                      <p className="text-xs text-gray-400 mt-1">Tỷ lệ: {config.aspectRatio}</p>
+                      <p className="text-xs text-gray-400 mt-1">Aspect ratio: {config.aspectRatio}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Image Preview - ảnh hiện ngay (blob) khi chọn file, không đợi upload xong */}
+                {/* Image Preview - image shows immediately (blob) when file is selected, without waiting for upload */}
                 <div className="mb-4">
                   <div className={`w-full border-2 border-dashed rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center relative ${
                     config.aspectRatio === '16:9' ? 'aspect-video' :
@@ -384,7 +384,7 @@ const HomepageAssetsManagement = () => {
                     ) : (
                       <div className="text-center text-gray-400">
                         <ImageIcon className="w-12 h-12 mx-auto mb-2" />
-                        <span className="text-sm">Chưa có hình ảnh</span>
+                        <span className="text-sm">No image yet</span>
                       </div>
                     )}
                   </div>
@@ -408,11 +408,11 @@ const HomepageAssetsManagement = () => {
                       })
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
-                    placeholder={`Mô tả cho ${config.label.toLowerCase()}`}
+                    placeholder={`Description for ${config.label.toLowerCase()}`}
                   />
                 </div>
 
-                {/* Actions: Chọn hình / Xóa (chỉ form) / Lưu (gửi lên DB) */}
+                {/* Actions: Choose image / Remove (form only) / Save (persist to DB) */}
                 <div className="flex items-center space-x-2">
                   <label
                     htmlFor={`upload-${config.key}`}
@@ -421,7 +421,7 @@ const HomepageAssetsManagement = () => {
                     }`}
                   >
                     <Upload className="w-4 h-4 mr-2" />
-                    {isUploading ? `Đang upload... ${progress}%` : 'Chọn hình ảnh'}
+                    {isUploading ? `Uploading... ${progress}%` : 'Choose image'}
                   </label>
                   <input
                     id={`upload-${config.key}`}
@@ -441,7 +441,7 @@ const HomepageAssetsManagement = () => {
                       type="button"
                       onClick={() => handleRemoveImage(config.key)}
                       className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm"
-                      title="Xóa hình (nhấn Lưu để lưu thay đổi)"
+                      title="Remove image (click Save to apply changes)"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -451,10 +451,10 @@ const HomepageAssetsManagement = () => {
                     onClick={() => handleSaveAsset(config.key)}
                     disabled={updateAssetLoading}
                     className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center"
-                    title="Lưu thay đổi vào database"
+                    title="Save changes to database"
                   >
                     <Save className="w-4 h-4 mr-1" />
-                    Lưu
+                    Save
                   </button>
                 </div>
               </div>
@@ -467,13 +467,13 @@ const HomepageAssetsManagement = () => {
           <div className="flex items-start space-x-3">
             <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-blue-800">
-              <p className="font-semibold mb-1">Lưu ý:</p>
+              <p className="font-semibold mb-1">Note:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Hero Background và CTA Image: Kích thước tối đa 10MB</li>
-                <li>Các hình ảnh khác: Kích thước tối đa 5MB</li>
-                <li>Định dạng được hỗ trợ: JPG, PNG, GIF, WEBP</li>
-                <li>Sau khi upload, nhấn "Lưu" để lưu vào database</li>
-                <li>Hình ảnh sẽ tự động cập nhật trên trang chủ sau khi lưu</li>
+                <li>Hero Background and CTA Image: Maximum size 10MB</li>
+                <li>Other images: Maximum size 5MB</li>
+                <li>Supported formats: JPG, PNG, GIF, WEBP</li>
+                <li>After upload, click "Save" to store in the database</li>
+                <li>Images will automatically update on the homepage after saving</li>
               </ul>
             </div>
           </div>

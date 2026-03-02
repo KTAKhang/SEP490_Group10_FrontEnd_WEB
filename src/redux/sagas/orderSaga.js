@@ -126,9 +126,10 @@ const apiGetVnpayUrl = async (order_id) => {
 
 
 const apiRetryPayment = async (order_id) => {
+  const isMobile = false;
   const res = await axios.post(
     `${API_BASE_URL}/order/retry-payment`,
-    {order_id},
+    {order_id,isMobile},
     {
       withCredentials: true,
       headers: authHeader(),
