@@ -16,7 +16,6 @@ import {
   ClipboardList,
   Users,
   Image,
-  Gift,
   ShoppingCart,
   Apple,
   BarChart3,
@@ -62,11 +61,6 @@ const Sidebar = () => {
       icon: Upload,
       label: "Receive Stock",
       path: "/admin/warehouse",
-    },
-    {
-      icon: Gift,
-      label: "Fruit Baskets",
-      path: "/admin/fruit-baskets",
     },
     {
       icon: ShoppingCart,

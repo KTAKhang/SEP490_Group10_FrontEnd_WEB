@@ -166,8 +166,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
 
 
   const receivedQuantity = harvestBatchDetail?.receivedQuantity || 0;
-  const canEdit = receivedQuantity === 0; // Chỉ cho phép edit nếu chưa nhập kho
-
+  // Backend allows update even when receivedQuantity > 0; delete is still blocked when receivedQuantity > 0
 
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split("T")[0];
@@ -197,21 +196,19 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
           </div>
         ) : (
           <>
-            {/* Warning if receivedQuantity > 0 */}
-            {!canEdit && (
-              <div className="mx-6 mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start space-x-3">
-                <AlertCircle className="text-yellow-600 flex-shrink-0 mt-0.5" size={20} />
+            {receivedQuantity > 0 && (
+              <div className="mx-6 mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start space-x-3">
+                <AlertCircle className="text-blue-600 flex-shrink-0 mt-0.5" size={20} />
                 <div>
-                  <p className="text-sm font-medium text-yellow-800">
-                    Cannot edit harvest batch that has been received in warehouse
+                  <p className="text-sm font-medium text-blue-800">
+                    This batch has {receivedQuantity} already received in warehouse.
                   </p>
-                  <p className="text-xs text-yellow-700 mt-1">
-                    This batch has {receivedQuantity} already received in warehouse. You can only view details, not edit.
+                  <p className="text-xs text-blue-700 mt-1">
+                    You can still update batch number, harvest date, location, notes, and receipt flags. Delete is not allowed once received.
                   </p>
                 </div>
               </div>
             )}
-
 
             <form onSubmit={handleSubmit}>
               <div className="p-6 space-y-4">
@@ -247,7 +244,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                 </div>
 
 
-                {/* Receipt Eligible - only editable when canEdit */}
+                {/* Receipt Eligible */}
                
 
 
@@ -264,7 +261,6 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                       className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                       placeholder="Enter batch number"
                       required
-                      disabled={!canEdit}
                     />
                   </div>
 
@@ -283,7 +279,6 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                         className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                         max={today}
                         required
-                        disabled={!canEdit}
                       />
                     </div>
                   </div>
@@ -303,7 +298,6 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                       name="location"
                       className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                       placeholder="Street address"
-                      disabled={!canEdit}
                     />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <select
@@ -311,7 +305,6 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                         value={formData.city}
                         onChange={handleInputChange}
                         className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                        disabled={!canEdit}
                       >
                         <option value="">Select province/city</option>
                         {provinces.map((province) => (
@@ -325,7 +318,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                         value={formData.ward}
                         onChange={handleInputChange}
                         className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                        disabled={!canEdit || !formData.city}
+                        disabled={!formData.city}
                       >
                         <option value="">Select ward</option>
                         {wards.map((ward) => (
@@ -351,7 +344,6 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                     rows="3"
                     placeholder="Enter notes"
                     maxLength={500}
-                    disabled={!canEdit}
                   />
                   <p className="text-xs text-gray-500 mt-1">{formData.notes.length}/500</p>
                 </div>
@@ -364,17 +356,15 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                   onClick={handleCancel}
                   className="px-4 py-2 border border-gray-200 rounded-xl hover:bg-gray-50"
                 >
-                  {canEdit ? "Cancel" : "Close"}
+                  Cancel
                 </button>
-                {canEdit && (
-                  <button
+                <button
                     type="submit"
                     disabled={updateHarvestBatchLoading}
                     className="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {updateHarvestBatchLoading ? "Updating..." : "Update Harvest Batch"}
                   </button>
-                )}
               </div>
             </form>
           </>

@@ -41,11 +41,11 @@ const ReceiptHistoryPage = () => {
   }, [dispatch]);
 
 
-  // Fetch receipt history when filters change
+  // Fetch receipt history when filters change (4 per page, match backend)
   useEffect(() => {
     const params = {
       page: currentPage,
-      limit: 20,
+      limit: 4,
       ...(selectedProductId && { productId: selectedProductId }),
       ...(searchTerm && { search: searchTerm }),
       ...(startDate && { startDate }),

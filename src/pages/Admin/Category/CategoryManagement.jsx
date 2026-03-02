@@ -75,9 +75,9 @@ const CategoryManagement = () => {
   const [prevDeleteLoading, setPrevDeleteLoading] = useState(false);
 
 
-  // Fetch categories and stats on mount
+  // Fetch categories and stats on mount (4 per page, match backend)
   useEffect(() => {
-    dispatch(getCategoriesRequest({ page: currentPage, limit: 10, sortBy, sortOrder }));
+    dispatch(getCategoriesRequest({ page: currentPage, limit: 4, sortBy, sortOrder }));
     dispatch(getCategoryStatsRequest());
   }, [dispatch]);
 
@@ -86,7 +86,7 @@ const CategoryManagement = () => {
   useEffect(() => {
     const params = {
       page: currentPage,
-      limit: 10,
+      limit: 4,
       search: searchTerm || undefined,
       status: filterStatus !== "all" ? filterStatus : undefined,
       sortBy,
@@ -102,7 +102,7 @@ const CategoryManagement = () => {
 // Create was just completed successfully
       const params = {
         page: currentPage,
-        limit: 10,
+        limit: 4,
         search: searchTerm || undefined,
         status: filterStatus !== "all" ? filterStatus : undefined,
         sortBy,
@@ -121,7 +121,7 @@ const CategoryManagement = () => {
       // Update was just completed successfully
       const params = {
         page: currentPage,
-        limit: 10,
+        limit: 4,
         search: searchTerm || undefined,
         status: filterStatus !== "all" ? filterStatus : undefined,
         sortBy,
@@ -138,19 +138,30 @@ const CategoryManagement = () => {
   useEffect(() => {
     if (prevDeleteLoading && !deleteCategoryLoading && !deleteCategoryError) {
       // Delete was just completed successfully
-      const params = {
-        page: currentPage,
-        limit: 10,
-        search: searchTerm || undefined,
-        status: filterStatus !== "all" ? filterStatus : undefined,
-        sortBy,
-        sortOrder,
-      };
-      dispatch(getCategoriesRequest(params));
-      dispatch(getCategoryStatsRequest());
+      const limit = 4;
+      const totalBefore = categoriesPagination?.total ?? 0;
+      const totalAfter = Math.max(0, totalBefore - 1);
+      // If current page would be empty (e.g. had 1 item on page 2, now total fits on previous pages), go back to previous page
+      const wouldBeEmpty = currentPage > 1 && totalAfter > 0 && totalAfter <= (currentPage - 1) * limit;
+      if (wouldBeEmpty) {
+        setCurrentPage((p) => p - 1);
+        dispatch(getCategoryStatsRequest());
+        // Page change will trigger the other useEffect to refetch categories
+      } else {
+        const params = {
+          page: currentPage,
+          limit,
+          search: searchTerm || undefined,
+          status: filterStatus !== "all" ? filterStatus : undefined,
+          sortBy,
+          sortOrder,
+        };
+        dispatch(getCategoriesRequest(params));
+        dispatch(getCategoryStatsRequest());
+      }
     }
     setPrevDeleteLoading(deleteCategoryLoading);
-  }, [dispatch, deleteCategoryLoading, deleteCategoryError, prevDeleteLoading, currentPage, searchTerm, filterStatus, sortBy, sortOrder]);
+  }, [dispatch, deleteCategoryLoading, deleteCategoryError, prevDeleteLoading, currentPage, searchTerm, filterStatus, sortBy, sortOrder, categoriesPagination?.total]);
 
 
   const handleAddCategory = () => {
@@ -418,16 +429,7 @@ const CategoryManagement = () => {
         }}
         category={selectedCategory}
         onSuccess={() => {
-          const params = {
-            page: currentPage,
-            limit: 10,
-            search: searchTerm || undefined,
-            status: filterStatus !== "all" ? filterStatus : undefined,
-            sortBy,
-            sortOrder,
-          };
-          dispatch(getCategoriesRequest(params));
-          dispatch(getCategoryStatsRequest());
+          // Refetch and page correction are handled by "Auto refresh after successful delete" useEffect
         }}
       />
     </div>

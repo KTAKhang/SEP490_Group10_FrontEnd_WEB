@@ -6,6 +6,18 @@ import { updateProductRequest } from "../../../redux/actions/productActions";
 import { getCategoriesRequest } from "../../../redux/actions/categoryActions";
 import { getSuppliersForBrandRequest } from "../../../redux/actions/supplierActions";
 
+/** Selling price: > 0 and must be a multiple of 1000. Purchase price: >= 0 (multiple of 1000 not required). Returns { valid, message }. */
+function validatePriceStep(value, isSellingPrice) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return { valid: false, message: isSellingPrice ? "Invalid selling price" : "Invalid purchase price" };
+  if (isSellingPrice) {
+    if (num <= 0) return { valid: false, message: "Selling price must be greater than 0" };
+    if (num % 1000 !== 0) return { valid: false, message: "Selling price must be a multiple of 1000 (e.g. 1000, 20000, 21000)" };
+  } else {
+    if (num < 0) return { valid: false, message: "Purchase price must be greater than or equal to 0" };
+  }
+  return { valid: true };
+}
 
 const UpdateProduct = ({ isOpen, onClose, product }) => {
   const dispatch = useDispatch();
@@ -142,8 +154,22 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
         toast.error("Product name must be at most 200 characters");
         return;
       }
-      if (!formData.category || !formData.brand || formData.price <= 0 || formData.plannedQuantity < 0) {
+      if (!formData.category || !formData.brand || formData.plannedQuantity < 0) {
         toast.error("Please fill in all required fields (name, category, brand, price, planned quantity)");
+        return;
+      }
+      const priceCheck = validatePriceStep(formData.price, true);
+      if (!priceCheck.valid) {
+        toast.error(priceCheck.message);
+        return;
+      }
+      const purchaseCheck = validatePriceStep(formData.purchasePrice, false);
+      if (!purchaseCheck.valid) {
+        toast.error(purchaseCheck.message);
+        return;
+      }
+      if (Number(formData.purchasePrice) >= Number(formData.price)) {
+        toast.error("Purchase price must be less than selling price");
         return;
       }
       const plannedNum = Number(formData.plannedQuantity);
@@ -151,27 +177,35 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
         toast.error("plannedQuantity must be an integer");
         return;
       }
-      if ((formData.short_desc ?? "").toString().length > 200) {
-        toast.error("Short description (short_desc) must be at most 200 characters");
-        return;
-      }
-      if ((formData.detail_desc ?? "").toString().length > 1000) {
-        toast.error("Detail description (detail_desc) must be at most 1000 characters");
-        return;
-      }
-      if (formData.purchasePrice < 0) {
-        toast.error("Purchase price must be greater than or equal to 0");
-        return;
-      }
-      if (Number(formData.purchasePrice) >= Number(formData.price)) {
-        toast.error("Purchase price must be lower than selling price");
-        return;
-      }
       const totalImages = existingImages.length + newImageFiles.length;
+      if (totalImages < 1) {
+        toast.error("Product must have at least 1 image. If you removed images, please add new ones.");
+        return;
+      }
       if (totalImages > 10) {
         toast.error("Number of images must not exceed 10");
         return;
       }
+    }
+
+    // Always validate short_desc and detail_desc (required by backend for both full and description-only update)
+    const shortDescStr = (formData.short_desc ?? "").toString().trim();
+    if (!shortDescStr) {
+      toast.error("Short description is required and cannot be empty");
+      return;
+    }
+    if (shortDescStr.length > 200) {
+      toast.error("Short description (short_desc) must be at most 200 characters");
+      return;
+    }
+    const detailDescStr = (formData.detail_desc ?? "").toString().trim();
+    if (!detailDescStr) {
+      toast.error("Detailed description is required and cannot be empty");
+      return;
+    }
+    if (detailDescStr.length > 1000) {
+      toast.error("Detail description (detail_desc) must be at most 1000 characters");
+      return;
     }
 
     const formDataToSend = new FormData();
@@ -186,6 +220,7 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
       formDataToSend.append("brand", formData.brand || "");
       formDataToSend.append("detail_desc", formData.detail_desc || "");
       formDataToSend.append("status", formData.status);
+      // Send current "keep" list so backend merges correctly (empty = remove all old images, only keep new uploads)
       formDataToSend.append("existingImages", JSON.stringify(existingImages));
       formDataToSend.append("existingImagePublicIds", JSON.stringify(existingImagePublicIds));
       newImageFiles.forEach((file) => formDataToSend.append("images", file));
@@ -304,8 +339,9 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
                       value={formData.price}
                       onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      min="0"
+                      min="1000"
                       step="1000"
+                      placeholder="e.g. 10000, 20000 (multiple of 1000)"
                       required
                     />
                   </div>
@@ -319,10 +355,10 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
                       onChange={(e) => setFormData({ ...formData, purchasePrice: parseFloat(e.target.value) || 0 })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       min="0"
-                      step="1000"
-                      placeholder="Enter purchase price"
+                      step="1"
+                      placeholder="e.g. 0, 5000 (value ≥ 0)"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Purchase price from supplier; must be lower than selling price</p>
+                    <p className="text-xs text-gray-500 mt-1">Purchase price from supplier; must be less than selling price</p>
                   </div>
                 </div>
                 <div>
@@ -379,8 +415,9 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Product images
+                    Product images <span className="text-red-500">*</span>
                   </label>
+                  <p className="text-xs text-gray-500 mb-1">At least 1 image required (current + new), max 10.</p>
                   {existingImages.length > 0 && (
                     <div className="mb-2">
                       <p className="text-xs text-gray-500 mb-1">Current images:</p>
@@ -440,29 +477,31 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Short description
+                Short description <span className="text-red-500">*</span>
               </label>
               <textarea
                 value={formData.short_desc}
                 onChange={(e) => setFormData({ ...formData, short_desc: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 rows="2"
-                placeholder="Short description (max 200 characters)"
+                placeholder="Short description (required, max 200 characters)"
                 maxLength={200}
+                required
               />
               <p className="text-xs text-gray-500 mt-1">{formData.short_desc.length}/200</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Detailed description
+                Detailed description <span className="text-red-500">*</span>
               </label>
               <textarea
                 value={formData.detail_desc}
                 onChange={(e) => setFormData({ ...formData, detail_desc: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 rows="4"
-                placeholder="Detailed description (max 1000 characters)"
+                placeholder="Detailed description (required, max 1000 characters)"
                 maxLength={1000}
+                required
               />
               <p className="text-xs text-gray-500 mt-1">{formData.detail_desc.length}/1000</p>
             </div>

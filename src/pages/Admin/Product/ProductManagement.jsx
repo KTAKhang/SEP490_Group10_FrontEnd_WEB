@@ -82,17 +82,17 @@ const ProductManagement = () => {
 
   // Fetch products, categories and stats on mount
   useEffect(() => {
-    dispatch(getProductsRequest({ page: currentPage, limit: 10, sortBy, sortOrder }));
+    dispatch(getProductsRequest({ page: currentPage, limit: 4, sortBy, sortOrder }));
 dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
     dispatch(getProductStatsRequest());
   }, [dispatch]);
 
 
-  // Fetch products when filters change
+  // Fetch products when filters change (4 per page, match backend)
   useEffect(() => {
     const params = {
       page: currentPage,
-      limit: 10,
+      limit: 4,
       search: searchTerm || undefined,
       stockStatus: filterStockStatus !== "all" ? filterStockStatus : undefined,
       receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,
@@ -110,7 +110,7 @@ dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
       // Create was just completed successfully
       const params = {
         page: currentPage,
-        limit: 10,
+        limit: 4,
         search: searchTerm || undefined,
         stockStatus: filterStockStatus !== "all" ? filterStockStatus : undefined,
         receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,
@@ -131,7 +131,7 @@ dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
       // Update was just completed successfully
       const params = {
         page: currentPage,
-        limit: 10,
+        limit: 4,
         search: searchTerm || undefined,
         stockStatus: filterStockStatus !== "all" ? filterStockStatus : undefined,
         receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,
@@ -388,7 +388,7 @@ dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="text-sm text-gray-900">
-                              {new Intl.NumberFormat("vi-VN", {
+                              {new Intl.NumberFormat("en-US", {
                                 style: "currency",
                                 currency: "VND",
                               }).format(product.price || 0)}
@@ -501,7 +501,7 @@ dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
         onSuccess={() => {
           const params = {
             page: currentPage,
-            limit: 10,
+            limit: 4,
             search: searchTerm || undefined,
             stockStatus: filterStockStatus !== "all" ? filterStockStatus : undefined,
             receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,

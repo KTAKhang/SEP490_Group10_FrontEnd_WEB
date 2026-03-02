@@ -67,7 +67,7 @@ export default function ProductDetailPage() {
       dispatch(
         getProductReviewsRequest(id, {
           page: reviewPage,
-          limit: 5,
+          limit: 4,
           search: reviewSearch || undefined,
           sortBy: reviewSortBy,
           sortOrder: reviewSortOrder,

@@ -11,8 +11,6 @@ import ProdcutPage from "../pages/CustomerView/ProductPage";
 import ProductDetailPage from "../pages/CustomerView/ProductDetailPage";
 import Categories from "../pages/CustomerView/CategoryPage";
 import WishlistPage from "../pages/CustomerView/WishlistPage";
-import FruitBasketPage from "../pages/CustomerView/FruitBasketPage";
-import FruitBasketDetail from "../pages/CustomerView/FruitBasketDetail";
 import CustomerLayout from "../layout/CustomerLayout";
 import FeedbackStaffLayout from "../layout/FeedbackStaffLayout";
 import AdminLayout from "../layout/AdminLayout";
@@ -35,13 +33,12 @@ import ContactListPage from "../pages/ContactManagement/ContactListPage";
 import ContactDetailPage from "../pages/ContactManagement/ContactDetailPage";
 import ContactEditPage from "../pages/ContactManagement/ContactEditPage";
 import ChatForStaffPage from "../pages/FeedbackStaff/ChatForStaffPage";
+import FeedbackStaffDashboardPage from "../pages/FeedbackStaff/FeedbackStaffDashboardPage";
 import FeedbackStaffReviewManagement from "../pages/FeedbackStaff/Review/ReviewManagement";
 // Admin Supplier Management
 import AdminSupplierManagement from "../pages/Admin/Supplier/SupplierManagement";
 // Admin Harvest Batch Management
 import AdminHarvestBatchManagement from "../pages/Admin/HarvestBatch/HarvestBatchManagement";
-import AdminFruitBasketPage from "../pages/Admin/FruitBasket/FruitBasketPage";
-
 import CartPage from "../pages/CustomerView/CartPage";
 import CheckoutPage from "../pages/CustomerView/CheckoutPage";
 import StaffManagement from "../pages/StaffManagement/StaffManagement";
@@ -110,14 +107,6 @@ export const routes = [
     element: <Categories />,
   },
   {
-    path: "/fruit-baskets",
-    element: <FruitBasketPage />,
-  },
-  {
-    path: "/fruit-baskets/:id",
-    element: <FruitBasketDetail />,
-  },
-  {
     path: "/news",
     element: <NewsPage />,
   },
@@ -177,8 +166,8 @@ export const routes = [
       </PrivateRoute>
     ),
     children: [
-      { index: true, element: <ChatForStaffPage /> },
-       { path: "chat", element: <ChatForStaffPage /> },
+      { index: true, element: <FeedbackStaffDashboardPage /> },
+      { path: "chat", element: <ChatForStaffPage /> },
       { path: "profile", element: <ProfileManagement /> },
       { path: "change-password", element: <UpdatePassword /> },
       { path: "reviews", element: <FeedbackStaffReviewManagement /> },
@@ -203,7 +192,6 @@ export const routes = [
       { path: "category", element: <CategoryManagement /> },
       { path: "suppliers", element: <AdminSupplierManagement /> },
       { path: "harvest-batches", element: <AdminHarvestBatchManagement /> },
-      { path: "fruit-baskets", element: <AdminFruitBasketPage /> },
       { path: "batch-history", element: <BatchHistoryPage /> },
       { path: "receipt-history", element: <ReceiptHistoryPage /> },
       { path: "order-log-history", element: <OrderLogHistoryPage /> },

@@ -19,9 +19,8 @@ import { productBatchSaga } from "./productBatchSaga";
 import favoriteSaga from "./favoriteSaga";
 import homepageAssetsSaga from "./homepageAssetsSaga";
 import supplierSaga from "./supplierSaga";
-import fruitBasketSaga from "./fruitBasketSaga";
-import publicFruitBasketSaga from "./publicFruitBasketSaga";
 import reviewSaga from "./reviewSaga";
+import feedbackedStaffDashboardSaga from "./feedbackedStaffDashboardSaga";
 
 export default function* rootSaga() {
   try {
@@ -42,13 +41,12 @@ export default function* rootSaga() {
       inventorySaga(),
       publicProductSaga(),
       publicCategorySaga(),
-      publicFruitBasketSaga(),
       productBatchSaga(),
       favoriteSaga(),
       homepageAssetsSaga(),
       supplierSaga(),
-      fruitBasketSaga(),
       reviewSaga(),
+      feedbackedStaffDashboardSaga(),
     ]);
   } catch (error) {
     console.error("🔴 rootSaga ERROR:", error);

@@ -152,7 +152,7 @@ const OrderManagement = () => {
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
   const [page, setPage] = useState(1);
-  const [limit] = useState(5);
+  const [limit] = useState(4);
 
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);

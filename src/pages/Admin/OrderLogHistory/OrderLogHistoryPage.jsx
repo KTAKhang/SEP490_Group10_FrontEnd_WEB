@@ -61,7 +61,7 @@ const OrderLogHistoryPage = () => {
 
 
   const [page, setPage] = useState(1);
-  const [limit] = useState(20);
+  const [limit] = useState(4);
   const [search, setSearch] = useState("");
   const [changedByRole, setChangedByRole] = useState("");
   const [orderIdFilter, setOrderIdFilter] = useState("");

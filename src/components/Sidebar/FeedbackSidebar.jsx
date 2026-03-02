@@ -24,9 +24,14 @@ const Sidebar = () => {
   const menuItems = [
     {
       icon: LayoutDashboard,
-      label: "Chat Management",
+      label: "Dashboard",
       path: "/feedbacked-staff",
       exact: true,
+    },
+    {
+      icon: MessageSquare,
+      label: "Chat Management",
+      path: "/feedbacked-staff/chat",
     },
     {
       icon: Star,
