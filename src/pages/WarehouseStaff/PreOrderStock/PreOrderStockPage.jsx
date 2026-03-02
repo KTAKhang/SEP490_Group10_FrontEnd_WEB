@@ -4,6 +4,7 @@ const STATUS_LABEL = {
   NOT_RECEIVED: { label: "Not received", color: "bg-gray-100 text-gray-800" },
   PARTIAL: { label: "Partial", color: "bg-yellow-100 text-yellow-800" },
   FULLY_RECEIVED: { label: "Fully received", color: "bg-green-100 text-green-800" },
+  REJECTED: { label: "Rejected", color: "bg-red-100 text-red-800" },
 };
 
 export default function PreOrderStockPage() {
@@ -19,6 +20,9 @@ export default function PreOrderStockPage() {
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [receiveForm, setReceiveForm] = useState({ quantityKg: "", note: "" });
   const [submitting, setSubmitting] = useState(false);
+  const [showRejectConfirm, setShowRejectConfirm] = useState(false);
+  const [rejectingBatch, setRejectingBatch] = useState(null);
+  const [submittingReject, setSubmittingReject] = useState(false);
 
   const loadBatches = (page = 1, overrides = {}) => {
     setLoading(true);
@@ -93,6 +97,27 @@ export default function PreOrderStockPage() {
       .finally(() => setSubmitting(false));
   };
 
+  const openRejectConfirm = (batch) => {
+    setRejectingBatch(batch);
+    setErr("");
+    setShowRejectConfirm(true);
+  };
+
+  const submitReject = () => {
+    if (!rejectingBatch) return;
+    setSubmittingReject(true);
+    setErr("");
+    apiClient
+      .post(`/inventory/preorder-batches/${rejectingBatch._id}/reject`)
+      .then(() => {
+        setShowRejectConfirm(false);
+        setRejectingBatch(null);
+        loadBatches(pagination.page);
+      })
+      .catch((e) => setErr(e.response?.data?.message || "Reject failed."))
+      .finally(() => setSubmittingReject(false));
+  };
+
   const displayed = batches;
 
   return (
@@ -140,6 +165,7 @@ export default function PreOrderStockPage() {
             <option value="NOT_RECEIVED">Not received</option>
             <option value="PARTIAL">Partial</option>
             <option value="FULLY_RECEIVED">Fully received</option>
+            <option value="REJECTED">Rejected</option>
           </select>
         </div>
       </div>
@@ -170,12 +196,14 @@ export default function PreOrderStockPage() {
                 <th className="px-4 py-3 text-xs font-medium text-gray-600 uppercase">Remaining (kg)</th>
                 <th className="px-4 py-3 text-xs font-medium text-gray-600 uppercase">Status</th>
                 <th className="px-4 py-3 text-xs font-medium text-gray-600 uppercase text-center">Receive</th>
+                <th className="px-4 py-3 text-xs font-medium text-gray-600 uppercase text-center">Reject</th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {displayed.map((row) => {
                 const st = STATUS_LABEL[row.status] || STATUS_LABEL.NOT_RECEIVED;
-                const canReceive = row.status !== "FULLY_RECEIVED" && (row.remainingKg ?? 0) > 0;
+                const canReceive = row.status !== "FULLY_RECEIVED" && row.status !== "REJECTED" && (row.remainingKg ?? 0) > 0;
+                const canReject = canReceive;
                 return (
                   <tr key={row._id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 font-medium text-gray-900">
@@ -209,6 +237,21 @@ export default function PreOrderStockPage() {
                         >
                           <i className="ri-upload-cloud-line text-lg" />
                           Receive
+                        </button>
+                      ) : (
+                        <span className="text-gray-400 text-sm">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {canReject ? (
+                        <button
+                          type="button"
+                          onClick={() => openRejectConfirm(row)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700"
+                          title="Reject (e.g. fruit damaged)"
+                        >
+                          <i className="ri-close-circle-line text-lg" />
+                          Reject
                         </button>
                       ) : (
                         <span className="text-gray-400 text-sm">—</span>
@@ -350,6 +393,58 @@ export default function PreOrderStockPage() {
                 className="flex-1 py-2 bg-green-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? "Processing…" : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showRejectConfirm && rejectingBatch && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-lg text-gray-900">Reject batch</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowRejectConfirm(false);
+                  setRejectingBatch(null);
+                  setErr("");
+                }}
+                className="p-1 hover:bg-gray-100 rounded"
+              >
+                <i className="ri-close-line text-xl text-gray-600" />
+              </button>
+            </div>
+            {err && (
+              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-2xl border border-red-100 text-sm">{err}</div>
+            )}
+            <p className="text-sm text-gray-600 mb-2">
+              Batch: <strong>{rejectingBatch.batchCode}</strong> — {rejectingBatch.fruitTypeId?.name} · Planned: <strong>{rejectingBatch.quantityKg ?? 0} kg</strong>
+            </p>
+            <p className="text-sm text-amber-700 bg-amber-50 rounded p-2 mb-3">
+              Reject means warehouse does not accept this batch (e.g. fruit damaged). The batch will be hidden from create receive batch and cannot be received. Continue?
+            </p>
+            <div className="flex gap-2 mt-6">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowRejectConfirm(false);
+                  setRejectingBatch(null);
+                  setErr("");
+                }}
+                disabled={submittingReject}
+                className="flex-1 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={submitReject}
+                disabled={submittingReject}
+                className="flex-1 py-2 bg-red-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submittingReject ? "Processing…" : "Reject"}
               </button>
             </div>
           </div>

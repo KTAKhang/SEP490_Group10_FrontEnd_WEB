@@ -233,6 +233,8 @@ export default function PreOrderImportPage() {
             const doneReceiving = received >= allocated && demandKg <= allocated;
             const remainingDemandKg = doneReceiving ? 0 : Math.max(0, demandKg - availableKg);
             const noRemainingDemand = remainingDemandKg <= 0;
+            const hasPendingReceiveBatch = !!d.hasPendingReceiveBatch;
+            const lockCreateButton = noRemainingDemand || hasPendingReceiveBatch;
             return (
               <div
                 key={fid}
@@ -250,14 +252,21 @@ export default function PreOrderImportPage() {
                   {noRemainingDemand && (
                     <p className="text-amber-600 text-sm mt-1">No remaining demand; no further receive batches needed.</p>
                   )}
+                  {hasPendingReceiveBatch && !noRemainingDemand && (
+                    <p className="text-blue-600 text-sm mt-1">Waiting for warehouse to receive. You cannot create another receive batch until current batch is fully received or rejected.</p>
+                  )}
                 </div>
                 <button
                   type="button"
-                  onClick={() => openForm(d)}
-                  disabled={noRemainingDemand}
-                  className="px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  onClick={() => !lockCreateButton && openForm(d)}
+                  disabled={lockCreateButton}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    hasPendingReceiveBatch && !noRemainingDemand
+                      ? "bg-gray-400 text-white cursor-not-allowed"
+                      : "bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  }`}
                 >
-                  Create receive batch
+                  {hasPendingReceiveBatch && !noRemainingDemand ? "Progressing" : "Create receive batch"}
                 </button>
               </div>
             );

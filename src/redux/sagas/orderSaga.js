@@ -244,8 +244,12 @@ const apiGetAdminOrderDetail = async (order_id) => {
 };
 
 
-const apiGetAdminOrderStats = async () => {
-  const res = await axios.get(`${API_BASE_URL}/order/stats`, {
+const apiGetAdminOrderStats = async (params = {}) => {
+  const query = new URLSearchParams();
+  if (params.groupBy != null) query.append("groupBy", params.groupBy);
+  if (params.year != null) query.append("year", params.year);
+  const qs = query.toString();
+  const res = await axios.get(`${API_BASE_URL}/order/stats${qs ? `?${qs}` : ""}`, {
     withCredentials: true,
     headers: authHeader(),
   });
@@ -495,9 +499,10 @@ function* orderAdminDetailSaga(action) {
 
 
 // ADMIN ORDER STATS
-function* orderAdminStatsSaga() {
+function* orderAdminStatsSaga(action) {
   try {
-    const res = yield call(apiGetAdminOrderStats);
+    const params = action.payload || {};
+    const res = yield call(apiGetAdminOrderStats, params);
     if (res.status === "OK") {
       yield put(orderAdminStatsSuccess(res.data));
     } else {

@@ -57,6 +57,10 @@ export const DISCOUNT_SET_SELECTED = "DISCOUNT_SET_SELECTED";
 export const DISCOUNT_CLEAR_SELECTED = "DISCOUNT_CLEAR_SELECTED";
 export const DISCOUNT_CLEAR_FEEDBACK = "DISCOUNT_CLEAR_FEEDBACK";
 
+export const FETCH_DISCOUNT_STATS_REQUEST = "FETCH_DISCOUNT_STATS_REQUEST";
+export const FETCH_DISCOUNT_STATS_SUCCESS = "FETCH_DISCOUNT_STATS_SUCCESS";
+export const FETCH_DISCOUNT_STATS_FAIL = "FETCH_DISCOUNT_STATS_FAIL";
+
 // Action Creators for discount management
 export const discountListRequest = (params) => ({
     type: DISCOUNT_LIST_REQUEST,
@@ -129,4 +133,9 @@ export const clearSelectedDiscount = () => ({
 
 export const clearDiscountFeedback = () => ({
     type: DISCOUNT_CLEAR_FEEDBACK,
+});
+
+export const fetchDiscountStatsRequest = (payload) => ({
+    type: FETCH_DISCOUNT_STATS_REQUEST,
+    payload,
 });

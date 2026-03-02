@@ -5,8 +5,11 @@
  */
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import axios from "axios";
 import { staffListRequest, staffCreateRequest, updateStaffStatusRequest, updateStaffRequest } from "../../redux/actions/staffActions";
 import { useNavigate } from "react-router-dom";
+
+const API_BASE = "https://provinces.open-api.vn/api/v2";
 
 const StaffManagement = () => {
   const dispatch = useDispatch();
@@ -30,9 +33,14 @@ const StaffManagement = () => {
     confirmPassword: "",
     phone: "",
     address: "",
+    city: "",
+    ward: "",
     role: "",
     avatar: ""
   });
+  const [provinces, setProvinces] = useState([]);
+  const [wards, setWards] = useState([]);
+  const [provinceName, setProvinceName] = useState("");
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState("");
   const [formErrors, setFormErrors] = useState({});
@@ -66,6 +74,29 @@ const StaffManagement = () => {
     // Initial load
     loadStaff({ page: 1, limit: 10, sortBy: "createdAt", sortOrder: "desc" });
   }, []);
+
+  // Load provinces (address 2-level API, same as update profile)
+  useEffect(() => {
+    axios.get(`${API_BASE}/p/`).then((res) => setProvinces(res.data || [])).catch((err) => console.error("Error loading provinces:", err));
+  }, []);
+
+  // Load wards when city (province) changes
+  useEffect(() => {
+    if (!formData.city) {
+      setWards([]);
+      setProvinceName("");
+      return;
+    }
+    const selected = provinces.find((p) => p.code === Number(formData.city));
+    setProvinceName(selected ? selected.name : "");
+    axios
+      .get(`${API_BASE}/w/`)
+      .then((res) => {
+        const filtered = (res.data || []).filter((w) => w.province_code === Number(formData.city));
+        setWards(filtered);
+      })
+      .catch((err) => console.error("Error loading wards:", err));
+  }, [formData.city, provinces]);
 
   // Auto-load when filters change with debounce for search
   useEffect(() => {
@@ -105,9 +136,9 @@ const StaffManagement = () => {
 
   // Official staff roles (from roles collection)
   const STAFF_ROLES = [
-    { value: "sales-staff", label: "Sales Staff", description: "Nhân viên bán hàng" },
-    { value: "warehouse_staff", label: "Warehouse Staff", description: "Nhân viên quản lý kho" },
-    { value: "feedbacked-staff", label: "Customer Support", description: "Nhân viên hỗ trợ khách hàng" },
+    { value: "sales-staff", label: "Sales Staff", description: "Sales staff" },
+    { value: "warehouse_staff", label: "Warehouse Staff", description: "Warehouse staff" },
+    { value: "feedbacked-staff", label: "Customer Support", description: "Customer support staff" },
   ];
 
   // Create filter summary text
@@ -130,7 +161,7 @@ const StaffManagement = () => {
   const isActive = (status) => status === true || status === "active";
   const toDisplayStatusText = (status) => (isActive(status) ? "active" : "inactive");
 
-  // Statistics từ API (toàn bộ theo bộ lọc), fallback tính từ list nếu API chưa trả về
+  // Statistics from API (filtered), fallback from list if API has not returned yet
   const displayStats = useMemo(() => {
     if (statsFromApi && typeof statsFromApi.total === "number") {
       return {
@@ -146,6 +177,13 @@ const StaffManagement = () => {
     };
   }, [statsFromApi, pageMeta.total, staff]);
 
+  const buildFullAddress = () => {
+    const line = (formData.address ?? "").toString().trim();
+    const wardName = (formData.ward ?? "").toString().trim();
+    const pname = (provinceName ?? "").toString().trim();
+    return [line, wardName, pname].filter(Boolean).join(", ");
+  };
+
   const handleCreate = () => {
     setIsCreateOpen(true);
     setFormData({
@@ -155,9 +193,13 @@ const StaffManagement = () => {
       confirmPassword: "",
       phone: "",
       address: "",
+      city: "",
+      ward: "",
       role: "",
       avatar: ""
     });
+    setProvinceName("");
+    setWards([]);
     setAvatarFile(null);
     setAvatarPreview("");
     setFormErrors({});
@@ -165,13 +207,36 @@ const StaffManagement = () => {
 
   const handleEdit = (record) => {
     setSelectedStaff(record);
+    const raw = (record.address || "").toString().trim();
+    const parts = raw ? raw.split(",").map((p) => p.trim()) : [];
+    const addr = parts[0] || "";
+    const wardName = parts[1] || "";
+    const provinceNamePart = parts[2] || "";
+    let cityCode = "";
+    let pname = provinceNamePart;
+    if (provinceNamePart && provinces.length) {
+      const byName = provinces.find(
+        (p) =>
+          p.name === provinceNamePart ||
+          p.name_with_type === provinceNamePart ||
+          p.name.includes(provinceNamePart) ||
+          provinceNamePart.includes(p.name)
+      );
+      if (byName) {
+        cityCode = String(byName.code);
+        pname = byName.name;
+      }
+    }
+    setProvinceName(pname);
     setFormData({
       user_name: record.user_name || "",
       email: record.email || "",
       password: "",
       confirmPassword: "",
       phone: record.phone || "",
-      address: record.address || "",
+      address: addr,
+      city: cityCode,
+      ward: wardName,
       role: record.role_name || "",
       avatar: record.avatar || ""
     });
@@ -292,8 +357,15 @@ const StaffManagement = () => {
     if (!formData.phone || !/^[0-9]{10}$/.test(formData.phone)) {
       errors.phone = "Phone number must be exactly 10 digits";
     }
-    if (!formData.address || formData.address.length < 10) {
-      errors.address = "Address must be at least 10 characters";
+    const addrLine = (formData.address ?? "").toString().trim();
+    if (!addrLine || addrLine.length < 5) {
+      errors.address = "Address (street) must be at least 5 characters";
+    }
+    if (!formData.city) {
+      errors.city = "Please select province/city";
+    }
+    if (!formData.ward) {
+      errors.ward = "Please select ward";
     }
     if (!formData.role) {
       errors.role = "Please select a role";
@@ -308,8 +380,11 @@ const StaffManagement = () => {
       setFormErrors(errors);
       return;
     }
-    const submitData = { ...formData };
+    const fullAddress = buildFullAddress();
+    const submitData = { ...formData, address: fullAddress };
     delete submitData.confirmPassword;
+    delete submitData.city;
+    delete submitData.ward;
     // If there's an avatar file, create FormData, otherwise send JSON
     if (avatarFile) {
       const formDataToSend = new FormData();
@@ -317,7 +392,7 @@ const StaffManagement = () => {
       formDataToSend.append("email", submitData.email);
       formDataToSend.append("password", submitData.password);
       formDataToSend.append("phone", submitData.phone);
-      formDataToSend.append("address", submitData.address);
+      formDataToSend.append("address", fullAddress);
       formDataToSend.append("role", submitData.role);
       formDataToSend.append("avatar", avatarFile);
 
@@ -358,18 +433,19 @@ const StaffManagement = () => {
       delete submitData.password;
     }
 
+    const fullAddress = buildFullAddress();
     if (avatarFile) {
       const formDataToSend = new FormData();
       formDataToSend.append("user_name", submitData.user_name);
       if (submitData.password) formDataToSend.append("password", submitData.password);
       formDataToSend.append("phone", submitData.phone);
-      formDataToSend.append("address", submitData.address);
+      formDataToSend.append("address", fullAddress);
       formDataToSend.append("role", submitData.role);
       formDataToSend.append("avatar", avatarFile);
       setPendingUpdateData({ payload: formDataToSend, useFormData: true });
     } else {
       if (formData.avatar) submitData.avatar = formData.avatar;
-      setPendingUpdateData({ payload: submitData, useFormData: false });
+      setPendingUpdateData({ payload: { ...submitData, address: fullAddress }, useFormData: false });
     }
     setIsConfirmUpdateModalOpen(true);
   };
@@ -616,7 +692,7 @@ const StaffManagement = () => {
                             <button
                               onClick={() => copyToClipboard(record._id || record.id)}
                               className="text-xs text-gray-400 hover:text-gray-600 mt-1 flex items-center gap-1"
-                              title="Click để copy ID"
+                              title="Click to copy ID"
                             >
                               <i className="ri-file-copy-line"></i>
                               ID: {record._id || record.id}
@@ -662,14 +738,14 @@ const StaffManagement = () => {
                           <button
                             onClick={() => handleViewDetail(record)}
                             className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                            title="Xem chi tiết"
+                            title="View details"
                           >
                             <i className="ri-eye-line text-lg"></i>
                           </button>
                           <button
                             onClick={() => handleEdit(record)}
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Chỉnh sửa"
+                            title="Edit"
                           >
                             <i className="ri-edit-line text-lg"></i>
                           </button>
@@ -783,7 +859,7 @@ const StaffManagement = () => {
                     value={formData.user_name}
                     onChange={(e) => setFormData({ ...formData, user_name: e.target.value })}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                    placeholder="Nhập họ tên"
+                    placeholder="Enter full name"
                   />
                   {formErrors.user_name && <p className="text-red-500 text-xs mt-1">{formErrors.user_name}</p>}
                 </div>
@@ -796,7 +872,7 @@ const StaffManagement = () => {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                    placeholder="Nhập email"
+                    placeholder="Enter email"
                   />
                   {formErrors.email && <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>}
                 </div>
@@ -809,7 +885,7 @@ const StaffManagement = () => {
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                    placeholder="Mật khẩu"
+                    placeholder="Password"
                   />
                   {formErrors.password && <p className="text-red-500 text-xs mt-1">{formErrors.password}</p>}
                 </div>
@@ -822,7 +898,7 @@ const StaffManagement = () => {
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                    placeholder="Nhập lại mật khẩu"
+                    placeholder="Confirm password"
                   />
                   {formErrors.confirmPassword && <p className="text-red-500 text-xs mt-1">{formErrors.confirmPassword}</p>}
                 </div>
@@ -835,22 +911,55 @@ const StaffManagement = () => {
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                    placeholder="Số điện thoại"
+                    placeholder="Phone number"
                   />
                   {formErrors.phone && <p className="text-red-500 text-xs mt-1">{formErrors.phone}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Address <span className="text-red-500">*</span>
+                    Address (street) <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                    placeholder="Địa chỉ"
+                    placeholder="Street address"
                   />
                   {formErrors.address && <p className="text-red-500 text-xs mt-1">{formErrors.address}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Province / City <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value, ward: "" })}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white"
+                  >
+                    <option value="">Select province/city</option>
+                    {provinces.map((p) => (
+                      <option key={p.code} value={p.code}>{p.name}</option>
+                    ))}
+                  </select>
+                  {formErrors.city && <p className="text-red-500 text-xs mt-1">{formErrors.city}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Ward <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.ward}
+                    onChange={(e) => setFormData({ ...formData, ward: e.target.value })}
+                    disabled={!formData.city}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white disabled:bg-gray-50 disabled:text-gray-500"
+                  >
+                    <option value="">Select ward</option>
+                    {wards.map((w) => (
+                      <option key={w.code} value={w.name}>{w.name}</option>
+                    ))}
+                  </select>
+                  {formErrors.ward && <p className="text-red-500 text-xs mt-1">{formErrors.ward}</p>}
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -947,7 +1056,7 @@ const StaffManagement = () => {
                     value={formData.user_name}
                     onChange={(e) => setFormData({ ...formData, user_name: e.target.value })}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                    placeholder="Nhập họ tên"
+                    placeholder="Enter full name"
                   />
                   {formErrors.user_name && <p className="text-red-500 text-xs mt-1">{formErrors.user_name}</p>}
                 </div>
@@ -973,7 +1082,7 @@ const StaffManagement = () => {
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                    placeholder="Để trống nếu không đổi mật khẩu"
+                    placeholder="Leave blank if not changing password"
                   />
                   {formErrors.password && <p className="text-red-500 text-xs mt-1">{formErrors.password}</p>}
                 </div>
@@ -986,7 +1095,7 @@ const StaffManagement = () => {
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                    placeholder="Nhập lại mật khẩu mới"
+                    placeholder="Confirm new password"
                   />
                   {formErrors.confirmPassword && <p className="text-red-500 text-xs mt-1">{formErrors.confirmPassword}</p>}
                 </div>
@@ -999,22 +1108,55 @@ const StaffManagement = () => {
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                    placeholder="Số điện thoại"
+                    placeholder="Phone number"
                   />
                   {formErrors.phone && <p className="text-red-500 text-xs mt-1">{formErrors.phone}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Address <span className="text-red-500">*</span>
+                    Address (street) <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                    placeholder="Địa chỉ"
+                    placeholder="Street address"
                   />
                   {formErrors.address && <p className="text-red-500 text-xs mt-1">{formErrors.address}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Province / City <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value, ward: "" })}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white"
+                  >
+                    <option value="">Select province/city</option>
+                    {provinces.map((p) => (
+                      <option key={p.code} value={p.code}>{p.name}</option>
+                    ))}
+                  </select>
+                  {formErrors.city && <p className="text-red-500 text-xs mt-1">{formErrors.city}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Ward <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.ward}
+                    onChange={(e) => setFormData({ ...formData, ward: e.target.value })}
+                    disabled={!formData.city}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white disabled:bg-gray-50 disabled:text-gray-500"
+                  >
+                    <option value="">Select ward</option>
+                    {wards.map((w) => (
+                      <option key={w.code} value={w.name}>{w.name}</option>
+                    ))}
+                  </select>
+                  {formErrors.ward && <p className="text-red-500 text-xs mt-1">{formErrors.ward}</p>}
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">

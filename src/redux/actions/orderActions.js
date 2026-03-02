@@ -226,9 +226,10 @@ export const orderAdminDetailFailure = (error) => ({
 });
 
 
-// Admin order stats
-export const orderAdminStatsRequest = () => ({
+// Admin order stats (optional params: groupBy, year for revenueRefund)
+export const orderAdminStatsRequest = (params) => ({
   type: ORDER_ADMIN_STATS_REQUEST,
+  payload: params,
 });
 
 
