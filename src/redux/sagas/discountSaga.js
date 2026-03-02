@@ -43,6 +43,9 @@ import {
     DISCOUNT_APPLY_REQUEST,
     DISCOUNT_APPLY_SUCCESS,
     DISCOUNT_APPLY_FAILURE,
+    FETCH_DISCOUNT_STATS_REQUEST,
+    FETCH_DISCOUNT_STATS_SUCCESS,
+    FETCH_DISCOUNT_STATS_FAIL,
 } from "../actions/discountActions";
 
 // Get discount list
@@ -336,6 +339,26 @@ function* getValidDiscounts(action) {
     }
 }
 
+// Fetch discount stats (sales staff)
+function* fetchDiscountStatsSaga(action) {
+    try {
+        const { startDate, endDate } = action.payload || {};
+        const params = {};
+        if (startDate) params.startDate = startDate;
+        if (endDate) params.endDate = endDate;
+        const res = yield call(() => apiClient.get("/discounts/stats", { params }));
+        if (res.data?.status === "OK") {
+            yield put({ type: FETCH_DISCOUNT_STATS_SUCCESS, payload: res.data.data });
+        } else {
+            throw new Error(res.data?.message || "Failed to load discount stats");
+        }
+    } catch (err) {
+        const message = err.response?.data?.message || err.message;
+        yield put({ type: FETCH_DISCOUNT_STATS_FAIL, payload: message });
+        toast.error(message);
+    }
+}
+
 export default function* discountSaga() {
     yield takeLatest(DISCOUNT_LIST_REQUEST, fetchDiscountList);
     yield takeLatest(DISCOUNT_CREATE_REQUEST, createDiscount);
@@ -349,4 +372,5 @@ export default function* discountSaga() {
     yield takeLatest(DISCOUNT_VALIDATE_REQUEST, validateDiscountCode);
     yield takeLatest(DISCOUNT_GET_VALID_REQUEST, getValidDiscounts);
     yield takeLatest(DISCOUNT_APPLY_REQUEST, applyDiscountCode);
+    yield takeLatest(FETCH_DISCOUNT_STATS_REQUEST, fetchDiscountStatsSaga);
 }

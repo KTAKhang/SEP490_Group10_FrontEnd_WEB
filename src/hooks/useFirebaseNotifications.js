@@ -42,6 +42,35 @@ import { requestNotificationPermission, onMessageListener } from '../config/fire
 import { registerFCMToken, handleNotificationClick } from '../services/notificationService';
 import { toast } from 'react-toastify';
 
+/**
+ * Phát âm thanh thông báo ngắn khi có FCM (ding nhẹ, không cần file audio).
+ * Dùng Web Audio API; nếu bị chặn (autoplay policy) thì bỏ qua im lặng.
+ */
+const playNotificationSound = () => {
+  try {
+    if (typeof window === 'undefined') return;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    const playTone = (frequency, startTime, duration) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = frequency;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.15, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+      osc.start(startTime);
+      osc.stop(startTime + duration);
+    };
+    playTone(523.25, 0, 0.1);
+    playTone(659.25, 0.12, 0.15);
+  } catch (_) {
+    // Tự động chạy khi người dùng không cho phép
+  }
+};
+
 export const useFirebaseNotifications = () => {
   const [fcmToken, setFcmToken] = useState(null);
   const [isSupported, setIsSupported] = useState(false);
@@ -121,6 +150,9 @@ export const useFirebaseNotifications = () => {
       
       const notification = payload.notification || {};
       const data = payload.data || {};
+      
+      // Âm thanh báo có thông báo mới
+      playNotificationSound();
       
       // Dispatch custom event to notify NotificationBell to refresh
       // NotificationBell fetches notifications from database API

@@ -267,7 +267,7 @@ export const routes = [
       </PrivateRoute>
     ),
     children: [
-      { index: true, element: <FinanceLayout /> },
+      { index: true, element: <SalesStaffPage /> },
       { path: "statistics", element: <SalesStaffPage /> },
       { path: "orders", element: <SalesStaffOrderManagement /> },
       { path: "refund-orders", element: <SalesStaffRefundOrdersPage /> },

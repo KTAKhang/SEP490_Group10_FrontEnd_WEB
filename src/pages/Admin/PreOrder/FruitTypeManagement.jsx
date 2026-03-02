@@ -360,8 +360,15 @@ export default function FruitTypeManagement() {
                           </button>
                         </div>
                       ) : (
-                        <span className="text-xs text-gray-500" title={isCampaignClosed ? "Campaign closed. Edit/delete not allowed." : "Edit/delete allowed only when demand = 0."}>
-                          {isCampaignClosed ? "Closed" : "Locked (demand &gt; 0)"}
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-amber-50 text-amber-800 border border-amber-200"
+                          title={isCampaignClosed ? "Campaign closed. Edit/delete not available." : "Edit and delete are only available when there are no pre-orders (demand = 0 kg)."}
+                        >
+                          {isCampaignClosed ? (
+                            <>Campaign closed</>
+                          ) : (
+                            <>Cannot edit — has pre-orders ({row.demandKg ?? 0} kg)</>
+                          )}
                         </span>
                       )}
                     </td>

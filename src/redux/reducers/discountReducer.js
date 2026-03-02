@@ -43,6 +43,9 @@ import {
     DISCOUNT_SET_SELECTED,
     DISCOUNT_CLEAR_SELECTED,
     DISCOUNT_CLEAR_FEEDBACK,
+    FETCH_DISCOUNT_STATS_REQUEST,
+    FETCH_DISCOUNT_STATS_SUCCESS,
+    FETCH_DISCOUNT_STATS_FAIL,
 } from "../actions/discountActions";
 
 const initialState = {
@@ -59,6 +62,9 @@ const initialState = {
     applyError: null,
     selectedDiscount: null,
     params: { page: 1, limit: 10 },
+    discountStats: null,
+    discountStatsLoading: false,
+    discountStatsError: null,
 };
 
 export default function discountReducer(state = initialState, action) {
@@ -175,6 +181,28 @@ export default function discountReducer(state = initialState, action) {
                 validationError: null,
                 applyResult: null,
                 applyError: null,
+            };
+
+        case FETCH_DISCOUNT_STATS_REQUEST:
+            return {
+                ...state,
+                discountStatsLoading: true,
+                discountStatsError: null,
+            };
+
+        case FETCH_DISCOUNT_STATS_SUCCESS:
+            return {
+                ...state,
+                discountStatsLoading: false,
+                discountStats: action.payload,
+                discountStatsError: null,
+            };
+
+        case FETCH_DISCOUNT_STATS_FAIL:
+            return {
+                ...state,
+                discountStatsLoading: false,
+                discountStatsError: action.payload,
             };
 
         case DISCOUNT_CREATE_FAILURE:
