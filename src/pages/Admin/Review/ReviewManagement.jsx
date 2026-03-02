@@ -30,7 +30,7 @@ const ReviewManagement = () => {
 
 
   const [page, setPage] = useState(1);
-  const [limit] = useState(5);
+  const [limit] = useState(4);
   const [status, setStatus] = useState("ALL");
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");

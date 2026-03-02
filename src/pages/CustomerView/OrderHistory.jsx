@@ -92,7 +92,7 @@ const OrderHistory = () => {
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
   const [page, setPage] = useState(1);
-  const [limit] = useState(10);
+  const [limit] = useState(4);
   const [searchTerm, setSearchTerm] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
   const [detailOrderId, setDetailOrderId] = useState(null);

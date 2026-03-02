@@ -51,11 +51,11 @@ const SupplierManagement = () => {
   const [prevUpdateLoading, setPrevUpdateLoading] = useState(false);
 
 
-  // Fetch suppliers when filters change
+  // Fetch suppliers when filters change (4 per page, match backend)
   useEffect(() => {
     const params = {
       page: currentPage,
-      limit: 10,
+      limit: 4,
       search: searchTerm || undefined,
       type: filterType !== "all" ? filterType : undefined,
       cooperationStatus: filterCooperationStatus !== "all" ? filterCooperationStatus : undefined,
@@ -73,7 +73,7 @@ const SupplierManagement = () => {
       setShowCreateModal(false);
       const params = {
         page: currentPage,
-        limit: 10,
+        limit: 4,
         search: searchTerm || undefined,
         type: filterType !== "all" ? filterType : undefined,
         cooperationStatus: filterCooperationStatus !== "all" ? filterCooperationStatus : undefined,
@@ -92,7 +92,7 @@ const SupplierManagement = () => {
       setShowUpdateModal(false);
       const params = {
         page: currentPage,
-        limit: 10,
+        limit: 4,
         search: searchTerm || undefined,
         type: filterType !== "all" ? filterType : undefined,
         cooperationStatus: filterCooperationStatus !== "all" ? filterCooperationStatus : undefined,

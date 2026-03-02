@@ -58,7 +58,7 @@ const HarvestBatchManagement = () => {
   useEffect(() => {
     const params = {
       page: currentPage,
-      limit: 10,
+      limit: 4,
       search: searchTerm || undefined,
       supplierId: filterSupplier !== "all" ? filterSupplier : undefined,
       isPreOrderBatch: filterPreOrder !== "all" ? filterPreOrder === "true" : undefined,
@@ -104,7 +104,7 @@ const HarvestBatchManagement = () => {
   const refreshList = useCallback(() => {
     const params = {
       page: currentPage,
-      limit: 10,
+      limit: 4,
       search: searchTerm || undefined,
       supplierId: filterSupplier !== "all" ? filterSupplier : undefined,
       isPreOrderBatch: filterPreOrder !== "all" ? filterPreOrder === "true" : undefined,

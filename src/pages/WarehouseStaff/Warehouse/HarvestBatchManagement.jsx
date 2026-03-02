@@ -34,11 +34,11 @@ const HarvestBatchManagement = () => {
   const [selectedBatch, setSelectedBatch] = useState(null);
 
 
-  // Fetch harvest batches when filters change (only product batches; pre-order batches are hidden on this page)
+  // Fetch harvest batches when filters change (4 per page; only product batches)
   useEffect(() => {
     const params = {
       page: currentPage,
-      limit: 10,
+      limit: 4,
       search: searchTerm || undefined,
       supplierId: filterSupplier !== "all" ? filterSupplier : undefined,
       receiptEligible: filterReceiptEligible !== "all" ? filterReceiptEligible === "true" : undefined,

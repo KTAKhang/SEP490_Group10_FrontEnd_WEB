@@ -87,29 +87,29 @@ const DetailProduct = ({ isOpen, onClose, product }) => {
             <div>
               <h3 className="text-sm font-medium text-gray-700 mb-2">Price</h3>
               <p className="text-lg font-semibold text-green-600">
-                {new Intl.NumberFormat("vi-VN", {
-                  style: "currency",
-                  currency: "VND",
-                }).format(product.price || 0)}
+{new Intl.NumberFormat("en-US", {
+                                style: "currency",
+                                currency: "VND",
+                              }).format(product.price || 0)}
               </p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-700 mb-2">Purchase Price</h3>
               <p className="text-lg font-semibold text-blue-600">
-                {new Intl.NumberFormat("vi-VN", {
-                  style: "currency",
-                  currency: "VND",
-                }).format(product.purchasePrice || 0)}
+{new Intl.NumberFormat("en-US", {
+                                style: "currency",
+                                currency: "VND",
+                              }).format(product.purchasePrice || 0)}
               </p>
             </div>
             {product.profit !== undefined && (
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-2">Profit</h3>
                 <p className="text-lg font-semibold text-green-600">
-                  {new Intl.NumberFormat("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
-                  }).format(product.profit || 0)}
+{new Intl.NumberFormat("en-US", {
+                                style: "currency",
+                                currency: "VND",
+                              }).format(product.profit || 0)}
                 </p>
               </div>
             )}
@@ -186,7 +186,7 @@ const DetailProduct = ({ isOpen, onClose, product }) => {
                     <p className="text-lg font-semibold text-indigo-600">
                       {product.warehouseEntryDateStr 
                         ? product.warehouseEntryDateStr.split('-').reverse().join('/')
-                        : new Date(product.warehouseEntryDate).toLocaleDateString("vi-VN")}
+                        : new Date(product.warehouseEntryDate).toLocaleDateString("en-US")}
                     </p>
                   </div>
                 )}
@@ -239,7 +239,7 @@ const DetailProduct = ({ isOpen, onClose, product }) => {
                     }`}>
                       {product.expiryDateStr 
                         ? product.expiryDateStr.split('-').reverse().join('/')
-                        : new Date(product.expiryDate).toLocaleDateString("vi-VN")}
+                        : new Date(product.expiryDate).toLocaleDateString("en-US")}
                     </p>
                     {(() => {
                       const expiryDateStr = product.expiryDateStr;
@@ -289,10 +289,10 @@ const DetailProduct = ({ isOpen, onClose, product }) => {
           {/* Timestamps */}
           <div className="border-t pt-4 grid grid-cols-2 gap-4 text-sm text-gray-500">
             <div>
-              <p>Created: {product.createdAt ? new Date(product.createdAt).toLocaleString("vi-VN") : "N/A"}</p>
+              <p>Created: {product.createdAt ? new Date(product.createdAt).toLocaleString("en-US") : "N/A"}</p>
             </div>
             <div>
-              <p>Last updated: {product.updatedAt ? new Date(product.updatedAt).toLocaleString("vi-VN") : "N/A"}</p>
+              <p>Last updated: {product.updatedAt ? new Date(product.updatedAt).toLocaleString("en-US") : "N/A"}</p>
             </div>
           </div>
         </div>

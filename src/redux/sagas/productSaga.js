@@ -143,14 +143,14 @@ function* updateProductSaga(action) {
     const response = yield call(apiUpdateProduct, id, formData);
     if (response.status === "OK") {
       yield put(updateProductSuccess(response.data));
-      toast.success(response.message || "Cập nhật sản phẩm thành công");
+      toast.success(response.message || "Product updated successfully");
       // Product is updated directly in reducer, no need to refetch
     } else {
-      throw new Error(response.message || "Không thể cập nhật sản phẩm");
+      throw new Error(response.message || "Failed to update product");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể cập nhật sản phẩm";
+      error.response?.data?.message || error.message || "Failed to update product";
     yield put(updateProductFailure(errorMessage));
     toast.error(errorMessage);
   }

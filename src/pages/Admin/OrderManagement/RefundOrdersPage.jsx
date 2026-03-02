@@ -51,7 +51,7 @@ const RefundOrdersPage = () => {
   } = useSelector((state) => state.order || {});
 
   const [page, setPage] = useState(1);
-  const [limit] = useState(10);
+  const [limit] = useState(4);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [detailOrderId, setDetailOrderId] = useState(null);
   const prevConfirmRefundRef = useRef(false);
