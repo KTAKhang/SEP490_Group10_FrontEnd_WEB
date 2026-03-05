@@ -63,6 +63,16 @@ const Sidebar = () => {
       path: "/admin/warehouse",
     },
     {
+      icon: History,
+      label: "Batch History",
+      path: "/admin/batch-history",
+    },
+    {
+      icon: ClipboardList,
+      label: "Receipt History",
+      path: "/admin/receipt-history",
+    },
+    {
       icon: ShoppingCart,
       label: "Orders",
       path: "/admin/orders",
@@ -122,16 +132,7 @@ const Sidebar = () => {
       label: "Discount Management",
       path: "/admin/discounts",
     },
-    {
-      icon: History,
-      label: "Batch History",
-      path: "/admin/batch-history",
-    },
-    {
-      icon: ClipboardList,
-      label: "Receipt History",
-      path: "/admin/receipt-history",
-    },
+    
   ];
 
 
