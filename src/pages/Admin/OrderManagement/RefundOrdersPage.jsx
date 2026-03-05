@@ -290,8 +290,6 @@ const RefundOrdersPage = () => {
         renderStatusBadge={renderStatusBadge}
         renderPaymentBadge={renderPaymentBadge}
         formatCurrency={formatCurrency}
-        onConfirmRefund={handleConfirmRefundPayment}
-        confirmRefundLoading={confirmRefundLoading}
       />
     </div>
   );

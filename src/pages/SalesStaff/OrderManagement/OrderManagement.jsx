@@ -106,17 +106,18 @@ const getNextStatuses = (paymentMethod, currentStatus) => {
   if (current === "COMPLETED") {
     return ["REFUND"];
   }
+  // SHIPPING -> CANCELLED: chỉ admin/sales-staff (trang này dùng cho sales-staff). Backend tự hoàn kho khi hủy.
   const transitions = {
     COD: {
       PENDING: ["READY-TO-SHIP", "CANCELLED"],
       "READY-TO-SHIP": ["SHIPPING"],
-      SHIPPING: ["COMPLETED"],
+      SHIPPING: ["COMPLETED", "CANCELLED"],
     },
     VNPAY: {
       PENDING: ["PAID", "CANCELLED"],
       PAID: ["READY-TO-SHIP"],
       "READY-TO-SHIP": ["SHIPPING"],
-      SHIPPING: ["COMPLETED"],
+      SHIPPING: ["COMPLETED", "CANCELLED"],
     },
   };
   return transitions[method]?.[current] || [];
@@ -622,8 +623,6 @@ const OrderManagement = () => {
         renderStatusBadge={renderStatusBadge}
         renderPaymentBadge={renderPaymentBadge}
         formatCurrency={formatCurrency}
-        onConfirmRefund={(id) => dispatch(orderConfirmRefundPaymentRequest(id))}
-        confirmRefundLoading={adminUpdateLoading}
       />
     </div>
   );
