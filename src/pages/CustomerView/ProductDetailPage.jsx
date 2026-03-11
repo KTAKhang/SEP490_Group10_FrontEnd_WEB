@@ -48,6 +48,8 @@ export default function ProductDetailPage() {
   const [reviewSortBy, setReviewSortBy] = useState('createdAt');
   const [reviewSortOrder, setReviewSortOrder] = useState('desc');
   const [activeTab, setActiveTab] = useState('description');
+  const [quantity, setQuantity] = useState(1);
+  const [quantityError, setQuantityError] = useState('');
 
 
   const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
@@ -160,8 +162,19 @@ export default function ProductDetailPage() {
       navigate('/login');
       return;
     }
+    // Validate quantity
+    const q = Number(quantity) || 0;
+    if (!Number.isInteger(q) || q <= 0) {
+      setQuantityError('The quantity must be an integer greater than 0.');
+      return;
+    }
+    if (product.onHandQuantity !== undefined && q > product.onHandQuantity) {
+      setQuantityError('Quantity exceeds inventory.');
+      return;
+    }
+    setQuantityError('');
     if (product.onHandQuantity > 0) {
-      dispatch(addItemToCartRequest(product._id, 1));
+      dispatch(addItemToCartRequest(product._id, q));
     }
   };
 
@@ -331,11 +344,30 @@ export default function ProductDetailPage() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="number"
+                      min={1}
+                      value={quantity}
+                      onChange={(e) => {
+                        const v = parseInt(e.target.value || '0', 10);
+                        const next = Number.isNaN(v) ? 0 : v;
+                        setQuantity(next);
+                        if (next <= 0) setQuantityError('The quantity must be an integer greater than 0.');
+                        else if (product.onHandQuantity !== undefined && next > product.onHandQuantity)
+                          setQuantityError('Quantity exceeds inventory.');
+                        else setQuantityError('');
+                      }}
+                      className="w-24 px-3 py-2 border border-stone-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                    />
+                    {quantityError && <p className="text-red-600 text-xs">{quantityError}</p>}
+                  </div>
+
                   <button
                     onClick={handleAddToCart}
-                    disabled={product.onHandQuantity === 0}
+                    disabled={product.onHandQuantity === 0 || quantity <= 0 || Boolean(quantityError)}
                     className={`flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold transition-all ${
-                      product.onHandQuantity === 0
+                      product.onHandQuantity === 0 || quantity <= 0 || Boolean(quantityError)
                         ? 'bg-stone-300 text-stone-500 cursor-not-allowed'
                         : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-md hover:shadow-lg cursor-pointer'
                     }`}
@@ -343,6 +375,7 @@ export default function ProductDetailPage() {
                     <ShoppingCart className="w-5 h-5" />
                     {product.onHandQuantity === 0 ? 'Out of stock' : 'Add to cart'}
                   </button>
+
                   {storedUser && (
                     <button
                       onClick={() => {

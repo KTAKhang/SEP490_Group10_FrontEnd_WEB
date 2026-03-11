@@ -43,6 +43,7 @@ const RegisterPage = () => {
     user_name: "",
     email: "",
     password: "",
+    fullName:"",
     phone: "",
     address: "",
     city: "",
@@ -122,6 +123,7 @@ const RegisterPage = () => {
     if (!formData.email) err.email = "Please, enter email!";
     else if (!validateEmail(formData.email)) err.email = "Email invalid";
     if (!formData.password) err.password = "Please, enter password!";
+    if (!formData.fullName) err.user_name = "Please, enter full name!";
     if (!formData.phone) err.phone = "Please, enter phone number!";
     if (!formData.address) err.address = "Please, enter address!";
     if (!formData.city) err.city = "Please, chose city or province!";
@@ -145,6 +147,7 @@ const RegisterPage = () => {
       user_name: formData.user_name,
       email: formData.email,
       password: formData.password,
+      fullName: formData.fullName,
       phone: formData.phone,
       address: `${formData.address}, ${formData.ward}, ${icity}`,
       birthday: formData.birthday,
@@ -265,6 +268,13 @@ const RegisterPage = () => {
                 >
                   {showPassword ? <EyeOff /> : <Eye />}
                 </button>
+              </Input>
+              <Input label="Full Name" icon={<User />} error={errors.fullName}>
+                <input
+                  value={formData.fullName}
+                  onChange={(e) => handleChange("fullName", e.target.value)}
+                  className={inputClass}
+                />
               </Input>
 
               <Input label="Phone Number" icon={<Phone />} error={errors.phone}>

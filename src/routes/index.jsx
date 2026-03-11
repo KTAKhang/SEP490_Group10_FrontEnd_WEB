@@ -81,6 +81,7 @@ import PreOrderCheckoutPage from "../pages/CustomerView/PreOrderCheckoutPage";
 import MyPreOrdersPage from "../pages/CustomerView/MyPreOrdersPage";
 import PreOrderPaymentResultPage from "../pages/CustomerView/PreOrderPaymentResultPage";
 import ReviewManagement from "../pages/Admin/Review/ReviewManagement";
+import ChatManagement from "../pages/Admin/Chat/ChatManagement";
 import CreateReview from "../pages/CustomerView/ReviewProduct/CreateReview";
 import EditReview from "../pages/CustomerView/ReviewProduct/EditReview";
 
@@ -170,12 +171,11 @@ export const routes = [
     children: [
 
       { index: true, element: <FeedbackStaffDashboardPage /> },
-     
       { path: "contacts", element: <ContactListPage /> },
       { path: "contacts/:id", element: <ContactDetailPage /> },
       { path: "contacts/:id/edit", element: <ContactEditPage /> },
-
       { path: "profile", element: <ProfileManagement /> },
+      { path: "chat", element: <ChatForStaffPage /> },
       { path: "change-password", element: <UpdatePassword /> },
       { path: "reviews", element: <FeedbackStaffReviewManagement /> },
 
@@ -225,6 +225,7 @@ export const routes = [
         ],
       },
       { path: "reviews", element: <ReviewManagement /> },
+      { path: "chat", element: <ChatManagement /> },
       { path: "news", element: <NewsListPage /> },
       { path: "news/create", element: <NewsFormPage /> },
       { path: "news/edit/:id", element: <NewsFormPage /> },

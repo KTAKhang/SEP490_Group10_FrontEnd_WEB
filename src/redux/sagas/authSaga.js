@@ -59,10 +59,10 @@ function* handleLogout() {
 }
 
 // API call for register send otp
-const apiRegisterSendOTP = async ({ user_name, email, password, phone, address,birthday,gender }) => {
+const apiRegisterSendOTP = async ({ user_name, email, password,fullName, phone, address,birthday,gender }) => {
     const response = await axios.post(
         `${API_BASE_URL}/auth/register/send-otp`,
-        { user_name, email, password, phone, address,birthday,gender },
+        { user_name, email, password,fullName, phone, address,birthday,gender },
         {
             headers: {
                 'accept': 'application/json',
@@ -76,8 +76,8 @@ const apiRegisterSendOTP = async ({ user_name, email, password, phone, address,b
 
 function* registerSendOTP(action) {
     try {
-        const { user_name, email, password, phone, address, birthday,gender } = action.payload;
-        const response = yield call(apiRegisterSendOTP, { user_name, email, password, phone, address,birthday,gender });
+        const { user_name, email, password,fullName, phone, address, birthday,gender } = action.payload;
+        const response = yield call(apiRegisterSendOTP, { user_name, email, password,fullName, phone, address,birthday,gender });
 
         if (response.status === 'OK') {
             yield put(registerSendOTPSuccess(response.message));

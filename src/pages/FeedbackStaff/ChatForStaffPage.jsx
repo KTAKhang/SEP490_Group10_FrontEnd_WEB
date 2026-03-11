@@ -1,9 +1,16 @@
 import { useEffect, useState, useRef } from "react";
 import { MessageCircle, Send, RefreshCw, User, Clock } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
 import api from "../../api";
 import { socket } from "../../socket";
+import { getStaffChatRoomsRequest } from "../../redux/actions/chatActions";
 
 export default function StaffChat() {
+  const dispatch = useDispatch();
+  const { staffRooms, staffRoomsLoading } = useSelector(
+    (state) => state.chat || {}
+  );
+
   const [rooms, setRooms] = useState([]);
   const [room, setRoom] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -55,6 +62,17 @@ export default function StaffChat() {
   useEffect(() => {
     loadRooms();
   }, []);
+
+  // Sync Redux staffRooms -> local rooms
+  useEffect(() => {
+    if (Array.isArray(staffRooms)) {
+      setRooms(staffRooms);
+    }
+  }, [staffRooms]);
+
+  useEffect(() => {
+    setLoading(!!staffRoomsLoading);
+  }, [staffRoomsLoading]);
 
   /* ======================
      SOCKET: RECEIVE MESSAGE
@@ -152,16 +170,8 @@ export default function StaffChat() {
   /* ======================
      LOAD ROOMS
   ====================== */
-  const loadRooms = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get("/chat/staff/rooms");
-      setRooms(res.data.data);
-    } catch (error) {
-      console.error("Error loading rooms:", error);
-    } finally {
-      setLoading(false);
-    }
+  const loadRooms = () => {
+    dispatch(getStaffChatRoomsRequest());
   };
 
   /* ======================
