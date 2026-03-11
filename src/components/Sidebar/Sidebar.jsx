@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   X,
   MessageSquare,
+  MessageCircle,
   FileText,
   Store,
   FolderTree,
@@ -91,6 +92,11 @@ const Sidebar = () => {
       icon: MessageSquare,
       label: "Contact",
       path: "/admin/contacts",
+    },
+    {
+      icon: MessageCircle,
+      label: "Chat",
+      path: "/admin/chat",
     },
     {
       icon: FileText,

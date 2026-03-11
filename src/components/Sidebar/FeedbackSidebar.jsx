@@ -35,6 +35,8 @@ const Sidebar = () => {
       label: "Chat Management",
       path: "/feedbacked-staff/chat",
 
+    }, {
+
       icon: Mail,
       label: "Contact Management",
       path: "/feedbacked-staff/contacts",
@@ -78,7 +80,7 @@ const Sidebar = () => {
               </div>
               {isOpen && (
                 <span className="text-lg font-bold text-gray-800">
-                 Feedback Staff Panel
+                  Feedback Staff Panel
                 </span>
               )}
             </Link>
@@ -101,8 +103,8 @@ const Sidebar = () => {
                     <Link
                       to={item.path}
                       className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${active
-                          ? "bg-green-100 text-green-700 font-medium"
-                          : "text-gray-700 hover:bg-gray-100"
+                        ? "bg-green-100 text-green-700 font-medium"
+                        : "text-gray-700 hover:bg-gray-100"
                         }`}
                     >
                       <Icon size={20} />
