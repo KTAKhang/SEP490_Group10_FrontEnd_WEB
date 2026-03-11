@@ -372,11 +372,11 @@ useEffect(() => {
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16">
-            <h2 className="text-5xl md:text-6xl font-black text-gray-900 mb-4 md:mb-0">
+          <div className="mb-16">
+            <h2 className="text-5xl md:text-6xl font-black text-gray-900 mb-3">
               Featured Products
             </h2>
-            <p className="text-gray-600 max-w-md">
+            <p className="text-gray-600 max-w-2xl">
               The most popular products, fresh and guaranteed to have the
               highest organic quality.
             </p>

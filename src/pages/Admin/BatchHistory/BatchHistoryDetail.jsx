@@ -37,69 +37,89 @@ const getCompletionReasonLabel = (reason, apiLabel) => {
   }
 };
 
+/** Product display từ snapshot (productDisplay / productSnapshot), fallback sang product và các field *Snapshot cũ */
+export const getProductDisplayFromBatch = (batch, product) => {
+  const display = batch?.productDisplay || batch?.productSnapshot || {};
+  return {
+    name: display.name ?? product?.name ?? batch?.productNameSnapshot ?? "",
+    brand: display.brand ?? product?.brand ?? batch?.productBrandSnapshot ?? "",
+    categoryName: display.categoryName ?? product?.category?.name ?? batch?.productCategoryNameSnapshot ?? "",
+    short_desc: display.short_desc ?? "",
+    detail_desc: display.detail_desc ?? "",
+    price: display.price ?? batch?.unitSellPrice ?? 0,
+    purchasePrice: display.purchasePrice ?? batch?.unitCostPrice ?? 0,
+    images: Array.isArray(display.images) ? display.images : [],
+  };
+};
+
+/** Tên sản phẩm để hiển thị (ưu tiên snapshot đã chốt) */
+export const getProductDisplayName = (batch, product) =>
+  batch?.productDisplay?.name ?? batch?.productSnapshot?.name ?? product?.name ?? batch?.productNameSnapshot ?? "—";
 
 /**
- * Detail popup for a completed batch.
- * Receives batch, product (optional) and displays batch info, financials, dates, and ratios.
+ * Shared content for batch detail (used in modal and full page).
+ * Hiển thị thông tin sản phẩm từ productDisplay/snapshot (đã chốt lô), không từ Product hiện tại.
  */
-const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
-  if (!isOpen || !batch) return null;
-
-
+export const BatchHistoryDetailContent = ({ batch, product }) => {
   const selectedBatch = batch;
   const selectedProduct = product;
+  if (!selectedBatch) return null;
 
+  const productDisplay = getProductDisplayFromBatch(selectedBatch, selectedProduct);
+  const hasProductInfo =
+    productDisplay.name || productDisplay.brand || productDisplay.categoryName;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-gray-200/80">
-        {/* Modal Header */}
-        <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800 flex items-center space-x-2">
-              <Package size={24} />
-              <span>
-                Batch #{selectedBatch.batchNumber} - {selectedProduct?.name || selectedBatch.productNameSnapshot || "Product"}
-              </span>
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">Completed batch details</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X size={24} />
-          </button>
-        </div>
-
-
-        {/* Modal Content */}
-        <div className="p-6 space-y-6">
-          {/* Product Info - from product prop or batch snapshots */}
-          {(selectedProduct || selectedBatch.productNameSnapshot || selectedBatch.productBrandSnapshot) && (
+    <div className="p-6 space-y-6">
+          {/* Product Info - từ productDisplay/snapshot (dữ liệu đã chốt lô, độc lập với Product hiện tại) */}
+          {hasProductInfo && (
             <div className="bg-gray-50 rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center space-x-2">
                 <Package2 size={20} />
-                <span>Product information</span>
+                <span>Thông tin sản phẩm (tại thời điểm chốt lô)</span>
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-500">Product name</p>
+                  <p className="text-sm text-gray-500">Tên sản phẩm</p>
                   <p className="text-base font-medium text-gray-900">
-                    {selectedProduct?.name || selectedBatch.productNameSnapshot || "N/A"}
+                    {productDisplay.name || "N/A"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Brand</p>
+                  <p className="text-sm text-gray-500">Thương hiệu</p>
                   <p className="text-base font-medium text-gray-900">
-                    {selectedProduct?.brand || selectedBatch.productBrandSnapshot || "N/A"}
+                    {productDisplay.brand || "N/A"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Category</p>
+                  <p className="text-sm text-gray-500">Danh mục</p>
                   <p className="text-base font-medium text-gray-900">
-                    {selectedProduct?.category?.name || selectedBatch.productCategoryNameSnapshot || "N/A"}
+                    {productDisplay.categoryName || "N/A"}
                   </p>
+                </div>
+                {(productDisplay.short_desc || productDisplay.detail_desc) && (
+                  <>
+                    {productDisplay.short_desc && (
+                      <div className="col-span-2">
+                        <p className="text-sm text-gray-500">Mô tả ngắn</p>
+                        <p className="text-base font-medium text-gray-900">{productDisplay.short_desc}</p>
+                      </div>
+                    )}
+                    {productDisplay.detail_desc && (
+                      <div className="col-span-2">
+                        <p className="text-sm text-gray-500">Mô tả chi tiết</p>
+                        <p className="text-base font-medium text-gray-900">{productDisplay.detail_desc}</p>
+                      </div>
+                    )}
+                  </>
+                )}
+                <div>
+                  <p className="text-sm text-gray-500">Giá bán (tại thời điểm chốt)</p>
+                  <p className="text-base font-medium text-gray-900">{formatVND(productDisplay.price)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Giá vốn (tại thời điểm chốt)</p>
+                  <p className="text-base font-medium text-gray-900">{formatVND(productDisplay.purchasePrice)}</p>
                 </div>
               </div>
             </div>
@@ -277,10 +297,22 @@ const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
                   </>
                 )}
                 <div className="border border-green-200 rounded-lg p-4 bg-green-50">
-                  <p className="text-sm text-green-700 mb-1">Revenue</p>
-                  <p className="text-base font-semibold text-green-900">
-                    {formatVND(selectedBatch.actualRevenue ?? selectedBatch.financial?.revenue)}
+                  <p className="text-sm text-green-700 mb-1">
+                    Doanh thu
+                    {(selectedBatch.financial?.actualRevenue ?? selectedBatch.actualRevenue) > 0
+                      ? " (từ đơn hàng)"
+                      : " (ước tính: số bán × đơn giá)"}
                   </p>
+                  <p className="text-base font-semibold text-green-900">
+                    {formatVND(selectedBatch.financial?.revenue ?? selectedBatch.revenue ?? selectedBatch.actualRevenue)}
+                  </p>
+                  {selectedBatch.financial?.revenueTheoretical != null &&
+                    (selectedBatch.financial?.actualRevenue ?? 0) > 0 &&
+                    Math.abs((selectedBatch.financial?.revenue ?? 0) - (selectedBatch.financial?.revenueTheoretical ?? 0)) > 0.01 && (
+                    <p className="text-xs text-green-600 mt-1">
+                      Ước tính: {formatVND(selectedBatch.financial.revenueTheoretical)}
+                    </p>
+                  )}
                 </div>
                 <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
                   <p className="text-sm text-blue-700 mb-1">Gross profit</p>
@@ -425,10 +457,33 @@ const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
               })()}
             </div>
           </div>
+    </div>
+  );
+};
+
+/**
+ * Detail popup for a completed batch.
+ */
+const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
+  if (!isOpen || !batch) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-gray-200/80">
+        <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800 flex items-center space-x-2">
+              <Package size={24} />
+              <span>
+                Batch #{batch.batchNumber} - {getProductDisplayName(batch, product)}
+              </span>
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">Completed batch details</p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <X size={24} />
+          </button>
         </div>
-
-
-        {/* Modal Footer */}
+        <BatchHistoryDetailContent batch={batch} product={product} />
         <div className="flex justify-end p-6 border-t bg-gray-50">
           <button
             onClick={onClose}
@@ -441,6 +496,5 @@ const BatchHistoryDetail = ({ isOpen, onClose, batch, product }) => {
     </div>
   );
 };
-
 
 export default BatchHistoryDetail;

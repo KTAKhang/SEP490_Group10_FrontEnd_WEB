@@ -35,7 +35,9 @@ const Sidebar = () => {
       label: "Chat Management",
       path: "/feedbacked-staff/chat",
 
-    }, {
+
+    },
+    {
 
       icon: Mail,
       label: "Contact Management",

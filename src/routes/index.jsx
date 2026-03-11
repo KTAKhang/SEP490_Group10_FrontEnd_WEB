@@ -19,6 +19,8 @@ import ProductManagement from "../pages/Admin/Product/ProductManagement";
 import AdminWareHouse from "../pages/Admin/Warehouse/WareHouse";
 import CategoryManagement from "../pages/Admin/Category/CategoryManagement";
 import BatchHistoryPage from "../pages/Admin/BatchHistory/BatchHistoryPage";
+import BatchHistoryProductPage from "../pages/Admin/BatchHistory/BatchHistoryProductPage";
+import BatchHistoryDetailPage from "../pages/Admin/BatchHistory/BatchHistoryDetailPage";
 import ReceiptHistoryPage from "../pages/Admin/ReceiptHistory/ReceiptHistoryPage";
 import OrderLogHistoryPage from "../pages/Admin/OrderLogHistory/OrderLogHistoryPage";
 import WarehouseStaffLayout from "../layout/WarehouseStaffLayout";
@@ -198,6 +200,8 @@ export const routes = [
       { path: "suppliers", element: <AdminSupplierManagement /> },
       { path: "harvest-batches", element: <AdminHarvestBatchManagement /> },
       { path: "batch-history", element: <BatchHistoryPage /> },
+      { path: "batch-history/:productId", element: <BatchHistoryProductPage /> },
+      { path: "batch-history/:productId/batch/:batchId", element: <BatchHistoryDetailPage /> },
       { path: "receipt-history", element: <ReceiptHistoryPage /> },
       { path: "order-log-history", element: <OrderLogHistoryPage /> },
       { path: "contacts", element: <ContactListPage /> },
