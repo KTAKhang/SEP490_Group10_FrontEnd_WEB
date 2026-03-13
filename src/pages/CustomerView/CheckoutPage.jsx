@@ -95,6 +95,7 @@ export default function CheckoutPage() {
     if(error == "The holding period has expired") {
       handleCancel();
       console.log("Holding period has expired. Your cart items are still saved. Please return to your cart and complete checkout again.");
+      clearOrderMessages();
     }
   }, [error]);
 

@@ -261,9 +261,12 @@ const CartPage = () => {
 
                           {isNearExpiry && originalPrice != null && originalPrice > 0 && (
                             <span style={{ fontSize: 12, color: "#9ca3af", textDecoration: "line-through", display: "block", marginBottom: 2 }}>
-                              {formatPrice(originalPrice)}
+                              Price/Kg: {formatPrice(originalPrice)}
                             </span>
                           )}
+                          <span style={{ fontSize: 12,fontWeight: 700, color: "#fa2a05", display: "block", marginBottom: 2 }}>
+                              Price/Kg: {formatPrice(price)}
+                            </span>
 
                           {warning && (
                             <span style={{
