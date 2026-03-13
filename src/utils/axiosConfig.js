@@ -144,9 +144,9 @@ apiClient.interceptors.response.use(
     /* =======================
        SERVER ERROR
     ======================== */
-    if (status >= 500) {
-      toast.error("🔥 Server error. Please try again later.");
-    }
+    // if (status >= 500) {
+    //   toast.error("🔥 Server error. Please try again later.");
+    // }
 
     return Promise.reject(error);
   },
