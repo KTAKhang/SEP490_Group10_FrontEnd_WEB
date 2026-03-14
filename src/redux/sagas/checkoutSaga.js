@@ -1,6 +1,6 @@
 import { call, put, takeLatest } from "redux-saga/effects";
-import axios from "axios";
 import { toast } from "react-toastify";
+import apiClient from "../../utils/axiosConfig";
 
 import {
   CHECKOUT_HOLD_REQUEST,
@@ -11,40 +11,25 @@ import {
   checkoutCancelFailure,
 } from "../actions/checkoutActions";
 
-const API_BASE_URL = "http://localhost:3001";
-
-// ===== AUTH HEADER =====
-const authHeader = () => {
-  const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
 // ===== API =====
+
 const apiCheckoutHold = async (selected_product_ids, checkout_session_id) => {
-  const res = await axios.post(
-    `${API_BASE_URL}/checkout/hold`,
-    { selected_product_ids, checkout_session_id },
-    {
-      withCredentials: true,
-      headers: authHeader(),
-    },
-  );
+  const res = await apiClient.post("/checkout/hold", {
+    selected_product_ids,
+    checkout_session_id,
+  });
   return res.data;
 };
 
 const apiCheckoutCancel = async (checkout_session_id) => {
-  const res = await axios.post(
-    `${API_BASE_URL}/checkout/cancel`,
-    { checkout_session_id },
-    {
-      withCredentials: true,
-      headers: authHeader(),
-    },
-  );
+  const res = await apiClient.post("/checkout/cancel", {
+    checkout_session_id,
+  });
   return res.data;
 };
 
 // ===== SAGAS =====
+
 function* checkoutHoldSaga(action) {
   try {
     const { selected_product_ids, checkout_session_id } = action.payload;
@@ -56,17 +41,14 @@ function* checkoutHoldSaga(action) {
     const res = yield call(
       apiCheckoutHold,
       selected_product_ids,
-      checkout_session_id,
+      checkout_session_id
     );
 
     if (res.status === "OK") {
 
-      // ✅ CHỈ ghi session do BACKEND trả về
+      // lưu session do backend trả
       if (res.checkout_session_id) {
-        localStorage.setItem(
-          "checkout_session_id",
-          res.checkout_session_id
-        );
+        localStorage.setItem("checkout_session_id", res.checkout_session_id);
       }
 
       yield put(checkoutHoldSuccess(res));
@@ -76,6 +58,7 @@ function* checkoutHoldSaga(action) {
     }
   } catch (error) {
     const msg = error.response?.data?.message || error.message;
+
     yield put(checkoutHoldFailure(msg));
     toast.error(msg);
   }
@@ -89,7 +72,7 @@ function* checkoutCancelSaga(action) {
 
     if (res.status === "OK") {
 
-      // ✅ CLEAR LOCAL Ở SAGA
+      // clear session
       localStorage.removeItem("checkout_session_id");
 
       yield put(checkoutCancelSuccess(res.message));
@@ -99,11 +82,13 @@ function* checkoutCancelSaga(action) {
     }
   } catch (error) {
     const msg = error.response?.data?.message || error.message;
+
     yield put(checkoutCancelFailure(msg));
     toast.error(msg);
   }
 }
 
+// ===== WATCHER =====
 
 export default function* checkoutSaga() {
   yield takeLatest(CHECKOUT_HOLD_REQUEST, checkoutHoldSaga);

@@ -1,158 +1,155 @@
-import axios from 'axios';
-import { toast } from 'react-toastify';
+import axios from "axios";
+import { toast } from "react-toastify";
 
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = "http://localhost:3001";
 
 // Tạo axios instance
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true, // Quan trọng để gửi cookie refreshToken
+  withCredentials: true,
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  }
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
 });
 
-// Helper function để lấy token từ localStorage
+// ===== Helpers =====
 const getToken = () => {
-  return localStorage.getItem('token');
+  return localStorage.getItem("token");
 };
 
-// Helper function để cập nhật token mới
 const updateToken = (newToken) => {
-  console.log('🔄 Updating token in localStorage:', newToken ? `${newToken.substring(0, 20)}...` : 'null');
-  localStorage.setItem('token', newToken);
+  console.log(
+    "🔄 Updating token:",
+    newToken ? `${newToken.substring(0, 20)}...` : "null",
+  );
+  localStorage.setItem("token", newToken);
 };
 
-// Helper function để logout user
-const logoutUser = () => {
-  console.log('🚪 Logging out user due to token refresh failure');
-  localStorage.removeItem('user');
-  localStorage.removeItem('token');
-  localStorage.removeItem('role');
-  // Có thể dispatch logout action ở đây nếu cần
-  window.location.href = '/login';
+const clearAuthAndRedirect = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  localStorage.removeItem("role");
+  setTimeout(() => {
+    window.location.href = "/login";
+  }, 2000);
 };
 
-// Request interceptor - thêm token vào mọi request
+// ===== REQUEST INTERCEPTOR =====
 apiClient.interceptors.request.use(
   (config) => {
     const token = getToken();
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      // console.log('📤 Request sent with token:', token ? `${token.substring(0, 20)}...` : 'no token');
     }
-    
-    // If sending FormData, remove Content-Type header to let axios set it automatically
+
     if (config.data instanceof FormData) {
-      delete config.headers['Content-Type'];
+      delete config.headers["Content-Type"];
     }
-    
+
     return config;
   },
-  (error) => {
-    console.error('❌ Request interceptor error:', error);
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error),
 );
 
-// Response interceptor - xử lý token refresh
+// ===== RESPONSE INTERCEPTOR =====
 apiClient.interceptors.response.use(
   (response) => {
-    // Kiểm tra nếu có New-Access-Token header từ backend
-    const newToken = response.headers['new-access-token'];
+    const newToken = response.headers["new-access-token"];
+
     if (newToken) {
-      console.log('🔄 Received new token from backend:', newToken ? `${newToken.substring(0, 20)}...` : 'null');
       updateToken(newToken);
     }
+
     return response;
   },
+
   async (error) => {
-    console.log('🔍 Response interceptor error:', error.response?.status, error.response?.data);
-    console.log('🔍 Error details:', error.message);
-    console.log('🔍 Error code:', error.code);
-    
-    // Xử lý CORS errors
-    if (error.code === 'ERR_NETWORK' || error.message?.includes('CORS')) {
-      console.log('🌐 CORS error detected, trying without credentials...');
-      
-      // Thử lại request mà không có withCredentials
-      const retryConfig = { ...error.config };
-      retryConfig.withCredentials = false;
-      
-      try {
-        const retryResponse = await axios(retryConfig);
-        console.log('✅ CORS retry successful');
-        return retryResponse;
-      } catch (retryError) {
-        console.log('❌ CORS retry failed:', retryError.message);
-      }
-    }
-    
-    const originalRequest = error.config;
-    
-    // Nếu lỗi 401 và chưa retry
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const originalRequest = { ...error.config };
+
+    const status = error.response?.status;
+    const message = error.response?.data?.message;
+
+    console.log("🔍 API ERROR:", status, message);
+
+    /* =======================
+       401 – TOKEN EXPIRED
+    ======================== */
+    if (status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      
-      console.log('🔄 Token expired, attempting refresh...');
-      
       try {
-        // Gọi refresh token endpoint
         const refreshResponse = await axios.post(
           `${API_BASE_URL}/auth/refresh-token`,
           {},
-          { 
-            withCredentials: true,
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          }
+          { withCredentials: true },
         );
-        
-        console.log('✅ Token refresh successful:', refreshResponse.data);
-        
-        if (refreshResponse.data?.token?.access_token) {
-          const newToken = refreshResponse.data.token.access_token;
+        const newToken = refreshResponse.data?.token?.access_token;
+        if (newToken) {
           updateToken(newToken);
-          
-          // Retry original request với token mới
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          console.log('🔄 Retrying original request with new token');
+          delete originalRequest.headers.Authorization;
           return apiClient(originalRequest);
         }
       } catch (refreshError) {
-        console.error('❌ Token refresh failed:', refreshError.response?.data || refreshError.message);
-        
-        // Nếu refresh thất bại, logout user
-        toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!", {
-          toastId: "auth-expired-401"
-        });
-        
-        setTimeout(() => {
-          logoutUser();
-        }, 2000);
-        
+        const refreshStatus = refreshError.response?.status;
+        const refreshMessage = refreshError.response?.data?.message;
+
+        console.log("❌ Refresh failed:", refreshStatus, refreshMessage);
+
+        /* refresh token expired */
+        if (
+          refreshStatus === 401 &&
+          refreshMessage === "The refresh token has expired."
+        ) {
+          toast.error("🚫 Login session has expired.");
+          clearAuthAndRedirect();
+          return;
+        }
+
+        clearAuthAndRedirect();
+
         return Promise.reject(refreshError);
       }
     }
-    
-    // Xử lý các lỗi khác
-    if (error.response?.status === 403) {
-      console.log('🚫 Access denied - insufficient permissions');
-      toast.error("Không có quyền truy cập. Vui lòng kiểm tra lại quyền của bạn!");
-    } else if (error.response?.status >= 500) {
-      console.log('🔥 Server error:', error.response?.status);
-      const serverMessage = error.response?.data?.message;
-      if (serverMessage && typeof serverMessage === "string" && serverMessage.trim()) {
-        // Có message cụ thể từ server → saga/component sẽ hiển thị, không toast trùng ở đây
-      } else {
-        toast.error("Lỗi máy chủ. Vui lòng thử lại sau!");
-      }
+
+    /* =======================
+       403 – ACCOUNT LOCKED
+    ======================== */
+    if (status === 403 && message === "Account is locked") {
+      toast.error("🚫 Your account has been locked by the admin");
+      clearAuthAndRedirect();
+      return;
     }
-    
+
+    /* =======================
+       SINGLE LOGIN DETECTED
+    ======================== */
+    if (
+      status === 401 &&
+      message === "Your account has been logged in from elsewhere."
+    ) {
+      toast.error("🚫 Your account has been logged in from another device.");
+      clearAuthAndRedirect();
+      return;
+    }
+
+    /* =======================
+       ACCESS DENIED
+    ======================== */
+    if (status === 403 && message === "Access denied") {
+      toast.error("⛔ You do not have permission to access this function");
+      return Promise.reject(error);
+    }
+
+    /* =======================
+       SERVER ERROR
+    ======================== */
+    // if (status >= 500) {
+    //   toast.error("🔥 Server error. Please try again later.");
+    // }
+
     return Promise.reject(error);
-  }
+  },
 );
 
 export default apiClient;

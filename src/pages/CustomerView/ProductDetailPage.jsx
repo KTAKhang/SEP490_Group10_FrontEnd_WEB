@@ -49,6 +49,8 @@ export default function ProductDetailPage() {
   const [reviewSortBy, setReviewSortBy] = useState('createdAt');
   const [reviewSortOrder, setReviewSortOrder] = useState('desc');
   const [activeTab, setActiveTab] = useState('description');
+  const [quantity, setQuantity] = useState(1);
+  const [quantityError, setQuantityError] = useState('');
 
 
   const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
@@ -164,9 +166,19 @@ export default function ProductDetailPage() {
       navigate('/login');
       return;
     }
-    if (canAddToCart) {
-      dispatch(addItemToCartRequest(product._id, 1));
+    if (!canAddToCart) return;
+
+    const q = Number(quantity) || 0;
+    if (!Number.isInteger(q) || q <= 0) {
+      setQuantityError('The quantity must be an integer greater than 0.');
+      return;
     }
+    if (product.onHandQuantity !== undefined && q > product.onHandQuantity) {
+      setQuantityError('Quantity exceeds inventory.');
+      return;
+    }
+    setQuantityError('');
+    dispatch(addItemToCartRequest(product._id, q));
   };
 
 
@@ -267,7 +279,6 @@ export default function ProductDetailPage() {
             {/* Main Info + Sticky CTA */}
             <div className="lg:col-span-6">
               <div className="lg:sticky lg:top-28 space-y-6">
-               
 
 
                 {/* Product info list */}
@@ -290,7 +301,7 @@ export default function ProductDetailPage() {
                       <span className="text-stone-900 font-medium">{product.brand}</span>
                     </div>
                   )}
-                    {product.short_desc && (
+                  {product.short_desc && (
                     <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2 border-b border-stone-100 pb-4">
                       <span className="text-stone-500 text-sm font-medium min-w-[7rem]">Short description:</span>
                       <span className="text-stone-700 leading-relaxed">{product.short_desc}</span>
@@ -345,11 +356,31 @@ export default function ProductDetailPage() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="number"
+                      min={1}
+                      value={quantity}
+                      onChange={(e) => {
+                        const v = parseInt(e.target.value || '0', 10);
+                        const next = Number.isNaN(v) ? 0 : v;
+                        setQuantity(next);
+                        if (next <= 0) setQuantityError('The quantity must be an integer greater than 0.');
+                        else if (product.onHandQuantity !== undefined && next > product.onHandQuantity)
+                          setQuantityError('Quantity exceeds inventory.');
+                        else setQuantityError('');
+                      }}
+                      disabled={!canAddToCart}
+                      className="w-24 px-3 py-2 border border-stone-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none disabled:bg-stone-100 disabled:cursor-not-allowed"
+                    />
+                    {quantityError && <p className="text-red-600 text-xs">{quantityError}</p>}
+                  </div>
+
                   <button
                     onClick={handleAddToCart}
-                    disabled={!canAddToCart}
+                    disabled={!canAddToCart || quantity <= 0 || Boolean(quantityError)}
                     className={`flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold transition-all ${
-                      !canAddToCart
+                      !canAddToCart || quantity <= 0 || Boolean(quantityError)
                         ? 'bg-stone-300 text-stone-500 cursor-not-allowed'
                         : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-md hover:shadow-lg cursor-pointer'
                     }`}
@@ -357,6 +388,7 @@ export default function ProductDetailPage() {
                     <ShoppingCart className="w-5 h-5" />
                     {productExpired ? 'Expired' : product.onHandQuantity === 0 ? 'Out of stock' : 'Add to cart'}
                   </button>
+
                   {storedUser && (
                     <button
                       onClick={() => {
@@ -621,6 +653,4 @@ export default function ProductDetailPage() {
   );
 }
 
-
-
-
+export default ProductDetailPage;

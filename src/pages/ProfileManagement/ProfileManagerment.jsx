@@ -141,6 +141,7 @@ const ProfileManager = () => {
         ward: ward,
         city: code || (user.city ? Number(user.city) || user.city : undefined),
         user_name: user.user_name,
+        fullName: user.fullName,
         phone: user.phone,
         gender: user.gender,
         birthday: user.birthday ? dayjs(user.birthday) : null,
@@ -252,6 +253,7 @@ const ProfileManager = () => {
     const formData = new FormData();
     formData.append("userId", userId);
     formData.append("user_name", values.user_name);
+    formData.append("fullName", values.fullName);
     formData.append("phone", values.phone);
     formData.append("address", `${values.address}, ${values.ward}, ${icity}`);
     formData.append("birthday", values.birthday);
@@ -339,6 +341,11 @@ const ProfileManager = () => {
                             label: "Email",
                             value: user.email,
                             icon: <MailOutlined className="text-green-500" />,
+                          },
+                           {
+                            label: "Full Name",
+                            value: user.fullName,
+                            icon: <UserOutlined className="text-green-700" />,
                           },
                           {
                             label: "Phone",
@@ -453,9 +460,30 @@ const ProfileManager = () => {
                               message: "Please enter your username!",
                             },
                             {
-                              min: 2,
+                              min: 3,
                               message:
-                                "Usernames must have at least 2 characters!",
+                                "Usernames must have at least 3 characters!",
+                            },
+                          ]}
+                        >
+                          <Input
+                            size="large"
+                            className="rounded-xl border-2 hover:border-green-500 focus:border-green-500 transition-colors"
+                          />
+                        </Form.Item>
+
+                        <Form.Item
+                          label="Full Name"
+                          name="fullName"
+                          rules={[
+                            {
+                              required: true,
+                              message: "Please enter your username!",
+                            },
+                            {
+                              min: 3,
+                              message:
+                                "Usernames must have at least 3 characters!",
                             },
                           ]}
                         >

@@ -8,12 +8,18 @@ import {
   Users,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import api from "../../api";
 import { socket } from "../../socket";
+import { getUserChatRoomsRequest } from "../../redux/actions/chatActions";
 
 export default function CustomerChat() {
   const navigate = useNavigate();
   const isAuthenticated = !!localStorage.getItem("token");
+  const dispatch = useDispatch();
+  const { userRooms, userRoomsLoading } = useSelector(
+    (state) => state.chat || {}
+  );
 
   const [user, setUser] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -24,7 +30,7 @@ export default function CustomerChat() {
   // Tab: "online" | "history"
   const [activeTab, setActiveTab] = useState("online");
 
-  // History rooms
+  // History rooms (local state, synced from Redux)
   const [historyRooms, setHistoryRooms] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
@@ -86,18 +92,20 @@ export default function CustomerChat() {
   /* ======================
      LOAD HISTORY ROOMS
   ====================== */
-  const loadHistoryRooms = async () => {
-    setLoadingHistory(true);
-    try {
-      const res = await api.get("/chat/user/rooms");
-      console.log("res.data.data", res.data.data);
-      setHistoryRooms(res.data.data || []);
-    } catch (err) {
-      console.error("loadHistoryRooms failed:", err);
-    } finally {
-      setLoadingHistory(false);
-    }
+  const loadHistoryRooms = () => {
+    dispatch(getUserChatRoomsRequest());
   };
+
+  // Sync Redux state -> local state for history tab
+  useEffect(() => {
+    if (Array.isArray(userRooms)) {
+      setHistoryRooms(userRooms);
+    }
+  }, [userRooms]);
+
+  useEffect(() => {
+    setLoadingHistory(!!userRoomsLoading);
+  }, [userRoomsLoading]);
 
   useEffect(() => {
     if (isOpen && activeTab === "history") loadHistoryRooms();
