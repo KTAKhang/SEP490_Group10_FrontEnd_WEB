@@ -9,6 +9,7 @@ import { getPublicCategoriesRequest } from '../../redux/actions/publicCategoryAc
 import { addFavoriteRequest, removeFavoriteRequest, getFavoritesRequest } from '../../redux/actions/favoriteActions';
 import { addItemToCartRequest } from '../../redux/actions/cartActions';
 import { Search, Package, Heart } from 'lucide-react';
+import { isProductExpired } from '../../utils/productUtils';
 
 
 export default function ProductPage() {
@@ -112,7 +113,7 @@ export default function ProductPage() {
   useEffect(() => {
     const params = {
       page: currentPage,
-      limit: 12,
+      limit: 8,
       search: searchTerm || undefined,
       category: selectedCategory !== 'all' ? selectedCategory : undefined,
       sortBy: sortBy === 'default' ? 'createdAt' : sortBy,
@@ -163,13 +164,15 @@ export default function ProductPage() {
   };
 
 
-  const handleAddToCart = (e, productId, inStock) => {
+  const handleAddToCart = (e, productId, product) => {
     e.stopPropagation();
     if (!storedUser) {
       navigate('/login');
       return;
     }
-    if (!inStock) return;
+    const expired = isProductExpired(product);
+    const canAdd = (product.onHandQuantity ?? 0) > 0 && !expired;
+    if (!canAdd) return;
     dispatch(addItemToCartRequest(productId, 1));
   };
 
@@ -322,11 +325,11 @@ export default function ProductPage() {
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
-                      {/* Out of Stock Badge */}
-                      {product.onHandQuantity === 0 && (
+                      {/* Expired / Out of Stock Badge */}
+                      {(isProductExpired(product) || product.onHandQuantity === 0) && (
                         <div className="absolute top-4 left-4">
                           <span className="inline-flex items-center px-3 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold shadow-lg">
-                            Out of stock
+                            {isProductExpired(product) ? 'Expired' : 'Out of stock'}
                           </span>
                         </div>
                       )}
@@ -387,12 +390,10 @@ export default function ProductPage() {
                           </span>
                         </div>
                         <button
-                          onClick={(e) =>
-                            handleAddToCart(e, product._id, product.onHandQuantity > 0)
-                          }
-                          disabled={product.onHandQuantity === 0}
+                          onClick={(e) => handleAddToCart(e, product._id, product)}
+                          disabled={(product.onHandQuantity ?? 0) === 0 || isProductExpired(product)}
                           className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
-                            product.onHandQuantity === 0
+                            (product.onHandQuantity ?? 0) === 0 || isProductExpired(product)
                               ? 'bg-gray-400 text-white cursor-not-allowed'
                               : 'bg-gray-900 text-white hover:bg-gray-800 cursor-pointer'
                           }`}

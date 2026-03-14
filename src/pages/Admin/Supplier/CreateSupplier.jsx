@@ -10,7 +10,7 @@ function validatePhone(phoneStr) {
   if (!phoneStr || !phoneStr.toString().trim()) return { valid: true };
   const s = phoneStr.toString().trim();
   if (s.charAt(0) !== "0") {
-    return { valid: false, message: "Số điện thoại phải bắt đầu bằng số 0." };
+    return { valid: false, message: "Phone number must start with 0." };
   }
   if (!/^[0-9+\-\s()]+$/.test(s)) {
     return { valid: false, message: "Phone number can only contain digits, spaces, and + - ( )" };
@@ -313,7 +313,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
                   onChange={handleInputChange}
                   name="phone"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Ví dụ: 0912345678 (bắt đầu bằng 0, 10–12 chữ số)"
+                  placeholder="Example: 0123456789"
                 />
                 <p className="text-xs text-gray-500 mt-1">Only digits, spaces, + - ( ). Must have 10–12 digits.</p>
               </div>

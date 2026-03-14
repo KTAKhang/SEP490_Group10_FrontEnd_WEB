@@ -31,7 +31,7 @@ const BatchHistoryProductPage = () => {
     if (productId) {
       const params = {
         page: currentPage,
-        limit: 20,
+        limit: 6,
         ...(searchTerm && { search: searchTerm }),
         ...(completionReason && { completionReason }),
         sortBy,
@@ -82,7 +82,7 @@ const BatchHistoryProductPage = () => {
         <button
           onClick={() => navigate("/admin/batch-history")}
           className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors"
-          title="Quay lại danh sách sản phẩm"
+          title="Go back to product list"
         >
           <ArrowLeft size={20} />
         </button>
@@ -91,11 +91,11 @@ const BatchHistoryProductPage = () => {
         </div>
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            Lịch sử lô hàng — {selectedProduct?.name || "Đang tải..."}
+            Batch history — {selectedProduct?.name || "Loading..."}
           </h1>
           <p className="text-sm text-gray-500 mt-0.5">
             {selectedProduct && (
-              <>Thương hiệu: {selectedProduct.brand} • Lô hiện tại #{selectedProduct.batchNumber ?? "—"}</>
+              <>Brand: {selectedProduct.brand} • Current batch #{selectedProduct.batchNumber ?? "—"}</>
             )}
           </p>
         </div>
@@ -108,7 +108,7 @@ const BatchHistoryProductPage = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
               <input
                 type="text"
-                placeholder="Tìm theo số lô..."
+                placeholder="Search by batch number..."
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -126,13 +126,13 @@ const BatchHistoryProductPage = () => {
                 }}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
               >
-                <option value="">Tất cả lý do</option>
+                <option value="">All reasons</option>
                 <option value="SOLD_OUT">Sold out</option>
                 <option value="EXPIRED">Expired</option>
               </select>
             </div>
             <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Sắp xếp:</span>
+              <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Sort by:</span>
               <select
                 value={sortBy}
                 onChange={(e) => {
@@ -141,13 +141,13 @@ const BatchHistoryProductPage = () => {
                 }}
                 className="flex-1 rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
               >
-                <option value="batchNumber">Số lô</option>
-                <option value="completedDate">Ngày hoàn thành</option>
-                <option value="createdAt">Ngày tạo</option>
-                <option value="plannedQuantity">Kế hoạch</option>
-                <option value="receivedQuantity">Đã nhận</option>
-                <option value="soldQuantity">Đã bán</option>
-                <option value="discardedQuantity">Đã hủy</option>
+                <option value="batchNumber">Batch number</option>
+                <option value="completedDate">Completion date</option>
+                <option value="createdAt">Created date</option>
+                <option value="plannedQuantity">Planned</option>
+                <option value="receivedQuantity">Received</option>
+                <option value="soldQuantity">Sold</option>
+                <option value="discardedQuantity">Discarded</option>
               </select>
               <button
                 onClick={() => {
@@ -155,7 +155,7 @@ const BatchHistoryProductPage = () => {
                   setCurrentPage(1);
                 }}
                 className="px-3 py-2 border border-gray-200 rounded-xl hover:bg-gray-50 text-sm"
-                title={sortOrder === "asc" ? "Tăng dần" : "Giảm dần"}
+                title={sortOrder === "asc" ? "Ascending" : "Descending"}
               >
                 {sortOrder === "asc" ? "↑" : "↓"}
               </button>
@@ -165,13 +165,13 @@ const BatchHistoryProductPage = () => {
 
         <div className="p-6">
           {batchHistoryLoading ? (
-            <Loading message="Đang tải lịch sử lô hàng..." />
+            <Loading message="Loading batch history..." />
           ) : batchHistory.length === 0 ? (
             <div className="text-center py-12">
               <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">Chưa có lịch sử lô hàng</p>
+              <p className="text-gray-600">No batch history found</p>
               <p className="text-sm text-gray-500 mt-2">
-                Lịch sử sẽ hiển thị khi sản phẩm sold out hoặc hết hạn
+                History will be displayed when the product is sold out or expired
               </p>
             </div>
           ) : (
@@ -181,22 +181,25 @@ const BatchHistoryProductPage = () => {
                   <thead className="bg-gray-50 border-b">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Số lô
+                        Batch number
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Ngày hoàn thành
+                        Completion date
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Lý do
+                        Reason
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Đã bán
+                        Sold
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Doanh thu
+                        Revenue
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actual profit
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
-                        Thao tác
+                        Actions
                       </th>
                     </tr>
                   </thead>
@@ -216,7 +219,7 @@ const BatchHistoryProductPage = () => {
                             {batch.completedDateStr
                               ? batch.completedDateStr.split("-").reverse().join("/")
                               : batch.completedDate
-                                ? new Date(batch.completedDate).toLocaleDateString("vi-VN")
+                                ? new Date(batch.completedDate).toLocaleDateString("en-US")
                                 : "—"}
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
@@ -232,11 +235,14 @@ const BatchHistoryProductPage = () => {
                           <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-emerald-700">
                             {formatVND(fin.revenue)}
                           </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-emerald-600">
+                            {formatVND(fin.actualProfit)}
+                          </td>
                           <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
                             <button
                               onClick={() => handleViewBatchDetail(batch)}
                               className="rounded-xl p-2 text-blue-600 transition hover:bg-blue-50 hover:text-blue-700"
-                              title="Xem chi tiết"
+                              title="View details"
                             >
                               <Eye size={18} />
                             </button>
@@ -251,7 +257,7 @@ const BatchHistoryProductPage = () => {
               {batchHistoryPagination && batchHistoryPagination.totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4 pt-4 border-t">
                   <div className="text-sm text-gray-700">
-                    Hiển thị{" "}
+                    Showing{" "}
                     {batchHistoryPagination.page * batchHistoryPagination.limit -
                       batchHistoryPagination.limit +
                       1}{" "}
@@ -260,7 +266,7 @@ const BatchHistoryProductPage = () => {
                       batchHistoryPagination.page * batchHistoryPagination.limit,
                       batchHistoryPagination.total
                     )}{" "}
-                    / {batchHistoryPagination.total} lô
+                    / {batchHistoryPagination.total} batches
                   </div>
                   <div className="flex items-center space-x-2">
                     <button
@@ -268,7 +274,7 @@ const BatchHistoryProductPage = () => {
                       disabled={currentPage === 1}
                       className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition disabled:opacity-50 hover:bg-gray-50"
                     >
-                      Trước
+                      Previous
                     </button>
                     {[...Array(batchHistoryPagination.totalPages)].map((_, index) => (
                       <button
@@ -290,7 +296,7 @@ const BatchHistoryProductPage = () => {
                       disabled={currentPage === batchHistoryPagination.totalPages}
                       className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition disabled:opacity-50 hover:bg-gray-50"
                     >
-                      Sau
+                      Next
                     </button>
                   </div>
                 </div>

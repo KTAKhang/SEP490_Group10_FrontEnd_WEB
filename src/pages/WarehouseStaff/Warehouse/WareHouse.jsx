@@ -6,7 +6,6 @@ import {
   AlertCircle,
   CheckCircle,
   TrendingDown,
-  Filter,
   Upload,
   Eye,
 } from "lucide-react";
@@ -16,28 +15,9 @@ import {
 } from "../../../redux/actions/productActions";
 import { getCategoriesRequest } from "../../../redux/actions/categoryActions";
 import ReadProduct from "./ReadProduct";
-import CreateReceipt from "./CreateReceipt";
+import InitialStockIn from "./InitialStockIn";
+import AdditionalStockIn from "./AdditionalStockIn";
 import Loading from "../../../components/Loading/Loading";
-
-
-const Card = ({ children, className = "" }) => (
-  <div className={`bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden ${className}`}>{children}</div>
-);
-
-
-const CardHeader = ({ children, className = "" }) => (
-  <div className={`px-5 py-4 border-b border-gray-100 ${className}`}>{children}</div>
-);
-
-
-const CardTitle = ({ children, className = "" }) => (
-  <h3 className={`text-base font-semibold text-gray-800 ${className}`}>{children}</h3>
-);
-
-
-const CardContent = ({ children, className = "" }) => (
-  <div className={`p-5 ${className}`}>{children}</div>
-);
 
 
 const WareHouse = () => {
@@ -61,7 +41,8 @@ const WareHouse = () => {
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
   const [showReadModal, setShowReadModal] = useState(false);
-  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [showInitialModal, setShowInitialModal] = useState(false);
+  const [showAdditionalModal, setShowAdditionalModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProductForReceipt, setSelectedProductForReceipt] = useState(null);
   const [prevCreateReceiptLoading, setPrevCreateReceiptLoading] = useState(false);
@@ -69,8 +50,8 @@ const WareHouse = () => {
 
   // Fetch products, categories and stats on mount
   useEffect(() => {
-    dispatch(getProductsRequest({ page: currentPage, limit: 10, sortBy, sortOrder }));
-    dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
+    dispatch(getProductsRequest({ page: currentPage, limit: 4, sortBy, sortOrder }));
+    dispatch(getCategoriesRequest({ page: 1, limit: 40 }));
     dispatch(getProductStatsRequest());
   }, [dispatch]);
 
@@ -79,7 +60,7 @@ const WareHouse = () => {
   useEffect(() => {
     const params = {
       page: currentPage,
-      limit: 10,
+      limit: 4,
       search: searchTerm || undefined,
       stockStatus: filterStockStatus !== "all" ? filterStockStatus : undefined,
       receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,
@@ -97,7 +78,7 @@ const WareHouse = () => {
       // Create receipt was just completed successfully
       const params = {
         page: currentPage,
-        limit: 10,
+        limit: 4,
         search: searchTerm || undefined,
         stockStatus: filterStockStatus !== "all" ? filterStockStatus : undefined,
         receivingStatus: filterReceivingStatus !== "all" ? filterReceivingStatus : undefined,
@@ -145,47 +126,50 @@ const WareHouse = () => {
   };
 
 
-  const handleOpenReceiptModal = (product) => {
-    setSelectedProductForReceipt(product);
-    setShowReceiptModal(true);
-  };
-
-
-  // Helper function to check if product can receive more inventory
-  // 1) Already fully received (full lot) → cannot receive more
-  // 2) Can receive multiple times on the same day only; cannot receive on a different day
-  const canReceiveInventory = (product) => {
-    // Already fully received (full lot) → gray out
+  const canDoInitialReceipt = (product) => {
     if (product.receivingStatus === "RECEIVED") return false;
     const planned = product.plannedQuantity ?? product.planned_quantity ?? 0;
     const received = product.receivedQuantity ?? product.received_quantity ?? 0;
     if (planned > 0 && received >= planned) return false;
+    return !product.warehouseEntryDate && !product.warehouseEntryDateStr;
+  };
 
-    // If product has warehouseEntryDate, check if it's the same day (using date string if available)
+
+  const canDoAdditionalReceipt = (product) => {
+    if (product.receivingStatus === "RECEIVED") return false;
+    const planned = product.plannedQuantity ?? product.planned_quantity ?? 0;
+    const received = product.receivedQuantity ?? product.received_quantity ?? 0;
+    if (planned > 0 && received >= planned) return false;
     if (product.warehouseEntryDateStr) {
-      // Use date string comparison (more reliable with timezone)
       const today = new Date();
       const vnToday = new Date(today.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
       vnToday.setHours(0, 0, 0, 0);
       const todayStr = `${vnToday.getFullYear()}-${String(vnToday.getMonth() + 1).padStart(2, "0")}-${String(vnToday.getDate()).padStart(2, "0")}`;
-     
-      // Can only receive on the same day
       return product.warehouseEntryDateStr === todayStr;
-    } else if (product.warehouseEntryDate) {
-      // Fallback: compare Date objects (for old data)
+    }
+    if (product.warehouseEntryDate) {
       const entryDate = new Date(product.warehouseEntryDate);
       entryDate.setHours(0, 0, 0, 0);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-     
-      // Can only receive on the same day
       return entryDate.getTime() === today.getTime();
     }
-
-
-    // If no warehouseEntryDate, can receive (first receipt)
-    return true;
+    return false;
   };
+
+
+  const handleOpenReceiptModal = (product) => {
+    setSelectedProductForReceipt(product);
+    if (canDoInitialReceipt(product)) {
+      setShowInitialModal(true);
+    } else if (canDoAdditionalReceipt(product)) {
+      setShowAdditionalModal(true);
+    }
+  };
+
+
+  const canReceiveInventory = (product) => canDoInitialReceipt(product) || canDoAdditionalReceipt(product);
+
 
   const getReceiveDisabledReason = (product) => {
     if (product.receivingStatus === "RECEIVED") return "Already fully received (lot complete).";
@@ -290,7 +274,7 @@ const WareHouse = () => {
             className="h-11 rounded-xl border border-gray-200 bg-gray-50/50 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
           >
             <option value="all">All categories</option>
-            {categories.map((cat) => (
+            {categories?.map((cat) => (
               <option key={cat._id} value={cat._id}>{cat.name}</option>
             ))}
           </select>

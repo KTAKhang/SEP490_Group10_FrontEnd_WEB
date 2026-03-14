@@ -34,7 +34,7 @@ const BatchHistoryPage = () => {
         </div>
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">Batch History</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Chọn sản phẩm để xem lịch sử lô hàng</p>
+          <p className="text-sm text-gray-500 mt-0.5">Select a product to view batch history</p>
         </div>
       </div>
 
@@ -42,7 +42,7 @@ const BatchHistoryPage = () => {
         <div className="space-y-4">
           <div className="flex items-center space-x-2 mb-4">
             <Filter className="text-gray-400" size={20} />
-            <h2 className="text-lg font-semibold text-gray-800">Chọn sản phẩm</h2>
+            <h2 className="text-lg font-semibold text-gray-800">Select a product</h2>
           </div>
 
           <div className="relative">
@@ -52,7 +52,7 @@ const BatchHistoryPage = () => {
             />
             <input
               type="text"
-              placeholder="Tìm theo tên sản phẩm hoặc thương hiệu..."
+              placeholder="Search by product name or brand..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
@@ -60,11 +60,11 @@ const BatchHistoryPage = () => {
           </div>
 
           {productsLoading ? (
-            <Loading message="Đang tải sản phẩm..." />
+            <Loading message="Loading products..." />
           ) : (
             <div className="max-h-[60vh] overflow-y-auto rounded-xl border border-gray-200">
               {filteredProducts.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">Không tìm thấy sản phẩm</div>
+                <div className="p-8 text-center text-gray-500">No products found</div>
               ) : (
                 <div className="divide-y divide-gray-200">
                   {filteredProducts.map((product) => (
@@ -76,7 +76,7 @@ const BatchHistoryPage = () => {
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-900 truncate">{product.name}</p>
                         <p className="text-sm text-gray-500 mt-0.5">
-                          {product.brand || "—"} • Lô hiện tại #{product.batchNumber ?? "—"}
+                          {product.brand || "—"} • Current batch #{product.batchNumber ?? "—"}
                         </p>
                       </div>
                       <ChevronRight

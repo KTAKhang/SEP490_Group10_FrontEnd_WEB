@@ -32,21 +32,42 @@ const CartPage = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (!items || items.length === 0) { setSelectedItems([]); return; }
-    const preselected = items.filter((it) => it.selected === true).map((it) => it.product_id ?? it.productId);
-    if (preselected.length > 0) setSelectedItems(preselected);
-    else setSelectedItems(items.map((it) => it.product_id ?? it.productId));
+    if (!items || items.length === 0) {
+      setSelectedItems([]);
+      return;
+    }
+
+    const nonExpiredItems = items.filter((it) => !it.isExpired);
+    const preselected = items
+      .filter((it) => it.selected === true && !it.isExpired)
+      .map((it) => it.product_id ?? it.productId);
+
+    if (preselected.length > 0) {
+      setSelectedItems(preselected);
+    } else {
+      setSelectedItems(nonExpiredItems.map((it) => it.product_id ?? it.productId));
+    }
   }, [JSON.stringify(items)]);
 
-  const toggleSelectItem = (productId) => {
+  const toggleSelectItem = (productId, isExpired) => {
+    if (isExpired) return;
     setSelectedItems((prev) =>
       prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]
     );
   };
 
+  const nonExpiredItems = items.filter((it) => !it.isExpired);
+  const nonExpiredIds = nonExpiredItems.map((it) => it.product_id ?? it.productId);
+  const allNonExpiredSelected =
+    nonExpiredIds.length > 0 &&
+    nonExpiredIds.every((id) => selectedItems.includes(id));
+
   const toggleSelectAll = () => {
-    if (selectedItems.length === items.length) setSelectedItems([]);
-    else setSelectedItems(items.map((it) => it.product_id ?? it.productId));
+    if (allNonExpiredSelected) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems([...nonExpiredIds]);
+    }
   };
 
   const handleQuantityChange = (productId, value) => {
@@ -61,14 +82,19 @@ const CartPage = () => {
         dispatch(updateCartItemRequest(productId, parsedQty));
       }
     }
-    setEditingQuantity((prev) => { const s = { ...prev }; delete s[productId]; return s; });
+    setEditingQuantity((prev) => {
+      const s = { ...prev };
+      delete s[productId];
+      return s;
+    });
   };
 
   const handleQuantityKeyPress = (e, productId, currentQty) => {
     if (e.key === "Enter") e.target.blur();
   };
 
-  const isAllSelected = selectedItems.length === cart.items?.length && cart.items?.length > 0;
+  const isAllSelected =
+    nonExpiredIds.length > 0 && allNonExpiredSelected;
 
   const formatPrice = (price) =>
     new Intl.NumberFormat("vi-VN").format(price) + "₫";
@@ -98,12 +124,27 @@ const CartPage = () => {
   }, [checkout.checkout_session_id, checkout.message, navigate]);
 
   const handleCheckout = () => {
-    if (!items || items.length === 0) { alert("Cart is empty"); return; }
-    if (!selectedItems || selectedItems.length === 0) { alert("Please select at least one product to proceed to checkout"); return; }
-    const sessionId = window.crypto && crypto.randomUUID
-      ? crypto.randomUUID()
-      : `cs_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-    dispatch(checkoutHoldRequest(selectedItems, sessionId));
+    if (!items || items.length === 0) {
+      alert("Cart is empty");
+      return;
+    }
+
+    const eligibleSelected = selectedItems.filter((pid) => {
+      const item = items.find((it) => (it.product_id ?? it.productId) === pid);
+      return item && !item.isExpired;
+    });
+
+    if (!eligibleSelected || eligibleSelected.length === 0) {
+      alert("Please select at least one valid product to proceed to checkout. Expired items cannot be checked out.");
+      return;
+    }
+
+    const sessionId =
+      window.crypto && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `cs_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+
+    dispatch(checkoutHoldRequest(eligibleSelected, sessionId));
   };
 
   const LoadingOverlay = ({ message }) => (
@@ -177,7 +218,12 @@ const CartPage = () => {
                       {isAllSelected && <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                     </div>
                     <span style={{ fontWeight: 600, color: "#374151", fontSize: 14 }}>
-                      Select All ({selectedCount}/{cart.items?.length} items)
+                      Select All ({selectedCount}/{nonExpiredIds.length} items)
+                      {items.some((it) => it.isExpired) && (
+                        <span style={{ color: "#dc2626", fontWeight: 500, marginLeft: 6 }}>
+                          ({items.filter((it) => it.isExpired).length} expired — remove to checkout)
+                        </span>
+                      )}
                     </span>
                   </label>
 
@@ -186,7 +232,7 @@ const CartPage = () => {
                       onClick={() => {
                         if (!cart?.items || cart.items.length === 0) { alert("Cart is empty"); return; }
                         if (window.confirm("Are you sure you want to clear your entire cart?")) {
-                          const allProductIds = cart.items.map((item) => item.product_id._id || item.product_id);
+                          const allProductIds = cart.items.map((item) => item.product_id?._id || item.product_id || item.productId);
                           dispatch(removeCartItemRequest(allProductIds));
                         }
                       }}
@@ -201,6 +247,7 @@ const CartPage = () => {
                 <div>
                   {items.map((item, idx) => {
                     const pid = item.product_id ?? item.productId;
+                    const expired = item.isExpired ?? false;
                     const name = item.product?.name ?? item.name ?? "Product";
                     const warning = item?.warning;
                     const image = item.product?.image ?? item.image ?? "../../../public/a1.png";
@@ -217,7 +264,7 @@ const CartPage = () => {
                         style={{
                           padding: "20px 24px",
                           borderBottom: idx < items.length - 1 ? "1px solid #f3f4f6" : "none",
-                          background: isSelected ? "linear-gradient(90deg, #f0fdf4 0%, #fff 100%)" : "#fff",
+                          background: isSelected ? "linear-gradient(90deg, #f0fdf4 0%, #fff 100%)" : expired ? "#fef2f2" : "#fff",
                           transition: "background 0.2s",
                           display: "flex",
                           alignItems: "flex-start",
@@ -226,13 +273,15 @@ const CartPage = () => {
                       >
                         {/* Checkbox */}
                         <div
-                          onClick={() => toggleSelectItem(pid)}
+                          onClick={() => !expired && toggleSelectItem(pid, expired)}
                           style={{
                             width: 20, height: 20, borderRadius: 6, flexShrink: 0, marginTop: 4,
                             border: isSelected ? "none" : "2px solid #d1d5db",
                             background: isSelected ? "#16a34a" : "#fff",
                             display: "flex", alignItems: "center", justifyContent: "center",
-                            cursor: "pointer", transition: "all 0.15s"
+                            cursor: expired ? "not-allowed" : "pointer",
+                            opacity: expired ? 0.5 : 1,
+                            transition: "all 0.15s"
                           }}
                         >
                           {isSelected && <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
@@ -245,7 +294,7 @@ const CartPage = () => {
                             src={image}
                             style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 14, border: "1.5px solid #e5e7eb", display: "block" }}
                           />
-                          {isNearExpiry && (
+                          {isNearExpiry && !expired && (
                             <span style={{
                               position: "absolute", top: -6, right: -6,
                               background: "#f59e0b", color: "#fff",
@@ -253,22 +302,39 @@ const CartPage = () => {
                               textTransform: "uppercase", letterSpacing: "0.05em"
                             }}>Sale</span>
                           )}
+                          {expired && (
+                            <span style={{
+                              position: "absolute", top: -6, right: -6,
+                              background: "#dc2626", color: "#fff",
+                              fontSize: 9, fontWeight: 700, padding: "2px 5px", borderRadius: 4,
+                              textTransform: "uppercase", letterSpacing: "0.05em"
+                            }}>Expired</span>
+                          )}
                         </div>
 
                         {/* Info */}
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <h3 style={{ fontWeight: 700, color: "#111827", margin: "0 0 4px", fontSize: 15, lineHeight: 1.3 }}>{name}</h3>
 
-                          {isNearExpiry && originalPrice != null && originalPrice > 0 && (
+                          {expired && (
+                            <span style={{
+                              display: "inline-block", fontSize: 11, fontWeight: 600, padding: "2px 10px", borderRadius: 20, marginBottom: 8,
+                              background: "#fee2e2", color: "#dc2626"
+                            }}>
+                              Expired — please remove from cart
+                            </span>
+                          )}
+
+                          {isNearExpiry && !expired && originalPrice != null && originalPrice > 0 && (
                             <span style={{ fontSize: 12, color: "#9ca3af", textDecoration: "line-through", display: "block", marginBottom: 2 }}>
                               Price/Kg: {formatPrice(originalPrice)}
                             </span>
                           )}
-                          <span style={{ fontSize: 12,fontWeight: 700, color: "#fa2a05", display: "block", marginBottom: 2 }}>
-                              Price/Kg: {formatPrice(price)}
-                            </span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: "#fa2a05", display: "block", marginBottom: 2 }}>
+                            Price/Kg: {formatPrice(price)}
+                          </span>
 
-                          {warning && (
+                          {warning && !expired && (
                             <span style={{
                               display: "inline-block",
                               fontSize: 11, fontWeight: 600, padding: "2px 10px", borderRadius: 20, marginBottom: 8,
@@ -286,8 +352,14 @@ const CartPage = () => {
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                               <div style={{ display: "flex", alignItems: "center", border: "1.5px solid #e5e7eb", borderRadius: 10, overflow: "hidden", background: "#f9fafb" }}>
                                 <button
-                                  onClick={() => dispatch(updateCartItemRequest(pid, Math.max(1, Number(qty) - 1)))}
-                                  style={{ width: 36, height: 36, background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#6b7280" }}
+                                  onClick={() => !expired && dispatch(updateCartItemRequest(pid, Math.max(1, Number(qty) - 1)))}
+                                  disabled={expired}
+                                  style={{
+                                    width: 36, height: 36, background: "none", border: "none",
+                                    cursor: expired ? "not-allowed" : "pointer",
+                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                    color: "#6b7280", opacity: expired ? 0.5 : 1
+                                  }}
                                 >
                                   <Minus size={14} />
                                 </button>
@@ -295,18 +367,25 @@ const CartPage = () => {
                                   type="number"
                                   min="1"
                                   value={displayQty}
-                                  onChange={(e) => handleQuantityChange(pid, e.target.value)}
-                                  onBlur={() => handleQuantityBlur(pid, qty)}
+                                  onChange={(e) => !expired && handleQuantityChange(pid, e.target.value)}
+                                  onBlur={() => !expired && handleQuantityBlur(pid, qty)}
                                   onKeyPress={(e) => handleQuantityKeyPress(e, pid, qty)}
+                                  disabled={expired}
                                   style={{
-                                    width: 40, textAlign: "center", border: "none", background: "transparent",
+                                    width: 40, textAlign: "center", border: "none", background: expired ? "#f3f4f6" : "transparent",
                                     fontWeight: 700, fontSize: 14, color: "#111827", outline: "none",
                                     MozAppearance: "textfield"
                                   }}
                                 />
                                 <button
-                                  onClick={() => dispatch(updateCartItemRequest(pid, Math.max(1, Number(qty) + 1)))}
-                                  style={{ width: 36, height: 36, background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#6b7280" }}
+                                  onClick={() => !expired && dispatch(updateCartItemRequest(pid, Math.max(1, Number(qty) + 1)))}
+                                  disabled={expired}
+                                  style={{
+                                    width: 36, height: 36, background: "none", border: "none",
+                                    cursor: expired ? "not-allowed" : "pointer",
+                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                    color: "#6b7280", opacity: expired ? 0.5 : 1
+                                  }}
                                 >
                                   <Plus size={14} />
                                 </button>
@@ -351,8 +430,6 @@ const CartPage = () => {
                   <span style={{ color: "#6b7280", fontSize: 14 }}>Subtotal ({selectedCount} items)</span>
                   <span style={{ fontWeight: 600, color: "#111827", fontSize: 15 }}>{formatPrice(calculateSubtotal())}</span>
                 </div>
-
-                
 
                 {/* Discount */}
                 {appliedDiscount && (

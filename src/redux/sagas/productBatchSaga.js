@@ -46,11 +46,11 @@ function* getProductBatchHistorySaga(action) {
         })
       );
     } else {
-      throw new Error(response.message || "Không thể tải lịch sử lô hàng");
+      throw new Error(response.message || "Cannot load batch history");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải lịch sử lô hàng";
+      error.response?.data?.message || error.message || "Cannot load batch history";
     yield put(getProductBatchHistoryFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -62,13 +62,13 @@ function* resetProductBatchSaga(action) {
     const response = yield call(apiResetProductBatch, productId, completionReason);
     if (response.status === "OK") {
       yield put(resetProductBatchSuccess(response.data));
-      toast.success(response.message || "Reset lô hàng thành công");
+      toast.success(response.message || "Batch reset successfully");
     } else {
-      throw new Error(response.message || "Không thể reset lô hàng");
+      throw new Error(response.message || "Cannot reset batch");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể reset lô hàng";
+      error.response?.data?.message || error.message || "Cannot reset batch";
     yield put(resetProductBatchFailure(errorMessage));
     toast.error(errorMessage);
   }

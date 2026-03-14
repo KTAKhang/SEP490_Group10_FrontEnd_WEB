@@ -13,7 +13,7 @@ const EditReview = () => {
   const { reviewId } = useParams();
   const location = useLocation();
  
-  // ✅ Lấy review data từ location state (nếu có) hoặc từ order detail
+  // Get review data from location state (if any) or from order detail
   const reviewFromState = location.state?.review;
  
   const { updateReviewLoading, updateReviewError, updateReviewSuccess } = useSelector(
@@ -31,13 +31,13 @@ const EditReview = () => {
   const [editMessage, setEditMessage] = useState("");
 
 
-  // ✅ Validate: Kiểm tra editedCount và 3-day window
+  // Validate: Check editedCount and 3-day window
   useEffect(() => {
     if (reviewFromState) {
       const editedCount = reviewFromState.editedCount || 0;
       const createdAt = reviewFromState.createdAt ? new Date(reviewFromState.createdAt) : null;
      
-      // Kiểm tra editedCount
+      // Check editedCount
       if (editedCount >= 1) {
         setCanEdit(false);
         setEditMessage("Review can only be edited once. You have already edited this review.");
@@ -45,7 +45,7 @@ const EditReview = () => {
       }
 
 
-      // Kiểm tra 3-day window
+      // Check 3-day window
       if (createdAt) {
         const now = new Date();
         const diffDays = Math.floor((now - createdAt) / (1000 * 60 * 60 * 24));
@@ -100,7 +100,7 @@ const EditReview = () => {
     formData.append("rating", rating);
     formData.append("comment", comment.trim());
    
-    // ✅ Gửi existing images và imagePublicIds (để backend biết giữ lại ảnh nào)
+    // Send existing images and imagePublicIds (so backend knows which to keep)
     if (existingImages.length > 0) {
       formData.append("existingImages", JSON.stringify(existingImages));
     }
@@ -123,7 +123,7 @@ const EditReview = () => {
     if (files.length === 0) return;
 
 
-    // ✅ Tổng số ảnh (existing + new) không được vượt quá 3
+    // Total images (existing + new) must not exceed 3
     const totalImages = existingImages.length + newImageFiles.length;
     const allowed = files.slice(0, Math.max(0, 3 - totalImages));
     setNewImageFiles((prev) => [...prev, ...allowed]);
@@ -168,7 +168,7 @@ const EditReview = () => {
             className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6"
           >
             <ArrowLeft size={16} className="mr-2" />
-            Quay lại đơn hàng
+            Go back to order
           </Link>
           <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900">
             Edit review
@@ -180,13 +180,13 @@ const EditReview = () => {
       </section>
 
 
-      {/* ✅ Thông báo quy định */}
+      {/* Edit rules notice */}
       <section className="py-4">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h3 className="text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
               <AlertCircle size={16} />
-              Quy định chỉnh sửa đánh giá
+              Edit review rules
             </h3>
             <ul className="text-xs text-blue-800 space-y-1 list-disc list-inside">
               <li>You can edit your review <strong>only once</strong></li>
@@ -213,14 +213,14 @@ const EditReview = () => {
                     to="/customer/orders"
                     className="inline-block mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
                   >
-                    Quay lại đơn hàng
+                    Go back to order
                   </Link>
                 </div>
               </div>
             </div>
           ) : !reviewId ? (
             <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-red-700">
-              Thiếu thông tin review để chỉnh sửa.
+              Missing review information to edit.
             </div>
           ) : (
             <form
@@ -259,7 +259,7 @@ const EditReview = () => {
                   rows={5}
                   maxLength={1000}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."
+                  placeholder="Share your experience with this product..."
                 />
                 <div className="text-xs text-gray-500 mt-1">{comment.length}/1000</div>
               </div>
@@ -270,7 +270,7 @@ const EditReview = () => {
                   Review images (max 3)
                 </label>
                
-                {/* ✅ Hiển thị ảnh hiện tại */}
+                {/* Current images */}
                 {existingImages.length > 0 && (
                   <div className="mb-3">
                     <p className="text-xs text-gray-600 mb-2">Current images:</p>
@@ -308,7 +308,7 @@ const EditReview = () => {
                 )}
 
 
-                {/* ✅ Hiển thị preview ảnh mới */}
+                {/* New image previews */}
                 {newImagePreviews.length > 0 && (
                   <div className="mt-3">
                     <p className="text-xs text-gray-600 mb-2">New images:</p>
@@ -335,8 +335,8 @@ const EditReview = () => {
 
 
                 <p className="text-xs text-gray-500 mt-1">
-                  Đã chọn {totalImages}/3 ảnh
-                  {existingImages.length > 0 && ` (${existingImages.length} ảnh hiện tại, ${newImageFiles.length} ảnh mới)`}
+                  Selected {totalImages}/3 images
+                  {existingImages.length > 0 && ` (${existingImages.length} current, ${newImageFiles.length} new)`}
                 </p>
               </div>
 
@@ -360,7 +360,7 @@ const EditReview = () => {
                   disabled={!canSubmit || updateReviewLoading}
                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {updateReviewLoading ? "Đang cập nhật..." : "Cập nhật đánh giá"}
+                  {updateReviewLoading ? "Updating..." : "Update review"}
                 </button>
               </div>
             </form>

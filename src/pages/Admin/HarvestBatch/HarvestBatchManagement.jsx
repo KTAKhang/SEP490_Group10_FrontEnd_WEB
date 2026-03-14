@@ -32,6 +32,8 @@ const HarvestBatchManagement = () => {
     harvestBatches,
     harvestBatchesLoading,
     harvestBatchesPagination,
+    harvestBatchDetail,
+    harvestBatchDetailLoading,
     deleteHarvestBatchLoading,
     deleteHarvestBatchError,
   } = useSelector((state) => state.supplier);
@@ -92,12 +94,14 @@ const HarvestBatchManagement = () => {
   const handleUpdateEligible = (batch) => {
     setSelectedBatch(batch);
     setShowUpdateEligibleModal(true);
+    dispatch(getHarvestBatchByIdRequest(batch._id));
   };
 
 
   const handleUpdateVisible = (batch) => {
     setSelectedBatch(batch);
     setShowUpdateVisibleModal(true);
+    dispatch(getHarvestBatchByIdRequest(batch._id));
   };
 
 
@@ -494,7 +498,8 @@ const HarvestBatchManagement = () => {
             setShowUpdateEligibleModal(false);
             setSelectedBatch(null);
           }}
-          batch={selectedBatch}
+          batch={harvestBatchDetail?._id === selectedBatch?._id ? harvestBatchDetail : selectedBatch}
+          batchLoading={harvestBatchDetailLoading}
           onSuccess={refreshList}
         />
       )}
@@ -507,7 +512,8 @@ const HarvestBatchManagement = () => {
             setShowUpdateVisibleModal(false);
             setSelectedBatch(null);
           }}
-          batch={selectedBatch}
+          batch={harvestBatchDetail?._id === selectedBatch?._id ? harvestBatchDetail : selectedBatch}
+          batchLoading={harvestBatchDetailLoading}
           onSuccess={refreshList}
         />
       )}

@@ -37,7 +37,7 @@ const getCompletionReasonLabel = (reason, apiLabel) => {
   }
 };
 
-/** Product display từ snapshot (productDisplay / productSnapshot), fallback sang product và các field *Snapshot cũ */
+/** Product display from snapshot (productDisplay / productSnapshot), fallback to product and legacy *Snapshot fields */
 export const getProductDisplayFromBatch = (batch, product) => {
   const display = batch?.productDisplay || batch?.productSnapshot || {};
   return {
@@ -52,13 +52,13 @@ export const getProductDisplayFromBatch = (batch, product) => {
   };
 };
 
-/** Tên sản phẩm để hiển thị (ưu tiên snapshot đã chốt) */
+/** Product display name (prefer closed snapshot) */
 export const getProductDisplayName = (batch, product) =>
   batch?.productDisplay?.name ?? batch?.productSnapshot?.name ?? product?.name ?? batch?.productNameSnapshot ?? "—";
 
 /**
  * Shared content for batch detail (used in modal and full page).
- * Hiển thị thông tin sản phẩm từ productDisplay/snapshot (đã chốt lô), không từ Product hiện tại.
+ * Displays product info from productDisplay/snapshot (closed batch data), not from current Product.
  */
 export const BatchHistoryDetailContent = ({ batch, product }) => {
   const selectedBatch = batch;
@@ -71,28 +71,28 @@ export const BatchHistoryDetailContent = ({ batch, product }) => {
 
   return (
     <div className="p-6 space-y-6">
-          {/* Product Info - từ productDisplay/snapshot (dữ liệu đã chốt lô, độc lập với Product hiện tại) */}
+          {/* Product Info - from productDisplay/snapshot (closed batch data, independent of current Product) */}
           {hasProductInfo && (
             <div className="bg-gray-50 rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center space-x-2">
                 <Package2 size={20} />
-                <span>Thông tin sản phẩm (tại thời điểm chốt lô)</span>
+                <span>Product information (at batch close time)</span>
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-500">Tên sản phẩm</p>
+                  <p className="text-sm text-gray-500">Product name</p>
                   <p className="text-base font-medium text-gray-900">
                     {productDisplay.name || "N/A"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Thương hiệu</p>
+                  <p className="text-sm text-gray-500">Brand</p>
                   <p className="text-base font-medium text-gray-900">
                     {productDisplay.brand || "N/A"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Danh mục</p>
+                  <p className="text-sm text-gray-500">Category</p>
                   <p className="text-base font-medium text-gray-900">
                     {productDisplay.categoryName || "N/A"}
                   </p>
@@ -101,24 +101,24 @@ export const BatchHistoryDetailContent = ({ batch, product }) => {
                   <>
                     {productDisplay.short_desc && (
                       <div className="col-span-2">
-                        <p className="text-sm text-gray-500">Mô tả ngắn</p>
+                        <p className="text-sm text-gray-500">Short description</p>
                         <p className="text-base font-medium text-gray-900">{productDisplay.short_desc}</p>
                       </div>
                     )}
                     {productDisplay.detail_desc && (
                       <div className="col-span-2">
-                        <p className="text-sm text-gray-500">Mô tả chi tiết</p>
+                        <p className="text-sm text-gray-500">Detailed description</p>
                         <p className="text-base font-medium text-gray-900">{productDisplay.detail_desc}</p>
                       </div>
                     )}
                   </>
                 )}
                 <div>
-                  <p className="text-sm text-gray-500">Giá bán (tại thời điểm chốt)</p>
+                  <p className="text-sm text-gray-500">Sell price (at close time)</p>
                   <p className="text-base font-medium text-gray-900">{formatVND(productDisplay.price)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Giá vốn (tại thời điểm chốt)</p>
+                  <p className="text-sm text-gray-500">Cost price (at close time)</p>
                   <p className="text-base font-medium text-gray-900">{formatVND(productDisplay.purchasePrice)}</p>
                 </div>
               </div>
@@ -296,12 +296,15 @@ export const BatchHistoryDetailContent = ({ batch, product }) => {
                     </div>
                   </>
                 )}
+              </div>
+              {/* 5 thuộc tính lợi nhuận/lỗ — hàng ngang */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mt-4">
                 <div className="border border-green-200 rounded-lg p-4 bg-green-50">
                   <p className="text-sm text-green-700 mb-1">
-                    Doanh thu
+                    Revenue
                     {(selectedBatch.financial?.actualRevenue ?? selectedBatch.actualRevenue) > 0
-                      ? " (từ đơn hàng)"
-                      : " (ước tính: số bán × đơn giá)"}
+                      ? " (from orders)"
+                      : " (estimated: sold × unit price)"}
                   </p>
                   <p className="text-base font-semibold text-green-900">
                     {formatVND(selectedBatch.financial?.revenue ?? selectedBatch.revenue ?? selectedBatch.actualRevenue)}
@@ -310,7 +313,7 @@ export const BatchHistoryDetailContent = ({ batch, product }) => {
                     (selectedBatch.financial?.actualRevenue ?? 0) > 0 &&
                     Math.abs((selectedBatch.financial?.revenue ?? 0) - (selectedBatch.financial?.revenueTheoretical ?? 0)) > 0.01 && (
                     <p className="text-xs text-green-600 mt-1">
-                      Ước tính: {formatVND(selectedBatch.financial.revenueTheoretical)}
+                      Estimated: {formatVND(selectedBatch.financial.revenueTheoretical)}
                     </p>
                   )}
                 </div>
@@ -318,6 +321,12 @@ export const BatchHistoryDetailContent = ({ batch, product }) => {
                   <p className="text-sm text-blue-700 mb-1">Gross profit</p>
                   <p className="text-base font-semibold text-blue-900">
                     {formatVND(selectedBatch.financial?.grossProfit)}
+                  </p>
+                </div>
+                <div className="border border-emerald-200 rounded-lg p-4 bg-emerald-50">
+                  <p className="text-sm text-emerald-700 mb-1">Actual profit</p>
+                  <p className="text-base font-semibold text-emerald-900">
+                    {formatVND(selectedBatch.financial?.actualProfit)}
                   </p>
                 </div>
                 <div className="border border-red-200 rounded-lg p-4 bg-red-50">
