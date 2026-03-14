@@ -23,6 +23,7 @@ import {
   MessageCircle,
   Search,
 } from 'lucide-react';
+import { isProductExpired } from '../../utils/productUtils';
 
 
 export default function ProductDetailPage() {
@@ -155,12 +156,15 @@ export default function ProductDetailPage() {
         : [];
 
 
+  const productExpired = isProductExpired(product);
+  const canAddToCart = product.onHandQuantity > 0 && !productExpired;
+
   const handleAddToCart = () => {
     if (!storedUser) {
       navigate('/login');
       return;
     }
-    if (product.onHandQuantity > 0) {
+    if (canAddToCart) {
       dispatch(addItemToCartRequest(product._id, 1));
     }
   };
@@ -224,7 +228,12 @@ export default function ProductDetailPage() {
                       No image available
                     </div>
                   )}
-                  {product.isNearExpiry && product.originalPrice != null && product.originalPrice > 0 && (
+                  {productExpired && (
+                    <div className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-red-500 text-white text-xs font-semibold shadow-md">
+                      Expired
+                    </div>
+                  )}
+                  {!productExpired && product.isNearExpiry && product.originalPrice != null && product.originalPrice > 0 && (
                     <div className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-amber-500 text-white text-xs font-semibold shadow-md">
                       {Math.round((1 - (product.price || 0) / product.originalPrice) * 100)}% off
                     </div>
@@ -300,10 +309,15 @@ export default function ProductDetailPage() {
                       </span>
                     </div>
                   </div>
-                  {product.onHandQuantity !== undefined && (
+                  {(product.onHandQuantity !== undefined || productExpired) && (
                     <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2 border-b border-stone-100 pb-4">
                       <span className="text-stone-500 text-sm font-medium min-w-[7rem]">Status:</span>
-                      {product.onHandQuantity > 0 ? (
+                      {productExpired ? (
+                        <span className="inline-flex items-center gap-1.5 text-red-600 font-medium">
+                          <span className="w-2 h-2 rounded-full bg-red-500" />
+                          Expired
+                        </span>
+                      ) : product.onHandQuantity > 0 ? (
                         <span className="inline-flex items-center gap-1.5 text-emerald-700 font-medium">
                           <span className="w-2 h-2 rounded-full bg-emerald-500" />
                           In stock
@@ -333,15 +347,15 @@ export default function ProductDetailPage() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={handleAddToCart}
-                    disabled={product.onHandQuantity === 0}
+                    disabled={!canAddToCart}
                     className={`flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold transition-all ${
-                      product.onHandQuantity === 0
+                      !canAddToCart
                         ? 'bg-stone-300 text-stone-500 cursor-not-allowed'
                         : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-md hover:shadow-lg cursor-pointer'
                     }`}
                   >
                     <ShoppingCart className="w-5 h-5" />
-                    {product.onHandQuantity === 0 ? 'Out of stock' : 'Add to cart'}
+                    {productExpired ? 'Expired' : product.onHandQuantity === 0 ? 'Out of stock' : 'Add to cart'}
                   </button>
                   {storedUser && (
                     <button
@@ -451,6 +465,14 @@ export default function ProductDetailPage() {
                           {product.warehouseEntryDateStr.split('-').reverse().join('/')}
                         </p>
                       </div>
+                    </div>
+                  )}
+                  {product.expiryDateStr && (
+                    <div className="sm:col-span-2 mt-2 p-4 rounded-xl bg-emerald-50/80 border border-emerald-200/60">
+                      <p className="text-sm font-medium text-emerald-800 mb-1">Note on expiry date:</p>
+                      <p className="text-sm text-emerald-700 leading-relaxed">
+                        The expiry date displayed on the product has been estimated by us in advance to ensure quality upon delivery to the customer. Even if you order close to the last day of the expiry date, the product will still have an appropriate period for you to use after receiving it.
+                      </p>
                     </div>
                   )}
                 </div>

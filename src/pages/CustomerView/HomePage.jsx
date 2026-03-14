@@ -7,6 +7,7 @@ import Loading from '../../components/Loading/Loading';
 import { getFeaturedProductsRequest } from '../../redux/actions/publicProductActions';
 import { getHomepageAssetsPublicRequest } from '../../redux/actions/homepageAssetsActions';
 import { addItemToCartRequest } from "../../redux/actions/cartActions";
+import { isProductExpired } from "../../utils/productUtils";
 const HomePage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -372,11 +373,11 @@ useEffect(() => {
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16">
-            <h2 className="text-5xl md:text-6xl font-black text-gray-900 mb-4 md:mb-0">
+          <div className="mb-16">
+            <h2 className="text-5xl md:text-6xl font-black text-gray-900 mb-3">
               Featured Products
             </h2>
-            <p className="text-gray-600 max-w-md">
+            <p className="text-gray-600 max-w-2xl">
               The most popular products, fresh and guaranteed to have the
               highest organic quality.
             </p>
@@ -410,11 +411,11 @@ useEffect(() => {
                       alt={product.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
-                    {/* Out of Stock Badge */}
-                    {product.onHandQuantity === 0 && (
+                    {/* Expired / Out of Stock Badge */}
+                    {(isProductExpired(product) || product.onHandQuantity === 0) && (
                       <div className="absolute top-4 left-4">
                         <span className="inline-flex items-center px-3 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold shadow-lg">
-                          Out of stock
+                          {isProductExpired(product) ? "Expired" : "Out of stock"}
                         </span>
                       </div>
                     )}
@@ -453,17 +454,17 @@ useEffect(() => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (product.onHandQuantity === 0) return;
+                          if (product.onHandQuantity === 0 || isProductExpired(product)) return;
                           dispatch(addItemToCartRequest(product._id, 1));
                         }}
-                        disabled={product.onHandQuantity === 0}
+                        disabled={product.onHandQuantity === 0 || isProductExpired(product)}
                         className={`px-6 py-3 rounded-full text-sm font-semibold transition-colors whitespace-nowrap ${
-                          product.onHandQuantity === 0
+                          product.onHandQuantity === 0 || isProductExpired(product)
                             ? "bg-gray-400 text-white cursor-not-allowed"
                             : "bg-gray-900 text-white hover:bg-gray-800 cursor-pointer"
                         }`}
                       >
-                        Add to Cart
+                        {isProductExpired(product) ? "Expired" : product.onHandQuantity === 0 ? "Out of stock" : "Add to Cart"}
                       </button>
                     </div>
                   </div>

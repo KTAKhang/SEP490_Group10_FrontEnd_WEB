@@ -11,8 +11,6 @@ import {
   CheckCircle,
   TrendingDown,
   Filter,
-  Download,
-  Upload,
   Eye,
   EyeOff,
 } from "lucide-react";
@@ -217,14 +215,6 @@ dispatch(getCategoriesRequest({ page: 1, limit: 100 }));
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50">
-            <Upload size={18} />
-            Import Excel
-          </button>
-          <button className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50">
-            <Download size={18} />
-            Export Excel
-          </button>
           <button onClick={handleAddProduct} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-700 hover:shadow">
             <Plus size={18} />
             Add product

@@ -4,7 +4,7 @@ import { X, Package, Eye, EyeOff } from "lucide-react";
 import { updateHarvestBatchRequest } from "../../../../redux/actions/supplierActions";
 
 
-const UpdateVisible = ({ isOpen, onClose, batch, onSuccess }) => {
+const UpdateVisible = ({ isOpen, onClose, batch, batchLoading, onSuccess }) => {
   const dispatch = useDispatch();
   const { updateHarvestBatchLoading, updateHarvestBatchError } = useSelector(
     (state) => state.supplier
@@ -14,10 +14,10 @@ const UpdateVisible = ({ isOpen, onClose, batch, onSuccess }) => {
 
 
   useEffect(() => {
-    if (batch) {
+    if (batch && !batchLoading) {
       setValue(batch.visibleInReceipt !== false);
     }
-  }, [batch]);
+  }, [batch, batchLoading]);
 
 
   useEffect(() => {
@@ -128,10 +128,10 @@ const UpdateVisible = ({ isOpen, onClose, batch, onSuccess }) => {
             </button>
             <button
               type="submit"
-              disabled={updateHarvestBatchLoading}
+              disabled={updateHarvestBatchLoading || batchLoading}
               className="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {updateHarvestBatchLoading ? "Updating..." : "Update"}
+              {updateHarvestBatchLoading ? "Updating..." : batchLoading ? "Loading..." : "Update"}
             </button>
           </div>
         </form>

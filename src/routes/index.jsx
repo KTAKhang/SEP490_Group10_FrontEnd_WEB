@@ -26,7 +26,7 @@ import OrderLogHistoryPage from "../pages/Admin/OrderLogHistory/OrderLogHistoryP
 import WarehouseStaffLayout from "../layout/WarehouseStaffLayout";
 import WarehouseStaffPage from "../pages/WarehouseStaff/WarehouseStaffPage";
 import WarehouseStaffWareHouse from "../pages/WarehouseStaff/Warehouse/WareHouse";
-import WarehouseHarvestBatchManagement from "../pages/WarehouseStaff/Warehouse/HarvestBatchManagement";
+import WarehouseHarvestBatchManagement from "../pages/WarehouseStaff/HarvestBatch/HarvestBatchManagement";
 import PreOrderStockPage from "../pages/WarehouseStaff/PreOrderStock/PreOrderStockPage";
 import ProfileManagement from "../pages/ProfileManagement/ProfileManagerment";
 import UpdatePassword from "../pages/ProfileManagement/UpdatePassword";

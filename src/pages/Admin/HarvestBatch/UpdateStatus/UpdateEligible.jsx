@@ -4,7 +4,7 @@ import { X, Package, CheckCircle, XCircle } from "lucide-react";
 import { updateHarvestBatchRequest } from "../../../../redux/actions/supplierActions";
 
 
-const UpdateEligible = ({ isOpen, onClose, batch, onSuccess }) => {
+const UpdateEligible = ({ isOpen, onClose, batch, batchLoading, onSuccess }) => {
   const dispatch = useDispatch();
   const { updateHarvestBatchLoading, updateHarvestBatchError } = useSelector(
     (state) => state.supplier
@@ -122,10 +122,10 @@ const UpdateEligible = ({ isOpen, onClose, batch, onSuccess }) => {
             </button>
             <button
               type="submit"
-              disabled={updateHarvestBatchLoading}
+              disabled={updateHarvestBatchLoading || batchLoading}
               className="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {updateHarvestBatchLoading ? "Updating..." : "Update"}
+              {updateHarvestBatchLoading ? "Updating..." : batchLoading ? "Loading..." : "Update"}
             </button>
           </div>
         </form>

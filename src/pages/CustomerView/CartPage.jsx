@@ -43,18 +43,20 @@ const CartPage = () => {
       return;
     }
 
+    const nonExpiredItems = items.filter((it) => !it.isExpired);
     const preselected = items
-      .filter((it) => it.selected === true)
+      .filter((it) => it.selected === true && !it.isExpired)
       .map((it) => it.product_id ?? it.productId);
 
     if (preselected.length > 0) {
       setSelectedItems(preselected);
     } else {
-      setSelectedItems(items.map((it) => it.product_id ?? it.productId));
+      setSelectedItems(nonExpiredItems.map((it) => it.product_id ?? it.productId));
     }
   }, [JSON.stringify(items)]);
 
-  const toggleSelectItem = (productId) => {
+  const toggleSelectItem = (productId, isExpired) => {
+    if (isExpired) return;
     setSelectedItems((prev) =>
       prev.includes(productId)
         ? prev.filter((id) => id !== productId)
@@ -62,11 +64,17 @@ const CartPage = () => {
     );
   };
 
+  const nonExpiredItems = items.filter((it) => !it.isExpired);
+  const nonExpiredIds = nonExpiredItems.map((it) => it.product_id ?? it.productId);
+  const allNonExpiredSelected =
+    nonExpiredIds.length > 0 &&
+    nonExpiredIds.every((id) => selectedItems.includes(id));
+
   const toggleSelectAll = () => {
-    if (selectedItems.length === items.length) {
+    if (allNonExpiredSelected) {
       setSelectedItems([]);
     } else {
-      setSelectedItems(items.map((it) => it.product_id ?? it.productId));
+      setSelectedItems([...nonExpiredIds]);
     }
   };
 
@@ -107,7 +115,7 @@ const CartPage = () => {
   };
 
   const isAllSelected =
-    selectedItems.length === cart.items?.length && cart.items?.length > 0;
+    nonExpiredIds.length > 0 && allNonExpiredSelected;
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN").format(price) + "₫";
@@ -154,8 +162,13 @@ const CartPage = () => {
       return;
     }
 
-    if (!selectedItems || selectedItems.length === 0) {
-      alert("Please select at least one product to proceed to checkout");
+    const eligibleSelected = selectedItems.filter((pid) => {
+      const item = items.find((it) => (it.product_id ?? it.productId) === pid);
+      return item && !item.isExpired;
+    });
+
+    if (!eligibleSelected || eligibleSelected.length === 0) {
+      alert("Please select at least one valid product to proceed to checkout. Expired items cannot be checked out.");
       return;
     }
 
@@ -164,7 +177,7 @@ const CartPage = () => {
         ? crypto.randomUUID()
         : `cs_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 
-    dispatch(checkoutHoldRequest(selectedItems, sessionId));
+    dispatch(checkoutHoldRequest(eligibleSelected, sessionId));
   };
 
   return (
@@ -210,12 +223,18 @@ const CartPage = () => {
                   className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
                 />
                 <h2 className="text-xl font-bold text-gray-900">
-                  ({selectedCount}/{cart.items?.length} products selected)
+                  ({selectedCount}/{nonExpiredIds.length} products selected)
+                  {items.some((it) => it.isExpired) && (
+                    <span className="text-sm font-normal text-red-600 ml-2">
+                      ({items.filter((it) => it.isExpired).length} expired — remove to checkout)
+                    </span>
+                  )}
                 </h2>
               </div>
               <div className="divide-y divide-gray-100">
                 {items.map((item) => {
                   const pid = item.product_id ?? item.productId;
+                  const expired = item.isExpired ?? false;
                   const name = item.product?.name ?? item.name ?? "Product";
                   const warning = item?.warning;
                   const image =
@@ -240,15 +259,18 @@ const CartPage = () => {
                       className={`p-6 transition-colors ${
                         selectedItems.includes(pid)
                           ? "bg-blue-50/30"
-                          : "bg-white"
+                          : expired
+                            ? "bg-red-50/30"
+                            : "bg-white"
                       }`}
                     >
                       <div className="flex items-start gap-4">
                         <input
                           type="checkbox"
                           checked={selectedItems.includes(pid)}
-                          onChange={() => toggleSelectItem(pid)}
-                          className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer mt-1"
+                          onChange={() => toggleSelectItem(pid, expired)}
+                          disabled={expired}
+                          className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer mt-1 disabled:opacity-50 disabled:cursor-not-allowed"
                         />
                         <div className="flex-shrink-0">
                           <img
@@ -261,7 +283,12 @@ const CartPage = () => {
                           <h3 className="font-bold text-gray-900 mb-2">
                             {name}
                           </h3>
-                          {isNearExpiry && (
+                          {expired && (
+                            <span className="inline-block text-xs font-medium px-2 py-0.5 rounded bg-red-500 text-white mb-2">
+                              Expired — please remove from cart
+                            </span>
+                          )}
+                          {isNearExpiry && !expired && (
                             <span className="inline-block text-xs font-medium px-2 py-0.5 rounded bg-amber-100 text-amber-800 mb-2">
                               Near expiry - Special price
                             </span>
@@ -274,16 +301,18 @@ const CartPage = () => {
                               </span>
                             )}
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="flex items-center border border-gray-200 rounded-lg">
+                          <div className="flex items-center gap-3">
+                                <div className="flex items-center border border-gray-200 rounded-lg">
                                 <button
                                   onClick={() => {
+                                    if (expired) return;
                                     const newQty = Math.max(1, Number(qty) - 1);
                                     dispatch(
                                       updateCartItemRequest(pid, newQty),
                                     );
                                   }}
-                                  className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 transition-colors"
+                                  disabled={expired}
+                                  className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                   <Minus className="w-4 h-4 text-gray-600" />
                                 </button>
@@ -292,22 +321,25 @@ const CartPage = () => {
                                   min="1"
                                   value={displayQty}
                                   onChange={(e) =>
-                                    handleQuantityChange(pid, e.target.value)
+                                    !expired && handleQuantityChange(pid, e.target.value)
                                   }
-                                  onBlur={() => handleQuantityBlur(pid, qty)}
+                                  onBlur={() => !expired && handleQuantityBlur(pid, qty)}
                                   onKeyPress={(e) =>
                                     handleQuantityKeyPress(e, pid, qty)
                                   }
-                                  className="w-12 text-center font-medium border-0 focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  disabled={expired}
+                                  className="w-12 text-center font-medium border-0 focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:bg-gray-100"
                                 />
                                 <button
                                   onClick={() => {
+                                    if (expired) return;
                                     const newQty = Math.max(1, Number(qty) + 1);
                                     dispatch(
                                       updateCartItemRequest(pid, newQty),
                                     );
                                   }}
-                                  className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 transition-colors"
+                                  disabled={expired}
+                                  className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                   <Plus className="w-4 h-4 text-gray-600" />
                                 </button>

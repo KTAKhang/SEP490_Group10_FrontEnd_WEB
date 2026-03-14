@@ -104,10 +104,10 @@ const CreateReview = () => {
             className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6"
           >
             <ArrowLeft size={16} className="mr-2" />
-            Quay lại đơn hàng
+            Go back to order
           </Link>
           <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900">
-            Đánh giá sản phẩm
+            Review product
           </h1>
           <p className="text-sm text-gray-600 mt-1">
             Only completed orders can be reviewed.
@@ -120,7 +120,7 @@ const CreateReview = () => {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           {!orderId || !productId ? (
             <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-red-700">
-              Thiếu thông tin đơn hàng hoặc sản phẩm để đánh giá.
+              Missing order or product information for review.
             </div>
           ) : (
             <form
@@ -128,7 +128,7 @@ const CreateReview = () => {
               className="bg-white border rounded-2xl shadow-sm p-6 space-y-6"
             >
               <div>
-                <div className="text-sm text-gray-600 mb-2">Đánh giá sao</div>
+                <div className="text-sm text-gray-600 mb-2">Star rating</div>
                 <div className="flex items-center gap-2">
                   {[1, 2, 3, 4, 5].map((value) => (
                     <button
@@ -151,7 +151,7 @@ const CreateReview = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nhận xét (tối đa 1000 ký tự)
+                  Comment (max 1000 characters)
                 </label>
                 <textarea
                   value={comment}
@@ -167,7 +167,7 @@ const CreateReview = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Ảnh đánh giá (tối đa 3 ảnh)
+                  Review images (max 3)
                 </label>
                 <input
                   type="file"
@@ -213,7 +213,7 @@ const CreateReview = () => {
                   disabled={!canSubmit || createReviewLoading}
                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {createReviewLoading ? "Đang gửi..." : "Gửi đánh giá"}
+                  {createReviewLoading ? "Submitting..." : "Submit review"}
                 </button>
               </div>
             </form>
