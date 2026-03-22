@@ -8,6 +8,7 @@ import PropTypes from "prop-types";
 import { fetchCartRequest } from "../../redux/actions/cartActions";
 import NotificationBell from "../NotificationBell/NotificationBell";
 import ChatForCustomer from "../../pages/CustomerView/ChatForCustomer";
+import FruitAiChatbot from "../FruitAiAssistant/FruitAiChatbot";
 
 
 const Header = ({ searchTerm, setSearchTerm }) => {
@@ -79,6 +80,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
 
   return (
     <>
+      <FruitAiChatbot />
       <ChatForCustomer />
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

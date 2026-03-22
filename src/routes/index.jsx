@@ -176,6 +176,7 @@ export const routes = [
       { path: "profile", element: <ProfileManagement /> },
       { path: "change-password", element: <UpdatePassword /> },
       { path: "reviews", element: <FeedbackStaffReviewManagement /> },
+      { path: "chat", element: <ChatForStaffPage /> },
 
     ],
   },

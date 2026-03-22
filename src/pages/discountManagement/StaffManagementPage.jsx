@@ -17,11 +17,12 @@ import {
 
 const StaffManagementPage = () => {
     const dispatch = useDispatch();
-    const { list = [], loading, pagination: pageMeta = { page: 1, limit: 10, total: 0 }, statistics: statsFromApi } = useSelector(
+    const { list = [], loading, pagination: pageMeta = { page: 1, limit: 10, total: 0 }, statistics: statsFromApi, detail: discountDetail } = useSelector(
         (state) => state.discount || {}
     );
 
     const [statusFilter, setStatusFilter] = useState("ALL");
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
     const [sortBy, setSortBy] = useState("createdAt");
     const [sortOrder, setSortOrder] = useState("desc");
     const [loadingRefresh, setLoadingRefresh] = useState(false);
@@ -102,6 +103,12 @@ const StaffManagementPage = () => {
             description: "",
         });
         setFormErrors({});
+    };
+
+    const handleViewDetail = (discount) => {
+        dispatch(discountDetailRequest(discount._id));
+        setSelectedDiscount(discount);
+        setIsDetailOpen(true);
     };
 
     const handleEdit = (discount) => {
@@ -269,6 +276,16 @@ const StaffManagementPage = () => {
         );
     };
 
+    const ActiveBadge = ({ isActive }) => (
+        <span
+            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
+            }`}
+        >
+            {isActive ? "Active" : "Inactive"}
+        </span>
+    );
+
     const filteredList = statusFilter === "ALL" ? list : list.filter((d) => d.status === statusFilter);
 
     return (
@@ -431,18 +448,27 @@ const StaffManagementPage = () => {
                                                 )}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {discount.status === "PENDING" && (
+                                                <div className="flex items-center gap-2">
                                                     <button
-                                                        onClick={() => handleEdit(discount)}
-                                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                                        title="Edit"
+                                                        onClick={() => handleViewDetail(discount)}
+                                                        className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                                        title="View detail"
                                                     >
-                                                        <i className="ri-edit-line text-lg"></i>
+                                                        <i className="ri-eye-line text-lg"></i>
                                                     </button>
-                                                )}
-                                                {discount.status !== "PENDING" && (
-                                                    <span className="text-sm text-gray-400">Cannot edit</span>
-                                                )}
+                                                    {discount.status === "PENDING" && (
+                                                        <button
+                                                            onClick={() => handleEdit(discount)}
+                                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                            title="Edit"
+                                                        >
+                                                            <i className="ri-edit-line text-lg"></i>
+                                                        </button>
+                                                    )}
+                                                    {discount.status !== "PENDING" && (
+                                                        <span className="text-sm text-gray-400">Cannot edit</span>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -517,6 +543,144 @@ const StaffManagementPage = () => {
                     )}
                 </div>
             </div>
+
+            {/* View Detail Modal */}
+            {isDetailOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6 border-b border-gray-100">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-2xl font-bold text-gray-900">Voucher Detail</h2>
+                                <button
+                                    onClick={() => setIsDetailOpen(false)}
+                                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                >
+                                    <i className="ri-close-line text-xl text-gray-600"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div className="p-6">
+                            {loading && (!discountDetail || discountDetail._id !== selectedDiscount?._id) ? (
+                                <div className="flex flex-col items-center justify-center py-8">
+                                    <i className="ri-loader-4-line text-4xl text-green-600 animate-spin"></i>
+                                    <p className="text-gray-600 mt-2">Loading detail...</p>
+                                </div>
+                            ) : discountDetail && discountDetail._id === selectedDiscount?._id ? (
+                                <div className="space-y-4 text-sm">
+                                    <div>
+                                        <span className="font-medium text-gray-500">Code</span>
+                                        <p className="font-semibold text-gray-900 mt-0.5">{discountDetail.code}</p>
+                                    </div>
+                                    {discountDetail.description && (
+                                        <div>
+                                            <span className="font-medium text-gray-500">Description</span>
+                                            <p className="text-gray-700 mt-0.5">{discountDetail.description}</p>
+                                        </div>
+                                    )}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <span className="font-medium text-gray-500">Discount</span>
+                                            <p className="text-gray-900 mt-0.5">{discountDetail.discountPercent}% off</p>
+                                        </div>
+                                        <div>
+                                            <span className="font-medium text-gray-500">Status</span>
+                                            <p className="mt-0.5">
+                                                <StatusBadge status={discountDetail.status} />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <span className="font-medium text-gray-500">Min order value</span>
+                                            <p className="text-gray-900 mt-0.5">
+                                                {Number(discountDetail.minOrderValue || 0).toLocaleString()} VND
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <span className="font-medium text-gray-500">Max discount amount</span>
+                                            <p className="text-gray-900 mt-0.5">
+                                                {Number(discountDetail.maxDiscountAmount || 0).toLocaleString()} VND
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <span className="font-medium text-gray-500">Start date</span>
+                                            <p className="text-gray-900 mt-0.5">
+                                                {discountDetail.startDate
+                                                    ? new Date(discountDetail.startDate).toLocaleDateString()
+                                                    : "—"}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <span className="font-medium text-gray-500">End date</span>
+                                            <p className="text-gray-900 mt-0.5">
+                                                {discountDetail.endDate
+                                                    ? new Date(discountDetail.endDate).toLocaleDateString()
+                                                    : "—"}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <span className="font-medium text-gray-500">Usage</span>
+                                            <p className="text-gray-900 mt-0.5">
+                                                {(discountDetail.actualUsageCount ?? discountDetail.usedCount ?? 0)} /{" "}
+                                                {discountDetail.usageLimit != null ? discountDetail.usageLimit : "∞"}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <span className="font-medium text-gray-500">Active</span>
+                                            <p className="mt-0.5">
+                                                <ActiveBadge isActive={discountDetail.isActive} />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {discountDetail.createdBy && (
+                                        <div>
+                                            <span className="font-medium text-gray-500">Created by</span>
+                                            <p className="text-gray-900 mt-0.5">
+                                                {discountDetail.createdBy.user_name || "N/A"}
+                                                {discountDetail.createdBy.email && (
+                                                    <span className="text-gray-500 text-xs block">
+                                                        {discountDetail.createdBy.email}
+                                                    </span>
+                                                )}
+                                            </p>
+                                        </div>
+                                    )}
+                                    {discountDetail.rejectedReason && (
+                                        <div>
+                                            <span className="font-medium text-gray-500">Rejection reason</span>
+                                            <p className="text-red-600 mt-0.5">{discountDetail.rejectedReason}</p>
+                                        </div>
+                                    )}
+                                    {discountDetail.createdAt && (
+                                        <div>
+                                            <span className="font-medium text-gray-500">Created at</span>
+                                            <p className="text-gray-700 mt-0.5">
+                                                {new Date(discountDetail.createdAt).toLocaleString()}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <p className="text-gray-500 py-4">Could not load voucher detail.</p>
+                            )}
+                            <div className="mt-6 pt-4 border-t border-gray-100 flex justify-end">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsDetailOpen(false)}
+                                    className="px-6 py-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
              {/* Create Discount Modal */}
             {isCreateOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
