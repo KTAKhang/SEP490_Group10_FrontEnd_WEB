@@ -1,5 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useSidebar } from "../../contexts/SidebarContext";
+import { useEffect, useState, useRef } from "react";
+import { socket } from "../../socket";
 import {
   LayoutDashboard,
   X,
@@ -20,6 +22,7 @@ import {
 
 const Sidebar = () => {
   const { isOpen, toggleSidebar } = useSidebar();
+  const [staff, setStaff] = useState(null);
   const location = useLocation();
 
   const menuItems = [
@@ -30,19 +33,14 @@ const Sidebar = () => {
       exact: true,
     },
     {
-
       icon: MessageSquare,
       label: "Chat Management",
       path: "/feedbacked-staff/chat",
-
-
     },
     {
-
       icon: Mail,
       label: "Contact Management",
       path: "/feedbacked-staff/contacts",
-
     },
     {
       icon: Star,
@@ -58,6 +56,38 @@ const Sidebar = () => {
     return location.pathname.startsWith(path);
   };
 
+  /* ======================
+    STAFF ONLINE
+ ====================== */
+  useEffect(() => {
+    const raw = localStorage.getItem("user");
+    if (!raw) return;
+
+    const user = JSON.parse(raw);
+    if (user.role_name !== "feedbacked-staff") return;
+
+    setStaff(user);
+
+    const handleConnect = () => {
+      console.log("🟢 CONNECT:", socket.id);
+
+      socket.emit("staff_online", user._id, user.user_name, user.avatar);
+    };
+
+    // 🔥 QUAN TRỌNG: nếu đã connect rồi thì gọi luôn
+    if (socket.connected) {
+      handleConnect();
+    } else {
+      socket.connect();
+    }
+
+    socket.on("connect", handleConnect);
+
+    return () => {
+      socket.off("connect", handleConnect);
+    };
+  }, []);
+
   return (
     <>
       {/* Mobile overlay */}
@@ -70,13 +100,17 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full bg-white shadow-lg z-50 transition-all duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"
-          } lg:translate-x-0 w-64`}
+        className={`fixed top-0 left-0 h-full bg-white shadow-lg z-50 transition-all duration-300 ease-in-out ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0 w-64`}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
-            <Link to="/feedbacked-staff" className="flex items-center space-x-2">
+            <Link
+              to="/feedbacked-staff"
+              className="flex items-center space-x-2"
+            >
               <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
                 <LayoutDashboard className="text-white" size={20} />
               </div>
@@ -104,10 +138,11 @@ const Sidebar = () => {
                   <li key={item.path}>
                     <Link
                       to={item.path}
-                      className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${active
-                        ? "bg-green-100 text-green-700 font-medium"
-                        : "text-gray-700 hover:bg-gray-100"
-                        }`}
+                      className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                        active
+                          ? "bg-green-100 text-green-700 font-medium"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }`}
                     >
                       <Icon size={20} />
                       <span>{item.label}</span>

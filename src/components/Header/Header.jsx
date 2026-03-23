@@ -7,6 +7,7 @@ import { LogOut, Settings, User, Clock, Package, Menu, X, Heart } from "lucide-r
 import PropTypes from "prop-types";
 import { fetchCartRequest } from "../../redux/actions/cartActions";
 import NotificationBell from "../NotificationBell/NotificationBell";
+import { socket } from "../../socket";
 import ChatForCustomer from "../../pages/CustomerView/ChatForCustomer";
 
 
@@ -70,6 +71,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
 
   const handleLogout = () => {
     if (window.confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+      socket.disconnect();
       dispatch(logoutRequest());
       localStorage.clear();
       navigate("/");
