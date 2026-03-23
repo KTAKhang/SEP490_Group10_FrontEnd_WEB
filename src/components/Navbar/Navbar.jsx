@@ -6,17 +6,17 @@ import { getProfileRequest } from "../../redux/actions/profileAction";
 import { useSidebar } from "../../contexts/SidebarContext";
 import { Menu, LogOut, User, Settings } from "lucide-react";
 import NotificationBell from "../NotificationBell/NotificationBell";
-
+import { socket } from "../../socket";
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
   const { toggleSidebar } = useSidebar();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  
+
   // Get user from Redux store
   const { user } = useSelector((state) => state.profile);
-  
+
   // Fetch profile on mount if user is logged in
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -28,7 +28,7 @@ const Navbar = () => {
   // Fallback to localStorage if Redux user is not loaded yet
   const storedUser = JSON.parse(localStorage.getItem("user") || "null");
   const currentUser = user || storedUser;
-  
+
   const displayName = currentUser?.user_name || "Admin";
   const displayEmail = currentUser?.email || "admin@email.com";
   const displayAvatar = currentUser?.avatar?.startsWith("http")
@@ -48,8 +48,7 @@ const Navbar = () => {
       return "/sale-staff";
     } else if (pathname.startsWith("/customer")) {
       return "/customer";
-    }
-    else if (pathname.startsWith("/feedbacked-staff")) {
+    } else if (pathname.startsWith("/feedbacked-staff")) {
       return "/feedbacked-staff";
     }
     // Default to admin if cannot determine
@@ -60,6 +59,8 @@ const Navbar = () => {
 
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to log out?")) {
+      socket.emit("staff_offline");
+      socket.disconnect();
       dispatch(logoutRequest());
       localStorage.clear();
       navigate("/");
@@ -75,14 +76,12 @@ const Navbar = () => {
       >
         <Menu size={24} />
       </button>
-
       <div className="flex-1" /> {/* Spacer */}
-
       {/* Right: User menu */}
       <div className="flex items-center space-x-4">
         {/* NOTIFICATIONS */}
         <NotificationBell />
-        
+
         {/* User dropdown */}
         <div className="relative">
           <button
@@ -126,7 +125,7 @@ const Navbar = () => {
                     <User size={18} />
                     <span>Profile</span>
                   </button>
-                   <button
+                  <button
                     onClick={() => {
                       navigate(`${basePath}/change-password`);
                       setIsDropdownOpen(false);

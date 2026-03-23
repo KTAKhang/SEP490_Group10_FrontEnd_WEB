@@ -29,15 +29,15 @@ export default function StaffChat() {
   // ✅ NEW: loading state for send
   const [isSending, setIsSending] = useState(false);
 
-  useEffect(() => {
-    const raw = localStorage.getItem("user");
-    if (raw) {
-      const user = JSON.parse(raw);
-      if (user.role_name === "feedbacked-staff") {
-        setStaff(user);
-      }
-    }
-  }, []);
+  // useEffect(() => {
+  //   const raw = localStorage.getItem("user");
+  //   if (raw) {
+  //     const user = JSON.parse(raw);
+  //     if (user.role_name === "feedbacked-staff") {
+  //       setStaff(user);
+  //     }
+  //   }
+  // }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -51,10 +51,27 @@ export default function StaffChat() {
   /* ======================
     STAFF ONLINE
  ====================== */
-  useEffect(() => {
-    if (!staff?._id || !socket) return;
-    socket.emit("staff_online", staff._id, staff.user_name, staff.avatar);
-  }, [staff, socket]);
+//  useEffect(() => {
+//   const raw = localStorage.getItem("user");
+//   if (!raw) return;
+
+//   const user = JSON.parse(raw);
+//   if (user.role_name !== "feedbacked-staff") return;
+
+//   setStaff(user);
+
+//   socket.connect();
+
+//   socket.on("connect", () => {
+//     console.log("🟢 CONNECT:", socket.id);
+
+//     socket.emit("staff_online", user._id, user.user_name, user.avatar);
+//   });
+
+//   return () => {
+//     socket.off("connect");
+//   };
+// }, []);
 
   /* ======================
      LOAD ROOMS INIT

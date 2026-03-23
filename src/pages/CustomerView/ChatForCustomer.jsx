@@ -63,6 +63,9 @@ export default function CustomerChat() {
      ONLINE STAFFS
   ====================== */
   useEffect(() => {
+   if (!socket.connected) {
+  socket.connect();
+}
     const handleConnect = () => socket.emit("get_online_staffs");
     const handleOnlineStaffs = (staffs) => {
       if (Array.isArray(staffs)) {
@@ -614,7 +617,7 @@ export default function CustomerChat() {
                     const showDateSeparator =
                       !prev || !isSameDay(prev.createdAt, m.createdAt);
                     const isCustomer = m.senderRole === "customer";
-
+console.log("messages:", messages);
                     return (
                       <div key={m._id || i} className="msg-fade-in">
                         {showDateSeparator && (
