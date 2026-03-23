@@ -645,8 +645,8 @@ const SalesStaffPage = () => {
                         <td className="py-2 pr-4 font-medium text-gray-900">{formatCurrency(total)}</td>
                         <td className="py-2 text-gray-600 whitespace-nowrap">{formatDate(order.createdAt)}</td>
                       </tr>
-                    );
-                  })}
+          );
+        })}
                 </tbody>
               </table>
             </div>
@@ -784,8 +784,8 @@ const SalesStaffPage = () => {
           >
             View all <ChevronRight size={16} />
           </Link>
-        </CardHeader>
-        <CardContent>
+          </CardHeader>
+          <CardContent>
           {discountLoading && discountList.length === 0 ? (
             <p className="text-sm text-gray-500 py-4 text-center">Loading...</p>
           ) : discountList.length === 0 ? (
@@ -1416,15 +1416,15 @@ const SalesStaffPage = () => {
               </table>
             </div>
           )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
       {/* Quick actions */}
       <Card>
-        <CardHeader>
+          <CardHeader>
           <CardTitle>Quick actions</CardTitle>
-        </CardHeader>
-        <CardContent>
+          </CardHeader>
+          <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             <Link
               to="/sale-staff/orders"
@@ -1440,15 +1440,15 @@ const SalesStaffPage = () => {
               <RotateCcw className="h-8 w-8 text-purple-600 mx-auto mb-2" />
               <p className="text-sm font-medium text-gray-800">Refund orders</p>
             </Link>
-            <Link
+              <Link
               to="/sale-staff/preorder"
               className="p-4 bg-amber-50 hover:bg-amber-100 rounded-xl text-center transition-colors border border-transparent hover:border-amber-200"
-            >
+              >
               <Package className="h-8 w-8 text-amber-600 mx-auto mb-2" />
               <p className="text-sm font-medium text-gray-800">Pre-orders</p>
-            </Link>
-            <Link
-              to="/sale-staff/discounts"
+              </Link>
+              <Link
+                to="/sale-staff/discounts"
               className="p-4 bg-emerald-50 hover:bg-emerald-100 rounded-xl text-center transition-colors border border-transparent hover:border-emerald-200"
             >
               <Ticket className="h-8 w-8 text-emerald-600 mx-auto mb-2" />
@@ -1460,10 +1460,10 @@ const SalesStaffPage = () => {
             >
               <FileText className="h-8 w-8 text-slate-600 mx-auto mb-2" />
               <p className="text-sm font-medium text-gray-800">News</p>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
     </div>
   );
 };

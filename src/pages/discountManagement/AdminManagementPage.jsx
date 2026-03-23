@@ -22,19 +22,22 @@ import {
 
 const AdminManagementPage = () => {
     const dispatch = useDispatch();
-    const { list = [], loading, pagination: pageMeta = { page: 1, limit: 10, total: 0 }, statistics: statsFromApi } = useSelector(
+    const { list = [], loading, pagination: pageMeta = { page: 1, limit: 10, total: 0 }, statistics: statsFromApi, detail: discountDetail } = useSelector(
         (state) => state.discount || {}
     );
 
     const [statusFilter, setStatusFilter] = useState("all");
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
     const [isActiveFilter, setIsActiveFilter] = useState("all");
     const [sortBy, setSortBy] = useState("createdAt");
     const [sortOrder, setSortOrder] = useState("desc");
     const [loadingRefresh, setLoadingRefresh] = useState(false);
     const [isRejectOpen, setIsRejectOpen] = useState(false);
     const [isUpdateOpen, setIsUpdateOpen] = useState(false);
+    const [confirmModal, setConfirmModal] = useState({ open: false, type: null, discount: null }); // approve | activate | deactivate
     const [selectedDiscount, setSelectedDiscount] = useState(null);
     const [rejectionReason, setRejectionReason] = useState("");
+    const [rejectionError, setRejectionError] = useState("");
     const [formData, setFormData] = useState({
         code: "",
         discountPercent: "",
@@ -75,40 +78,53 @@ const AdminManagementPage = () => {
     }, [statusFilter, isActiveFilter, loadDiscounts]);
 
     const handleApprove = (discount) => {
-        if (window.confirm(`Are you sure you want to approve discount code "${discount.code}"?`)) {
-            dispatch(discountApproveRequest(discount._id));
-            setTimeout(() => handleRefresh(), 600);
-        }
+        setConfirmModal({ open: true, type: "approve", discount });
     };
 
     const handleReject = (discount) => {
         setSelectedDiscount(discount);
         setRejectionReason("");
+        setRejectionError("");
         setIsRejectOpen(true);
     };
 
     const handleRejectSubmit = () => {
         if (!rejectionReason.trim()) {
-            alert("Please provide a rejection reason");
+            setRejectionError("Please provide a rejection reason");
             return;
         }
+        setRejectionError("");
         dispatch(discountRejectRequest(selectedDiscount._id, rejectionReason));
         setIsRejectOpen(false);
         setTimeout(() => handleRefresh(), 600);
     };
 
     const handleActivate = (discount) => {
-        if (window.confirm(`Are you sure you want to activate discount code "${discount.code}"?`)) {
-            dispatch(discountActivateRequest(discount._id));
-            setTimeout(() => handleRefresh(), 600);
-        }
+        setConfirmModal({ open: true, type: "activate", discount });
     };
 
     const handleDeactivate = (discount) => {
-        if (window.confirm(`Are you sure you want to deactivate discount code "${discount.code}"?`)) {
+        setConfirmModal({ open: true, type: "deactivate", discount });
+    };
+
+    const handleConfirmSubmit = () => {
+        const { type, discount } = confirmModal;
+        if (!discount) return;
+        if (type === "approve") {
+            dispatch(discountApproveRequest(discount._id));
+        } else if (type === "activate") {
+            dispatch(discountActivateRequest(discount._id));
+        } else if (type === "deactivate") {
             dispatch(discountDeactivateRequest(discount._id));
-            setTimeout(() => handleRefresh(), 600);
         }
+        setConfirmModal({ open: false, type: null, discount: null });
+        setTimeout(() => handleRefresh(), 600);
+    };
+
+    const handleViewDetail = (discount) => {
+        dispatch(discountDetailRequest(discount._id));
+        setSelectedDiscount(discount);
+        setIsDetailOpen(true);
     };
 
     const handleEdit = async (discount) => {
@@ -466,6 +482,13 @@ const AdminManagementPage = () => {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-2 flex-wrap">
+                                                    <button
+                                                        onClick={() => handleViewDetail(discount)}
+                                                        className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                                        title="View detail"
+                                                    >
+                                                        <i className="ri-eye-line text-lg"></i>
+                                                    </button>
                                                     {discount.status === "PENDING" && (
                                                         <>
                                                             <button
@@ -492,7 +515,7 @@ const AdminManagementPage = () => {
                                                                     className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
                                                                     title="Deactivate"
                                                                 >
-                                                                    <i className="ri-pause-line text-lg"></i>
+                                                                    <i className="ri-forbid-line text-lg"></i>
                                                                 </button>
                                                             ) : (
                                                                 <button
@@ -500,7 +523,7 @@ const AdminManagementPage = () => {
                                                                     className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                                                                     title="Activate"
                                                                 >
-                                                                    <i className="ri-play-line text-lg"></i>
+                                                                    <i className="ri-checkbox-circle-line text-lg"></i>
                                                                 </button>
                                                             )}
                                                             <button
@@ -592,6 +615,61 @@ const AdminManagementPage = () => {
                 </div>
             </div>
 
+            {/* Confirm Modal (Approve / Activate / Deactivate) */}
+            {confirmModal.open && confirmModal.discount && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-xl max-w-md w-full">
+                        <div className="p-6 border-b border-gray-100">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-2xl font-bold text-gray-900">
+                                    {confirmModal.type === "approve" && "Approve Discount Code"}
+                                    {confirmModal.type === "activate" && "Activate Discount Code"}
+                                    {confirmModal.type === "deactivate" && "Deactivate Discount Code"}
+                                </h2>
+                                <button
+                                    onClick={() => setConfirmModal({ open: false, type: null, discount: null })}
+                                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                >
+                                    <i className="ri-close-line text-xl text-gray-600"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div className="p-6">
+                            <p className="text-gray-700 mb-4">
+                                {confirmModal.type === "approve" &&
+                                    <>Are you sure you want to approve discount code <strong>{confirmModal.discount.code}</strong>?</>}
+                                {confirmModal.type === "activate" &&
+                                    <>Are you sure you want to activate discount code <strong>{confirmModal.discount.code}</strong>?</>}
+                                {confirmModal.type === "deactivate" &&
+                                    <>Are you sure you want to deactivate discount code <strong>{confirmModal.discount.code}</strong>?</>}
+                            </p>
+                            <div className="flex items-center justify-end gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setConfirmModal({ open: false, type: null, discount: null })}
+                                    className="px-6 py-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleConfirmSubmit}
+                                    className={`px-6 py-2.5 text-white rounded-lg transition-colors ${
+                                        confirmModal.type === "deactivate"
+                                            ? "bg-orange-600 hover:bg-orange-700"
+                                            : "bg-green-600 hover:bg-green-700"
+                                    }`}
+                                >
+                                    {confirmModal.type === "approve" && "Approve"}
+                                    {confirmModal.type === "activate" && "Activate"}
+                                    {confirmModal.type === "deactivate" && "Deactivate"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Reject Discount Modal */}
             {isRejectOpen && selectedDiscount && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -600,7 +678,10 @@ const AdminManagementPage = () => {
                             <div className="flex items-center justify-between">
                                 <h2 className="text-2xl font-bold text-gray-900">Reject Discount Code</h2>
                                 <button
-                                    onClick={() => setIsRejectOpen(false)}
+                                    onClick={() => {
+                                        setIsRejectOpen(false);
+                                        setRejectionError("");
+                                    }}
                                     className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                                 >
                                     <i className="ri-close-line text-xl text-gray-600"></i>
@@ -616,15 +697,27 @@ const AdminManagementPage = () => {
                             </label>
                             <textarea
                                 value={rejectionReason}
-                                onChange={(e) => setRejectionReason(e.target.value)}
-                                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none"
+                                onChange={(e) => {
+                                    setRejectionReason(e.target.value);
+                                    if (rejectionError) setRejectionError("");
+                                }}
+                                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none ${rejectionError ? "border-red-500" : "border-gray-200"}`}
                                 rows="4"
                                 placeholder="Please provide a reason for rejection..."
                             />
+                            {rejectionError && (
+                                <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                                    <i className="ri-error-warning-line"></i>
+                                    {rejectionError}
+                                </p>
+                            )}
                             <div className="flex items-center justify-end gap-3 pt-4 mt-4 border-t border-gray-100">
                                 <button
                                     type="button"
-                                    onClick={() => setIsRejectOpen(false)}
+                                    onClick={() => {
+                                        setIsRejectOpen(false);
+                                        setRejectionError("");
+                                    }}
                                     className="px-6 py-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                                 >
                                     Cancel
@@ -635,6 +728,143 @@ const AdminManagementPage = () => {
                                     className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                                 >
                                     Reject
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* View Detail Modal */}
+            {isDetailOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6 border-b border-gray-100">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-2xl font-bold text-gray-900">Voucher Detail</h2>
+                                <button
+                                    onClick={() => setIsDetailOpen(false)}
+                                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                >
+                                    <i className="ri-close-line text-xl text-gray-600"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div className="p-6">
+                            {loading && (!discountDetail || discountDetail._id !== selectedDiscount?._id) ? (
+                                <div className="flex flex-col items-center justify-center py-8">
+                                    <i className="ri-loader-4-line text-4xl text-green-600 animate-spin"></i>
+                                    <p className="text-gray-600 mt-2">Loading detail...</p>
+                                </div>
+                            ) : discountDetail && discountDetail._id === selectedDiscount?._id ? (
+                                <div className="space-y-4 text-sm">
+                                    <div>
+                                        <span className="font-medium text-gray-500">Code</span>
+                                        <p className="font-semibold text-gray-900 mt-0.5">{discountDetail.code}</p>
+                                    </div>
+                                    {discountDetail.description && (
+                                        <div>
+                                            <span className="font-medium text-gray-500">Description</span>
+                                            <p className="text-gray-700 mt-0.5">{discountDetail.description}</p>
+                                        </div>
+                                    )}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <span className="font-medium text-gray-500">Discount</span>
+                                            <p className="text-gray-900 mt-0.5">{discountDetail.discountPercent}% off</p>
+                                        </div>
+                                        <div>
+                                            <span className="font-medium text-gray-500">Status</span>
+                                            <p className="mt-0.5">
+                                                <StatusBadge status={discountDetail.status} />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <span className="font-medium text-gray-500">Min order value</span>
+                                            <p className="text-gray-900 mt-0.5">
+                                                {Number(discountDetail.minOrderValue || 0).toLocaleString()} VND
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <span className="font-medium text-gray-500">Max discount amount</span>
+                                            <p className="text-gray-900 mt-0.5">
+                                                {Number(discountDetail.maxDiscountAmount || 0).toLocaleString()} VND
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <span className="font-medium text-gray-500">Start date</span>
+                                            <p className="text-gray-900 mt-0.5">
+                                                {discountDetail.startDate
+                                                    ? new Date(discountDetail.startDate).toLocaleDateString()
+                                                    : "—"}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <span className="font-medium text-gray-500">End date</span>
+                                            <p className="text-gray-900 mt-0.5">
+                                                {discountDetail.endDate
+                                                    ? new Date(discountDetail.endDate).toLocaleDateString()
+                                                    : "—"}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <span className="font-medium text-gray-500">Usage</span>
+                                            <p className="text-gray-900 mt-0.5">
+                                                {(discountDetail.actualUsageCount ?? discountDetail.usedCount ?? 0)} /{" "}
+                                                {discountDetail.usageLimit != null ? discountDetail.usageLimit : "∞"}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <span className="font-medium text-gray-500">Active</span>
+                                            <p className="mt-0.5">
+                                                <ActiveBadge isActive={discountDetail.isActive} />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {discountDetail.createdBy && (
+                                        <div>
+                                            <span className="font-medium text-gray-500">Created by</span>
+                                            <p className="text-gray-900 mt-0.5">
+                                                {discountDetail.createdBy.user_name || "N/A"}
+                                                {discountDetail.createdBy.email && (
+                                                    <span className="text-gray-500 text-xs block">
+                                                        {discountDetail.createdBy.email}
+                                                    </span>
+                                                )}
+                                            </p>
+                                        </div>
+                                    )}
+                                    {discountDetail.rejectedReason && (
+                                        <div>
+                                            <span className="font-medium text-gray-500">Rejection reason</span>
+                                            <p className="text-red-600 mt-0.5">{discountDetail.rejectedReason}</p>
+                                        </div>
+                                    )}
+                                    {discountDetail.createdAt && (
+                                        <div>
+                                            <span className="font-medium text-gray-500">Created at</span>
+                                            <p className="text-gray-700 mt-0.5">
+                                                {new Date(discountDetail.createdAt).toLocaleString()}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <p className="text-gray-500 py-4">Could not load voucher detail.</p>
+                            )}
+                            <div className="mt-6 pt-4 border-t border-gray-100 flex justify-end">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsDetailOpen(false)}
+                                    className="px-6 py-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                    Close
                                 </button>
                             </div>
                         </div>

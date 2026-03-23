@@ -178,6 +178,7 @@ export const routes = [
       { path: "chat", element: <ChatForStaffPage /> },
       { path: "change-password", element: <UpdatePassword /> },
       { path: "reviews", element: <FeedbackStaffReviewManagement /> },
+      { path: "chat", element: <ChatForStaffPage /> },
 
     ],
   },
