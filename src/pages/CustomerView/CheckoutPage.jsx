@@ -3,10 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { checkoutCancelRequest } from "../../redux/actions/checkoutActions";
-import {
-  fetchCartRequest,
-  shippingCheckRequest,
-} from "../../redux/actions/cartActions";
+import { fetchCartRequest } from "../../redux/actions/cartActions";
 import {
   orderCreateRequest,
   clearOrderMessages,
@@ -56,12 +53,11 @@ export default function CheckoutPage() {
       ? checkout.items
       : cart.items || [];
 
-  const shippingCost = cart.shippingFee || 0;
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
-  const total = subtotal + shippingCost;
+  const total = subtotal;
 
   const {
     selectedDiscount,
@@ -117,19 +113,6 @@ export default function CheckoutPage() {
   }, [formData.city]);
 
   useEffect(() => {
-    const selected_product_ids = cartItems.map(
-      (item) =>
-        (item.product_id && item.product_id._id) ||
-        item.product_id ||
-        item.productId ||
-        item._id,
-    );
-    if (formData.city && selected_product_ids.length > 0) {
-      dispatch(shippingCheckRequest(selected_product_ids, icity));
-    }
-  }, [formData.city, cartItems, dispatch]);
-
-  useEffect(() => {
     if (order.order_id || order.payment_url) {
       localStorage.removeItem("checkout_session_id");
       dispatch(fetchCartRequest());
@@ -159,7 +142,11 @@ export default function CheckoutPage() {
       return;
     }
     const selected_product_ids = cartItems.map(
-      (item) => item.product_id || item._id,
+      (item) =>
+        (item.product_id && item.product_id._id) ||
+        item.product_id ||
+        item.productId ||
+        item._id,
     );
     const discountInfo =
       formData.payment === "VNPAY" &&
@@ -805,10 +792,6 @@ export default function CheckoutPage() {
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">Subtotal</span>
                       <span className="font-medium text-gray-900">{formatPrice(subtotal)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Shipping fee</span>
-                      <span className="font-medium text-gray-900">{formatPrice(shippingCost)}</span>
                     </div>
                     <div className="border-t border-gray-200 pt-3 flex justify-between items-center">
                       <span className="font-bold text-gray-900">Total</span>

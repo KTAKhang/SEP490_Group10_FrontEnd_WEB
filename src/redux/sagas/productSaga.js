@@ -80,11 +80,11 @@ function* getProductsSaga(action) {
     if (response.status === "OK") {
       yield put(getProductsSuccess(response));
     } else {
-      throw new Error(response.message || "Không thể tải danh sách sản phẩm");
+      throw new Error(response.message || "Failed to load product list");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải danh sách sản phẩm";
+      error.response?.data?.message || error.message || "Failed to load product list";
     yield put(getProductsFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -97,11 +97,11 @@ function* getProductByIdSaga(action) {
     if (response.status === "OK") {
       yield put(getProductByIdSuccess(response.data));
     } else {
-      throw new Error(response.message || "Không thể tải sản phẩm");
+      throw new Error(response.message || "Failed to load product");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải sản phẩm";
+      error.response?.data?.message || error.message || "Failed to load product";
     yield put(getProductByIdFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -123,15 +123,15 @@ function* createProductSaga(action) {
         console.log("📊 Featured status:", response.data?.is_featured || false);
       }
       
-      toast.success(response.message || "Tạo sản phẩm thành công");
+      toast.success(response.message || "Product created successfully");
       // Refresh products list
       yield put({ type: GET_PRODUCTS_REQUEST });
     } else {
-      throw new Error(response.message || "Không thể tạo sản phẩm");
+      throw new Error(response.message || "Failed to create product");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tạo sản phẩm";
+      error.response?.data?.message || error.message || "Failed to create product";
     yield put(createProductFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -166,11 +166,11 @@ function* deleteProductSaga(action) {
       // Refresh products list
       yield put({ type: GET_PRODUCTS_REQUEST });
     } else {
-      throw new Error(response.message || "Không thể xóa sản phẩm");
+      throw new Error(response.message || "Failed to delete product");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể xóa sản phẩm";
+      error.response?.data?.message || error.message || "Failed to delete product";
     yield put(deleteProductFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -182,11 +182,11 @@ function* getProductStatsSaga() {
     if (response.status === "OK") {
       yield put(getProductStatsSuccess(response.data));
     } else {
-      throw new Error(response.message || "Không thể tải thống kê sản phẩm");
+      throw new Error(response.message || "Failed to load product statistics");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải thống kê sản phẩm";
+      error.response?.data?.message || error.message || "Failed to load product statistics";
     yield put(getProductStatsFailure(errorMessage));
   }
 }
@@ -202,14 +202,14 @@ function* updateProductExpiryDateSaga(action) {
       yield put({ type: GET_PRODUCTS_REQUEST });
     } else {
       // Backend trả về status "ERR" với message cụ thể
-      const errorMessage = response.message || "Không thể cập nhật hạn sử dụng";
+      const errorMessage = response.message || "Failed to update expiry date";
       yield put(updateProductExpiryDateFailure(errorMessage));
       toast.error(errorMessage);
     }
   } catch (error) {
     // Xử lý HTTP errors (400, 500, etc.)
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể cập nhật hạn sử dụng";
+      error.response?.data?.message || error.message || "Failed to update expiry date";
     yield put(updateProductExpiryDateFailure(errorMessage));
     toast.error(errorMessage);
   }

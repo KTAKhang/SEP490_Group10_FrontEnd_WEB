@@ -498,11 +498,21 @@ const WareHouse = () => {
       />
 
 
-      {/* Receipt Modal */}
-      <CreateReceipt
-        isOpen={showReceiptModal}
+      {/* Initial stock-in modal */}
+      <InitialStockIn
+        isOpen={showInitialModal}
         onClose={() => {
-          setShowReceiptModal(false);
+          setShowInitialModal(false);
+          setSelectedProductForReceipt(null);
+        }}
+        product={selectedProductForReceipt}
+      />
+
+      {/* Additional stock-in modal */}
+      <AdditionalStockIn
+        isOpen={showAdditionalModal}
+        onClose={() => {
+          setShowAdditionalModal(false);
           setSelectedProductForReceipt(null);
         }}
         product={selectedProductForReceipt}

@@ -651,4 +651,4 @@ export default function ProductDetailPage() {
       <Footer />
     </div>
   );
-}
+

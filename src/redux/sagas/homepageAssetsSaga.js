@@ -83,13 +83,13 @@ function* getHomepageAssetsSaga() {
     if (response.status === "OK") {
       yield put(getHomepageAssetsSuccess(response.data));
     } else {
-      throw new Error(response.message || "Không thể tải hình ảnh homepage");
+      throw new Error(response.message || "Failed to load homepage images");
     }
   } catch (error) {
-    let errorMessage = "Không thể tải hình ảnh homepage";
+    let errorMessage = "Failed to load homepage images";
     
     if (error.response?.status === 404) {
-      errorMessage = "Endpoint GET /api/admin/homepage-assets hoặc /admin/homepage-assets không tồn tại. Vui lòng kiểm tra backend.";
+      errorMessage = "Endpoint GET /api/admin/homepage-assets or /admin/homepage-assets does not exist. Please check backend.";
     } else if (error.response?.data?.message) {
       errorMessage = error.response.data.message;
     } else if (error.message) {
@@ -108,11 +108,11 @@ function* getHomepageAssetsPublicSaga() {
     if (response.status === "OK") {
       yield put(getHomepageAssetsPublicSuccess(response.data));
     } else {
-      throw new Error(response.message || "Không thể tải hình ảnh homepage");
+      throw new Error(response.message || "Failed to load homepage images");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải hình ảnh homepage";
+      error.response?.data?.message || error.message || "Failed to load homepage images";
     yield put(getHomepageAssetsPublicFailure(errorMessage));
     // Don't show toast for public requests to avoid annoying users
     console.error("Failed to load public homepage assets:", errorMessage);
@@ -127,17 +127,17 @@ function* updateHomepageAssetSaga(action) {
       yield put(updateHomepageAssetSuccess(response.data));
       // Toast shown in component via success state to avoid duplicate
     } else {
-      throw new Error(response.message || "Không thể cập nhật hình ảnh");
+      throw new Error(response.message || "Failed to update image");
     }
   } catch (error) {
-    let errorMessage = "Không thể cập nhật hình ảnh";
+    let errorMessage = "Failed to update image";
     
     if (error.response?.status === 404) {
-      errorMessage = "Endpoint PUT /api/admin/homepage-assets hoặc /admin/homepage-assets không tồn tại. Vui lòng kiểm tra backend có implement endpoint này không.";
+      errorMessage = "Endpoint PUT /api/admin/homepage-assets or /admin/homepage-assets does not exist. Please check if backend implements this endpoint.";
     } else if (error.response?.status === 400) {
-      errorMessage = error.response?.data?.message || "Dữ liệu không hợp lệ. Vui lòng kiểm tra key, imageUrl và altText.";
+      errorMessage = error.response?.data?.message || "Invalid data. Please check key, imageUrl and altText.";
     } else if (error.response?.status === 401 || error.response?.status === 403) {
-      errorMessage = "Không có quyền truy cập. Vui lòng đăng nhập lại với tài khoản admin.";
+      errorMessage = "Access denied. Please log in again with an admin account.";
     } else if (error.response?.data?.message) {
       errorMessage = error.response.data.message;
     } else if (error.message) {

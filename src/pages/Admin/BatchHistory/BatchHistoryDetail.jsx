@@ -297,7 +297,7 @@ export const BatchHistoryDetailContent = ({ batch, product }) => {
                   </>
                 )}
               </div>
-              {/* 5 thuộc tính lợi nhuận/lỗ — hàng ngang */}
+              {/* 5 profit/loss attributes — horizontal row */}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mt-4">
                 <div className="border border-green-200 rounded-lg p-4 bg-green-50">
                   <p className="text-sm text-green-700 mb-1">

@@ -54,7 +54,6 @@ const normalizeOrderForDisplay = (order) => {
     discount_code,
     discount_amount,
     total_price: order.total_price ?? order.totalPrice,
-    shipping_fee: order.shipping_fee ?? order.shippingFee,
     subtotal_products: order.subtotal_products ?? order.subtotalProducts,
   };
 };
@@ -245,8 +244,8 @@ function* orderCreateSaga(action) {
       selected_product_ids,
       receiverInfo,
       payment_method,
-      icity,
       discountInfo,
+      city,
     } = action.payload;
 
     const res = yield call(
@@ -254,7 +253,7 @@ function* orderCreateSaga(action) {
       selected_product_ids,
       receiverInfo,
       payment_method,
-      icity,
+      city,
     );
 
     if (res.success) {
@@ -278,7 +277,7 @@ function* orderCreateSaga(action) {
 
           if (applyRes?.status !== "OK") {
             throw new Error(
-              applyRes?.message || "Áp dụng mã giảm giá thất bại",
+              applyRes?.message || "Failed to apply discount code",
             );
           }
 
@@ -292,7 +291,7 @@ function* orderCreateSaga(action) {
 
         window.location.href = res.payment_url;
       } else {
-        toast.success("Đặt hàng thành công");
+        toast.success("Order placed successfully");
       }
     } else {
       throw new Error(res.message);
@@ -325,7 +324,7 @@ function* retryPaymentSaga(action) {
       if (res.payment_url) {
         window.location.href = res.payment_url;
       } else {
-        toast.success("Thanh toán lại thành công");
+        toast.success("Payment retried successfully");
       }
     } else {
       throw new Error(res.message);
@@ -454,7 +453,7 @@ function* confirmRefundPaymentSaga(action) {
     if (res.success) {
       yield put(orderAdminUpdateSuccess(res.message));
 
-      toast.success(res.message || "Đã xác nhận hoàn tiền");
+      toast.success(res.message || "Refund confirmed");
 
       yield put(orderAdminDetailRequest(order_id));
     } else {

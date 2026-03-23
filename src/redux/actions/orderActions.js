@@ -63,15 +63,15 @@ export const orderCreateRequest = (
   receiverInfo,
   payment_method,
   discountInfo = null,
-  icity,
+  city = null,
 ) => ({
   type: ORDER_CREATE_REQUEST,
   payload: {
     selected_product_ids,
     receiverInfo,
     payment_method,
-    icity,
     discountInfo,
+    city,
   },
 });
 

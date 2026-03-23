@@ -15,9 +15,6 @@ import {
   CART_REMOVE_ITEM_REQUEST,
   removeCartItemSuccess,
   removeCartItemFailure,
-  SHIPPING_CHECK_REQUEST,
-  shippingCheckSuccess,
-  shippingCheckFailure,
 } from "../actions/cartActions";
 
 // ===== API =====
@@ -46,14 +43,6 @@ const apiUpdateItem = async (product_id, quantity) => {
 const apiRemoveItem = async (product_ids) => {
   const res = await apiClient.delete("/cart/remove", {
     data: { product_ids },
-  });
-  return res.data;
-};
-
-const apiCheckShipping = async (selected_product_ids, city) => {
-  const res = await apiClient.post("/shipping/check", {
-    selected_product_ids,
-    city,
   });
   return res.data;
 };
@@ -137,31 +126,6 @@ function* removeItemSaga(action) {
   }
 }
 
-function* checkShippingSaga(action) {
-  try {
-    const { selected_product_ids, city } = action.payload;
-
-    if (!city) throw new Error("Please select a province/city");
-
-    if (!Array.isArray(selected_product_ids) || selected_product_ids.length === 0) {
-      throw new Error("Please select at least one product.");
-    }
-
-    const res = yield call(apiCheckShipping, selected_product_ids, city);
-
-    if (res.status === "OK") {
-      yield put(shippingCheckSuccess(res.data));
-    } else {
-      throw new Error(res.message || "Failed to calculate shipping fee");
-    }
-  } catch (error) {
-    const msg = error.response?.data?.message || error.message;
-
-    yield put(shippingCheckFailure(msg));
-    toast.error(msg);
-  }
-}
-
 // ===== WATCHER =====
 
 export default function* cartSaga() {
@@ -169,5 +133,4 @@ export default function* cartSaga() {
   yield takeLatest(CART_ADD_ITEM_REQUEST, addItemSaga);
   yield takeLatest(CART_UPDATE_ITEM_REQUEST, updateItemSaga);
   yield takeLatest(CART_REMOVE_ITEM_REQUEST, removeItemSaga);
-  yield takeLatest(SHIPPING_CHECK_REQUEST, checkShippingSaga);
 }

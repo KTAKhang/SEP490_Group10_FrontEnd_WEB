@@ -134,7 +134,6 @@ const ReadOrderDetail = ({
                 {(() => {
                   const o = adminDetail.order;
                   const subtotalProducts = o?.subtotal_products ?? o?.subtotalProducts ?? null;
-                  const shippingFee = o?.shipping_fee ?? o?.shippingFee ?? 0;
                   const totalPrice = o?.total_price ?? o?.totalPrice ?? 0;
                   const { code, amount } = orderDiscount(o);
                   const hasVoucher = !!code || (amount != null && amount > 0);
@@ -147,10 +146,6 @@ const ReadOrderDetail = ({
                           <span>{formatCurrency(subtotalProducts)} VND</span>
                         </div>
                       )}
-                      <div className="flex items-center justify-between text-sm text-gray-700">
-                        <span>Shipping fee</span>
-                        <span>{formatCurrency(shippingFee)} VND</span>
-                      </div>
                       {hasVoucher && (
                         <>
                           <div className="flex items-center justify-between text-sm text-gray-700 pt-1">
