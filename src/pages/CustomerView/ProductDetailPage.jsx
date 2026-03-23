@@ -652,5 +652,3 @@ export default function ProductDetailPage() {
     </div>
   );
 }
-
-export default ProductDetailPage;

@@ -12,7 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { getWarehouseStatsRequest } from "../../redux/actions/inventoryActions";
+import { getWarehouseDashboardStatsRequest } from "../../redux/actions/warehouseDashboardActions";
 import Loading from "../../components/Loading/Loading";
 
 const Card = ({ children, className = "" }) => (
@@ -33,11 +33,11 @@ const CardContent = ({ children, className = "" }) => (
   <div className={`p-5 ${className}`}>{children}</div>
 );
 
-const formatNumber = (n) => (n ?? 0).toLocaleString("en-US", { maximumFractionDigits: 0 });
-const formatKg = (n) => (n ?? 0).toLocaleString("en-US", { maximumFractionDigits: 1 });
+const formatNumber = (n) => (n ?? 0).toLocaleString("vi-VN", { maximumFractionDigits: 0 });
+const formatKg = (n) => (n ?? 0).toLocaleString("vi-VN", { maximumFractionDigits: 1 });
 const formatDate = (d) => (d ? new Date(d).toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" }) : "—");
 
-const MONTH_NAMES = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"];
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const RECEIPT_HISTORY_LIMIT = 20;
 const CHART_BAR_HEIGHT = 180;
 const currentYear = new Date().getFullYear();
@@ -46,13 +46,13 @@ const YEAR_OPTIONS = Array.from({ length: 6 }, (_, i) => currentYear - i);
 const WarehouseStaffPage = () => {
   const dispatch = useDispatch();
   const { warehouseStats, warehouseStatsLoading, warehouseStatsError } = useSelector(
-    (state) => state.inventory
+    (state) => state.warehouseDashboard
   );
   const [receiptPage, setReceiptPage] = useState(1);
   const [selectedYear, setSelectedYear] = useState(currentYear);
 
   useEffect(() => {
-    dispatch(getWarehouseStatsRequest({
+    dispatch(getWarehouseDashboardStatsRequest({
       page: receiptPage,
       limit: RECEIPT_HISTORY_LIMIT,
       year: selectedYear,
@@ -101,7 +101,7 @@ const WarehouseStaffPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-gray-900">{formatNumber(whStats.totalQuantityInStock)}</div>
-                <p className="text-xs text-gray-500 mt-1">Tổng tồn kho (đơn vị)</p>
+                <p className="text-xs text-gray-500 mt-1">Total quantity in stock (units)</p>
               </CardContent>
             </Card>
             <Card>
@@ -113,7 +113,7 @@ const WarehouseStaffPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-gray-900">{formatNumber(whStats.totalProductsInStock)}</div>
-                <p className="text-xs text-gray-500 mt-1">Sản phẩm còn hàng</p>
+                <p className="text-xs text-gray-500 mt-1">Products currently in stock</p>
               </CardContent>
             </Card>
             <Card>
@@ -125,7 +125,7 @@ const WarehouseStaffPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-gray-900">{formatNumber(whStats.totalProductsLowStock)}</div>
-                <p className="text-xs text-gray-500 mt-1">Sắp hết hàng</p>
+                <p className="text-xs text-gray-500 mt-1">Products running low</p>
               </CardContent>
             </Card>
             <Card>
@@ -137,7 +137,7 @@ const WarehouseStaffPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-gray-900">{formatNumber(whStats.totalProductsNearExpiry)}</div>
-                <p className="text-xs text-gray-500 mt-1">Sắp hết hạn</p>
+                <p className="text-xs text-gray-500 mt-1">Products near expiry</p>
               </CardContent>
             </Card>
             <Card>
@@ -149,7 +149,7 @@ const WarehouseStaffPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-gray-900">{formatNumber(whStats.totalProductsOutOfStock)}</div>
-                <p className="text-xs text-gray-500 mt-1">Hết hàng</p>
+                <p className="text-xs text-gray-500 mt-1">Out-of-stock products</p>
               </CardContent>
             </Card>
             <Card>
@@ -161,7 +161,7 @@ const WarehouseStaffPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-gray-900">{formatNumber(whStats.totalReceivedCurrentMonth)}</div>
-                <p className="text-xs text-gray-500 mt-1">Đã nhập tháng này</p>
+                <p className="text-xs text-gray-500 mt-1">Received this month</p>
               </CardContent>
             </Card>
           </div>
@@ -169,12 +169,12 @@ const WarehouseStaffPage = () => {
       )}
 
       {/* Received by month this year */}
-      {/* Tổng nhập theo tháng - biểu đồ cột dọc + chọn năm */}
+      {/* Total received by month - vertical bars + year filter */}
       <Card>
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <CardTitle>Tổng nhập theo tháng</CardTitle>
+          <CardTitle>Total received by month</CardTitle>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-600">Năm:</span>
+            <span className="text-sm font-medium text-gray-600">Year:</span>
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
@@ -218,7 +218,7 @@ const WarehouseStaffPage = () => {
             </div>
           ) : (
             <div className="flex items-center justify-center py-12 text-gray-500 text-sm">
-              Không có dữ liệu nhập kho theo tháng cho năm {selectedYear}
+              No monthly receipt data available for {selectedYear}
             </div>
           )}
         </CardContent>
@@ -227,7 +227,7 @@ const WarehouseStaffPage = () => {
       {/* Your receipt history */}
       <Card>
         <CardHeader>
-          <CardTitle>Lịch sử nhập kho của bạn</CardTitle>
+          <CardTitle>Your receipt history</CardTitle>
         </CardHeader>
         <CardContent>
           {receiptData.length > 0 ? (
@@ -236,10 +236,10 @@ const WarehouseStaffPage = () => {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-gray-200 text-left text-gray-600">
-                      <th className="py-2 pr-4">Thời gian</th>
-                      <th className="py-2 pr-4">Sản phẩm</th>
-                      <th className="py-2 pr-4">Số lượng</th>
-                      <th className="py-2">Lô / Ghi chú</th>
+                      <th className="py-2 pr-4">Time</th>
+                      <th className="py-2 pr-4">Product</th>
+                      <th className="py-2 pr-4">Quantity</th>
+                      <th className="py-2">Batch / Notes</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -252,7 +252,7 @@ const WarehouseStaffPage = () => {
                         <td className="py-2 pr-4 font-semibold text-emerald-600">{formatNumber(row.quantity)}</td>
                         <td className="py-2 text-gray-600">
                           {row.harvestBatch?.batchCode || row.harvestBatch?.batchNumber
-                            ? `Lô: ${row.harvestBatch.batchCode || row.harvestBatch.batchNumber}`
+                            ? `Batch: ${row.harvestBatch.batchCode || row.harvestBatch.batchNumber}`
                             : "—"}
                         </td>
                       </tr>
@@ -263,7 +263,7 @@ const WarehouseStaffPage = () => {
               {receiptPagination && receiptPagination.totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
                   <span className="text-sm text-gray-600">
-                    Trang {receiptPagination.page} / {receiptPagination.totalPages} ({receiptPagination.total} phiếu)
+                    Page {receiptPagination.page} / {receiptPagination.totalPages} ({receiptPagination.total} receipts)
                   </span>
                   <div className="flex items-center gap-2">
                     <button
@@ -287,7 +287,7 @@ const WarehouseStaffPage = () => {
               )}
             </>
           ) : (
-            <p className="text-sm text-gray-500 py-8 text-center">Chưa có phiếu nhập kho nào</p>
+            <p className="text-sm text-gray-500 py-8 text-center">No receipts yet</p>
           )}
         </CardContent>
       </Card>

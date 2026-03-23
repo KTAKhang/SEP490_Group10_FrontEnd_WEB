@@ -176,9 +176,9 @@ function* createSupplierSaga(action) {
     console.log("✅ Create supplier response:", response);
     if (response.status === "OK") {
       yield put(createSupplierSuccess(response.data));
-      toast.success(response.message || "Tạo nhà cung cấp thành công");
+      toast.success(response.message || "Supplier created successfully");
     } else {
-      const errorMessage = response.message || "Không thể tạo nhà cung cấp";
+      const errorMessage = response.message || "Failed to create supplier";
       yield put(createSupplierFailure(errorMessage));
       toast.error(errorMessage);
     }
@@ -189,7 +189,7 @@ function* createSupplierSaga(action) {
       error.response?.data?.message ||
       error.response?.data?.error ||
       error.message ||
-      "Không thể tạo nhà cung cấp";
+      "Failed to create supplier";
     yield put(createSupplierFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -202,15 +202,15 @@ function* updateSupplierSaga(action) {
     const response = yield call(apiUpdateSupplier, supplierId, formData);
     if (response.status === "OK") {
       yield put(updateSupplierSuccess(response.data));
-      toast.success(response.message || "Cập nhật nhà cung cấp thành công");
+      toast.success(response.message || "Supplier updated successfully");
     } else {
-      const errorMessage = response.message || "Không thể cập nhật nhà cung cấp";
+      const errorMessage = response.message || "Failed to update supplier";
       yield put(updateSupplierFailure(errorMessage));
       toast.error(errorMessage);
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể cập nhật nhà cung cấp";
+      error.response?.data?.message || error.message || "Failed to update supplier";
     yield put(updateSupplierFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -229,11 +229,11 @@ function* getSuppliersSaga(action) {
         })
       );
     } else {
-      throw new Error(response.message || "Không thể tải danh sách nhà cung cấp");
+      throw new Error(response.message || "Failed to load supplier list");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải danh sách nhà cung cấp";
+      error.response?.data?.message || error.message || "Failed to load supplier list";
     yield put(getSuppliersFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -247,11 +247,11 @@ function* getSupplierByIdSaga(action) {
     if (response.status === "OK") {
       yield put(getSupplierByIdSuccess(response.data));
     } else {
-      throw new Error(response.message || "Không thể tải chi tiết nhà cung cấp");
+      throw new Error(response.message || "Failed to load supplier details");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải chi tiết nhà cung cấp";
+      error.response?.data?.message || error.message || "Failed to load supplier details";
     yield put(getSupplierByIdFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -264,11 +264,11 @@ function* getSuppliersForBrandSaga(action) {
     if (response.status === "OK") {
       yield put(getSuppliersForBrandSuccess(response.data));
     } else {
-      throw new Error(response.message || "Không thể tải danh sách nhà cung cấp");
+      throw new Error(response.message || "Failed to load supplier list");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải danh sách nhà cung cấp";
+      error.response?.data?.message || error.message || "Failed to load supplier list";
     yield put(getSuppliersForBrandFailure(errorMessage));
     // Don't show toast for this, as it's used in product form
   }
@@ -283,9 +283,9 @@ function* createHarvestBatchSaga(action) {
     console.log("✅ Create harvest batch response:", response);
     if (response.status === "OK") {
       yield put(createHarvestBatchSuccess(response.data));
-      toast.success(response.message || "Tạo lô thu hoạch thành công");
+      toast.success(response.message || "Harvest batch created successfully");
     } else {
-      const errorMessage = response.message || "Không thể tạo lô thu hoạch";
+      const errorMessage = response.message || "Failed to create harvest batch";
       yield put(createHarvestBatchFailure(errorMessage));
       toast.error(errorMessage);
     }
@@ -296,7 +296,7 @@ function* createHarvestBatchSaga(action) {
       error.response?.data?.message ||
       error.response?.data?.error ||
       error.message ||
-      "Không thể tạo lô thu hoạch";
+      "Failed to create harvest batch";
     yield put(createHarvestBatchFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -309,15 +309,15 @@ function* updatePurchaseCostSaga(action) {
     const response = yield call(apiUpdatePurchaseCost, supplierId, formData);
     if (response.status === "OK") {
       yield put(updatePurchaseCostSuccess(response.data));
-      toast.success(response.message || "Cập nhật giá mua thành công");
+      toast.success(response.message || "Purchase cost updated successfully");
     } else {
-      const errorMessage = response.message || "Không thể cập nhật giá mua";
+      const errorMessage = response.message || "Failed to update purchase cost";
       yield put(updatePurchaseCostFailure(errorMessage));
       toast.error(errorMessage);
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể cập nhật giá mua";
+      error.response?.data?.message || error.message || "Failed to update purchase cost";
     yield put(updatePurchaseCostFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -330,15 +330,15 @@ function* updateCooperationStatusSaga(action) {
     const response = yield call(apiUpdateCooperationStatus, supplierId, formData);
     if (response.status === "OK") {
       yield put(updateCooperationStatusSuccess(response.data));
-      toast.success(response.message || "Cập nhật trạng thái hợp tác thành công");
+      toast.success(response.message || "Cooperation status updated successfully");
     } else {
-      const errorMessage = response.message || "Không thể cập nhật trạng thái hợp tác";
+      const errorMessage = response.message || "Failed to update cooperation status";
       yield put(updateCooperationStatusFailure(errorMessage));
       toast.error(errorMessage);
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể cập nhật trạng thái hợp tác";
+      error.response?.data?.message || error.message || "Failed to update cooperation status";
     yield put(updateCooperationStatusFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -352,15 +352,15 @@ function* updateHarvestBatchSaga(action) {
     const response = yield call(apiUpdateHarvestBatch, harvestBatchId, formData);
     if (response.status === "OK") {
       yield put(updateHarvestBatchSuccess(response.data, formData));
-      toast.success(response.message || "Cập nhật lô thu hoạch thành công");
+      toast.success(response.message || "Harvest batch updated successfully");
     } else {
-      const errorMessage = response.message || "Không thể cập nhật lô thu hoạch";
+      const errorMessage = response.message || "Failed to update harvest batch";
       yield put(updateHarvestBatchFailure(errorMessage));
       toast.error(errorMessage);
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể cập nhật lô thu hoạch";
+      error.response?.data?.message || error.message || "Failed to update harvest batch";
     yield put(updateHarvestBatchFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -373,15 +373,15 @@ function* deleteHarvestBatchSaga(action) {
     const response = yield call(apiDeleteHarvestBatch, harvestBatchId);
     if (response.status === "OK") {
       yield put(deleteHarvestBatchSuccess(response.data));
-      toast.success(response.message || "Xóa lô thu hoạch thành công");
+      toast.success(response.message || "Harvest batch deleted successfully");
     } else {
-      const errorMessage = response.message || "Không thể xóa lô thu hoạch";
+      const errorMessage = response.message || "Failed to delete harvest batch";
       yield put(deleteHarvestBatchFailure(errorMessage));
       toast.error(errorMessage);
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể xóa lô thu hoạch";
+      error.response?.data?.message || error.message || "Failed to delete harvest batch";
     yield put(deleteHarvestBatchFailure(errorMessage));
     toast.error(errorMessage);
   }

@@ -69,11 +69,11 @@ function* getCategoriesSaga(action) {
     if (response.status === "OK") {
       yield put(getCategoriesSuccess(response));
     } else {
-      throw new Error(response.message || "Không thể tải danh sách danh mục");
+      throw new Error(response.message || "Failed to load category list");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải danh sách danh mục";
+      error.response?.data?.message || error.message || "Failed to load category list";
     yield put(getCategoriesFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -86,11 +86,11 @@ function* getCategoryByIdSaga(action) {
     if (response.status === "OK") {
       yield put(getCategoryByIdSuccess(response.data));
     } else {
-      throw new Error(response.message || "Không thể tải danh mục");
+      throw new Error(response.message || "Failed to load category");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải danh mục";
+      error.response?.data?.message || error.message || "Failed to load category";
     yield put(getCategoryByIdFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -105,11 +105,11 @@ function* createCategorySaga(action) {
       // Refresh categories list
       yield put({ type: GET_CATEGORIES_REQUEST });
     } else {
-      throw new Error(response.message || "Không thể tạo danh mục");
+      throw new Error(response.message || "Failed to create category");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tạo danh mục";
+      error.response?.data?.message || error.message || "Failed to create category";
     yield put(createCategoryFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -122,11 +122,11 @@ function* updateCategorySaga(action) {
     if (response.status === "OK") {
       yield put(updateCategorySuccess(response.data));
     } else {
-      throw new Error(response.message || "Không thể cập nhật danh mục");
+      throw new Error(response.message || "Failed to update category");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể cập nhật danh mục";
+      error.response?.data?.message || error.message || "Failed to update category";
     yield put(updateCategoryFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -138,19 +138,19 @@ function* deleteCategorySaga(action) {
     const response = yield call(apiDeleteCategory, id);
     if (response.status === "OK") {
       yield put(deleteCategorySuccess(response.message));
-      toast.success(response.message || "Xóa danh mục thành công");
+      toast.success(response.message || "Category deleted successfully");
       // Refresh categories list
       yield put({ type: GET_CATEGORIES_REQUEST });
     } else {
       // Backend trả về status "ERR" với message cụ thể
-      const errorMessage = response.message || "Không thể xóa danh mục";
+      const errorMessage = response.message || "Failed to delete category";
       yield put(deleteCategoryFailure(errorMessage));
       toast.error(errorMessage);
     }
   } catch (error) {
     // Xử lý HTTP errors (400, 500, etc.)
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể xóa danh mục";
+      error.response?.data?.message || error.message || "Failed to delete category";
     yield put(deleteCategoryFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -162,11 +162,11 @@ function* getCategoryStatsSaga() {
     if (response.status === "OK") {
       yield put(getCategoryStatsSuccess(response.data));
     } else {
-      throw new Error(response.message || "Không thể tải thống kê danh mục");
+      throw new Error(response.message || "Failed to load category statistics");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải thống kê danh mục";
+      error.response?.data?.message || error.message || "Failed to load category statistics";
     yield put(getCategoryStatsFailure(errorMessage));
   }
 }

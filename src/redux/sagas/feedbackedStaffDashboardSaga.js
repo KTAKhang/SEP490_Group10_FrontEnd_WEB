@@ -18,13 +18,13 @@ function* getFeedbackedStaffDashboardSaga() {
     if (response.status === "OK") {
       yield put(getFeedbackedStaffDashboardSuccess(response.data || null));
     } else {
-      throw new Error(response.message || "Không thể tải thống kê dashboard");
+      throw new Error(response.message || "Failed to load dashboard statistics");
     }
   } catch (error) {
     const errorMessage =
       error.response?.data?.message ||
       error.message ||
-      "Không thể tải thống kê dashboard";
+      "Failed to load dashboard statistics";
     yield put(getFeedbackedStaffDashboardFailure(errorMessage));
     toast.error(errorMessage);
   }

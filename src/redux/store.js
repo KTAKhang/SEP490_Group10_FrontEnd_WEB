@@ -24,6 +24,7 @@ import supplierReducer from "./reducers/supplierReducer";
 import reviewReducer from "./reducers/reviewReducer";
 import feedbackedStaffDashboardReducer from "./reducers/feedbackedStaffDashboardReducer";
 import chatReducer from "./reducers/chatReducer";
+import warehouseDashboardReducer from "./reducers/warehouseDashboardReducer";
 import rootSaga from "./sagas/rootSaga";
 
 const rootReducer = combineReducers({
@@ -50,6 +51,7 @@ const rootReducer = combineReducers({
   review: reviewReducer,
   feedbackedStaffDashboard: feedbackedStaffDashboardReducer,
   chat: chatReducer,
+  warehouseDashboard: warehouseDashboardReducer,
 });
 
 const sagaMiddleware = createSagaMiddleware();

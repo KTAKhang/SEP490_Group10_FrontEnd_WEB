@@ -60,19 +60,19 @@ function* createReceiptSaga(action) {
     const response = yield call(apiCreateReceipt, formData);
     if (response.status === "OK") {
       yield put(createReceiptSuccess(response.data));
-      toast.success(response.message || "Nhập kho thành công");
+      toast.success(response.message || "Receipt created successfully");
       // Refresh products list to update quantities
       yield put({ type: GET_PRODUCTS_REQUEST });
     } else {
       // Backend trả về status "ERR" với message cụ thể
-      const errorMessage = response.message || "Không thể nhập kho";
+      const errorMessage = response.message || "Failed to create receipt";
       yield put(createReceiptFailure(errorMessage));
       toast.error(errorMessage);
     }
   } catch (error) {
     // Xử lý HTTP errors (400, 500, etc.)
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể nhập kho";
+      error.response?.data?.message || error.message || "Failed to create receipt";
     yield put(createReceiptFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -90,11 +90,11 @@ function* getReceiptHistorySaga(action) {
         })
       );
     } else {
-      throw new Error(response.message || "Không thể tải lịch sử nhập hàng");
+      throw new Error(response.message || "Failed to load receipt history");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải lịch sử nhập hàng";
+      error.response?.data?.message || error.message || "Failed to load receipt history";
     yield put(getReceiptHistoryFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -107,11 +107,11 @@ function* getReceiptByIdSaga(action) {
     if (response.status === "OK") {
       yield put(getReceiptByIdSuccess(response.data));
     } else {
-      throw new Error(response.message || "Không thể tải chi tiết phiếu nhập hàng");
+      throw new Error(response.message || "Failed to load receipt details");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải chi tiết phiếu nhập hàng";
+      error.response?.data?.message || error.message || "Failed to load receipt details";
     yield put(getReceiptByIdFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -124,11 +124,11 @@ function* getWarehouseStatsSaga(action) {
     if (response.status === "OK") {
       yield put(getWarehouseStatsSuccess(response.data));
     } else {
-      throw new Error(response.message || "Không thể tải thống kê kho");
+      throw new Error(response.message || "Failed to load warehouse statistics");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải thống kê kho";
+      error.response?.data?.message || error.message || "Failed to load warehouse statistics";
     yield put(getWarehouseStatsFailure(errorMessage));
     toast.error(errorMessage);
   }

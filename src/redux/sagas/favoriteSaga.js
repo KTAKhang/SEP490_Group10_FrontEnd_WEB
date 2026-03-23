@@ -54,13 +54,13 @@ function* addFavoriteSaga(action) {
     const response = yield call(apiAddFavorite, productId);
     if (response.status === "OK") {
       yield put(addFavoriteSuccess(response.data));
-      toast.success(response.message || "Đã thêm vào danh sách yêu thích");
+      toast.success(response.message || "Added to favorites");
     } else {
-      throw new Error(response.message || "Không thể thêm vào danh sách yêu thích");
+      throw new Error(response.message || "Failed to add to favorites");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể thêm vào danh sách yêu thích";
+      error.response?.data?.message || error.message || "Failed to add to favorites";
     yield put(addFavoriteFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -72,13 +72,13 @@ function* removeFavoriteSaga(action) {
     const response = yield call(apiRemoveFavorite, productId);
     if (response.status === "OK") {
       yield put(removeFavoriteSuccess(productId));
-      toast.success(response.message || "Đã xóa khỏi danh sách yêu thích");
+      toast.success(response.message || "Removed from favorites");
     } else {
-      throw new Error(response.message || "Không thể xóa khỏi danh sách yêu thích");
+      throw new Error(response.message || "Failed to remove from favorites");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể xóa khỏi danh sách yêu thích";
+      error.response?.data?.message || error.message || "Failed to remove from favorites";
     yield put(removeFavoriteFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -91,7 +91,7 @@ function* checkFavoriteSaga(action) {
     if (response.status === "OK") {
       yield put(checkFavoriteSuccess(productId, response.data.isFavorite));
     } else {
-      throw new Error(response.message || "Không thể kiểm tra trạng thái yêu thích");
+      throw new Error(response.message || "Failed to check favorite status");
     }
   } catch (error) {
     // Không hiển thị toast error cho check favorite (có thể do chưa đăng nhập)
@@ -111,11 +111,11 @@ function* getFavoritesSaga(action) {
         })
       );
     } else {
-      throw new Error(response.message || "Không thể tải danh sách yêu thích");
+      throw new Error(response.message || "Failed to load favorites list");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải danh sách yêu thích";
+      error.response?.data?.message || error.message || "Failed to load favorites list";
     yield put(getFavoritesFailure(errorMessage));
     // Không hiển thị toast error nếu:
     // - Lỗi 401 (chưa đăng nhập) - normal case

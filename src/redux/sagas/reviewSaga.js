@@ -91,11 +91,11 @@ function* getAdminReviewsSaga(action) {
         })
       );
     } else {
-      throw new Error(response.message || "Không thể tải danh sách review");
+      throw new Error(response.message || "Failed to load review list");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải danh sách review";
+      error.response?.data?.message || error.message || "Failed to load review list";
     yield put(getAdminReviewsFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -107,13 +107,13 @@ function* updateReviewVisibilitySaga(action) {
     const response = yield call(apiUpdateReviewVisibility, id, status);
     if (response.status === "OK") {
       yield put(updateReviewVisibilitySuccess(response.data));
-      toast.success(response.message || "Cập nhật trạng thái review thành công");
+      toast.success(response.message || "Review visibility updated successfully");
     } else {
-      throw new Error(response.message || "Không thể cập nhật review");
+      throw new Error(response.message || "Failed to update review");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể cập nhật review";
+      error.response?.data?.message || error.message || "Failed to update review";
     yield put(updateReviewVisibilityFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -131,11 +131,11 @@ function* getProductReviewsSaga(action) {
         })
       );
     } else {
-      throw new Error(response.message || "Không thể tải đánh giá sản phẩm");
+      throw new Error(response.message || "Failed to load product reviews");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải đánh giá sản phẩm";
+      error.response?.data?.message || error.message || "Failed to load product reviews";
     yield put(getProductReviewsFailure(errorMessage));
   }
 }
@@ -146,11 +146,11 @@ function* getProductReviewStatsSaga(action) {
     if (response.status === "OK") {
       yield put(getProductReviewStatsSuccess(response.data));
     } else {
-      throw new Error(response.message || "Không thể tải thống kê đánh giá");
+      throw new Error(response.message || "Failed to load review statistics");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải thống kê đánh giá";
+      error.response?.data?.message || error.message || "Failed to load review statistics";
     yield put(getProductReviewStatsFailure(errorMessage));
   }
 }
@@ -160,13 +160,13 @@ function* createReviewSaga(action) {
     const response = yield call(apiCreateReview, action.payload);
     if (response.status === "OK") {
       yield put(createReviewSuccess(response.data));
-      toast.success(response.message || "Đánh giá sản phẩm thành công");
+      toast.success(response.message || "Review submitted successfully");
     } else {
-      throw new Error(response.message || "Không thể tạo đánh giá");
+      throw new Error(response.message || "Failed to create review");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tạo đánh giá";
+      error.response?.data?.message || error.message || "Failed to create review";
     yield put(createReviewFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -178,13 +178,13 @@ function* updateReviewSaga(action) {
     const response = yield call(apiUpdateReview, id, data);
     if (response.status === "OK") {
       yield put(updateReviewSuccess(response.data));
-      toast.success(response.message || "Cập nhật đánh giá thành công");
+      toast.success(response.message || "Review updated successfully");
     } else {
-      throw new Error(response.message || "Không thể cập nhật đánh giá");
+      throw new Error(response.message || "Failed to update review");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể cập nhật đánh giá";
+      error.response?.data?.message || error.message || "Failed to update review";
     yield put(updateReviewFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -195,13 +195,13 @@ function* deleteReviewSaga(action) {
     const response = yield call(apiDeleteReview, action.payload);
     if (response.status === "OK") {
       yield put(deleteReviewSuccess(action.payload));
-      toast.success(response.message || "Xóa đánh giá thành công");
+      toast.success(response.message || "Review deleted successfully");
     } else {
-      throw new Error(response.message || "Không thể xóa đánh giá");
+      throw new Error(response.message || "Failed to delete review");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể xóa đánh giá";
+      error.response?.data?.message || error.message || "Failed to delete review";
     yield put(deleteReviewFailure(errorMessage));
     toast.error(errorMessage);
   }

@@ -41,7 +41,7 @@ export default function OrderSuccessPage() {
         {
           icon: Package,
           label: 'Status',
-          value: order.order_status?.name,
+          value: order.order_status_id?.name,
         },
         {
           icon: Wallet,

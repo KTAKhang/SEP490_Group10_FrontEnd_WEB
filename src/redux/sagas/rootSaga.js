@@ -22,6 +22,7 @@ import supplierSaga from "./supplierSaga";
 import reviewSaga from "./reviewSaga";
 import feedbackedStaffDashboardSaga from "./feedbackedStaffDashboardSaga";
 import chatSaga from "./chatSaga";
+import warehouseDashboardSaga from "./warehouseDashboardSaga";
 
 export default function* rootSaga() {
   try {
@@ -49,6 +50,7 @@ export default function* rootSaga() {
       reviewSaga(),
       feedbackedStaffDashboardSaga(),
       chatSaga(),
+      warehouseDashboardSaga(),
     ]);
   } catch (error) {
     console.error("🔴 rootSaga ERROR:", error);
