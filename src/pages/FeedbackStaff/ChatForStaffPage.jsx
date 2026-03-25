@@ -1,46 +1,72 @@
 import { useEffect, useState, useRef } from "react";
 import { MessageCircle, Send, RefreshCw, User, Clock } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import api from "../../api";
 import { socket } from "../../socket";
-import { getStaffChatRoomsRequest } from "../../redux/actions/chatActions";
+import {
+  clearChatSendMessageResult,
+  clearChatRoomMessages,
+  getChatRoomMessagesRequest,
+  getStaffChatRoomsRequest,
+  markChatRoomAsReadRequest,
+  receiveChatMessage,
+  sendChatMessageRequest,
+} from "../../redux/actions/chatActions";
 
 export default function StaffChat() {
   const dispatch = useDispatch();
-  const { staffRooms, staffRoomsLoading } = useSelector(
-    (state) => state.chat || {}
+  const { staffRooms, staffRoomsLoading, sendMessage } = useSelector(
+    (state) => state.chat || {},
   );
 
   const [rooms, setRooms] = useState([]);
   const [room, setRoom] = useState(null);
-  const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [selectedImages, setSelectedImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
-  const [hasMore, setHasMore] = useState(false);
-  const [oldestMessageId, setOldestMessageId] = useState(null);
-  const [loadingMore, setLoadingMore] = useState(false);
   const initialLoadRef = useRef(false);
   const [initializing, setInitializing] = useState(false);
   const [staff, setStaff] = useState(null);
 
   // ✅ NEW: loading state for send
   const [isSending, setIsSending] = useState(false);
+  const lastHandledSendMessageIdRef = useRef(null);
+  const pendingPrependScrollHeightRef = useRef(null);
 
-  // useEffect(() => {
-  //   const raw = localStorage.getItem("user");
-  //   if (raw) {
-  //     const user = JSON.parse(raw);
-  //     if (user.role_name === "feedbacked-staff") {
-  //       setStaff(user);
-  //     }
-  //   }
-  // }, []);
+  const activeRoomMessagesState = useSelector((state) => {
+    const roomId = room?._id;
+    if (!roomId) return {};
+    return state.chat.roomMessagesById?.[String(roomId)] || {};
+  });
+
+  const messages = activeRoomMessagesState.messages || [];
+  const hasMore = activeRoomMessagesState.hasMore || false;
+  const oldestMessageId = activeRoomMessagesState.oldestMessageId;
+  const loadingMore = activeRoomMessagesState.loadingMore || false;
+
+  // Load staff info for socket filtering (unread counts rely on this)
+  useEffect(() => {
+    const raw = localStorage.getItem("user");
+    if (!raw) return;
+    try {
+      const u = JSON.parse(raw);
+      if (u?.role_name === "feedbacked-staff") setStaff(u);
+    } catch {
+      // ignore parse errors
+    }
+  }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = messagesContainerRef.current;
+    const pendingPrependScrollHeight = pendingPrependScrollHeightRef.current;
+
+    if (pendingPrependScrollHeight != null && container) {
+      container.scrollTop = container.scrollHeight - pendingPrependScrollHeight;
+      pendingPrependScrollHeightRef.current = null;
+    } else {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
 
     if (initialLoadRef.current) {
       initialLoadRef.current = false;
@@ -96,13 +122,14 @@ export default function StaffChat() {
   ====================== */
   useEffect(() => {
     socket.on("receive_message", (message) => {
-      if (room && message.room._id === room._id) {
-        setMessages((prev) => [...prev, message]);
-      }
+      const msgRoomId = message?.room?._id ?? message?.room;
+      if (!msgRoomId) return;
+      // Upsert messages for any room, so switching boxes still shows new content.
+      dispatch(receiveChatMessage({ roomId: msgRoomId, message }));
     });
 
     return () => socket.off("receive_message");
-  }, [room]);
+  }, [dispatch]);
 
   // Helpers: compare days and format header label
   const isSameDay = (a, b) => {
@@ -185,6 +212,38 @@ export default function StaffChat() {
   }, [room]);
 
   /* ======================
+     SEND MESSAGE SUCCESS
+  ====================== */
+  useEffect(() => {
+    const msg = sendMessage?.data;
+    if (!msg) return;
+    if (!room?._id) return;
+
+    const roomKey = String(room._id);
+    const targetRoomKey =
+      sendMessage?.roomId != null ? String(sendMessage.roomId) : roomKey;
+    if (targetRoomKey !== roomKey) return;
+
+    const msgId = msg?._id ?? msg?.id;
+    if (msgId && lastHandledSendMessageIdRef.current === String(msgId))
+      return;
+    if (msgId) lastHandledSendMessageIdRef.current = String(msgId);
+
+    socket.emit("send_message", { roomId: room._id, message: msg });
+    setText("");
+    setSelectedImages([]);
+    setIsSending(false);
+    dispatch(clearChatSendMessageResult());
+  }, [sendMessage?.data, sendMessage?.roomId, room]);
+
+  useEffect(() => {
+    if (!sendMessage?.error) return;
+    if (!isSending) return;
+    setIsSending(false);
+    dispatch(clearChatSendMessageResult());
+  }, [sendMessage?.error, isSending]);
+
+  /* ======================
      LOAD ROOMS
   ====================== */
   const loadRooms = () => {
@@ -194,7 +253,7 @@ export default function StaffChat() {
   /* ======================
      OPEN ROOM
   ====================== */
-  const openRoom = async (r) => {
+  const openRoom = (r) => {
     setRoom(r);
 
     setRooms((prev) =>
@@ -203,117 +262,38 @@ export default function StaffChat() {
       ),
     );
 
-    try {
-      await api.get(`/chat/room/${r._id}/mark-as-read`);
-    } catch (err) {
-      console.error("mark-as-read failed:", err?.message || err);
-    }
-
-    setHasMore(false);
-    setOldestMessageId(null);
+    dispatch(markChatRoomAsReadRequest(r._id));
+    dispatch(clearChatRoomMessages(r._id));
     initialLoadRef.current = true;
     setInitializing(true);
-    await loadMessages(r._id);
-  };
-
-  const loadMessages = async (
-    roomId,
-    { before = null, prepend = false, limit = 5 } = {},
-  ) => {
-    if (!roomId) return;
-    if (prepend && loadingMore) return;
-
-    if (prepend) setLoadingMore(true);
-
-    try {
-      const params = { limit };
-      if (before) params.before = before;
-
-      const container = messagesContainerRef.current;
-      const prevScrollHeight =
-        prepend && container ? container.scrollHeight : null;
-
-      const res = await api.get(`/chat/room/${roomId}/messages`, { params });
-      const payload = res.data?.data ?? res.data;
-
-      const fetched = Array.isArray(payload) ? payload : payload.messages || [];
-      const more =
-        typeof payload === "object" && payload.hasMore !== undefined
-          ? payload.hasMore
-          : fetched.length === limit;
-      const oldest =
-        typeof payload === "object" && payload.oldestMessageId
-          ? payload.oldestMessageId
-          : fetched.length > 0
-            ? fetched[0]._id
-            : null;
-
-      if (prepend) {
-        setMessages((prev) => [...fetched, ...prev]);
-
-        setTimeout(() => {
-          if (container && prevScrollHeight != null) {
-            const newScrollHeight = container.scrollHeight;
-            container.scrollTop = newScrollHeight - prevScrollHeight;
-          }
-        }, 0);
-      } else {
-        setMessages(fetched);
-      }
-
-      setHasMore(more);
-      setOldestMessageId(oldest);
-    } catch (err) {
-      console.error("loadMessages failed:", err);
-    } finally {
-      if (prepend) setLoadingMore(false);
-    }
+    dispatch(
+      getChatRoomMessagesRequest(r._id, { prepend: false, limit: 5 }),
+    );
   };
 
   /* ======================
      SEND MESSAGE (with loading)
   ====================== */
-  const sendMessage = async () => {
+  const handleSendMessage = () => {
     if (!room) return;
     if (!text.trim() && selectedImages.length === 0) return;
     if (isSending) return;
 
     setIsSending(true);
-
-    try {
-      const formData = new FormData();
-      formData.append("roomId", room._id);
-      formData.append("content", text.trim());
-      formData.append("senderRole", "feedbacked-staff");
-
-      selectedImages.forEach((file) => {
-        formData.append("images", file);
-      });
-
-      const res = await api.post("/chat/message", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      const newMessage = res.data.data;
-
-      socket.emit("send_message", {
+    dispatch(
+      sendChatMessageRequest({
         roomId: room._id,
-        message: newMessage,
-      });
-
-      setText("");
-      setSelectedImages([]);
-    } catch (err) {
-      console.error("Send message failed:", err);
-    } finally {
-      setIsSending(false);
-    }
+        senderRole: "feedbacked-staff",
+        content: text.trim(),
+        images: selectedImages,
+      }),
+    );
   };
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      handleSendMessage();
     }
   };
 
@@ -443,10 +423,14 @@ export default function StaffChat() {
                   if (!c || loadingMore || !hasMore || initializing) return;
                   if (c.scrollTop <= 50) {
                     if (room?._id && oldestMessageId) {
-                      loadMessages(room._id, {
-                        before: oldestMessageId,
-                        prepend: true,
-                      });
+                      pendingPrependScrollHeightRef.current = c.scrollHeight;
+                      dispatch(
+                        getChatRoomMessagesRequest(room._id, {
+                          before: oldestMessageId,
+                          prepend: true,
+                          limit: 5,
+                        }),
+                      );
                     }
                   }
                 }}
@@ -463,10 +447,16 @@ export default function StaffChat() {
                       onClick={() => {
                         if (loadingMore || !room?._id || !oldestMessageId)
                           return;
-                        loadMessages(room._id, {
-                          before: oldestMessageId,
-                          prepend: true,
-                        });
+                        const c = messagesContainerRef.current;
+                        if (c)
+                          pendingPrependScrollHeightRef.current = c.scrollHeight;
+                        dispatch(
+                          getChatRoomMessagesRequest(room._id, {
+                            before: oldestMessageId,
+                            prepend: true,
+                            limit: 5,
+                          }),
+                        );
                       }}
                       className="text-sm text-green-600 px-3 py-1 border border-green-200 rounded hover:bg-green-50"
                     >
@@ -615,7 +605,7 @@ export default function StaffChat() {
 
                   {/* ✅ Send button with spinner */}
                   <button
-                    onClick={sendMessage}
+                    onClick={handleSendMessage}
                     disabled={
                       isSending ||
                       (!text.trim() && selectedImages.length === 0)
