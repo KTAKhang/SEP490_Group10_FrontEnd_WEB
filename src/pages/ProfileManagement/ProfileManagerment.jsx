@@ -61,6 +61,7 @@ const ProfileManager = () => {
   const [icity, setIcity] = useState("");
   const [form] = Form.useForm();
   const [cityCode, setCityCode] = useState(null);
+  const isCustomer = user?.role_name === "customer";
   useEffect(() => {
     axios
       .get(`${API_BASE}/p/`)
@@ -342,7 +343,7 @@ const ProfileManager = () => {
                             value: user.email,
                             icon: <MailOutlined className="text-green-500" />,
                           },
-                           {
+                          {
                             label: "Full Name",
                             value: user.fullName,
                             icon: <UserOutlined className="text-green-700" />,
@@ -368,8 +369,8 @@ const ProfileManager = () => {
                             label: "Birthday",
                             value: user.birthday
                               ? new Date(user.birthday).toLocaleDateString(
-                                  "vi-VN",
-                                )
+                                "vi-VN",
+                              )
                               : "N/A",
                             icon: <CalendarDays className="text-green-700" />,
                           },
@@ -410,271 +411,281 @@ const ProfileManager = () => {
                       </div>
                     </Card>
                   ) : (
-                    <Card
-                      className="rounded-3xl border-0 shadow-2xl hover:shadow-2xl transition-all duration-500 bg-white/90 backdrop-blur-lg"
-                      title={
-                        <div className="flex items-center space-x-3 py-2">
-                          <div className="w-1 h-8 bg-gradient-to-b from-green-700 via-green-500 to-green-700 rounded-full"></div>
-                          <h3 className="text-2xl font-bold bg-gradient-to-r from-green-700 to-green-500 bg-clip-text text-transparent">
-                            Update Profile
-                          </h3>
-                        </div>
-                      }
-                    >
-                      {console.log("updateError", updateError)}
-                      {console.log("updateMessage", updateMessage)}
-                      {updateError && (
-                        <div className="mb-5 p-4 rounded-xl border border-red-300 bg-red-50 text-red-700 flex items-center gap-2">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5 text-red-500"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 8v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"
-                            />
-                          </svg>
-                          <span className="font-medium">{updateMessage}</span>
-                        </div>
-                      )}
-
-
-                      <Form
-                        form={form}
-                        layout="vertical"
-                        onFinish={handleSubmit}
-                        autoComplete="off"
+                    (isCustomer ? (
+                      <Card
+                        className="rounded-3xl border-0 shadow-2xl hover:shadow-2xl transition-all duration-500 bg-white/90 backdrop-blur-lg"
+                        title={
+                          <div className="flex items-center space-x-3 py-2">
+                            <div className="w-1 h-8 bg-gradient-to-b from-green-700 via-green-500 to-green-700 rounded-full"></div>
+                            <h3 className="text-2xl font-bold bg-gradient-to-r from-green-700 to-green-500 bg-clip-text text-transparent">
+                              Update Profile
+                            </h3>
+                          </div>
+                        }
                       >
-                        {/* User name */}
-                        <Form.Item
-                          label="User Name"
-                          name="user_name"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Please enter your username!",
-                            },
-                            {
-                              min: 3,
-                              message:
-                                "Usernames must have at least 3 characters!",
-                            },
-                          ]}
+                        {console.log("updateError", updateError)}
+                        {console.log("updateMessage", updateMessage)}
+                        {updateError && (
+                          <div className="mb-5 p-4 rounded-xl border border-red-300 bg-red-50 text-red-700 flex items-center gap-2">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-5 w-5 text-red-500"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 8v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"
+                              />
+                            </svg>
+                            <span className="font-medium">
+                              {updateMessage}
+                            </span>
+                          </div>
+                        )}
+
+
+                        <Form
+                          form={form}
+                          layout="vertical"
+                          onFinish={handleSubmit}
+                          autoComplete="off"
                         >
-                          <Input
-                            size="large"
-                            className="rounded-xl border-2 hover:border-green-500 focus:border-green-500 transition-colors"
-                          />
-                        </Form.Item>
-
-                        <Form.Item
-                          label="Full Name"
-                          name="fullName"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Please enter your username!",
-                            },
-                            {
-                              min: 3,
-                              message:
-                                "Usernames must have at least 3 characters!",
-                            },
-                          ]}
-                        >
-                          <Input
-                            size="large"
-                            className="rounded-xl border-2 hover:border-green-500 focus:border-green-500 transition-colors"
-                          />
-                        </Form.Item>
-
-
-                        {/* Phone */}
-                        <Form.Item
-                          label="Phone Number"
-                          name="phone"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Please enter your phone number!",
-                            },
-                            {
-                              pattern: /^[0-9]{9,11}$/,
-                              message: "The phone number is invalid!",
-                            },
-                          ]}
-                        >
-                          <Input
-                            size="large"
-                            placeholder="Enter phone number"
-                            className="rounded-xl border-2 hover:border-green-500 focus:border-green-500 transition-colors"
-                          />
-                        </Form.Item>
-
-
-                        <Form.Item
-                          label="City / Province"
-                          name="city"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Please select city/province!",
-                            },
-                          ]}
-                        >
-                          <Select
-                            size="large"
-                            placeholder="Select city/province"
-                            className="rounded-xl"
-                            onChange={(value) => {
-                              const province = provinces.find(
-                                (p) => p.code === Number(value),
-                              );
-                              setIcity(province ? province.name : "");
-                              setCityCode(Number(value));
-                              form.setFieldsValue({ ward: "" });
-                            }}
+                          {/* User name */}
+                          <Form.Item
+                            label="User Name"
+                            name="user_name"
+                            rules={[
+                              {
+                                required: true,
+                                message: "Please enter your username!",
+                              },
+                              {
+                                min: 3,
+                                message:
+                                  "Usernames must have at least 3 characters!",
+                              },
+                            ]}
                           >
-                            {provinces.map((p) => (
-                              <Select.Option key={p.code} value={p.code}>
-                                {p.name}
-                              </Select.Option>
-                            ))}
-                          </Select>
-                        </Form.Item>
+                            <Input
+                              size="large"
+                              className="rounded-xl border-2 hover:border-green-500 focus:border-green-500 transition-colors"
+                            />
+                          </Form.Item>
 
-
-                        {/* Ward */}
-                        <Form.Item
-                          label="Ward"
-                          name="ward"
-                          rules={[
-                            { required: true, message: "Please select ward!" },
-                          ]}
-                        >
-                          <Select
-                            size="large"
-                            placeholder="Select ward"
-                            disabled={!cityCode}
-                            className="rounded-xl"
+                          <Form.Item
+                            label="Full Name"
+                            name="fullName"
+                            rules={[
+                              {
+                                required: true,
+                                message: "Please enter your username!",
+                              },
+                              {
+                                min: 3,
+                                message:
+                                  "Usernames must have at least 3 characters!",
+                              },
+                            ]}
                           >
-                            {wards.map((w) => (
-                              <Select.Option key={w.code} value={w.name}>
-                                {w.name}
-                              </Select.Option>
-                            ))}
-                          </Select>
-                        </Form.Item>
+                            <Input
+                              size="large"
+                              className="rounded-xl border-2 hover:border-green-500 focus:border-green-500 transition-colors"
+                            />
+                          </Form.Item>
 
 
-                        {/* Address */}
-                        <Form.Item
-                          label="Address"
-                          name="address"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Please enter address!",
-                            },
-                            {
-                              min: 5,
-                              message: "Address must be at least 5 characters!",
-                            },
-                          ]}
-                        >
-                          <Input.TextArea
-                            rows={3}
-                            placeholder="Enter address"
-                            className="rounded-xl border-2 hover:border-green-500 focus:border-green-500 transition-colors"
-                          />
-                        </Form.Item>
-                        {/* Birthday */}
-                        <Form.Item
-                          label="Birthday"
-                          name="birthday"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Please select your birthday!",
-                            },
-                          ]}
-                        >
-                          <DatePicker
-                            size="large"
-                            className="w-full rounded-xl"
-                            disabledDate={(current) =>
-                              current && current > dayjs().endOf("day")
-                            }
-                          />
-                        </Form.Item>
-
-
-                        {/* Gender */}
-                        <Form.Item
-                          label="Gender"
-                          name="gender"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Please select gender!",
-                            },
-                          ]}
-                        >
-                          <Select
-                            size="large"
-                            placeholder="Select gender"
-                            className="rounded-xl"
+                          {/* Phone */}
+                          <Form.Item
+                            label="Phone Number"
+                            name="phone"
+                            rules={[
+                              {
+                                required: true,
+                                message: "Please enter your phone number!",
+                              },
+                              {
+                                pattern: /^[0-9]{9,11}$/,
+                                message: "The phone number is invalid!",
+                              },
+                            ]}
                           >
-                            <Select.Option value="male">Male</Select.Option>
-                            <Select.Option value="female">Female</Select.Option>
-                            <Select.Option value="other">Other</Select.Option>
-                          </Select>
-                        </Form.Item>
+                            <Input
+                              size="large"
+                              placeholder="Enter phone number"
+                              className="rounded-xl border-2 hover:border-green-500 focus:border-green-500 transition-colors"
+                            />
+                          </Form.Item>
 
 
-                        <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-100">
-                          <Button
-                            size="large"
-                            danger
-                            ghost
-                            onClick={() => {
-                              Modal.confirm({
-                                title: "Discard changes?",
-                                content: "Your changes will not be saved.",
-                                okText: "Discard",
-                                cancelText: "Continue editing",
-                                onOk: () => {
-                                  setEditMode(false);
-                                  form.resetFields();
-                                  setAvatarFile(null);
-                                  setAvatarUrl(user.avatar || "");
-                                  dispatch(clearProfileMessages());
-                                },
-                              });
-                            }}
+                          <Form.Item
+                            label="City / Province"
+                            name="city"
+                            rules={[
+                              {
+                                required: true,
+                                message: "Please select city/province!",
+                              },
+                            ]}
                           >
-                            Cancel
-                          </Button>
+                            <Select
+                              size="large"
+                              placeholder="Select city/province"
+                              className="rounded-xl"
+                              onChange={(value) => {
+                                const province = provinces.find(
+                                  (p) => p.code === Number(value),
+                                );
+                                setIcity(province ? province.name : "");
+                                setCityCode(Number(value));
+                                form.setFieldsValue({ ward: "" });
+                              }}
+                            >
+                              {provinces.map((p) => (
+                                <Select.Option key={p.code} value={p.code}>
+                                  {p.name}
+                                </Select.Option>
+                              ))}
+                            </Select>
+                          </Form.Item>
 
 
-                          <Button
-                            type="text"
-                            size="large"
-                            loading={updateLoading}
-                            icon={<SaveOutlined />}
-                            className="px-8 py-2 h-auto rounded-xl text-white bg-gradient-to-r from-green-500 via-green-600 to-green-700 border-0 hover:!text-white hover:!bg-green-800 focus:!bg-green-800 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
-                            htmlType="submit"
+                          {/* Ward */}
+                          <Form.Item
+                            label="Ward"
+                            name="ward"
+                            rules={[
+                              { required: true, message: "Please select ward!" },
+                            ]}
                           >
-                            {updateLoading ? "Saving..." : "Save Updated"}
-                          </Button>
+                            <Select
+                              size="large"
+                              placeholder="Select ward"
+                              disabled={!cityCode}
+                              className="rounded-xl"
+                            >
+                              {wards.map((w) => (
+                                <Select.Option key={w.code} value={w.name}>
+                                  {w.name}
+                                </Select.Option>
+                              ))}
+                            </Select>
+                          </Form.Item>
+
+
+                          {/* Address */}
+                          <Form.Item
+                            label="Address"
+                            name="address"
+                            rules={[
+                              {
+                                required: true,
+                                message: "Please enter address!",
+                              },
+                              {
+                                min: 5,
+                                message: "Address must be at least 5 characters!",
+                              },
+                            ]}
+                          >
+                            <Input.TextArea
+                              rows={3}
+                              placeholder="Enter address"
+                              className="rounded-xl border-2 hover:border-green-500 focus:border-green-500 transition-colors"
+                            />
+                          </Form.Item>
+                          {/* Birthday */}
+                          <Form.Item
+                            label="Birthday"
+                            name="birthday"
+                            rules={[
+                              {
+                                required: true,
+                                message: "Please select your birthday!",
+                              },
+                            ]}
+                          >
+                            <DatePicker
+                              size="large"
+                              className="w-full rounded-xl"
+                              disabledDate={(current) =>
+                                current && current > dayjs().endOf("day")
+                              }
+                            />
+                          </Form.Item>
+
+
+                          {/* Gender */}
+                          <Form.Item
+                            label="Gender"
+                            name="gender"
+                            rules={[
+                              {
+                                required: true,
+                                message: "Please select gender!",
+                              },
+                            ]}
+                          >
+                            <Select
+                              size="large"
+                              placeholder="Select gender"
+                              className="rounded-xl"
+                            >
+                              <Select.Option value="male">Male</Select.Option>
+                              <Select.Option value="female">Female</Select.Option>
+                              <Select.Option value="other">Other</Select.Option>
+                            </Select>
+                          </Form.Item>
+
+
+                          <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-100">
+                            <Button
+                              size="large"
+                              danger
+                              ghost
+                              onClick={() => {
+                                Modal.confirm({
+                                  title: "Discard changes?",
+                                  content: "Your changes will not be saved.",
+                                  okText: "Discard",
+                                  cancelText: "Continue editing",
+                                  onOk: () => {
+                                    setEditMode(false);
+                                    form.resetFields();
+                                    setAvatarFile(null);
+                                    setAvatarUrl(user.avatar || "");
+                                    dispatch(clearProfileMessages());
+                                  },
+                                });
+                              }}
+                            >
+                              Cancel
+                            </Button>
+
+
+                            <Button
+                              type="text"
+                              size="large"
+                              loading={updateLoading}
+                              icon={<SaveOutlined />}
+                              className="px-8 py-2 h-auto rounded-xl text-white bg-gradient-to-r from-green-500 via-green-600 to-green-700 border-0 hover:!text-white hover:!bg-green-800 focus:!bg-green-800 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                              htmlType="submit"
+                            >
+                              {updateLoading ? "Saving..." : "Save Updated"}
+                            </Button>
+                          </div>
+                        </Form>
+                      </Card>
+                    ) : (
+                      <Card className="rounded-3xl border-0 shadow-2xl hover:shadow-2xl transition-all duration-500 bg-white/90 backdrop-blur-lg">
+                        <div className="text-center p-10 text-gray-600">
+                          Only customers can update their profile.
                         </div>
-                      </Form>
-                    </Card>
+                      </Card>
+                    ))
                   )}
                 </div>
               </Col>
@@ -734,7 +745,7 @@ const ProfileManager = () => {
                         </p>
                       </div>
                       {/* Edit button */}
-                      {!editMode && (
+                      {!editMode && isCustomer && (
                         <Button
                           type="text"
                           icon={<EditOutlined />}
