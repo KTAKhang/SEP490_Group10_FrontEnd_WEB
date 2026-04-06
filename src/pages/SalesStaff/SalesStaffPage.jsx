@@ -28,7 +28,6 @@ import {
 } from "lucide-react";
 import { orderAdminStatsRequest, orderAdminListRequest } from "../../redux/actions/orderActions";
 import { discountListRequest, fetchDiscountStatsRequest } from "../../redux/actions/discountActions";
-import { newsGetNewsRequest } from "../../redux/actions/newsActions";
 import Loading from "../../components/Loading/Loading";
 import apiClient from "../../utils/axiosConfig";
 import {
@@ -87,6 +86,25 @@ const CardContent = ({ children, className = "" }) => (
   <div className={`p-5 ${className}`}>{children}</div>
 );
 
+const resolveExportErrorMessage = async (err) => {
+  const fallbackMessage = "Failed to export Excel file.";
+  const payload = err?.response?.data;
+
+  if (payload instanceof Blob) {
+    try {
+      const text = await payload.text();
+      const parsed = JSON.parse(text);
+      if (parsed?.message) return parsed.message;
+    } catch {
+      return fallbackMessage;
+    }
+  }
+
+  if (payload?.message) return payload.message;
+  if (typeof payload === "string" && payload.trim()) return payload;
+  return fallbackMessage;
+};
+
 const SalesStaffPage = () => {
   const dispatch = useDispatch();
   const {
@@ -103,11 +121,6 @@ const SalesStaffPage = () => {
     discountStatsLoading,
     discountStatsError,
   } = useSelector((state) => state.discount || {});
-  const {
-    newsList = [],
-    newsListLoading,
-    newsPagination,
-  } = useSelector((state) => state.news || {});
 
   const [preOrderList, setPreOrderList] = useState([]);
   const [preOrderPagination, setPreOrderPagination] = useState(null);
@@ -126,6 +139,12 @@ const SalesStaffPage = () => {
   const [statsGroupBy, setStatsGroupBy] = useState("month");
   const [statsYear, setStatsYear] = useState(currentYear);
   const [statsTab, setStatsTab] = useState("orders"); // "orders" | "discounts" | "preorders"
+  const [exportPeriodType, setExportPeriodType] = useState("year");
+  const [exportYear, setExportYear] = useState(currentYear);
+  const [exportMonth, setExportMonth] = useState(dayjs().month() + 1);
+  const [exportQuarter, setExportQuarter] = useState(Math.ceil((dayjs().month() + 1) / 3));
+  const [exporting, setExporting] = useState(false);
+  const [exportMessage, setExportMessage] = useState("");
 
   const statsData = adminStats?.data ?? adminStats;
   const statusCounts = statsData?.statusCounts ?? [];
@@ -134,7 +153,6 @@ const SalesStaffPage = () => {
   useEffect(() => {
     dispatch(orderAdminListRequest({ page: 1, limit: 5, sortBy: "createdAt", sortOrder: "desc" }));
     dispatch(discountListRequest({ page: 1, limit: 5, sortBy: "createdAt", sortOrder: "desc" }));
-    dispatch(newsGetNewsRequest({ page: 1, limit: 5 }));
   }, [dispatch]);
 
   useEffect(() => {
@@ -227,18 +245,45 @@ const SalesStaffPage = () => {
   const hasOrderError = orderError && !adminStats;
 
   const exportSalesStatsToExcel = async () => {
+    setExportMessage("");
+    setExporting(true);
     try {
-      const res = await apiClient.get("/admin/export/sales-stats", { responseType: "blob" });
+      const params = {
+        periodType: exportPeriodType,
+        year: exportYear,
+      };
+      if (exportPeriodType === "month") {
+        params.month = exportMonth;
+      }
+      if (exportPeriodType === "quarter") {
+        params.quarter = exportQuarter;
+      }
+
+      const res = await apiClient.get("/admin/export/sales-stats", {
+        params,
+        responseType: "blob",
+      });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement("a");
+      const periodSuffix =
+        exportPeriodType === "month"
+          ? `${exportYear}-M${String(exportMonth).padStart(2, "0")}`
+          : exportPeriodType === "quarter"
+            ? `${exportYear}-Q${exportQuarter}`
+            : `${exportYear}`;
       link.href = url;
-      link.setAttribute("download", `sales-stats-${dayjs().format("YYYY-MM-DD-HHmm")}.xlsx`);
+      link.setAttribute("download", `sales-stats-${periodSuffix}-${dayjs().format("YYYY-MM-DD-HHmm")}.xlsx`);
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
+      setExportMessage("Export completed successfully.");
     } catch (err) {
       console.error("Export failed:", err);
+      const message = await resolveExportErrorMessage(err);
+      setExportMessage(message);
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -267,15 +312,75 @@ const SalesStaffPage = () => {
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={exportSalesStatsToExcel}
-          className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50"
-        >
-          <Download size={18} />
-          Export Excel
-        </button>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <select
+            value={exportPeriodType}
+            onChange={(e) => setExportPeriodType(e.target.value)}
+            className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm font-medium text-gray-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+          >
+            <option value="month">Month</option>
+            <option value="quarter">Quarter</option>
+            <option value="year">Year</option>
+          </select>
+          <select
+            value={exportYear}
+            onChange={(e) => setExportYear(Number(e.target.value))}
+            className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm font-medium text-gray-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+          >
+            {Array.from({ length: 6 }, (_, i) => currentYear - i).map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+          {exportPeriodType === "month" && (
+            <select
+              value={exportMonth}
+              onChange={(e) => setExportMonth(Number(e.target.value))}
+              className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm font-medium text-gray-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+            >
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                <option key={m} value={m}>
+                  Month {m}
+                </option>
+              ))}
+            </select>
+          )}
+          {exportPeriodType === "quarter" && (
+            <select
+              value={exportQuarter}
+              onChange={(e) => setExportQuarter(Number(e.target.value))}
+              className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm font-medium text-gray-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+            >
+              {[1, 2, 3, 4].map((q) => (
+                <option key={q} value={q}>
+                  Quarter {q}
+                </option>
+              ))}
+            </select>
+          )}
+          <button
+            type="button"
+            onClick={exportSalesStatsToExcel}
+            disabled={exporting}
+            className="inline-flex h-10 items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Download size={18} />
+            {exporting ? "Exporting..." : "Export Excel"}
+          </button>
+        </div>
       </div>
+      {exportMessage && (
+        <div
+          className={`rounded-xl border px-4 py-3 text-sm ${
+            exportMessage.toLowerCase().includes("success")
+              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+              : "border-red-200 bg-red-50 text-red-700"
+          }`}
+        >
+          {exportMessage}
+        </div>
+      )}
 
       {/* Navigation — 3 loại thống kê */}
       <nav className="flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white p-2 shadow-sm">
@@ -1364,60 +1469,6 @@ const SalesStaffPage = () => {
 
       </>
       )}
-
-      {/* News — Latest list */}
-      <Card>
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <div>
-            <CardTitle>News — Latest list</CardTitle>
-            <p className="text-xs text-gray-500 mt-1">
-              <span className="font-semibold text-gray-700">{newsPagination?.total ?? newsList.length}</span> posts
-            </p>
-          </div>
-          <Link
-            to="/sale-staff/news"
-            className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700"
-          >
-            View all <ChevronRight size={16} />
-          </Link>
-        </CardHeader>
-        <CardContent>
-          {newsListLoading && newsList.length === 0 ? (
-            <p className="text-sm text-gray-500 py-4 text-center">Loading...</p>
-          ) : newsList.length === 0 ? (
-            <p className="text-sm text-gray-500 py-4 text-center">No news yet</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200 text-left text-gray-600">
-                    <th className="py-2 pr-4 font-semibold">Title</th>
-                    <th className="py-2 pr-4 font-semibold">Status</th>
-                    <th className="py-2 font-semibold">Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {newsList.map((news) => (
-                    <tr key={news._id} className="border-b border-gray-100">
-                      <td className="py-2 pr-4 font-medium text-gray-800 max-w-[200px] truncate" title={news.title}>{news.title || "—"}</td>
-                      <td className="py-2 pr-4">
-                        <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                          news.status === "PUBLISHED" ? "bg-emerald-100 text-emerald-700" :
-                          news.status === "DRAFT" ? "bg-gray-100 text-gray-700" :
-                          "bg-amber-100 text-amber-700"
-                        }`}>
-                          {news.status === "PUBLISHED" ? "Published" : news.status === "DRAFT" ? "Draft" : news.status || "—"}
-                        </span>
-                      </td>
-                      <td className="py-2 text-gray-600 whitespace-nowrap">{formatDate(news.createdAt || news.created_at)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-          </CardContent>
-        </Card>
 
       {/* Quick actions */}
       <Card>
