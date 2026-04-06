@@ -78,9 +78,8 @@ const ChatRoomDetail = ({ isOpen, onClose, room }) => {
   const displayData = roomDetail || room;
   const participants = displayData?.participants || [];
   const messages = displayData?.messages || [];
-  const roomName = displayData?.name || `Phòng #${roomId?.slice(-6) || "N/A"}`;
+  const roomName = displayData?.name || `Room #${roomId?.slice(-6) || "N/A"}`;
 
-  // Helpers giống Staff/Customer chat: nhóm theo ngày, format header
   const isSameDay = (a, b) => {
     if (!a || !b) return false;
     const d1 = new Date(a);
@@ -98,10 +97,10 @@ const ChatRoomDetail = ({ isOpen, onClose, room }) => {
     const yesterday = new Date();
     yesterday.setDate(today.getDate() - 1);
 
-    if (isSameDay(d, today)) return "Hôm nay";
-    if (isSameDay(d, yesterday)) return "Hôm qua";
+    if (isSameDay(d, today)) return "Today";
+    if (isSameDay(d, yesterday)) return "Yesterday";
 
-    return d.toLocaleDateString("vi-VN", {
+    return d.toLocaleDateString("en-US", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -121,7 +120,6 @@ const ChatRoomDetail = ({ isOpen, onClose, room }) => {
       msg.sender?.role ||
       msg.sender?.role_name ||
       msg.sender?.type;
-    // Mặc định: customer bên trái, còn lại (staff/admin) bên phải
     if (!role) return false;
     return role !== "customer";
   };
@@ -132,7 +130,7 @@ const ChatRoomDetail = ({ isOpen, onClose, room }) => {
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
             <Eye size={24} className="text-blue-600" />
-            Chi tiết phòng chat
+            Chat Room Details
           </h2>
           <button
             onClick={onClose}
@@ -144,22 +142,22 @@ const ChatRoomDetail = ({ isOpen, onClose, room }) => {
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {roomDetailLoading ? (
-            <Loading message="Đang tải chi tiết phòng..." />
+            <Loading message="Loading room details..." />
           ) : (
             <>
               {/* Room Info */}
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
                   <MessageCircle size={18} />
-                  Thông tin phòng
+                  Room Information
                 </h3>
                 <div className="bg-gray-50 rounded-xl p-4 space-y-2">
                   <div>
-                    <p className="text-xs text-gray-500">Tên phòng</p>
+                    <p className="text-xs text-gray-500">Room Name</p>
                     <p className="font-medium text-gray-900">{roomName}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">ID phòng</p>
+                    <p className="text-xs text-gray-500">Room ID</p>
                     <p className="text-sm text-gray-600 font-mono">
                       {roomId || "—"}
                     </p>
@@ -167,17 +165,17 @@ const ChatRoomDetail = ({ isOpen, onClose, room }) => {
                   <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                     {displayData?.createdAt && (
                       <p>
-                        Tạo:{" "}
+                        Created:{" "}
                         {new Date(displayData.createdAt).toLocaleString(
-                          "vi-VN"
+                          "en-US"
                         )}
                       </p>
                     )}
                     {displayData?.updatedAt && (
                       <p>
-                        Cập nhật:{" "}
+                        Updated:{" "}
                         {new Date(displayData.updatedAt).toLocaleString(
-                          "vi-VN"
+                          "en-US"
                         )}
                       </p>
                     )}
@@ -190,7 +188,7 @@ const ChatRoomDetail = ({ isOpen, onClose, room }) => {
                 <div>
                   <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
                     <Users size={18} />
-                    Người tham gia ({participants.length})
+                    Participants ({participants.length})
                   </h3>
                   <div className="space-y-2">
                     {participants.map((p, idx) => (
@@ -228,7 +226,7 @@ const ChatRoomDetail = ({ isOpen, onClose, room }) => {
               {messages.length > 0 && (
                 <div>
                   <h3 className="text-sm font-medium text-gray-700 mb-3">
-                    Lịch sử tin nhắn ({messages.length})
+                    Message History ({messages.length})
                   </h3>
                   <div
                     ref={messagesContainerRef}
@@ -244,12 +242,12 @@ const ChatRoomDetail = ({ isOpen, onClose, room }) => {
                           {roomDetailLoadMore ? (
                             <>
                               <Loader2 size={18} className="animate-spin" />
-                              Đang tải...
+                              Loading...
                             </>
                           ) : (
                             <>
                               <ChevronUp size={18} />
-                              Xem thêm tin nhắn cũ
+                              Load older messages
                             </>
                           )}
                         </button>
@@ -313,7 +311,7 @@ const ChatRoomDetail = ({ isOpen, onClose, room }) => {
                               >
                                 {msg.createdAt
                                   ? new Date(msg.createdAt).toLocaleTimeString(
-                                    "vi-VN",
+                                    "en-US",
                                     {
                                       hour: "2-digit",
                                       minute: "2-digit",
@@ -332,7 +330,7 @@ const ChatRoomDetail = ({ isOpen, onClose, room }) => {
 
               {participants.length === 0 && messages.length === 0 && (
                 <p className="text-center text-gray-500 py-4">
-                  Chưa có thông tin chi tiết
+                  No details available
                 </p>
               )}
             </>
@@ -344,7 +342,7 @@ const ChatRoomDetail = ({ isOpen, onClose, room }) => {
             onClick={onClose}
             className="px-4 py-2 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition"
           >
-            Đóng
+            Close
           </button>
         </div>
       </div>

@@ -74,7 +74,7 @@ const ChatManagement = () => {
 
   const formatDateTime = (iso) => {
     if (!iso) return "—";
-    return new Date(iso).toLocaleString("vi-VN", {
+    return new Date(iso).toLocaleString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
       day: "2-digit",
@@ -93,10 +93,10 @@ const ChatManagement = () => {
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-              Quản lý phòng chat
+              Chat Room Management
             </h1>
             <p className="text-sm text-gray-500 mt-0.5">
-              Xem danh sách và chi tiết các phòng chat
+              View the list and details of chat rooms
             </p>
           </div>
         </div>
@@ -106,7 +106,7 @@ const ChatManagement = () => {
       <Card>
         <CardContent className="p-5">
           <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-500">
-            Tìm kiếm & lọc
+            Search & Filter
           </p>
           <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
             <div className="relative min-w-0 flex-1 lg:max-w-xs">
@@ -116,7 +116,7 @@ const ChatManagement = () => {
               />
               <input
                 type="text"
-                placeholder="Tìm kiếm phòng chat..."
+                placeholder="Search chat rooms..."
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -134,8 +134,8 @@ const ChatManagement = () => {
                 }}
                 className="rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               >
-                <option value="createdAt">Ngày tạo</option>
-                <option value="updatedAt">Ngày cập nhật</option>
+                <option value="createdAt">Created Date</option>
+                <option value="updatedAt">Updated Date</option>
               </select>
               <select
                 value={sortOrder}
@@ -145,8 +145,8 @@ const ChatManagement = () => {
                 }}
                 className="rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               >
-                <option value="desc">Mới nhất</option>
-                <option value="asc">Cũ nhất</option>
+                <option value="desc">Newest</option>
+                <option value="asc">Oldest</option>
               </select>
             </div>
           </div>
@@ -157,17 +157,17 @@ const ChatManagement = () => {
       <Card>
         <CardHeader className="py-4">
           <CardTitle>
-            Danh sách phòng chat (
+            Chat Room List (
             {roomsPagination?.total ?? rooms?.length ?? 0})
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {roomsLoading ? (
-            <Loading message="Đang tải..." />
+            <Loading message="Loading..." />
           ) : !rooms?.length ? (
             <div className="p-8 text-center">
               <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-600">Chưa có phòng chat nào</p>
+              <p className="text-gray-600">No chat rooms found</p>
             </div>
           ) : (
             <>
@@ -176,19 +176,19 @@ const ChatManagement = () => {
                   <thead className="bg-gray-50/80">
                     <tr>
                       <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-                        Khách hàng
+                        Customer
                       </th>
                       <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-                        Nhân viên hỗ trợ
+                        Support Staff
                       </th>
                       <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-                        Tin nhắn cuối
+                        Last Message
                       </th>
                       <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-                        Hoạt động gần nhất
+                        Last Activity
                       </th>
                       <th className="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-600">
-                        Thao tác
+                        Actions
                       </th>
                     </tr>
                   </thead>
@@ -211,13 +211,13 @@ const ChatManagement = () => {
                             )}
                             <div>
                               <p className="text-sm font-semibold text-gray-900">
-                                {room.user?.user_name || "Khách hàng"}
+                                {room.user?.user_name || "Customer"}
                               </p>
                               <p className="text-xs text-gray-500 truncate max-w-xs">
                                 {room.user?.email || "—"}
                               </p>
                               <p className="text-[11px] text-gray-400 mt-0.5">
-                                Phòng #{getRoomShortId(room)}
+                                Room #{getRoomShortId(room)}
                               </p>
                             </div>
                           </div>
@@ -237,7 +237,7 @@ const ChatManagement = () => {
                               <div className="flex items-center gap-1 text-sm text-gray-800">
                                 <Users size={16} className="text-gray-400" />
                                 <span className="truncate">
-                                  {room.staff?.user_name || "Chưa gán"}
+                                  {room.staff?.user_name || "Unassigned"}
                                 </span>
                               </div>
                               <p className="text-xs text-gray-500 truncate max-w-[180px]">
@@ -248,7 +248,7 @@ const ChatManagement = () => {
                                 <div className="mt-1 flex flex-wrap gap-1 text-[11px]">
                                   {room.unreadByUser > 0 && (
                                     <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-red-100 text-red-700">
-                                      KH: {room.unreadByUser}
+                                      Customer: {room.unreadByUser}
                                     </span>
                                   )}
                                   {room.unreadByStaff > 0 && (
@@ -277,7 +277,7 @@ const ChatManagement = () => {
                           <button
                             onClick={() => handleViewRoom(room)}
                             className="rounded-xl p-2 text-blue-600 transition hover:bg-blue-50 hover:text-blue-700"
-                            title="Xem chi tiết"
+                            title="View details"
                           >
                             <Eye size={18} />
                           </button>
@@ -292,7 +292,7 @@ const ChatManagement = () => {
               {roomsPagination && roomsPagination.totalPages > 1 && (
                 <div className="flex flex-col gap-3 border-t border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-xs text-gray-500">
-                    Hiển thị{" "}
+                    Showing{" "}
                     {roomsPagination.page * roomsPagination.limit -
                       roomsPagination.limit +
                       1}
