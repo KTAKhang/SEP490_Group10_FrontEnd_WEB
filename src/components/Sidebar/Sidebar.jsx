@@ -105,7 +105,7 @@ const Sidebar = () => {
     },
     {
       icon: MessageCircle,
-      label: "Chat",
+      label: "Chat Management",
       path: "/admin/chat",
     },
     {
