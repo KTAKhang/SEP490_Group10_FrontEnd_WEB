@@ -152,23 +152,23 @@ const CreateSupplier = ({ isOpen, onClose }) => {
 
     const phone = formData.phone?.toString().trim() || "";
     const email = formData.email?.toString().trim() || "";
-    if (!phone && !email) {
-      toast.error("At least one phone number or email is required");
+    if (!phone) {
+      toast.error("Phone number is required");
       return;
     }
-    if (phone) {
-      const phoneCheck = validatePhone(phone);
-      if (!phoneCheck.valid) {
-        toast.error(phoneCheck.message);
-        return;
-      }
+    if (!email) {
+      toast.error("Email is required");
+      return;
     }
-    if (email) {
-      const emailCheck = validateEmail(email);
-      if (!emailCheck.valid) {
-        toast.error(emailCheck.message);
-        return;
-      }
+    const phoneCheck = validatePhone(phone);
+    if (!phoneCheck.valid) {
+      toast.error(phoneCheck.message);
+      return;
+    }
+    const emailCheck = validateEmail(email);
+    if (!emailCheck.valid) {
+      toast.error(emailCheck.message);
+      return;
     }
 
     const addressLine = formData.address?.toString().trim() || "";
@@ -190,18 +190,14 @@ const CreateSupplier = ({ isOpen, onClose }) => {
       name: formData.name.trim(),
       type: formData.type,
       status: formData.status,
+      phone,
+      email,
     };
 
 
     // Only include optional fields if they have values
     if (formData.contactPerson && formData.contactPerson.trim()) {
       cleanedData.contactPerson = formData.contactPerson.trim();
-    }
-    if (phone) {
-      cleanedData.phone = phone;
-    }
-    if (email) {
-      cleanedData.email = email;
     }
     if (fullAddress) {
       cleanedData.address = fullAddress;
@@ -247,7 +243,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
             <X size={24} />
           </button>
         </div>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <div className="p-6 space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -261,7 +257,6 @@ const CreateSupplier = ({ isOpen, onClose }) => {
                 placeholder="Enter supplier name (2–100 characters)"
                 minLength={2}
                 maxLength={100}
-                required
               />
               <p className="text-xs text-gray-500 mt-1">{formData.name.length}/100</p>
             </div>
@@ -306,7 +301,9 @@ const CreateSupplier = ({ isOpen, onClose }) => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="tel"
                   value={formData.phone}
@@ -318,7 +315,9 @@ const CreateSupplier = ({ isOpen, onClose }) => {
                 <p className="text-xs text-gray-500 mt-1">Only digits, spaces, + - ( ). Must have 10–12 digits.</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   autoComplete="email"
