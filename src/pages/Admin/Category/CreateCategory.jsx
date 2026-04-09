@@ -72,6 +72,10 @@ const CreateCategory = ({ isOpen, onClose }) => {
       toast.error("Category description must be at most 500 characters");
       return;
     }
+    if (!imageFile) {
+      toast.error("Category image is required");
+      return;
+    }
 
     // Create FormData
     const formDataToSend = new FormData();
@@ -113,7 +117,7 @@ const CreateCategory = ({ isOpen, onClose }) => {
             <X size={24} />
           </button>
         </div>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <div className="p-6 space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -126,7 +130,6 @@ const CreateCategory = ({ isOpen, onClose }) => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 placeholder="Enter category name (max 100 characters)"
                 maxLength={100}
-                required
               />
               <p className="text-xs text-gray-500 mt-1">{formData.name.length}/100</p>
             </div>
@@ -146,7 +149,7 @@ const CreateCategory = ({ isOpen, onClose }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Image
+                Image <span className="text-red-500">*</span>
               </label>
               {imagePreview ? (
                 <div className="mt-2">

@@ -11,6 +11,9 @@ const API_BASE = "https://provinces.open-api.vn/api/v2";
 function validatePhone(phoneStr) {
   if (!phoneStr || !phoneStr.toString().trim()) return { valid: true };
   const s = phoneStr.toString().trim();
+  if (s.charAt(0) !== "0") {
+    return { valid: false, message: "Phone number must start with 0." };
+  }
   if (!/^[0-9+\-\s()]+$/.test(s)) {
     return { valid: false, message: "Phone number can only contain digits, spaces, and + - ( )" };
   }

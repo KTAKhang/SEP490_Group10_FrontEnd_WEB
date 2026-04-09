@@ -31,7 +31,9 @@ const SupplierManagement = () => {
     suppliersLoading,
     suppliersPagination,
     createSupplierLoading,
+    createSupplierError,
     updateSupplierLoading,
+    updateSupplierError,
   } = useSelector((state) => state.supplier);
 
 
@@ -67,9 +69,9 @@ const SupplierManagement = () => {
   }, [dispatch, currentPage, searchTerm, filterType, filterCooperationStatus, filterStatus, sortBy, sortOrder]);
 
 
-  // Auto refresh after successful create/update
+  // Close create modal and refresh list only after a successful create (not on API failure)
   useEffect(() => {
-    if (prevCreateLoading && !createSupplierLoading) {
+    if (prevCreateLoading && !createSupplierLoading && !createSupplierError) {
       setShowCreateModal(false);
       const params = {
         page: currentPage,
@@ -84,11 +86,24 @@ const SupplierManagement = () => {
       dispatch(getSuppliersRequest(params));
     }
     setPrevCreateLoading(createSupplierLoading);
-  }, [dispatch, createSupplierLoading, prevCreateLoading, currentPage, searchTerm, filterType, filterCooperationStatus, filterStatus, sortBy, sortOrder]);
+  }, [
+    dispatch,
+    createSupplierLoading,
+    createSupplierError,
+    prevCreateLoading,
+    currentPage,
+    searchTerm,
+    filterType,
+    filterCooperationStatus,
+    filterStatus,
+    sortBy,
+    sortOrder,
+  ]);
 
 
+  // Close update modal and refresh list only after a successful update (not on API failure)
   useEffect(() => {
-    if (prevUpdateLoading && !updateSupplierLoading) {
+    if (prevUpdateLoading && !updateSupplierLoading && !updateSupplierError) {
       setShowUpdateModal(false);
       const params = {
         page: currentPage,
@@ -103,7 +118,19 @@ const SupplierManagement = () => {
       dispatch(getSuppliersRequest(params));
     }
     setPrevUpdateLoading(updateSupplierLoading);
-  }, [dispatch, updateSupplierLoading, prevUpdateLoading, currentPage, searchTerm, filterType, filterCooperationStatus, filterStatus, sortBy, sortOrder]);
+  }, [
+    dispatch,
+    updateSupplierLoading,
+    updateSupplierError,
+    prevUpdateLoading,
+    currentPage,
+    searchTerm,
+    filterType,
+    filterCooperationStatus,
+    filterStatus,
+    sortBy,
+    sortOrder,
+  ]);
 
 
   const handleAddSupplier = () => {

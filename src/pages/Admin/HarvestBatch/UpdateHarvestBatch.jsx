@@ -140,12 +140,18 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
     const wardName = formData.ward?.toString().trim() || "";
     const provinceName = icity?.toString().trim() || "";
     const locationParts = [locationLine, wardName, provinceName].filter(Boolean);
+    const newLocation = locationParts.join(", ").trim();
+    // If the user leaves location fields empty, do not overwrite with blank — keep existing value from server
+    const location =
+      newLocation !== ""
+        ? newLocation
+        : (harvestBatchDetail?.location ?? "").toString();
 
 
     const cleanedData = {
       batchNumber: formData.batchNumber.trim(),
       harvestDate: formData.harvestDate,
-      location: locationParts.join(", "),
+      location,
       notes: formData.notes?.trim() || "",
       receiptEligible: formData.receiptEligible,
     };
@@ -290,6 +296,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                     <MapPin size={16} />
                     <span>Location</span>
                   </label>
+                  <p className="text-xs text-gray-500 mb-2">Leave all location fields blank to keep the existing address unchanged.</p>
                   <div className="space-y-3">
                     <input
                       type="text"
