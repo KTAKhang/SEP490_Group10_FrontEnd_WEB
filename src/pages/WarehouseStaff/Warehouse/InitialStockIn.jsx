@@ -26,6 +26,7 @@ const InitialStockIn = ({ isOpen, onClose, product }) => {
 
 
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [requestStarted, setRequestStarted] = useState(false);
 
 
   const hasSupplier = !!(product?.supplier?._id || product?.supplier);
@@ -59,12 +60,19 @@ const InitialStockIn = ({ isOpen, onClose, product }) => {
 
 
   useEffect(() => {
-    if (!hasSubmitted || createReceiptLoading) return;
-    if (createReceiptError) {
-      setHasSubmitted(false);
+    if (!hasSubmitted) return;
+    if (createReceiptLoading) {
+      setRequestStarted(true);
       return;
     }
+    if (requestStarted && createReceiptError) {
+      setHasSubmitted(false);
+      setRequestStarted(false);
+      return;
+    }
+    if (!requestStarted) return;
     setHasSubmitted(false);
+    setRequestStarted(false);
     setReceiptData({
       productId: "",
       quantity: 0,
@@ -73,7 +81,7 @@ const InitialStockIn = ({ isOpen, onClose, product }) => {
       harvestBatchId: "",
     });
     onClose();
-  }, [hasSubmitted, createReceiptLoading, createReceiptError, onClose]);
+  }, [hasSubmitted, requestStarted, createReceiptLoading, createReceiptError, onClose]);
 
 
   useEffect(() => {
@@ -150,12 +158,14 @@ const InitialStockIn = ({ isOpen, onClose, product }) => {
     }
 
 
+    setRequestStarted(false);
     setHasSubmitted(true);
     dispatch(createReceiptRequest(receiptPayload));
   };
 
 
   const handleCancel = () => {
+    setRequestStarted(false);
     setHasSubmitted(false);
     setReceiptData({
       productId: "",

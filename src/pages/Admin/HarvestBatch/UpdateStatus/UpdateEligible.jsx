@@ -11,6 +11,7 @@ const UpdateEligible = ({ isOpen, onClose, batch, batchLoading, onSuccess }) => 
   );
   const [value, setValue] = useState(true);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [requestStarted, setRequestStarted] = useState(false);
 
 
   useEffect(() => {
@@ -21,25 +22,34 @@ const UpdateEligible = ({ isOpen, onClose, batch, batchLoading, onSuccess }) => 
 
 
   useEffect(() => {
-    if (hasSubmitted && !updateHarvestBatchLoading) {
+    if (!hasSubmitted) return;
+    if (updateHarvestBatchLoading) {
+      setRequestStarted(true);
+      return;
+    }
+    if (requestStarted) {
       if (!updateHarvestBatchError) {
         onSuccess?.();
         onClose();
       }
       setHasSubmitted(false);
+      setRequestStarted(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- onSuccess/onClose omitted to avoid infinite loop on parent re-render
-  }, [hasSubmitted, updateHarvestBatchLoading, updateHarvestBatchError]);
+  }, [hasSubmitted, requestStarted, updateHarvestBatchLoading, updateHarvestBatchError, onSuccess, onClose]);
 
 
   useEffect(() => {
-    if (isOpen) setHasSubmitted(false);
+    if (isOpen) {
+      setHasSubmitted(false);
+      setRequestStarted(false);
+    }
   }, [isOpen]);
 
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!batch?._id) return;
+    setRequestStarted(false);
     setHasSubmitted(true);
     dispatch(updateHarvestBatchRequest(batch._id, { receiptEligible: value }));
   };

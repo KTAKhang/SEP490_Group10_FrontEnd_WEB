@@ -24,7 +24,7 @@ const CreateProduct = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const { categories } = useSelector((state) => state.category);
   const { suppliersForBrand, suppliersForBrandLoading } = useSelector((state) => state.supplier);
-  const { createProductLoading } = useSelector((state) => state.product);
+  const { createProductLoading, createProductError } = useSelector((state) => state.product);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -39,6 +39,8 @@ const CreateProduct = ({ isOpen, onClose }) => {
   });
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [requestStarted, setRequestStarted] = useState(false);
 
   // Fetch categories and suppliers when modal opens
   useEffect(() => {
@@ -47,6 +49,36 @@ const CreateProduct = ({ isOpen, onClose }) => {
       dispatch(getSuppliersForBrandRequest());
     }
   }, [dispatch, isOpen]);
+
+  // Close modal only after a successful create request cycle
+  useEffect(() => {
+    if (!hasSubmitted) return;
+    if (createProductLoading) {
+      setRequestStarted(true);
+      return;
+    }
+    if (requestStarted && !createProductError) {
+      setHasSubmitted(false);
+      if (onClose) onClose();
+      setFormData({
+        name: "",
+        short_desc: "",
+        price: 0,
+        purchasePrice: 0,
+        plannedQuantity: 0,
+        category: "",
+        brand: "",
+        detail_desc: "",
+        status: true,
+      });
+      setImageFiles([]);
+      setImagePreviews([]);
+      setRequestStarted(false);
+    } else if (requestStarted && createProductError) {
+      setHasSubmitted(false);
+      setRequestStarted(false);
+    }
+  }, [hasSubmitted, requestStarted, createProductLoading, createProductError, onClose]);
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -160,25 +192,14 @@ formDataToSend.append("category", formData.category);
       formDataToSend.append("images", file);
     });
 
+    setRequestStarted(false);
+    setHasSubmitted(true);
     dispatch(createProductRequest(formDataToSend));
-    onClose();
-    // Reset form
-    setFormData({
-      name: "",
-      short_desc: "",
-      price: 0,
-      purchasePrice: 0,
-      plannedQuantity: 0,
-      category: "",
-      brand: "",
-      detail_desc: "",
-      status: true,
-    });
-    setImageFiles([]);
-    setImagePreviews([]);
   };
 
   const handleCancel = () => {
+    setRequestStarted(false);
+    setHasSubmitted(false);
     setFormData({
       name: "",
       short_desc: "",

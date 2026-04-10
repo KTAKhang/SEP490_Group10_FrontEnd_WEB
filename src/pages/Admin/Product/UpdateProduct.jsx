@@ -54,23 +54,32 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
 
   // Track if we submitted the form
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [requestStarted, setRequestStarted] = useState(false);
 
 
   // Close modal after successful update
   useEffect(() => {
-    if (hasSubmitted && !updateProductLoading && !updateProductError) {
+    if (!hasSubmitted) return;
+    if (updateProductLoading) {
+      setRequestStarted(true);
+      return;
+    }
+    if (requestStarted && !updateProductError) {
       setHasSubmitted(false);
+      setRequestStarted(false);
       onClose();
-    } else if (hasSubmitted && !updateProductLoading && updateProductError) {
+    } else if (requestStarted && updateProductError) {
+      setRequestStarted(false);
       setHasSubmitted(false);
     }
-  }, [hasSubmitted, updateProductLoading, updateProductError, onClose]);
+  }, [hasSubmitted, requestStarted, updateProductLoading, updateProductError, onClose]);
 
 
   // Reset submit flag when modal opens
   useEffect(() => {
     if (isOpen) {
       setHasSubmitted(false);
+      setRequestStarted(false);
     }
   }, [isOpen]);
 
@@ -230,12 +239,14 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
       formDataToSend.append("detail_desc", formData.detail_desc || "");
     }
 
+    setRequestStarted(false);
     setHasSubmitted(true);
     dispatch(updateProductRequest(product._id, formDataToSend));
   };
 
 
   const handleCancel = () => {
+    setRequestStarted(false);
     setHasSubmitted(false);
     if (product) {
       setFormData({

@@ -60,6 +60,7 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
   const [wards, setWards] = useState([]);
   const [icity, setIcity] = useState("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [requestStarted, setRequestStarted] = useState(false);
 
   useEffect(() => {
     axios
@@ -106,11 +107,17 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
 
 
   useEffect(() => {
-    if (hasSubmitted && !updateSupplierLoading && !updateSupplierError) {
+    if (!hasSubmitted) return;
+    if (updateSupplierLoading) {
+      setRequestStarted(true);
+      return;
+    }
+    if (requestStarted && !updateSupplierError) {
       setHasSubmitted(false);
+      setRequestStarted(false);
       onClose();
     }
-  }, [hasSubmitted, updateSupplierLoading, updateSupplierError, onClose]);
+  }, [hasSubmitted, requestStarted, updateSupplierLoading, updateSupplierError, onClose]);
 
 
   const handleSubmit = (e) => {
@@ -199,6 +206,7 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
     }
 
 
+    setRequestStarted(false);
     setHasSubmitted(true);
     dispatch(updateSupplierRequest(supplier._id, cleanedData));
   };
@@ -214,6 +222,7 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
   };
 
   const handleCancel = () => {
+    setRequestStarted(false);
     setHasSubmitted(false);
     onClose();
   };

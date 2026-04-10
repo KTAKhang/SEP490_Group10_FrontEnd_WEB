@@ -18,13 +18,21 @@ const CreateCategory = ({ isOpen, onClose }) => {
 
   // Track if we submitted the form
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [requestStarted, setRequestStarted] = useState(false);
 
   // Close modal after successful create
   useEffect(() => {
-    if (hasSubmitted && !createCategoryLoading && !createCategoryError) {
+    if (!hasSubmitted) return;
+    if (createCategoryLoading) {
+      setRequestStarted(true);
+      return;
+    }
+    // Only close after a real request cycle completes successfully
+    if (requestStarted && !createCategoryError) {
       // Create was successful, show toast and close modal
       toast.success("Category created successfully!");
       setHasSubmitted(false);
+      setRequestStarted(false);
       setFormData({
         name: "",
         description: "",
@@ -35,7 +43,7 @@ const CreateCategory = ({ isOpen, onClose }) => {
       onClose();
     }
     // Lỗi đã được saga hiển thị toast, không gọi toast ở đây để tránh 2 thông báo
-  }, [hasSubmitted, createCategoryLoading, createCategoryError, onClose]);
+  }, [hasSubmitted, requestStarted, createCategoryLoading, createCategoryError, onClose]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -87,11 +95,13 @@ const CreateCategory = ({ isOpen, onClose }) => {
     }
 
     // Don't close modal immediately - let it close after success
+    setRequestStarted(false);
     setHasSubmitted(true);
     dispatch(createCategoryRequest(formDataToSend));
   };
 
   const handleCancel = () => {
+    setRequestStarted(false);
     setHasSubmitted(false);
     setFormData({
       name: "",
