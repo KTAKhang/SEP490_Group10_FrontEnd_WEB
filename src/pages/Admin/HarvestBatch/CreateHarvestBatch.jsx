@@ -37,6 +37,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
   const [wards, setWards] = useState([]);
   const [icity, setIcity] = useState("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [requestStarted, setRequestStarted] = useState(false);
 
 
   useEffect(() => {
@@ -60,6 +61,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
         .catch(() => setPreOrderFruitTypes([]));
     } else {
       setHasSubmitted(false);
+      setRequestStarted(false);
       setFormData({
         supplierId: "",
         productId: "",
@@ -117,9 +119,15 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
 
 
   useEffect(() => {
-    // Only close modal if submission was successful (no error) and loading is done
-    if (hasSubmitted && !createHarvestBatchLoading && !createHarvestBatchError) {
+    if (!hasSubmitted) return;
+    if (createHarvestBatchLoading) {
+      setRequestStarted(true);
+      return;
+    }
+    // Only close modal after a real request cycle succeeds
+    if (requestStarted && !createHarvestBatchError) {
       setHasSubmitted(false);
+      setRequestStarted(false);
       setFormData({
         supplierId: "",
         productId: "",
@@ -134,12 +142,11 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
       });
       setIcity("");
       onClose();
-    } else if (hasSubmitted && !createHarvestBatchLoading && createHarvestBatchError) {
-      // Reset hasSubmitted on error so user can try again
+    } else if (requestStarted && createHarvestBatchError) {
       setHasSubmitted(false);
+      setRequestStarted(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasSubmitted, createHarvestBatchLoading, createHarvestBatchError]);
+  }, [hasSubmitted, requestStarted, createHarvestBatchLoading, createHarvestBatchError, onClose]);
 
 
   const handleSubmit = (e) => {
@@ -189,12 +196,14 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
     } else {
       cleanedData.productId = formData.productId;
     }
+    setRequestStarted(false);
     setHasSubmitted(true);
     dispatch(createHarvestBatchRequest(cleanedData));
   };
 
 
   const handleCancel = () => {
+    setRequestStarted(false);
     setHasSubmitted(false);
     setFormData({
       supplierId: "",

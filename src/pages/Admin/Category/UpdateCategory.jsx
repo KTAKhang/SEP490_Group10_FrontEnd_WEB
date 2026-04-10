@@ -23,20 +23,28 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
 
   // Track if we submitted the form
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [requestStarted, setRequestStarted] = useState(false);
   const toastShownRef = useRef(false);
 
 
   // Close modal after successful update
   useEffect(() => {
-    if (hasSubmitted && !updateCategoryLoading && !updateCategoryError && !toastShownRef.current) {
+    if (!hasSubmitted) return;
+    if (updateCategoryLoading) {
+      setRequestStarted(true);
+      return;
+    }
+    // Only close after a real request cycle completes successfully
+    if (requestStarted && !updateCategoryError && !toastShownRef.current) {
       // Update was successful, show toast and close modal
       toast.success("Category updated successfully!");
       toastShownRef.current = true;
       setHasSubmitted(false);
+      setRequestStarted(false);
       onClose();
     }
     // Lỗi đã được saga hiển thị toast, không gọi toast ở đây để tránh 2 thông báo
-  }, [hasSubmitted, updateCategoryLoading, updateCategoryError, onClose]);
+  }, [hasSubmitted, requestStarted, updateCategoryLoading, updateCategoryError, onClose]);
 
 
   // Reset toast flag when modal opens
@@ -44,6 +52,7 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
     if (isOpen) {
       toastShownRef.current = false;
       setHasSubmitted(false);
+      setRequestStarted(false);
     }
   }, [isOpen]);
 
@@ -135,12 +144,14 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
 
 
     // Don't close modal immediately - let it close after success
+    setRequestStarted(false);
     setHasSubmitted(true);
     dispatch(updateCategoryRequest(category._id, formDataToSend));
   };
 
 
   const handleCancel = () => {
+    setRequestStarted(false);
     setHasSubmitted(false);
     if (category) {
       setFormData({

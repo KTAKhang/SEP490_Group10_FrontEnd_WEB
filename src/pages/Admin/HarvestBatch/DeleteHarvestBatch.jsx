@@ -10,6 +10,7 @@ const DeleteHarvestBatch = ({ isOpen, onClose, batch, onSuccess }) => {
     (state) => state.supplier
   );
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [requestStarted, setRequestStarted] = useState(false);
   const onSuccessRef = useRef(onSuccess);
   const onCloseRef = useRef(onClose);
   onSuccessRef.current = onSuccess;
@@ -17,24 +18,34 @@ const DeleteHarvestBatch = ({ isOpen, onClose, batch, onSuccess }) => {
 
 
   useEffect(() => {
-    if (hasSubmitted && !deleteHarvestBatchLoading) {
+    if (!hasSubmitted) return;
+    if (deleteHarvestBatchLoading) {
+      setRequestStarted(true);
+      return;
+    }
+    if (requestStarted) {
       if (!deleteHarvestBatchError) {
         onSuccessRef.current?.();
         onCloseRef.current?.();
       }
       setHasSubmitted(false);
+      setRequestStarted(false);
     }
-  }, [hasSubmitted, deleteHarvestBatchLoading, deleteHarvestBatchError]);
+  }, [hasSubmitted, requestStarted, deleteHarvestBatchLoading, deleteHarvestBatchError]);
 
 
   useEffect(() => {
-    if (isOpen) setHasSubmitted(false);
+    if (isOpen) {
+      setHasSubmitted(false);
+      setRequestStarted(false);
+    }
   }, [isOpen]);
 
 
   const handleDelete = (e) => {
     e.preventDefault();
     if (!batch?._id) return;
+    setRequestStarted(false);
     setHasSubmitted(true);
     dispatch(deleteHarvestBatchRequest(batch._id));
   };

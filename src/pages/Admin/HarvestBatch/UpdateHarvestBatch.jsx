@@ -14,6 +14,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
     harvestBatchDetail,
     harvestBatchDetailLoading,
     updateHarvestBatchLoading,
+    updateHarvestBatchError,
   } = useSelector((state) => state.supplier);
 
 
@@ -32,6 +33,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
   const [wards, setWards] = useState([]);
   const [icity, setIcity] = useState("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [requestStarted, setRequestStarted] = useState(false);
 
 
   // Load harvest batch data when modal opens
@@ -67,12 +69,20 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
 
   // Close modal after successful update
   useEffect(() => {
-    if (hasSubmitted && !updateHarvestBatchLoading) {
-      setHasSubmitted(false);
-      onClose();
+    if (!hasSubmitted) return;
+    if (updateHarvestBatchLoading) {
+      setRequestStarted(true);
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- onClose omitted to avoid infinite loop on parent re-render
-  }, [hasSubmitted, updateHarvestBatchLoading]);
+    if (requestStarted && !updateHarvestBatchError) {
+      setHasSubmitted(false);
+      setRequestStarted(false);
+      onClose();
+    } else if (requestStarted && updateHarvestBatchError) {
+      setHasSubmitted(false);
+      setRequestStarted(false);
+    }
+  }, [hasSubmitted, requestStarted, updateHarvestBatchLoading, updateHarvestBatchError, onClose]);
 
 
   useEffect(() => {
@@ -157,12 +167,14 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
     };
 
 
+    setRequestStarted(false);
     setHasSubmitted(true);
     dispatch(updateHarvestBatchRequest(harvestBatchId, cleanedData));
   };
 
 
   const handleCancel = () => {
+    setRequestStarted(false);
     setHasSubmitted(false);
     onClose();
   };

@@ -5,7 +5,6 @@ import {
   Star,
   MessageSquare,
   MessageCircle,
-  FileText,
   LayoutDashboard,
   Eye,
   EyeOff,
@@ -55,7 +54,7 @@ const StatCard = ({ title, value, sub, icon: Icon, color, bgColor }) => (
 const formatDate = (dateStr) => {
   if (!dateStr) return "—";
   const d = new Date(dateStr);
-  return d.toLocaleDateString("vi-VN", {
+  return d.toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -97,30 +96,26 @@ const FeedbackStaffDashboardPage = () => {
   const reviews = summary.reviews || {};
   const newsComments = summary.newsComments || {};
   const chat = summary.chat || {};
-  const news = summary.news || {};
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
           <LayoutDashboard className="h-7 w-7 text-green-600" />
-          Thống kê Feedback Staff
+          Feedback Staff Dashboard
         </h1>
         <p className="text-gray-600 mt-1">
-          Tổng quan đánh giá, bình luận tin tức, chat và tin tức
+          Overview of reviews, news comments, and chat activities
         </p>
       </div>
 
-      {/* Nhiệm vụ cần xử lý */}
-      {(tasks.unreadChatRooms > 0 ||
-        tasks.reviewsHidden > 0 ||
-        tasks.commentsHidden > 0 ||
-        tasks.newsDraft > 0) && (
+      {/* Action required */}
+      {(tasks.unreadChatRooms > 0 || tasks.reviewsHidden > 0) && (
         <Card className="border-amber-200 bg-amber-50/50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-amber-800">
               <AlertCircle className="h-5 w-5" />
-              Cần chú ý
+              Needs attention
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-4">
@@ -130,7 +125,7 @@ const FeedbackStaffDashboardPage = () => {
                 className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-100 text-amber-800 hover:bg-amber-200 text-sm font-medium"
               >
                 <Inbox className="h-4 w-4" />
-                {tasks.unreadChatRooms} phòng chat có tin chưa đọc
+                {tasks.unreadChatRooms} chat room(s) with unread messages
               </Link>
             )}
             {tasks.reviewsHidden > 0 && (
@@ -139,39 +134,27 @@ const FeedbackStaffDashboardPage = () => {
                 className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-100 text-amber-800 hover:bg-amber-200 text-sm font-medium"
               >
                 <EyeOff className="h-4 w-4" />
-                {tasks.reviewsHidden} review đang ẩn
+                {tasks.reviewsHidden} hidden review(s)
               </Link>
-            )}
-            {tasks.commentsHidden > 0 && (
-              <span className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-100 text-amber-800 text-sm font-medium">
-                <EyeOff className="h-4 w-4" />
-                {tasks.commentsHidden} bình luận đang ẩn
-              </span>
-            )}
-            {tasks.newsDraft > 0 && (
-              <span className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-100 text-amber-800 text-sm font-medium">
-                <FileText className="h-4 w-4" />
-                {tasks.newsDraft} bài viết bản nháp
-              </span>
             )}
           </CardContent>
         </Card>
       )}
 
-      {/* Thẻ thống kê */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Statistics cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <StatCard
           title="Reviews"
           value={reviews.total ?? 0}
-          sub={`Hiển thị: ${reviews.visible ?? 0} · Ẩn: ${reviews.hidden ?? 0} · Mới 7 ngày: ${reviews.recentCount ?? 0}`}
+          sub={`Visible: ${reviews.visible ?? 0} · Hidden: ${reviews.hidden ?? 0} · New (7 days): ${reviews.recentCount ?? 0}`}
           icon={Star}
           color="text-amber-600"
           bgColor="bg-amber-100"
         />
         <StatCard
-          title="Bình luận tin tức"
+          title="News Comments"
           value={newsComments.total ?? 0}
-          sub={`Hiển thị: ${newsComments.visible ?? 0} · Ẩn: ${newsComments.hidden ?? 0} · Mới 7 ngày: ${newsComments.recentCount ?? 0}`}
+          sub={`Visible: ${newsComments.visible ?? 0} · Hidden: ${newsComments.hidden ?? 0} · New (7 days): ${newsComments.recentCount ?? 0}`}
           icon={MessageSquare}
           color="text-blue-600"
           bgColor="bg-blue-100"
@@ -179,41 +162,33 @@ const FeedbackStaffDashboardPage = () => {
         <StatCard
           title="Chat"
           value={chat.totalRooms ?? 0}
-          sub={`Có tin chưa đọc: ${chat.roomsWithUnread ?? 0} phòng`}
+          sub={`Rooms with unread messages: ${chat.roomsWithUnread ?? 0}`}
           icon={MessageCircle}
           color="text-green-600"
           bgColor="bg-green-100"
         />
-        <StatCard
-          title="Tin tức"
-          value={news.total ?? 0}
-          sub={`Xuất bản: ${news.published ?? 0} · Nháp: ${news.draft ?? 0}`}
-          icon={FileText}
-          color="text-purple-600"
-          bgColor="bg-purple-100"
-        />
       </div>
 
-      {/* Danh sách gần đây */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Reviews gần đây */}
+      {/* Recent activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent reviews */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Star className="h-5 w-5 text-amber-500" />
-              Reviews gần đây
+              Recent Reviews
             </CardTitle>
             <Link
               to="/feedbacked-staff/reviews"
               className="text-sm text-green-600 hover:underline font-medium"
             >
-              Xem tất cả
+              View all
             </Link>
           </CardHeader>
-          <CardContent>
+          <CardContent className="max-h-[420px] overflow-y-auto pr-1">
             {recent.reviews?.length ? (
               <ul className="space-y-3">
-                {recent.reviews.map((r) => (
+                {recent.reviews.slice(0, 10).map((r) => (
                   <li
                     key={r._id}
                     className="flex items-start justify-between gap-2 py-2 border-b border-gray-100 last:border-0"
@@ -223,7 +198,7 @@ const FeedbackStaffDashboardPage = () => {
                         {r.user_id?.user_name || "—"} · {r.product_id?.name || "—"}
                       </p>
                       <p className="text-xs text-gray-500 mt-0.5">
-                        {r.rating} sao · {formatDate(r.createdAt)}
+                        {r.rating} star(s) · {formatDate(r.createdAt)}
                       </p>
                       {r.comment && (
                         <p className="text-sm text-gray-600 mt-1 line-clamp-2">
@@ -243,29 +218,29 @@ const FeedbackStaffDashboardPage = () => {
                       ) : (
                         <EyeOff className="h-3 w-3 inline mr-0.5" />
                       )}
-                      {r.status === "VISIBLE" ? "Hiển thị" : "Ẩn"}
+                      {r.status === "VISIBLE" ? "Visible" : "Hidden"}
                     </span>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-gray-500 py-4">Chưa có review nào</p>
+              <p className="text-sm text-gray-500 py-4">No reviews yet</p>
             )}
           </CardContent>
         </Card>
 
-        {/* Bình luận tin tức gần đây */}
+        {/* Recent news comments */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5 text-blue-500" />
-              Bình luận tin tức gần đây
+              Recent News Comments
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="max-h-[420px] overflow-y-auto pr-1">
             {recent.newsComments?.length ? (
               <ul className="space-y-3">
-                {recent.newsComments.map((c) => (
+                {recent.newsComments.slice(0, 10).map((c) => (
                   <li
                     key={c._id}
                     className="py-2 border-b border-gray-100 last:border-0"
@@ -288,32 +263,32 @@ const FeedbackStaffDashboardPage = () => {
                           : "bg-gray-100 text-gray-600"
                       }`}
                     >
-                      {c.status === "VISIBLE" ? "Hiển thị" : "Ẩn"}
+                      {c.status === "VISIBLE" ? "Visible" : "Hidden"}
                     </span>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-gray-500 py-4">Chưa có bình luận nào</p>
+              <p className="text-sm text-gray-500 py-4">No comments yet</p>
             )}
           </CardContent>
         </Card>
 
-        {/* Phòng chat gần đây */}
+        {/* Recent chat rooms */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <MessageCircle className="h-5 w-5 text-green-500" />
-              Phòng chat gần đây
+              Recent Chat Rooms
             </CardTitle>
             <Link
               to="/feedbacked-staff/chat"
               className="text-sm text-green-600 hover:underline font-medium"
             >
-              Vào chat
+              Go to chat
             </Link>
           </CardHeader>
-          <CardContent>
+          <CardContent className="max-h-[420px] overflow-y-auto pr-1">
             {recent.chatRooms?.length ? (
               <ul className="space-y-3">
                 {recent.chatRooms.map((room) => (
@@ -337,10 +312,10 @@ const FeedbackStaffDashboardPage = () => {
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-gray-800 truncate">
-                          {room.user?.user_name || "Khách"}
+                          {room.user?.user_name || "Guest"}
                         </p>
                         <p className="text-xs text-gray-500">
-                          Cập nhật: {formatDate(room.updatedAt)}
+                          Updated: {formatDate(room.updatedAt)}
                         </p>
                       </div>
                     </div>
@@ -353,47 +328,7 @@ const FeedbackStaffDashboardPage = () => {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-gray-500 py-4">Chưa có phòng chat nào</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Tin tức gần đây */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-purple-500" />
-              Tin tức gần đây
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {recent.news?.length ? (
-              <ul className="space-y-3">
-                {recent.news.map((n) => (
-                  <li
-                    key={n._id}
-                    className="py-2 border-b border-gray-100 last:border-0"
-                  >
-                    <p className="text-sm font-medium text-gray-800 truncate">
-                      {n.title || "—"}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {formatDate(n.updatedAt || n.createdAt)} ·{" "}
-                      <span
-                        className={
-                          n.status === "PUBLISHED"
-                            ? "text-green-600"
-                            : "text-amber-600"
-                        }
-                      >
-                        {n.status === "PUBLISHED" ? "Đã xuất bản" : "Bản nháp"}
-                      </span>
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-gray-500 py-4">Chưa có tin tức nào</p>
+              <p className="text-sm text-gray-500 py-4">No chat rooms yet</p>
             )}
           </CardContent>
         </Card>

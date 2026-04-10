@@ -62,6 +62,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
   const [wards, setWards] = useState([]);
   const [icity, setIcity] = useState("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [requestStarted, setRequestStarted] = useState(false);
 
 
   useEffect(() => {
@@ -94,8 +95,14 @@ const CreateSupplier = ({ isOpen, onClose }) => {
 
 
   useEffect(() => {
-    if (hasSubmitted && !createSupplierLoading && !createSupplierError) {
+    if (!hasSubmitted) return;
+    if (createSupplierLoading) {
+      setRequestStarted(true);
+      return;
+    }
+    if (requestStarted && !createSupplierError) {
       setHasSubmitted(false);
+      setRequestStarted(false);
       setFormData({
         name: "",
         type: "FARM",
@@ -111,7 +118,7 @@ const CreateSupplier = ({ isOpen, onClose }) => {
       setIcity("");
       onClose();
     }
-  }, [hasSubmitted, createSupplierLoading, createSupplierError, onClose]);
+  }, [hasSubmitted, requestStarted, createSupplierLoading, createSupplierError, onClose]);
 
 
   const handleInputChange = (e) => {
@@ -207,12 +214,14 @@ const CreateSupplier = ({ isOpen, onClose }) => {
     }
 
 
+    setRequestStarted(false);
     setHasSubmitted(true);
     dispatch(createSupplierRequest(cleanedData));
   };
 
 
   const handleCancel = () => {
+    setRequestStarted(false);
     setHasSubmitted(false);
     setFormData({
       name: "",
