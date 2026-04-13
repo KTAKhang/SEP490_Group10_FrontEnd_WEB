@@ -218,7 +218,7 @@ const ProfileManager = () => {
       }
       const isLt3M = file.size / 1024 / 1024 < 3;
       if (!isLt3M) {
-        message.error("Kích thước ảnh phải nhỏ hơn 3MB!");
+        message.error("The image size must be less than 3MB!");
         return Upload.LIST_IGNORE;
       }
       message.success("Avatar uploaded successfully!");

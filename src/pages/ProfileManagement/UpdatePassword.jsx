@@ -354,7 +354,7 @@ export default function UpdatePassword() {
 ];
 
 const passwordRules = [
-  "Password must be at least 8 characters long",
+  "Password must be 8 characters long",
   "Include at least one uppercase letter (A–Z)",
   "Include at least one lowercase letter (a–z)",
   "Include at least one number (0–9)"

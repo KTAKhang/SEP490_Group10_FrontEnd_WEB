@@ -71,7 +71,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
 
 
   const handleLogout = () => {
-    if (window.confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+    if (window.confirm("Are you sure you want to log out?")) {
       socket.disconnect();
       dispatch(logoutRequest());
       localStorage.clear();

@@ -16,6 +16,10 @@ import {
   discountValidateRequest,
   setSelectedDiscount,
 } from "../../redux/actions/discountActions";
+import {
+  clearProfileMessages,
+  getProfileRequest,
+} from "../../redux/actions/profileAction";
 
 const API_BASE = "https://provinces.open-api.vn/api/v2";
 
@@ -30,12 +34,57 @@ export default function CheckoutPage() {
     note: "",
     payment: "COD",
   });
-
+ const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [provinces, setProvinces] = useState([]);
   const [wards, setWards] = useState([]);
   const [icity, setIcity] = useState("");
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const { user } = useSelector((state) => state.profile || {});
+  useEffect(() => {
+    dispatch(getProfileRequest());
+    dispatch(clearProfileMessages());
+  }, [dispatch]);
+  // When user & provinces available, parse user.address and prefill delivery fields
+  useEffect(() => {
+    if (!user || provinces.length === 0) return;
+
+    const parts = user.address
+      ? user.address.split(",").map((p) => p.trim())
+      : [];
+    const addr = parts[0] || "";
+    const ward = parts[1] || "";
+    const provinceName = parts[2] || "";
+
+    const byName = provinces.find(
+      (p) =>
+        p.name === provinceName ||
+        p.name_with_type === provinceName ||
+        (provinceName && p.name.includes(provinceName)) ||
+        (provinceName && provinceName.includes(p.name)),
+    );
+
+    const byCode = provinces.find(
+      (p) => String(p.code) === String(user.city) || String(p.code) === String(parts[2]),
+    );
+
+    const province = byName || byCode;
+    const code = province ? province.code : Number(user.city) ? Number(user.city) : null;
+
+    if (code) {
+      setIcity(province ? province.name : provinceName);
+    }
+
+    console.log("user",user)
+    setFormData((prev) => ({
+      ...prev,
+      fullName: user.fullName || prev.fullName,
+      phone: user.phone || prev.phone,
+      address: addr || prev.address,
+      ward: ward || prev.ward,
+      city: code || prev.city,
+    }));
+  }, [user, provinces]);
+  
 
   const [manualCode, setManualCode] = useState("");
   const [appliedByManualCode, setAppliedByManualCode] = useState(false);
@@ -623,8 +672,8 @@ export default function CheckoutPage() {
                           className="w-14 h-14 object-cover rounded-lg shadow-sm"
                           src={item.image}
                         />
-                        <span className="absolute -top-1.5 -right-1.5 bg-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-sm">
-                          {item.quantity}
+                        <span className="absolute -bottom-1.5 -right-2 bg-green-600 text-white text-[10px] rounded-full h-6 min-w-[34px] px-1 flex items-center justify-center font-bold shadow-sm">
+                          {item.quantity} KG
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">

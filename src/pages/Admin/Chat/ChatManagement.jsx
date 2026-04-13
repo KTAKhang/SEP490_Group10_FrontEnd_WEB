@@ -51,7 +51,24 @@ const ChatManagement = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
 
-  const limit = 10;
+  const limit = 4;
+
+  // If server provides pagination use it; otherwise compute client-side pagination
+  const serverPagination = !!roomsPagination;
+  const totalPages = serverPagination
+    ? roomsPagination.totalPages
+    : Math.max(1, Math.ceil((rooms?.length || 0) / limit));
+  const totalItems = serverPagination ? roomsPagination.total : rooms?.length || 0;
+  const displayedRooms = serverPagination
+    ? rooms
+    : (rooms || []).slice((currentPage - 1) * limit, currentPage * limit);
+
+  // Keep local page in sync when server responds with a different page
+  useEffect(() => {
+    if (roomsPagination?.page && roomsPagination.page !== currentPage) {
+      setCurrentPage(roomsPagination.page);
+    }
+  }, [roomsPagination]);
 
   useEffect(() => {
     const params = {
@@ -155,10 +172,9 @@ const ChatManagement = () => {
 
       {/* Rooms Table */}
       <Card>
-        <CardHeader className="py-4">
+          <CardHeader className="py-4">
           <CardTitle>
-            Chat Room List (
-            {roomsPagination?.total ?? rooms?.length ?? 0})
+            Chat Room List ({totalItems})
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -193,7 +209,7 @@ const ChatManagement = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {rooms.map((room) => (
+                    {displayedRooms.map((room) => (
                       <tr key={room._id} className="hover:bg-gray-50">
                         {/* Customer */}
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -289,31 +305,20 @@ const ChatManagement = () => {
               </div>
 
               {/* Pagination */}
-              {roomsPagination && roomsPagination.totalPages > 1 && (
+              {totalPages > 1 && (
                 <div className="flex flex-col gap-3 border-t border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-xs text-gray-500">
-                    Showing{" "}
-                    {roomsPagination.page * roomsPagination.limit -
-                      roomsPagination.limit +
-                      1}
-                    –
-                    {Math.min(
-                      roomsPagination.page * roomsPagination.limit,
-                      roomsPagination.total
-                    )}{" "}
-                    / {roomsPagination.total}
+                    Showing {Math.min((currentPage - 1) * limit + 1, totalItems)}–{Math.min(currentPage * limit, totalItems)} / {totalItems}
                   </p>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() =>
-                        setCurrentPage((p) => Math.max(1, p - 1))
-                      }
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
                       className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition disabled:opacity-50 hover:bg-gray-50"
                     >
                       <ChevronLeft size={18} />
                     </button>
-                    {[...Array(roomsPagination.totalPages)].map((_, i) => (
+                    {[...Array(totalPages)].map((_, i) => (
                       <button
                         key={i + 1}
                         onClick={() => setCurrentPage(i + 1)}
@@ -327,12 +332,8 @@ const ChatManagement = () => {
                       </button>
                     ))}
                     <button
-                      onClick={() =>
-                        setCurrentPage((p) =>
-                          Math.min(roomsPagination.totalPages, p + 1)
-                        )
-                      }
-                      disabled={currentPage === roomsPagination.totalPages}
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
                       className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition disabled:opacity-50 hover:bg-gray-50"
                     >
                       <ChevronRight size={18} />
