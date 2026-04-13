@@ -88,8 +88,8 @@ const ForgotPassword = () => {
       newErrors.otp = "The OTP consists of 6 numbers.";
 
 
-    if (!formData.newPassword || formData.newPassword.length < 8)
-      newErrors.newPassword = "Password must be at least 8 characters.";
+    if (!formData.newPassword || formData.newPassword.length !== 8)
+      newErrors.newPassword = "The password must contain 8 characters, including uppercase letters and numbers.";
 
 
     if (formData.newPassword !== formData.confirmPassword)
@@ -114,7 +114,7 @@ const ForgotPassword = () => {
       <div className="min-h-screen flex items-center justify-center bg-[#F9FEFB] px-5">
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
           {/* Particles */}
-       
+
 
 
           {/* Fruits */}
@@ -145,7 +145,7 @@ const ForgotPassword = () => {
             className="flex items-center text-sm text-gray-500 hover:text-gray-700 mb-6"
           >
             <ArrowLeft className="w-4 h-4 mr-1" />
-           Back to login
+            Back to login
           </Link>
 
 

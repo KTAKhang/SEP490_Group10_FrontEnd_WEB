@@ -160,7 +160,7 @@ const RegisterPage = () => {
   const handleConfirmOTP = (e) => {
     e.preventDefault();
     if (!formData.otp || formData.otp.length !== 6) {
-      setErrors({ otp: "OTP phải đủ 6 số" });
+      setErrors({ otp: "The OTP must be 6 digits long." });
       return;
     }
 
@@ -385,7 +385,10 @@ const RegisterPage = () => {
 
               <button
                 type="button"
-                onClick={() => setStep(1)}
+                onClick={() => {
+                  dispatch(clearAuthMessages());
+                  setStep(1);
+                }}
                 className="w-full text-sm text-gray-500 hover:text-gray-700"
               >
                 Go back and edit information
