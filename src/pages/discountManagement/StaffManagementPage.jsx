@@ -156,11 +156,11 @@ const StaffManagementPage = () => {
         if (!formData.discountPercent || formData.discountPercent < 1 || formData.discountPercent > 100) {
             errors.discountPercent = "Discount percentage must be between 1 and 100";
         }
-        if (!formData.minOrderValue || formData.minOrderValue < 0) {
-            errors.minOrderValue = "Minimum order value must be 0 or greater";
+        if (!formData.minOrderValue || formData.minOrderValue < 1000) {
+            errors.minOrderValue = "Minimum order value must be at least 1000";
         }
-        if (!formData.maxDiscountAmount || formData.maxDiscountAmount < 0) {
-            errors.maxDiscountAmount = "Maximum discount amount must be 0 or greater";
+        if (!formData.maxDiscountAmount || formData.maxDiscountAmount < 1000) {
+            errors.maxDiscountAmount = "Maximum discount amount must be at least 1000";
         }
         if (!formData.startDate) {
             errors.startDate = "Start date is required";
@@ -734,11 +734,12 @@ const StaffManagementPage = () => {
                                     </label>
                                     <input
                                         type="number"
-                                        min="0"
+                                        min="1000"
+                                        step="1000"
                                         value={formData.minOrderValue}
                                         onChange={(e) => setFormData({ ...formData, minOrderValue: e.target.value })}
                                         className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                                        placeholder="100"
+                                        placeholder="1000"
                                     />
                                     {formErrors.minOrderValue && (
                                         <p className="text-red-500 text-xs mt-1">{formErrors.minOrderValue}</p>
@@ -750,11 +751,12 @@ const StaffManagementPage = () => {
                                     </label>
                                     <input
                                         type="number"
-                                        min="0"
+                                        min="1000"
+                                        step="1000"
                                         value={formData.maxDiscountAmount}
                                         onChange={(e) => setFormData({ ...formData, maxDiscountAmount: e.target.value })}
                                         className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                                        placeholder="50"
+                                        placeholder="1000"
                                     />
                                     {formErrors.maxDiscountAmount && (
                                         <p className="text-red-500 text-xs mt-1">{formErrors.maxDiscountAmount}</p>
@@ -880,11 +882,12 @@ const StaffManagementPage = () => {
                                     </label>
                                     <input
                                         type="number"
-                                        min="0"
+                                        min="1000"
+                                        step="1000"
                                         value={formData.minOrderValue}
                                         onChange={(e) => setFormData({ ...formData, minOrderValue: e.target.value })}
                                         className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                                        placeholder="100"
+                                        placeholder="1000"
                                     />
                                     {formErrors.minOrderValue && (
                                         <p className="text-red-500 text-xs mt-1">{formErrors.minOrderValue}</p>
@@ -896,11 +899,12 @@ const StaffManagementPage = () => {
                                     </label>
                                     <input
                                         type="number"
-                                        min="0"
+                                        min="1000"
+                                        step="1000"
                                         value={formData.maxDiscountAmount}
                                         onChange={(e) => setFormData({ ...formData, maxDiscountAmount: e.target.value })}
                                         className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                                        placeholder="50"
+                                        placeholder="1000"
                                     />
                                     {formErrors.maxDiscountAmount && (
                                         <p className="text-red-500 text-xs mt-1">{formErrors.maxDiscountAmount}</p>

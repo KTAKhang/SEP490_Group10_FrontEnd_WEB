@@ -19,6 +19,7 @@ export default function FruitTypeManagement() {
   const [modal, setModal] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [deleteConfirmRow, setDeleteConfirmRow] = useState(null);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [form, setForm] = useState({
     name: "",
@@ -135,12 +136,23 @@ export default function FruitTypeManagement() {
   const handleDelete = (row) => {
     if ((row.demandKg ?? 0) > 0) return;
     if (row.status === "INACTIVE" || (row.hasClosedPreOrders && (row.demandKg ?? 0) === 0)) return;
-    if (!window.confirm(`Delete fruit type "${row.name}"? This cannot be undone.`)) return;
-    setDeletingId(row._id);
+    setErr("");
+    setDeleteConfirmRow(row);
+  };
+
+  const closeDeleteConfirm = () => {
+    if (deletingId) return;
+    setDeleteConfirmRow(null);
+  };
+
+  const confirmDelete = () => {
+    if (!deleteConfirmRow?._id) return;
+    setDeletingId(deleteConfirmRow._id);
     setErr("");
     apiClient
-      .delete(`/admin/preorder/fruit-types/${row._id}`)
+      .delete(`/admin/preorder/fruit-types/${deleteConfirmRow._id}`)
       .then(() => {
+        setDeleteConfirmRow(null);
         load();
       })
       .catch((e) => setErr(e.response?.data?.message || "Delete failed."))
@@ -608,6 +620,43 @@ export default function FruitTypeManagement() {
                 className="flex-1 py-2.5 bg-green-600 text-white rounded-full font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isSubmitting ? "Processing…" : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirmRow && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeDeleteConfirm();
+          }}
+        >
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
+            {err && (
+              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-2xl border border-red-100 text-sm">{err}</div>
+            )}
+            <h3 className="font-semibold text-lg mb-2 text-gray-900">Confirm delete</h3>
+            <p className="text-gray-700 text-sm mb-6">
+              Delete fruit type <span className="font-semibold text-gray-900">&quot;{deleteConfirmRow.name}&quot;</span>? This cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={closeDeleteConfirm}
+                disabled={!!deletingId}
+                className="flex-1 py-2.5 border border-gray-300 text-gray-700 rounded-full font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={!!deletingId}
+                className="flex-1 py-2.5 bg-red-600 text-white rounded-full font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {deletingId ? "Deleting…" : "Delete"}
               </button>
             </div>
           </div>
