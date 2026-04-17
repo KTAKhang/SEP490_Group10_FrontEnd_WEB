@@ -11,6 +11,8 @@ import {
   User,
   CreditCard,
   Search,
+  AlertTriangle,
+  X,
 } from "lucide-react";
 import {
   orderHistoryRequest,
@@ -96,6 +98,7 @@ const OrderHistory = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
   const [detailOrderId, setDetailOrderId] = useState(null);
+  const [cancelModalOrderId, setCancelModalOrderId] = useState(null);
   const cancelingRef = useRef(null);
 
   // Debounce search: apply 400ms after user stops typing
@@ -152,12 +155,14 @@ const OrderHistory = () => {
 
   const handleCancelOrder = (orderId) => {
     if (!orderId) return;
-    const confirmed = window.confirm(
-      "Are you sure you want to cancel this order?",
-    );
-    if (!confirmed) return;
-    cancelingRef.current = orderId;
-    dispatch(orderCancelRequest(orderId));
+    setCancelModalOrderId(orderId);
+  };
+
+  const handleConfirmCancel = () => {
+    if (!cancelModalOrderId) return;
+    cancelingRef.current = cancelModalOrderId;
+    dispatch(orderCancelRequest(cancelModalOrderId));
+    setCancelModalOrderId(null);
   };
 
   const handleRePaymentOrder = (orderId) => {
@@ -525,6 +530,56 @@ const OrderHistory = () => {
           orderId={effectiveDetailId}
           onClose={handleCloseDetailModal}
         />
+      )}
+
+      {cancelModalOrderId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="flex items-center justify-between px-6 pt-5 pb-0">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                  <AlertTriangle className="w-5 h-5 text-red-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Cancel Order</h3>
+              </div>
+              <button
+                onClick={() => setCancelModalOrderId(null)}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="px-6 py-5">
+              <p className="text-gray-600 text-sm leading-relaxed">
+                Are you sure you want to cancel this order?
+              </p>
+              <div className="mt-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <p className="text-xs text-gray-500 mb-0.5">Order ID</p>
+                <p className="text-xs font-mono text-gray-700 break-all">{cancelModalOrderId}</p>
+              </div>
+              <p className="mt-3 text-xs text-red-500">
+                This action cannot be undone.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 px-6 pb-5">
+              <button
+                onClick={() => setCancelModalOrderId(null)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Keep Order
+              </button>
+              <button
+                onClick={handleConfirmCancel}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-sm font-medium text-white hover:bg-red-700 transition-colors shadow-sm"
+              >
+                Yes, Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

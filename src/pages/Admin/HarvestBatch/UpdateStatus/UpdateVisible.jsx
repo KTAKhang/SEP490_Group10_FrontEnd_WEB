@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X, Package, Eye, EyeOff } from "lucide-react";
 import { updateHarvestBatchRequest } from "../../../../redux/actions/supplierActions";
@@ -13,6 +13,10 @@ const UpdateVisible = ({ isOpen, onClose, batch, batchLoading, onSuccess }) => {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [requestStarted, setRequestStarted] = useState(false);
 
+  const onCloseRef = useRef(onClose);
+  const onSuccessRef = useRef(onSuccess);
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
+  useEffect(() => { onSuccessRef.current = onSuccess; }, [onSuccess]);
 
   useEffect(() => {
     if (batch && !batchLoading) {
@@ -29,13 +33,13 @@ const UpdateVisible = ({ isOpen, onClose, batch, batchLoading, onSuccess }) => {
     }
     if (requestStarted) {
       if (!updateHarvestBatchError) {
-        onSuccess?.();
-        onClose();
+        onSuccessRef.current?.();
+        onCloseRef.current();
       }
       setHasSubmitted(false);
       setRequestStarted(false);
     }
-  }, [hasSubmitted, requestStarted, updateHarvestBatchLoading, updateHarvestBatchError, onSuccess, onClose]);
+  }, [hasSubmitted, requestStarted, updateHarvestBatchLoading, updateHarvestBatchError]);
 
 
   useEffect(() => {
