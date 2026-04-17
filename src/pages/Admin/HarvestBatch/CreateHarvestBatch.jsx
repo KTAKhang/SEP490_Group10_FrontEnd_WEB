@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X, Calendar, Package, MapPin } from "lucide-react";
 import axios from "axios";
+import { toast } from "react-toastify";
 import apiClient from "../../../utils/axiosConfig";
 import { createHarvestBatchRequest } from "../../../redux/actions/supplierActions";
 import { getSuppliersRequest } from "../../../redux/actions/supplierActions";
@@ -120,14 +121,17 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     if (!hasSubmitted) return;
+    if (!requestStarted) return;
     if (createHarvestBatchLoading) {
-      setRequestStarted(true);
       return;
     }
-    // Only close modal after a real request cycle succeeds
-    if (requestStarted && !createHarvestBatchError) {
-      setHasSubmitted(false);
-      setRequestStarted(false);
+
+    // Request cycle completed (success or error): reset flags once
+    setHasSubmitted(false);
+    setRequestStarted(false);
+
+    // Only close modal after successful create
+    if (!createHarvestBatchError) {
       setFormData({
         supplierId: "",
         productId: "",
@@ -142,9 +146,6 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
       });
       setIcity("");
       onClose();
-    } else if (requestStarted && createHarvestBatchError) {
-      setHasSubmitted(false);
-      setRequestStarted(false);
     }
   }, [hasSubmitted, requestStarted, createHarvestBatchLoading, createHarvestBatchError, onClose]);
 
@@ -152,23 +153,28 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const isPreOrder = formData.isPreOrderBatch === true;
-    if (!formData.supplierId || !formData.harvestDate) {
+    if (!formData.supplierId) {
+      toast.error("Please select a supplier");
+      return;
+    }
+    if (!formData.harvestDate) {
+      toast.error("Please select a harvest date");
       return;
     }
     if (isPreOrder) {
       if (!formData.fruitTypeId) {
-        alert("Please select a fruit type for pre-order harvest batch.");
+        toast.error("Please select a fruit type for pre-order harvest batch");
         return;
       }
     } else {
       if (!formData.productId) {
-        alert("Please select a product from the supplier.");
+        toast.error("Please select a product from the supplier");
         return;
       }
     }
     const batchNumberTrimmed = formData.batchNumber?.trim() || "";
     if (!batchNumberTrimmed) {
-      alert("Harvest Batch Number is required and cannot be empty");
+      toast.error("Harvest Batch Number is required and cannot be empty");
       return;
     }
     const harvestDateObj = new Date(formData.harvestDate);
@@ -176,7 +182,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (harvestDateObj > today) {
-      alert("Harvest date cannot be later than today");
+      toast.error("Harvest date cannot be later than today");
       return;
     }
     const locationLine = formData.location?.trim() || "";
@@ -196,7 +202,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
     } else {
       cleanedData.productId = formData.productId;
     }
-    setRequestStarted(false);
+    setRequestStarted(true);
     setHasSubmitted(true);
     dispatch(createHarvestBatchRequest(cleanedData));
   };
@@ -255,7 +261,7 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
             <X size={24} />
           </button>
         </div>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <div className="p-6 space-y-4">
             {/* Normal product harvest batch flow (same as before): Supplier + Product first */}
             <div className="grid grid-cols-2 gap-4">
@@ -267,7 +273,6 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
                   value={formData.supplierId}
                   onChange={(e) => setFormData({ ...formData, supplierId: e.target.value, productId: "", fruitTypeId: "" })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  required
                 >
                   <option value="">Select supplier</option>
                   {activeSuppliers.map((supplier) => (
@@ -287,7 +292,6 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
                     value={formData.productId}
                     onChange={(e) => setFormData({ ...formData, productId: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    required={!formData.isPreOrderBatch}
                     disabled={!formData.supplierId}
                   >
                     <option value="">Select product</option>
@@ -312,7 +316,6 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
                     value={formData.fruitTypeId}
                     onChange={(e) => setFormData({ ...formData, fruitTypeId: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    required={formData.isPreOrderBatch}
                     disabled={!formData.supplierId}
                   >
                     <option value="">Select fruit type</option>
@@ -340,7 +343,6 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
                   name="batchNumber"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   placeholder="Enter batch number"
-                  required
                 />
               </div>
 
@@ -358,7 +360,6 @@ const CreateHarvestBatch = ({ isOpen, onClose }) => {
                     name="harvestDate"
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     max={today}
-                    required
                   />
                 </div>
               </div>

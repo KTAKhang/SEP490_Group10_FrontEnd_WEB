@@ -186,7 +186,7 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
             <X size={24} />
           </button>
         </div>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <div className="p-6 space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -199,7 +199,6 @@ const UpdateCategory = ({ isOpen, onClose, category }) => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 placeholder="Enter category name (max 100 characters)"
                 maxLength={100}
-                required
               />
               <p className="text-xs text-gray-500 mt-1">{formData.name.length}/100</p>
             </div>

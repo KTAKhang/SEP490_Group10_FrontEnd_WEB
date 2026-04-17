@@ -29,8 +29,6 @@ const CreateCategory = ({ isOpen, onClose }) => {
     }
     // Only close after a real request cycle completes successfully
     if (requestStarted && !createCategoryError) {
-      // Create was successful, show toast and close modal
-      toast.success("Category created successfully!");
       setHasSubmitted(false);
       setRequestStarted(false);
       setFormData({
