@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X, Calendar, Package, MapPin, AlertCircle } from "lucide-react";
 import axios from "axios";
+import { toast } from "react-toastify";
 import { updateHarvestBatchRequest, getHarvestBatchByIdRequest } from "../../../redux/actions/supplierActions";
 
 
@@ -71,16 +72,18 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
   useEffect(() => {
     if (!hasSubmitted) return;
     if (updateHarvestBatchLoading) {
-      setRequestStarted(true);
+      if (!requestStarted) {
+        setRequestStarted(true);
+      }
       return;
     }
-    if (requestStarted && !updateHarvestBatchError) {
-      setHasSubmitted(false);
-      setRequestStarted(false);
+    if (!requestStarted) {
+      return;
+    }
+    setHasSubmitted(false);
+    setRequestStarted(false);
+    if (!updateHarvestBatchError) {
       onClose();
-    } else if (requestStarted && updateHarvestBatchError) {
-      setHasSubmitted(false);
-      setRequestStarted(false);
     }
   }, [hasSubmitted, requestStarted, updateHarvestBatchLoading, updateHarvestBatchError, onClose]);
 
@@ -129,19 +132,22 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
     e.preventDefault();
 
 
-    if (!formData.batchNumber || !formData.harvestDate) {
-      alert("Please fill in all required fields.");
+    if (!formData.batchNumber?.trim()) {
+      toast.error("Batch number is required and cannot be empty");
+      return;
+    }
+    if (!formData.harvestDate) {
+      toast.error("Please select a harvest date");
       return;
     }
 
-
-    // ✅ BR-SUP-12: Validation harvestDate không được lớn hơn ngày hiện tại
+    // BR-SUP-12: Validation harvestDate không được lớn hơn ngày hiện tại
     const harvestDateObj = new Date(formData.harvestDate);
     harvestDateObj.setHours(0, 0, 0, 0);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (harvestDateObj > today) {
-      alert("Harvest date cannot be later than today.");
+      toast.error("Harvest date cannot be later than today");
       return;
     }
 
@@ -228,7 +234,7 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} noValidate>
               <div className="p-6 space-y-4">
                 {/* Read-only Supplier & Product Info */}
                 <div className="bg-gray-50 rounded-lg p-4">
@@ -278,7 +284,6 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                       name="batchNumber"
                       className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                       placeholder="Enter batch number"
-                      required
                     />
                   </div>
 
@@ -296,7 +301,6 @@ const UpdateHarvestBatch = ({ isOpen, onClose, harvestBatchId }) => {
                         name="harvestDate"
                         className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                         max={today}
-                        required
                       />
                     </div>
                   </div>

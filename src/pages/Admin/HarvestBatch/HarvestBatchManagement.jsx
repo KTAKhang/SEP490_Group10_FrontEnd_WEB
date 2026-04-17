@@ -132,6 +132,17 @@ const HarvestBatchManagement = () => {
     setSelectedBatch(null);
   }, []);
 
+  const closeUpdateModal = useCallback(() => {
+    setShowUpdateModal(false);
+    setSelectedBatch(null);
+    refreshList();
+  }, [refreshList]);
+
+  const closeCreateModal = useCallback(() => {
+    setShowCreateModal(false);
+    refreshList();
+  }, [refreshList]);
+
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -458,10 +469,7 @@ const HarvestBatchManagement = () => {
       {showCreateModal && (
         <CreateHarvestBatch
           isOpen={showCreateModal}
-          onClose={() => {
-            setShowCreateModal(false);
-            refreshList();
-          }}
+          onClose={closeCreateModal}
         />
       )}
 
@@ -481,11 +489,7 @@ const HarvestBatchManagement = () => {
       {showUpdateModal && selectedBatch && (
         <UpdateHarvestBatch
           isOpen={showUpdateModal}
-          onClose={() => {
-            setShowUpdateModal(false);
-            setSelectedBatch(null);
-            refreshList();
-          }}
+          onClose={closeUpdateModal}
           harvestBatchId={selectedBatch._id}
         />
       )}

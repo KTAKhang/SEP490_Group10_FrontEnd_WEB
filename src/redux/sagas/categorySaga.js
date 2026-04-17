@@ -102,6 +102,7 @@ function* createCategorySaga(action) {
     const response = yield call(apiCreateCategory, formData);
     if (response.status === "OK") {
       yield put(createCategorySuccess(response.data));
+      toast.success(response.message || "Category created successfully!");
       // Refresh categories list
       yield put({ type: GET_CATEGORIES_REQUEST });
     } else {

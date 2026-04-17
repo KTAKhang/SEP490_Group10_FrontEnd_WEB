@@ -289,7 +289,7 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
             <X size={24} />
           </button>
         </div>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <div className="p-6 space-y-4">
             {!canFullUpdate && (
               <>
@@ -317,7 +317,6 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       placeholder="Enter product name (max 200 characters)"
                       maxLength={200}
-                      required
                     />
                     <p className="text-xs text-gray-500 mt-1">{formData.name.length}/200</p>
                   </div>
@@ -329,7 +328,6 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
                       value={formData.category}
                       onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      required
                     >
                       <option value="">Select category</option>
                       {categories?.filter((cat) => cat.status === true).map((cat) => (
@@ -353,7 +351,6 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
                       min="1000"
                       step="1000"
                       placeholder="e.g. 10000, 20000 (multiple of 1000)"
-                      required
                     />
                   </div>
                   <div>
@@ -390,7 +387,6 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     min="0"
                     step="1"
-                    required
                   />
                   <p className="text-xs text-gray-500 mt-1">Must be a whole number; cannot be less than received quantity</p>
                   <p className="text-xs text-gray-500 mt-1">
@@ -411,7 +407,6 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
                         value={formData.brand}
                         onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        required
                       >
                         <option value="">Select supplier (brand)</option>
                         {suppliersForBrand?.map((supplier) => (
@@ -497,7 +492,6 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
                 rows="2"
                 placeholder="Short description (required, max 200 characters)"
                 maxLength={200}
-                required
               />
               <p className="text-xs text-gray-500 mt-1">{formData.short_desc.length}/200</p>
             </div>
@@ -512,7 +506,6 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
                 rows="4"
                 placeholder="Detailed description (required, max 1000 characters)"
                 maxLength={1000}
-                required
               />
               <p className="text-xs text-gray-500 mt-1">{formData.detail_desc.length}/1000</p>
             </div>

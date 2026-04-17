@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X, Package, CheckCircle, XCircle } from "lucide-react";
 import { updateHarvestBatchRequest } from "../../../../redux/actions/supplierActions";
@@ -13,6 +13,11 @@ const UpdateEligible = ({ isOpen, onClose, batch, batchLoading, onSuccess }) => 
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [requestStarted, setRequestStarted] = useState(false);
 
+  const onCloseRef = useRef(onClose);
+  const onSuccessRef = useRef(onSuccess);
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
+  useEffect(() => { onSuccessRef.current = onSuccess; }, [onSuccess]);
+
 
   useEffect(() => {
     if (batch) {
@@ -23,19 +28,18 @@ const UpdateEligible = ({ isOpen, onClose, batch, batchLoading, onSuccess }) => 
 
   useEffect(() => {
     if (!hasSubmitted) return;
+    if (!requestStarted) return;
     if (updateHarvestBatchLoading) {
-      setRequestStarted(true);
       return;
     }
-    if (requestStarted) {
-      if (!updateHarvestBatchError) {
-        onSuccess?.();
-        onClose();
-      }
-      setHasSubmitted(false);
-      setRequestStarted(false);
+
+    if (!updateHarvestBatchError) {
+      onSuccessRef.current?.();
+      onCloseRef.current?.();
     }
-  }, [hasSubmitted, requestStarted, updateHarvestBatchLoading, updateHarvestBatchError, onSuccess, onClose]);
+    setHasSubmitted(false);
+    setRequestStarted(false);
+  }, [hasSubmitted, requestStarted, updateHarvestBatchLoading, updateHarvestBatchError]);
 
 
   useEffect(() => {
@@ -49,7 +53,7 @@ const UpdateEligible = ({ isOpen, onClose, batch, batchLoading, onSuccess }) => 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!batch?._id) return;
-    setRequestStarted(false);
+    setRequestStarted(true);
     setHasSubmitted(true);
     dispatch(updateHarvestBatchRequest(batch._id, { receiptEligible: value }));
   };
