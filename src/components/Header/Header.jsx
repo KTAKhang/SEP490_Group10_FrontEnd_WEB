@@ -89,7 +89,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
               <img
                 key={`logo-${publicShopInfo.logo}`}
                 src={publicShopInfo.logo}
-                alt={publicShopInfo?.shopName || "Nông Sản Sạch"}
+                alt={publicShopInfo?.shopName || "Shop logo"}
                 className="h-10 md:h-12 object-contain"
                 onError={(e) => {
                   e.target.style.display = 'none';

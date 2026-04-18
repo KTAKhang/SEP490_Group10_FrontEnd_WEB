@@ -54,7 +54,7 @@ const shopReducer = (state = initialState, action) => {
       return {
         ...state,
         getShopInfoLoading: false,
-        shopInfo: null, // Tránh hiển thị data cũ (vd: logo) khi request lỗi (403, 500...)
+        shopInfo: null, // Avoid stale data (e.g. logo) on failed request (403, 500...)
         error: action.payload,
       };
 
@@ -92,7 +92,7 @@ const shopReducer = (state = initialState, action) => {
         ...state,
         updateBasicInfoLoading: false,
         shopInfo: action.payload,
-        success: "Cập nhật thông tin cơ bản thành công",
+        success: "Basic shop information updated successfully",
         error: null,
       };
     case UPDATE_SHOP_BASIC_INFO_FAILURE:
@@ -116,7 +116,7 @@ const shopReducer = (state = initialState, action) => {
         ...state,
         updateDescriptionLoading: false,
         shopInfo: action.payload,
-        success: "Cập nhật mô tả thành công",
+        success: "Shop description updated successfully",
         error: null,
       };
     case UPDATE_SHOP_DESCRIPTION_FAILURE:
@@ -140,7 +140,7 @@ const shopReducer = (state = initialState, action) => {
         ...state,
         updateWorkingHoursLoading: false,
         shopInfo: action.payload,
-        success: "Cập nhật giờ hoạt động thành công",
+        success: "Working hours updated successfully",
         error: null,
       };
     case UPDATE_SHOP_WORKING_HOURS_FAILURE:
@@ -164,7 +164,7 @@ const shopReducer = (state = initialState, action) => {
         ...state,
         updateImagesLoading: false,
         shopInfo: action.payload,
-        success: "Cập nhật ảnh shop thành công",
+        success: "Shop images updated successfully",
         error: null,
       };
     case UPDATE_SHOP_IMAGES_FAILURE:

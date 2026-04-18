@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import CustomCKEditor from "../../../components/CustomCKEditor/CustomCKEditor";
 import apiClient from "../../../utils/axiosConfig";
+import { validateMapEmbedUrlInput, MAX_MAP_EMBED_URL_LENGTH, SHOP_MAP_IFRAME_SANDBOX } from "../../../utils/shopUtils";
 
 // Custom Upload Adapter để xử lý response format từ backend cho shop description
 class ShopDescriptionImageAdapter {
@@ -122,7 +123,7 @@ const ShopManagement = () => {
         email: shopInfo.email || "",
         phone: shopInfo.phone || "",
         logo: shopInfo.logo || "",
-        mapEmbedUrl: shopInfo.mapEmbedUrl || "",
+        mapEmbedUrl: shopInfo.mapEmbedUrl ?? shopInfo.map_embed_url ?? "",
       });
       setDescription(shopInfo.description || "");
       setWorkingHours(shopInfo.workingHours || "");
@@ -176,23 +177,27 @@ const ShopManagement = () => {
   const validateBasicInfo = () => {
     const newErrors = {};
     if (!formData.shopName.trim()) {
-      newErrors.shopName = "Tên shop là bắt buộc";
+      newErrors.shopName = "Shop name is required";
     }
     if (!formData.address.trim()) {
-      newErrors.address = "Địa chỉ là bắt buộc";
+      newErrors.address = "Address is required";
     }
     if (formData.email && formData.email.trim()) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email.trim())) {
-        newErrors.email = "Email không đúng định dạng";
+        newErrors.email = "Invalid email format";
       }
     }
     if (formData.phone && formData.phone.trim()) {
       const phoneRegex = /^[\d\s\-\+\(\)]+$/;
       const cleanPhone = formData.phone.trim().replace(/\s/g, "");
       if (!phoneRegex.test(cleanPhone) || cleanPhone.length < 8) {
-        newErrors.phone = "Số điện thoại không đúng định dạng";
+        newErrors.phone = "Invalid phone number format";
       }
+    }
+    const mapErr = validateMapEmbedUrlInput(formData.mapEmbedUrl);
+    if (mapErr) {
+      newErrors.mapEmbedUrl = mapErr;
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -206,14 +211,14 @@ const ShopManagement = () => {
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Chỉ chấp nhận file ảnh (JPG, PNG, GIF, WEBP)');
+      toast.error('Only image files are allowed (JPG, PNG, GIF, WEBP)');
       return;
     }
 
     // Validate file size (max 5MB)
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      toast.error('Kích thước file không được vượt quá 5MB');
+      toast.error('File size must not exceed 5MB');
       return;
     }
 
@@ -278,7 +283,13 @@ const ShopManagement = () => {
       return;
     }
     setLastBasicInfoAction('save_form'); // Để khi success hiện "Đã cập nhật thông tin thành công"
-    dispatch(updateShopBasicInfoRequest(formData));
+    dispatch(
+      updateShopBasicInfoRequest({
+        ...formData,
+        mapEmbedUrl:
+          typeof formData.mapEmbedUrl === "string" ? formData.mapEmbedUrl.trim() : "",
+      })
+    );
   };
 
   // CKEditor configuration cho shop description
@@ -319,7 +330,7 @@ const ShopManagement = () => {
           'imageStyle:side'
         ]
       },
-      // Cho phép style text-align trong paragraph
+      // Allow text-align style on paragraphs
       htmlSupport: {
         allow: [
           {
@@ -347,11 +358,11 @@ const ShopManagement = () => {
     // Validate content length (excluding HTML tags)
     const textContent = description.replace(/<[^>]*>/g, '').trim();
     if (textContent.length > 5000) {
-      toast.error("Nội dung mô tả không được vượt quá 5000 ký tự (không tính HTML tags)");
+      toast.error("Description must not exceed 5000 characters (excluding HTML tags)");
       return;
     }
     if (textContent.length < 10) {
-      toast.error("Nội dung mô tả phải có ít nhất 10 ký tự");
+      toast.error("Description must be at least 10 characters");
       return;
     }
     dispatch(updateShopDescriptionRequest(description));
@@ -361,7 +372,7 @@ const ShopManagement = () => {
   const handleWorkingHoursSubmit = (e) => {
     e.preventDefault();
     if (!workingHours.trim()) {
-      toast.error("Giờ hoạt động không được để trống");
+      toast.error("Working hours cannot be empty");
       return;
     }
     dispatch(updateShopWorkingHoursRequest(workingHours));
@@ -378,11 +389,11 @@ const ShopManagement = () => {
 
     for (const file of files) {
       if (!validTypes.includes(file.type)) {
-        toast.error(`File ${file.name} không hợp lệ. Chỉ chấp nhận JPG, PNG, WEBP`);
+        toast.error(`File ${file.name} is invalid. Only JPG, PNG, and WEBP are allowed`);
         continue;
       }
       if (file.size > maxSize) {
-        toast.error(`File ${file.name} vượt quá 5MB`);
+        toast.error(`File ${file.name} exceeds 5MB`);
         continue;
       }
     }
@@ -417,10 +428,10 @@ const ShopManagement = () => {
 
       setImages([...images, ...newUrls]);
       setImagePublicIds([...imagePublicIds, ...newPublicIds]);
-      toast.success(`Đã upload ${results.length} ảnh thành công`);
+      toast.success(`Successfully uploaded ${results.length} image(s)`);
     } catch (error) {
       toast.error(
-        error.response?.data?.message || error.message || "Lỗi khi upload ảnh"
+        error.response?.data?.message || error.message || "Failed to upload images"
       );
     } finally {
       setUploadingImages(false);
@@ -551,7 +562,7 @@ const ShopManagement = () => {
                             }`}
                           >
                             <Upload className="w-4 h-4 mr-2" />
-                            {uploadingLogo ? 'Đang upload...' : 'Chọn logo'}
+                            {uploadingLogo ? 'Uploading...' : 'Choose logo'}
                           </label>
                           <input
                             id="logo-upload"
@@ -569,7 +580,7 @@ const ShopManagement = () => {
                               const updatedFormData = { ...formData, logo: "" };
                               setFormData(updatedFormData);
                               setLogoFile(null);
-                              toast.info('Đã xóa logo trong form. Nhấn "Lưu thông tin" để lưu thay đổi.');
+                              toast.info('Logo removed from the form. Click "Save Information" to apply changes.');
                             }}
                             className="text-sm text-red-600 hover:text-red-700 flex items-center"
                           >
@@ -696,29 +707,45 @@ const ShopManagement = () => {
                 {/* Google Maps Embed URL */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Google Maps Embed URL (Copy from Google Maps)
+                    Google Maps embed URL{" "}
+                    <span className="text-gray-500 font-normal">(optional, max {MAX_MAP_EMBED_URL_LENGTH} chars, https://…)</span>
                   </label>
                   <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                    <input
-                      type="url"
+                    <MapPin className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
+                    <textarea
+                      rows={3}
                       value={formData.mapEmbedUrl}
-                      onChange={(e) =>
-                        setFormData({ ...formData, mapEmbedUrl: e.target.value })
-                      }
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                      placeholder="Copy from Google Maps"
+                      onChange={(e) => {
+                        if (errors.mapEmbedUrl) {
+                          setErrors((prev) => {
+                            const next = { ...prev };
+                            delete next.mapEmbedUrl;
+                            return next;
+                          });
+                        }
+                        setFormData({ ...formData, mapEmbedUrl: e.target.value });
+                      }}
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-y min-h-[88px] ${
+                        errors.mapEmbedUrl ? "border-red-500 focus:ring-red-500" : "border-gray-300"
+                      }`}
+                      placeholder="Paste iframe src URL (Google Maps → Share → Embed a map)"
                     />
                   </div>
+                  {errors.mapEmbedUrl && (
+                    <div className="flex items-center mt-1 text-red-500 text-sm">
+                      <AlertCircle className="w-4 h-4 mr-1 flex-shrink-0" />
+                      {errors.mapEmbedUrl}
+                    </div>
+                  )}
                   <p className="mt-2 text-xs text-gray-500">
-                    Get URL from Google Maps → Share → Embed Map → Copy the src part of the iframe
+                    Google Maps → Share → Embed a map → copy the <code className="text-gray-700">src</code> URL. Save with an empty field to remove the map from the site.
                   </p>
-                  {formData.mapEmbedUrl && formData.mapEmbedUrl.trim() !== "" && (
+                  {formData.mapEmbedUrl && formData.mapEmbedUrl.trim() !== "" && !errors.mapEmbedUrl && (
                     <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                      <p className="text-xs font-semibold text-gray-700 mb-2">Preview Map:</p>
+                      <p className="text-xs font-semibold text-gray-700 mb-2">Preview map</p>
                       <div className="w-full rounded overflow-hidden" style={{ height: '400px' }}>
                         <iframe
-                          src={formData.mapEmbedUrl}
+                          src={formData.mapEmbedUrl.trim()}
                           width="100%"
                           height="100%"
                           style={{
@@ -727,8 +754,9 @@ const ShopManagement = () => {
                           }}
                           allowFullScreen
                           loading="lazy"
-                          referrerPolicy="no-referrer-when-downgrade"
-                          title="Map Preview"
+                          referrerPolicy="strict-origin-when-cross-origin"
+                          sandbox={SHOP_MAP_IFRAME_SANDBOX}
+                          title="Map preview"
                         />
                       </div>
                     </div>
@@ -823,14 +851,14 @@ const ShopManagement = () => {
               <form onSubmit={handleWorkingHoursSubmit} className="space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Giờ hoạt động <span className="text-red-500">*</span>
+                    Working hours <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     rows={6}
                     value={workingHours}
                     onChange={(e) => setWorkingHours(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
-                    placeholder="Ví dụ: Thứ 2 - Thứ 6: 8:00 - 17:00&#10;Thứ 7 - Chủ nhật: 9:00 - 12:00"
+                    placeholder="e.g. Mon - Fri: 8:00 AM - 5:00 PM&#10;Sat - Sun: 9:00 AM - 12:00 PM"
                   />
                   <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-sm text-blue-800">
@@ -848,12 +876,12 @@ const ShopManagement = () => {
                     {updateWorkingHoursLoading ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        <span>Đang lưu...</span>
+                        <span>Saving...</span>
                       </>
                     ) : (
                       <>
                         <Save className="w-5 h-5" />
-                        <span>Lưu giờ hoạt động</span>
+                        <span>Save working hours</span>
                       </>
                     )}
                   </button>

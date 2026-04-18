@@ -2,6 +2,7 @@ import { call, put, takeLatest } from "redux-saga/effects";
 import { toast } from "react-toastify";
 import apiClient from "../../utils/axiosConfig";
 import apiClientNoCredentials from "../../utils/axiosConfigNoCredentials";
+import { normalizeShopPayload } from "../../utils/shopUtils";
 import {
   GET_SHOP_INFO_REQUEST,
   getShopInfoSuccess,
@@ -70,13 +71,13 @@ function* getShopInfoSaga() {
   try {
     const response = yield call(apiGetShopInfo);
     if (response.status === "OK") {
-      yield put(getShopInfoSuccess(response.data));
+      yield put(getShopInfoSuccess(normalizeShopPayload(response.data)));
     } else {
-      throw new Error(response.message || "Không thể tải thông tin shop");
+      throw new Error(response.message || "Unable to load shop information");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải thông tin shop";
+      error.response?.data?.message || error.message || "Unable to load shop information";
     yield put(getShopInfoFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -90,14 +91,14 @@ function* getShopInfoPublicSaga() {
       // console.log('📸 Logo URL:', response.data?.logo);
       // Dùng đúng data từ public API, không gọi GET /admin/shop (chỉ dành cho admin).
       // Nếu public API không trả logo (vd: đã xóa logo) thì logo để trống, tránh 403 khi user là customer.
-      const publicData = response.data;
+      const publicData = normalizeShopPayload(response.data);
       yield put(getShopInfoPublicSuccess(publicData));
     } else {
-      throw new Error(response.message || "Không thể tải thông tin shop");
+      throw new Error(response.message || "Unable to load shop information");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể tải thông tin shop";
+      error.response?.data?.message || error.message || "Unable to load shop information";
     yield put(getShopInfoPublicFailure(errorMessage));
     // Don't show toast for public requests to avoid annoying users
     console.error("Failed to load public shop info:", errorMessage);
@@ -114,23 +115,23 @@ function* updateShopBasicInfoSaga(action) {
       console.log('📸 Logo in response:', response.data?.logo);
       
       // WORKAROUND: Nếu backend không trả về logo, thêm logo từ request vào response
-      let updatedData = response.data;
+      let updatedData = normalizeShopPayload(response.data);
       if (!updatedData.logo && formData.logo) {
         console.warn('⚠️ Backend không trả về logo, sử dụng logo từ request:', formData.logo);
-        updatedData = {
+        updatedData = normalizeShopPayload({
           ...updatedData,
           logo: formData.logo
-        };
+        });
       }
       
       yield put(updateShopBasicInfoSuccess(updatedData));
       
       // Also update public shop info với logo nếu có
       if (formData.logo) {
-        yield put(getShopInfoPublicSuccess({
+        yield put(getShopInfoPublicSuccess(normalizeShopPayload({
           ...updatedData,
           logo: formData.logo
-        }));
+        })));
       }
       
       // Also refresh public shop info to sync Header/Footer
@@ -139,11 +140,11 @@ function* updateShopBasicInfoSaga(action) {
       yield put(getShopInfoPublicRequest());
       // Toast is handled in component
     } else {
-      throw new Error(response.message || "Không thể cập nhật thông tin shop");
+      throw new Error(response.message || "Unable to update shop information");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể cập nhật thông tin shop";
+      error.response?.data?.message || error.message || "Unable to update shop information";
     yield put(updateShopBasicInfoFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -157,11 +158,11 @@ function* updateShopDescriptionSaga(action) {
       yield put(updateShopDescriptionSuccess(response.data));
       // Toast is handled in component
     } else {
-      throw new Error(response.message || "Không thể cập nhật mô tả shop");
+      throw new Error(response.message || "Unable to update shop description");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể cập nhật mô tả shop";
+      error.response?.data?.message || error.message || "Unable to update shop description";
     yield put(updateShopDescriptionFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -175,11 +176,11 @@ function* updateShopWorkingHoursSaga(action) {
       yield put(updateShopWorkingHoursSuccess(response.data));
       // Toast is handled in component
     } else {
-      throw new Error(response.message || "Không thể cập nhật giờ hoạt động");
+      throw new Error(response.message || "Unable to update working hours");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể cập nhật giờ hoạt động";
+      error.response?.data?.message || error.message || "Unable to update working hours";
     yield put(updateShopWorkingHoursFailure(errorMessage));
     toast.error(errorMessage);
   }
@@ -193,11 +194,11 @@ function* updateShopImagesSaga(action) {
       yield put(updateShopImagesSuccess(response.data));
       // Toast is handled in component
     } else {
-      throw new Error(response.message || "Không thể cập nhật ảnh shop");
+      throw new Error(response.message || "Unable to update shop images");
     }
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Không thể cập nhật ảnh shop";
+      error.response?.data?.message || error.message || "Unable to update shop images";
     yield put(updateShopImagesFailure(errorMessage));
     toast.error(errorMessage);
   }

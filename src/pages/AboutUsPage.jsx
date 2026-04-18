@@ -12,6 +12,7 @@ import {
   Image as ImageIcon,
   Loader2,
 } from "lucide-react";
+import { getMapEmbedUrl, SHOP_MAP_IFRAME_SANDBOX } from "../utils/shopUtils";
 
 const AboutUsPage = () => {
   const dispatch = useDispatch();
@@ -28,7 +29,7 @@ const AboutUsPage = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-green-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Đang tải thông tin shop...</p>
+          <p className="text-gray-600">Loading shop information...</p>
         </div>
       </div>
     );
@@ -45,6 +46,8 @@ const AboutUsPage = () => {
     mapEmbedUrl: "",
   };
 
+  const mapEmbedUrl = getMapEmbedUrl(shop);
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Header />
@@ -57,7 +60,7 @@ const AboutUsPage = () => {
               <Store className="w-10 h-10" />
             </div>
             <h1 className="text-5xl md:text-6xl font-black mb-4">
-              {shop.shopName || "Về Chúng Tôi"}
+              {shop.shopName || "About Us"}
             </h1>
             <p className="text-xl text-green-100 max-w-2xl mx-auto">
             We are committed to providing the cleanest and highest quality agricultural products.
@@ -165,41 +168,46 @@ const AboutUsPage = () => {
         </div>
       </section>
 
-      {/* Google Maps Section */}
-      {shop.mapEmbedUrl && shop.mapEmbedUrl.trim() !== "" && (
-        <section className="py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-              Our Location
-            </h2>
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-              <div className="w-full" style={{ height: '450px' }}>
+      {/* Map / location */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+            Our Location
+          </h2>
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+            <div className="w-full bg-gray-50" style={{ height: "450px" }}>
+              {mapEmbedUrl ? (
                 <iframe
-                  src={shop.mapEmbedUrl}
+                  src={mapEmbedUrl}
                   width="100%"
                   height="100%"
                   style={{
                     border: 0,
-                    display: 'block',
+                    display: "block",
                   }}
                   allowFullScreen
                   loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title="Shop Location Map"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  sandbox={SHOP_MAP_IFRAME_SANDBOX}
+                  title="Shop location map"
                 />
-              </div>
-              {shop.address && (
-                <div className="p-6 bg-gray-50 border-t border-gray-200">
-                  <div className="flex items-center gap-3">
-                    <MapPin className="w-5 h-5 text-green-600 flex-shrink-0" />
-                    <p className="text-gray-700 font-medium">{shop.address}</p>
-                  </div>
+              ) : (
+                <div className="h-full flex items-center justify-center px-6 text-center text-gray-500">
+                  Chưa cấu hình bản đồ
                 </div>
               )}
             </div>
+            {shop.address && (
+              <div className="p-6 bg-gray-50 border-t border-gray-200">
+                <div className="flex items-center gap-3">
+                  <MapPin className="w-5 h-5 text-green-600 flex-shrink-0" />
+                  <p className="text-gray-700 font-medium">{shop.address}</p>
+                </div>
+              </div>
+            )}
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       {/* Working Hours Section */}
       {shop.workingHours && (
