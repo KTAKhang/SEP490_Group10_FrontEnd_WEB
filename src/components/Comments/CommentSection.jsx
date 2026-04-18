@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import CommentForm from './CommentForm';
 import CommentTreeNode, { getTailAndDepth, getBranchReplyCount } from './CommentTreeNode';
 import * as commentApi from '../../utils/commentApi';
+import { isNewsUnavailableCommentError } from '../../utils/commentUtils';
 
 const MAX_REPLY_DEPTH = 5;
 
@@ -57,14 +58,14 @@ const CommentSection = ({ newsId }) => {
         }
         setReplies(repliesData);
       } else {
-        setError(response.message || 'Không thể tải bình luận');
+        setError(response.message || 'Unable to load comments');
       }
     } catch (err) {
       console.error('Error loading comments:', err);
-      let errorMessage = err.response?.data?.message || 'Không thể tải bình luận.';
+      let errorMessage = err.response?.data?.message || 'Unable to load comments.';
 
       if (err.response?.status === 404) {
-        errorMessage = 'API endpoint không tồn tại. Vui lòng:\n1. Kiểm tra backend đã được restart chưa\n2. Kiểm tra route /api/news-comments/:newsId đã được register\n3. Kiểm tra server đang chạy ở đúng port (3001)';
+        errorMessage = 'API endpoint not found. Please:\n1. Restart the backend if needed\n2. Ensure route /api/news-comments/:newsId is registered\n3. Confirm the server is running on the correct port (3001)';
         console.error('🔴 404 Error - Backend route not found:', {
           endpoint: `/api/news-comments/${newsId}`,
           suggestion: 'Check if backend server is running and routes are registered'
@@ -74,7 +75,7 @@ const CommentSection = ({ newsId }) => {
       setError(errorMessage);
 
       if (err.response?.status === 404) {
-        toast.error('Không tìm thấy API endpoint. Vui lòng kiểm tra backend server.', {
+        toast.error('API endpoint not found. Please check that the backend server is running.', {
           autoClose: 5000,
         });
       } else if (err.response?.status !== 404) {
@@ -85,6 +86,16 @@ const CommentSection = ({ newsId }) => {
     }
   }, [newsId]);
 
+  const refreshRepliesSubtree = useCallback(
+    async (parentId) => {
+      if (!newsId || !parentId) return;
+      const subtree = {};
+      await loadRepliesRecursive(newsId, parentId, 1, subtree);
+      setReplies((prev) => ({ ...prev, ...subtree }));
+    },
+    [newsId]
+  );
+
   useEffect(() => {
     loadComments();
   }, [loadComments]);
@@ -92,7 +103,7 @@ const CommentSection = ({ newsId }) => {
   // Create new comment
   const handleCreateComment = async (content, parentId = null) => {
     if (!isAuthenticated()) {
-      toast.error('Vui lòng đăng nhập để bình luận');
+      toast.error('Please sign in to comment');
       return;
     }
 
@@ -102,30 +113,34 @@ const CommentSection = ({ newsId }) => {
       const response = await commentApi.createComment(newsId, content, parentId);
 
       if (response.status === 'OK') {
-        toast.success(parentId ? 'Đăng phản hồi thành công' : 'Đăng bình luận thành công');
-        await loadComments(); // Refresh comments
+        toast.success(parentId ? 'Reply posted successfully' : 'Comment posted successfully');
+        if (parentId) {
+          await refreshRepliesSubtree(parentId);
+        } else {
+          await loadComments();
+        }
       } else {
-        toast.error(response.message || 'Không thể đăng bình luận');
+        toast.error(response.message || 'Unable to post comment');
       }
     } catch (err) {
       console.error('Error creating comment:', err);
-      let errorMessage = err.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại';
+      let errorMessage = err.response?.data?.message || 'Something went wrong. Please try again.';
       
       // Handle 404 specifically with helpful message
       if (err.response?.status === 404) {
-        errorMessage = 'API endpoint không tồn tại. Vui lòng:\n1. Restart backend server\n2. Kiểm tra route POST /api/news-comments/:newsId\n3. Kiểm tra server đang chạy ở port 3001';
+        errorMessage = 'API endpoint not found. Please:\n1. Restart the backend server\n2. Check route POST /api/news-comments/:newsId\n3. Confirm the server is running on port 3001';
         console.error('🔴 404 Error - Backend route not found:', {
           endpoint: `POST /api/news-comments/${newsId}`,
           suggestion: 'Backend needs to be restarted after adding routes'
         });
-        toast.error('Không tìm thấy API endpoint. Vui lòng kiểm tra backend server đã được restart chưa.', {
+        toast.error('API endpoint not found. Please check that the backend server has been restarted.', {
           autoClose: 6000,
         });
         return; // Don't show duplicate error
       }
       
       // Handle spam error with special message
-      if (errorMessage.includes('quá nhanh')) {
+      if (errorMessage.includes('quá nhanh') || /too fast|too quickly|rate limit/i.test(errorMessage)) {
         toast.error(errorMessage, {
           autoClose: 5000,
         });
@@ -145,16 +160,19 @@ const CommentSection = ({ newsId }) => {
       const response = await commentApi.updateComment(commentId, newContent);
 
       if (response.status === 'OK') {
-        toast.success('Chỉnh sửa thành công');
+        toast.success('Comment updated successfully');
         await loadComments(); // Refresh comments
       } else {
-        toast.error(response.message || 'Không thể chỉnh sửa bình luận');
+        toast.error(response.message || 'Unable to update comment');
       }
     } catch (err) {
       console.error('Error updating comment:', err);
-      let errorMessage = err.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại';
+      let errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        'Something went wrong. Please try again.';
       if (err.response?.status === 404) {
-        errorMessage = 'API endpoint không tồn tại. Vui lòng kiểm tra backend có route PUT /api/news-comments/:id hoặc /news-comments/:id';
+        errorMessage = 'API endpoint not found. Check that the backend exposes PUT /api/news-comments/:id or /news-comments/:id';
       }
       toast.error(errorMessage);
     } finally {
@@ -170,16 +188,16 @@ const CommentSection = ({ newsId }) => {
       const response = await commentApi.deleteComment(commentId);
 
       if (response.status === 'OK') {
-        toast.success('Xóa bình luận thành công');
+        toast.success('Comment deleted successfully');
         await loadComments(); // Refresh comments
       } else {
-        toast.error(response.message || 'Không thể xóa bình luận');
+        toast.error(response.message || 'Unable to delete comment');
       }
     } catch (err) {
       console.error('Error deleting comment:', err);
-      let errorMessage = err.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại';
+      let errorMessage = err.response?.data?.message || 'Something went wrong. Please try again.';
       if (err.response?.status === 404) {
-        errorMessage = 'API endpoint không tồn tại. Vui lòng kiểm tra backend có route DELETE /api/news-comments/:id hoặc /news-comments/:id';
+        errorMessage = 'API endpoint not found. Check that the backend exposes DELETE /api/news-comments/:id or /news-comments/:id';
       }
       toast.error(errorMessage);
     } finally {
@@ -195,16 +213,16 @@ const CommentSection = ({ newsId }) => {
       const response = await commentApi.moderateComment(commentId, newStatus);
 
       if (response.status === 'OK') {
-        toast.success(newStatus === 'HIDDEN' ? 'Ẩn comment thành công' : 'Hiển thị comment thành công');
+        toast.success(newStatus === 'HIDDEN' ? 'Comment hidden successfully' : 'Comment shown successfully');
         await loadComments(); // Refresh comments
       } else {
-        toast.error(response.message || 'Không thể thực hiện thao tác');
+        toast.error(response.message || 'Unable to complete action');
       }
     } catch (err) {
       console.error('Error moderating comment:', err);
-      let errorMessage = err.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại';
+      let errorMessage = err.response?.data?.message || 'Something went wrong. Please try again.';
       if (err.response?.status === 404) {
-        errorMessage = 'API endpoint không tồn tại. Vui lòng kiểm tra backend có route PUT /api/news-comments/:id/moderate hoặc /news-comments/:id/moderate';
+        errorMessage = 'API endpoint not found. Check PUT /api/news-comments/:id/moderate or /news-comments/:id/moderate';
       }
       toast.error(errorMessage);
     } finally {
@@ -223,7 +241,7 @@ const CommentSection = ({ newsId }) => {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="inline-block w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p className="text-gray-600">Đang tải bình luận...</p>
+            <p className="text-gray-600">Loading comments...</p>
           </div>
         </div>
       </div>
@@ -231,7 +249,7 @@ const CommentSection = ({ newsId }) => {
   }
 
   // Bài đã xóa mềm / không tồn tại: không hiển thị form comment (theo spec soft delete)
-  if (error && (error.includes('không tồn tại') || error.includes('Bài viết không tồn tại'))) {
+  if (error && isNewsUnavailableCommentError(error)) {
     return (
       <div className="comment-section py-8 border-t border-gray-200 mt-12">
         <p className="text-gray-600">{error}</p>
@@ -242,7 +260,7 @@ const CommentSection = ({ newsId }) => {
   return (
     <div className="comment-section py-8 border-t border-gray-200 mt-12">
       <h3 className="text-2xl font-bold text-gray-900 mb-6">
-        Bình luận ({comments.length})
+        Comments ({comments.length})
       </h3>
 
       {/* Comment Form */}
@@ -250,18 +268,18 @@ const CommentSection = ({ newsId }) => {
         <div className="mb-8">
           <CommentForm
             onSubmit={(content) => handleCreateComment(content, null)}
-            placeholder="Viết bình luận..."
+            placeholder="Write a comment..."
             isLoading={submitting}
           />
         </div>
       ) : (
         <div className="mb-8 p-4 bg-gray-50 rounded-lg text-center">
           <p className="text-gray-600">
-            Vui lòng{' '}
+            Please{' '}
             <a href="/login" className="text-green-600 hover:text-green-700 font-semibold">
-              đăng nhập
+              sign in
             </a>{' '}
-            để bình luận
+            to comment
           </p>
         </div>
       )}
@@ -276,8 +294,8 @@ const CommentSection = ({ newsId }) => {
       {/* Comments List */}
       {comments.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <p className="text-gray-600 text-lg mb-2">Chưa có bình luận nào</p>
-          <p className="text-gray-500">Hãy là người đầu tiên bình luận!</p>
+          <p className="text-gray-600 text-lg mb-2">No comments yet</p>
+          <p className="text-gray-500">Be the first to comment!</p>
         </div>
       ) : (
         <div className="comments-list space-y-6">

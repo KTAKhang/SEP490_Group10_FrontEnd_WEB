@@ -28,7 +28,16 @@ import apiClient from "../../utils/axiosConfig";
 import apiClientNoCredentials from "../../utils/axiosConfigNoCredentials";
 
 // Message trả về khi bài đã xóa mềm (soft delete) - không hiển thị toast 404
-const NEWS_NOT_FOUND_MESSAGE = "Bài viết không tồn tại";
+const NEWS_NOT_FOUND_MESSAGE = "News article not found";
+
+function normalizeNewsNotFoundMessage(message) {
+  if (!message || typeof message !== "string") return NEWS_NOT_FOUND_MESSAGE;
+  const t = message.trim();
+  if (t === "Bài viết không tồn tại" || t.includes("Bài viết không tồn tại")) {
+    return NEWS_NOT_FOUND_MESSAGE;
+  }
+  return message;
+}
 
 // API call for getting news list (public or authenticated)
 const apiGetNews = async (params = {}, isPublic = false) => {
@@ -162,7 +171,7 @@ function* newsGetNewsByIdSaga(action) {
     if (response.status === "OK" && response.data) {
       yield put(newsGetNewsByIdSuccess(response.data));
     } else if (response.status === "ERR") {
-      const msg = response.message || NEWS_NOT_FOUND_MESSAGE;
+      const msg = normalizeNewsNotFoundMessage(response.message || NEWS_NOT_FOUND_MESSAGE);
       yield put(newsGetNewsByIdFailure(msg));
       // Không toast để trang hiển thị "Bài viết không tồn tại" / redirect thay vì popup
     } else {
@@ -211,7 +220,7 @@ function* newsUpdateNewsSaga(action) {
     if (response.status === "OK" && response.data) {
       yield put(newsUpdateNewsSuccess(response));
     } else if (response.status === "ERR") {
-      const msg = response.message || NEWS_NOT_FOUND_MESSAGE;
+      const msg = normalizeNewsNotFoundMessage(response.message || NEWS_NOT_FOUND_MESSAGE);
       yield put(newsUpdateNewsFailure(msg));
       toast.error(msg);
     } else {
@@ -235,7 +244,7 @@ function* newsDeleteNewsSaga(action) {
 
     if (response.status === "OK") {
       yield put(newsDeleteNewsSuccess(response));
-      toast.success(response.message || "Đã xóa bài viết");
+      toast.success(response.message || "News article deleted");
     } else {
       throw new Error(response.message || "Failed to delete news");
     }

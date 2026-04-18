@@ -3,7 +3,7 @@ import { formatRelativeTime, formatAbsoluteTime } from '../../utils/commentUtils
 import CommentForm from './CommentForm';
 import { MoreVertical, Edit, Trash2, Reply, Eye, EyeOff, Shield } from 'lucide-react';
 
-/** Ẩn nút Trả lời khi comment reply ở mức 4 (depth 0=root, 1..4=reply; từ mức 4 trở đi ẩn) */
+/** Hide Reply when nested at level 4 (depth 0=root, 1..4=replies) */
 const REPLY_HIDE_AT_LEVEL = 4;
 
 const CommentItem = ({
@@ -12,7 +12,7 @@ const CommentItem = ({
   isReply = false,
   depth = 0,
   canShowReply = false,
-  maxDepthReached = false, // true khi nhánh đã đạt mức 4 (ẩn nút Trả lời)
+  maxDepthReached = false,
   onReply,
   onEdit,
   onDelete,
@@ -26,15 +26,23 @@ const CommentItem = ({
   const [showFullTime, setShowFullTime] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  const isOwner = currentUser && currentUser._id === comment.user_id._id;
+  const commentAuthorId =
+    comment?.user_id?._id ?? comment?.user_id ?? comment?.userId ?? null;
+  const currentUserId = currentUser?._id ?? currentUser?.id ?? null;
+  const isOwner = Boolean(
+    currentUserId &&
+      commentAuthorId != null &&
+      String(currentUserId) === String(commentAuthorId)
+  );
   const isDeleted = comment.status === 'DELETED';
   const isHidden = comment.status === 'HIDDEN';
 
-  // Ẩn nút Trả lời khi reply ở mức 4 (depth >= 4) hoặc nhánh đã chạm ngưỡng
+  // Hide Reply at max nesting depth
   const atReplyLimit = depth >= REPLY_HIDE_AT_LEVEL || maxDepthReached;
   const replyAllowed = canShowReply && !atReplyLimit;
 
-  const canEdit = adminMode ? isAdmin : isOwner;
+  // PUT chỉ chủ comment; admin dùng moderate, không sửa nội dung thay khách
+  const canEdit = isOwner;
   const canDelete = adminMode ? isAdmin : isOwner;
 
   // Don't show hidden comments to non-admin users (unless in admin mode)
@@ -48,13 +56,13 @@ const CommentItem = ({
   };
 
   const handleDelete = () => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa bình luận này?')) {
+    if (window.confirm('Are you sure you want to delete this comment?')) {
       onDelete(comment._id);
     }
   };
 
   const handleReply = (content) => {
-    onReply(comment._id, content, comment.user_id.user_name);
+    onReply(comment._id, content, comment.user_id?.user_name);
     setShowReplyForm(false);
   };
 
@@ -85,7 +93,7 @@ const CommentItem = ({
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center space-x-2">
               <span className="font-semibold text-gray-900">
-                {comment.user_id?.user_name || 'Người dùng'}
+                {comment.user_id?.user_name || 'User'}
               </span>
               <span
                 className="text-sm text-gray-500 cursor-pointer hover:text-gray-700"
@@ -95,8 +103,8 @@ const CommentItem = ({
                 {showFullTime ? formatAbsoluteTime(comment.createdAt) : formatRelativeTime(comment.createdAt)}
               </span>
               {comment.is_edited && (
-                <span className="text-xs text-gray-400 italic" title={`Chỉnh sửa lúc ${formatAbsoluteTime(comment.updatedAt)}`}>
-                  Đã chỉnh sửa
+                <span className="text-xs text-gray-400 italic" title={`Edited at ${formatAbsoluteTime(comment.updatedAt)}`}>
+                  Edited
                 </span>
               )}
             </div>
@@ -157,7 +165,7 @@ const CommentItem = ({
                           className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
                         >
                           <Reply className="w-4 h-4" />
-                          <span>Trả lời</span>
+                          <span>Reply</span>
                         </button>
                       )}
                       {canEdit && !isDeleted && (
@@ -169,7 +177,7 @@ const CommentItem = ({
                           className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
                         >
                           <Edit className="w-4 h-4" />
-                          <span>{adminMode ? 'Chỉnh sửa (Admin)' : 'Chỉnh sửa'}</span>
+                          <span>Edit</span>
                         </button>
                       )}
                       {/* Chỉ hiện nút Xóa cho chủ comment (user), không hiện khi admin - admin chỉ dùng Ẩn/Hiện */}
@@ -182,7 +190,7 @@ const CommentItem = ({
                           className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
                         >
                           <Trash2 className="w-4 h-4" />
-                          <span>Xóa</span>
+                          <span>Delete</span>
                         </button>
                       )}
                       {isAdmin && !isDeleted && (
@@ -193,12 +201,12 @@ const CommentItem = ({
                           {comment.status === 'VISIBLE' ? (
                             <>
                               <EyeOff className="w-4 h-4" />
-                              <span>Ẩn comment</span>
+                              <span>Hide comment</span>
                             </>
                           ) : (
                             <>
                               <Eye className="w-4 h-4" />
-                              <span>Hiện comment</span>
+                              <span>Show comment</span>
                             </>
                           )}
                         </button>
@@ -213,10 +221,10 @@ const CommentItem = ({
           {/* Comment Content */}
           {isDeleted ? (
             <div className="text-gray-400 italic py-2 border-l-4 border-red-300 pl-4">
-              <div className="mb-1">Bình luận đã bị xóa</div>
+              <div className="mb-1">This comment was deleted</div>
               {adminMode && (
                 <div className="text-xs text-gray-500 mt-1">
-                  Nội dung gốc: {comment.content}
+                  Original content: {comment.content}
                 </div>
               )}
             </div>
@@ -225,7 +233,7 @@ const CommentItem = ({
               initialContent={comment.content}
               onSubmit={handleEdit}
               onCancel={() => setIsEditing(false)}
-              placeholder="Chỉnh sửa bình luận..."
+              placeholder="Edit comment..."
               isLoading={isLoading}
             />
           ) : (
@@ -253,7 +261,7 @@ const CommentItem = ({
               <CommentForm
                 onSubmit={handleReply}
                 onCancel={() => setShowReplyForm(false)}
-                placeholder={`@${comment.user_id?.user_name} Viết phản hồi...`}
+                placeholder={`@${comment.user_id?.user_name} Write a reply...`}
                 isLoading={isLoading}
               />
             </div>

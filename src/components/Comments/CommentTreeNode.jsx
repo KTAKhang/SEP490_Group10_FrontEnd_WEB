@@ -124,8 +124,8 @@ const CommentTreeNode = ({
               className="text-sm text-green-600 hover:text-green-700 font-medium mt-1"
             >
               {isExpanded
-                ? 'Thu gọn'
-                : `Xem thêm ${hiddenCount} phản hồi`}
+                ? 'Show less'
+                : `Show ${hiddenCount} more ${hiddenCount === 1 ? 'reply' : 'replies'}`}
             </button>
           )}
         </div>

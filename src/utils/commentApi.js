@@ -74,10 +74,12 @@ export const getComments = async (newsId, parentId = null) => {
  * Create a new comment or reply
  */
 export const createComment = async (newsId, content, parentId = null) => {
-  const response = await apiRequestWithFallback('POST', `/news-comments/${newsId}`, {
-    content: content.trim(),
-    parent_id: parentId,
-  });
+  const trimmed = content.trim();
+  const body = { content: trimmed };
+  if (parentId != null && parentId !== '') {
+    body.parent_id = String(parentId);
+  }
+  const response = await apiRequestWithFallback('POST', `/news-comments/${newsId}`, body);
   return response.data;
 };
 

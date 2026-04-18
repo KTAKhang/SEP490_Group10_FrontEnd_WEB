@@ -4,7 +4,7 @@ import { validateCommentContent } from '../../utils/commentUtils';
 const CommentForm = ({
   onSubmit,
   onCancel,
-  placeholder = 'Viết bình luận...',
+  placeholder = 'Write a comment...',
   initialContent = '',
   isLoading = false
 }) => {
@@ -89,7 +89,7 @@ const CommentForm = ({
               : 'bg-green-600 text-white'
           }`}
         >
-          {isLoading ? 'Đang đăng...' : 'Đăng'}
+          {isLoading ? 'Posting...' : 'Post'}
         </button>
       </div>
     </form>
