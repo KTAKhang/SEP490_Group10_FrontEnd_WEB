@@ -11,8 +11,17 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
+  ClipboardList,
+  Search,
+  Filter,
+  FileText,
+  Eye,
+  User,
 } from "lucide-react";
 import { getWarehouseDashboardStatsRequest } from "../../redux/actions/warehouseDashboardActions";
+import { getReceiptHistoryRequest } from "../../redux/actions/inventoryActions";
+import { getProductsRequest } from "../../redux/actions/productActions";
+import ReceiptDetailModal from "../Admin/ReceiptHistory/ReceiptDetailModal";
 import Loading from "../../components/Loading/Loading";
 
 const Card = ({ children, className = "" }) => (
@@ -48,22 +57,61 @@ const WarehouseStaffPage = () => {
   const { warehouseStats, warehouseStatsLoading, warehouseStatsError } = useSelector(
     (state) => state.warehouseDashboard
   );
-  const [receiptPage, setReceiptPage] = useState(1);
+  const { receiptHistory, receiptHistoryPagination, receiptHistoryLoading } = useSelector(
+    (state) => state.inventory
+  );
+  const { products } = useSelector((state) => state.product);
+
   const [selectedYear, setSelectedYear] = useState(currentYear);
+
+  // Receipt history section filters
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyProductId, setHistoryProductId] = useState("");
+  const [historySearch, setHistorySearch] = useState("");
+  const [historyStartDate, setHistoryStartDate] = useState("");
+  const [historyEndDate, setHistoryEndDate] = useState("");
+  const [historySortOrder, setHistorySortOrder] = useState("desc");
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedReceiptId, setSelectedReceiptId] = useState(null);
 
   useEffect(() => {
     dispatch(getWarehouseDashboardStatsRequest({
-      page: receiptPage,
+      page: 1,
       limit: RECEIPT_HISTORY_LIMIT,
       year: selectedYear,
     }));
-  }, [dispatch, receiptPage, selectedYear]);
+  }, [dispatch, selectedYear]);
+
+  useEffect(() => {
+    dispatch(getProductsRequest({ page: 1, limit: 1000, sortBy: "name", sortOrder: "asc" }));
+  }, [dispatch]);
+
+  useEffect(() => {
+    dispatch(getReceiptHistoryRequest({
+      page: historyPage,
+      limit: 8,
+      ...(historyProductId && { productId: historyProductId }),
+      ...(historySearch && { search: historySearch }),
+      ...(historyStartDate && { startDate: historyStartDate }),
+      ...(historyEndDate && { endDate: historyEndDate }),
+      sortBy: "createdAt",
+      sortOrder: historySortOrder,
+    }));
+  }, [dispatch, historyPage, historyProductId, historySearch, historyStartDate, historyEndDate, historySortOrder]);
 
   const myStats = warehouseStats?.myStats ?? null;
   const whStats = warehouseStats?.warehouseStats ?? null;
-  const receiptHistory = myStats?.receiptHistory ?? null;
-  const receiptData = receiptHistory?.data ?? [];
-  const receiptPagination = receiptHistory?.pagination ?? null;
+
+  const handleResetHistoryFilters = () => {
+    setHistoryProductId("");
+    setHistorySearch("");
+    setHistoryStartDate("");
+    setHistoryEndDate("");
+    setHistorySortOrder("desc");
+    setHistoryPage(1);
+  };
+
+  const hasActiveFilters = historyProductId || historySearch || historyStartDate || historyEndDate || historySortOrder !== "desc";
 
   if (warehouseStatsLoading && !warehouseStats) {
     return (
@@ -224,73 +272,6 @@ const WarehouseStaffPage = () => {
         </CardContent>
       </Card>
 
-      {/* Your receipt history */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Your receipt history</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {receiptData.length > 0 ? (
-            <>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200 text-left text-gray-600">
-                      <th className="py-2 pr-4">Time</th>
-                      <th className="py-2 pr-4">Product</th>
-                      <th className="py-2 pr-4">Quantity</th>
-                      <th className="py-2">Batch / Notes</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {receiptData.map((row) => (
-                      <tr key={row._id} className="border-b border-gray-100">
-                        <td className="py-2 pr-4 text-gray-700 whitespace-nowrap">{formatDate(row.createdAt)}</td>
-                        <td className="py-2 pr-4 font-medium text-gray-800">
-                          {row.product?.name ?? row.product ?? "—"}
-                        </td>
-                        <td className="py-2 pr-4 font-semibold text-emerald-600">{formatNumber(row.quantity)}</td>
-                        <td className="py-2 text-gray-600">
-                          {row.harvestBatch?.batchCode || row.harvestBatch?.batchNumber
-                            ? `Batch: ${row.harvestBatch.batchCode || row.harvestBatch.batchNumber}`
-                            : "—"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {receiptPagination && receiptPagination.totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                  <span className="text-sm text-gray-600">
-                    Page {receiptPagination.page} / {receiptPagination.totalPages} ({receiptPagination.total} receipts)
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setReceiptPage((p) => Math.max(1, p - 1))}
-                      disabled={receiptPagination.page <= 1}
-                      className="p-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <ChevronLeft size={18} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setReceiptPage((p) => p + 1)}
-                      disabled={receiptPagination.page >= receiptPagination.totalPages}
-                      className="p-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <ChevronRight size={18} />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <p className="text-sm text-gray-500 py-8 text-center">No receipts yet</p>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Pre-order stock summary */}
       {whStats?.preOrderStockSummary && (
@@ -341,6 +322,287 @@ const WarehouseStaffPage = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* ===== My Receipt History ===== */}
+      <div className="rounded-2xl border border-gray-200/80 bg-white shadow-sm overflow-hidden">
+        {/* Section header */}
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+            <ClipboardList size={20} />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-base font-semibold text-gray-800">My Receipt History</h3>
+            {receiptHistoryPagination && (
+              <p className="text-xs text-gray-500 mt-0.5">
+                Total: {receiptHistoryPagination.total} receipts
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+          <div className="flex items-center gap-2 mb-3">
+            <Filter size={15} className="text-gray-400" />
+            <span className="text-sm font-medium text-gray-700">Filters</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Product */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Product</label>
+              <select
+                value={historyProductId}
+                onChange={(e) => { setHistoryProductId(e.target.value); setHistoryPage(1); }}
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+              >
+                <option value="">All products</option>
+                {products.map((p) => (
+                  <option key={p._id} value={p._id}>
+                    {p.name}{p.brand ? ` (${p.brand})` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Search note */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Search note</label>
+              <div className="relative">
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search in notes..."
+                  value={historySearch}
+                  onChange={(e) => { setHistorySearch(e.target.value); setHistoryPage(1); }}
+                  className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                />
+              </div>
+            </div>
+
+            {/* Start date */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">From date</label>
+              <div className="relative">
+                <Calendar size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="date"
+                  value={historyStartDate}
+                  onChange={(e) => { setHistoryStartDate(e.target.value); setHistoryPage(1); }}
+                  className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                />
+              </div>
+            </div>
+
+            {/* End date */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">To date</label>
+              <div className="relative">
+                <Calendar size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="date"
+                  value={historyEndDate}
+                  min={historyStartDate || undefined}
+                  onChange={(e) => { setHistoryEndDate(e.target.value); setHistoryPage(1); }}
+                  className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Sort + reset */}
+          <div className="flex items-center justify-between mt-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-gray-600">Sort:</span>
+              <button
+                type="button"
+                onClick={() => { setHistorySortOrder((o) => (o === "asc" ? "desc" : "asc")); setHistoryPage(1); }}
+                className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition"
+              >
+                Date {historySortOrder === "asc" ? "↑ Oldest first" : "↓ Newest first"}
+              </button>
+            </div>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={handleResetHistoryFilters}
+                className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition"
+              >
+                Reset filters
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="p-5">
+          {receiptHistoryLoading ? (
+            <div className="flex justify-center py-10">
+              <Loading message="Loading receipt history..." />
+            </div>
+          ) : receiptHistory.length === 0 ? (
+            <div className="flex flex-col items-center py-12 text-center">
+              <Package size={44} className="text-gray-300 mb-3" />
+              <p className="text-sm font-medium text-gray-600">No receipts found</p>
+              <p className="text-xs text-gray-400 mt-1">Your receipts will appear here after you receive stock.</p>
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200 text-left">
+                      <th className="px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                      <th className="px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                      <th className="px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Harvest Batch</th>
+                      <th className="px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Note</th>
+                      <th className="px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                      <th className="px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Detail</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {receiptHistory.map((receipt) => (
+                      <tr key={receipt._id} className="hover:bg-gray-50 transition-colors">
+                        {/* Product */}
+                        <td className="px-3 py-3">
+                          <div className="flex items-center gap-2">
+                            {receipt.product?.images?.[0] && (
+                              <img
+                                src={receipt.product.images[0]}
+                                alt={receipt.product.name}
+                                className="h-9 w-9 rounded-lg object-cover border border-gray-100 flex-shrink-0"
+                              />
+                            )}
+                            <div>
+                              <p className="font-medium text-gray-900 leading-tight">
+                                {receipt.product?.name || "N/A"}
+                              </p>
+                              {receipt.product?.brand && (
+                                <p className="text-xs text-gray-400">{receipt.product.brand}</p>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Quantity */}
+                        <td className="px-3 py-3 whitespace-nowrap">
+                          <span className="font-semibold text-emerald-600">{formatNumber(receipt.quantity)}</span>
+                        </td>
+
+                        {/* Harvest Batch */}
+                        <td className="px-3 py-3">
+                          {receipt.harvestBatch ? (
+                            <div>
+                              <p className="font-medium text-gray-800 text-xs">
+                                {receipt.harvestBatch.batchCode || receipt.harvestBatch.batchNumber || "—"}
+                              </p>
+                              {receipt.harvestBatch.harvestDateStr && (
+                                <p className="text-xs text-gray-400 mt-0.5">{receipt.harvestBatch.harvestDateStr}</p>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
+                        </td>
+
+                        {/* Note */}
+                        <td className="px-3 py-3 max-w-[180px]">
+                          {receipt.note ? (
+                            <div className="flex items-start gap-1">
+                              <FileText size={13} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                              <span className="text-gray-700 text-xs line-clamp-2">{receipt.note}</span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
+                        </td>
+
+                        {/* Date */}
+                        <td className="px-3 py-3 whitespace-nowrap text-gray-700 text-xs">
+                          {receipt.createdAt
+                            ? new Date(receipt.createdAt).toLocaleString("en-US", {
+                                year: "numeric",
+                                month: "2-digit",
+                                day: "2-digit",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : "—"}
+                        </td>
+
+                        {/* View detail */}
+                        <td className="px-3 py-3 whitespace-nowrap">
+                          <button
+                            type="button"
+                            onClick={() => { setSelectedReceiptId(receipt._id); setIsDetailModalOpen(true); }}
+                            className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50 transition"
+                            title="View detail"
+                          >
+                            <Eye size={17} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              {receiptHistoryPagination && receiptHistoryPagination.totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                  <span className="text-xs text-gray-500">
+                    Showing{" "}
+                    {(receiptHistoryPagination.page - 1) * receiptHistoryPagination.limit + 1}–
+                    {Math.min(
+                      receiptHistoryPagination.page * receiptHistoryPagination.limit,
+                      receiptHistoryPagination.total
+                    )}{" "}
+                    of {receiptHistoryPagination.total} receipts
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setHistoryPage((p) => Math.max(1, p - 1))}
+                      disabled={historyPage === 1}
+                      className="p-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    {[...Array(receiptHistoryPagination.totalPages)].map((_, i) => (
+                      <button
+                        key={i + 1}
+                        type="button"
+                        onClick={() => setHistoryPage(i + 1)}
+                        className={`min-w-[2rem] rounded-lg px-2 py-1.5 text-xs font-medium transition ${
+                          historyPage === i + 1
+                            ? "bg-emerald-600 text-white shadow-sm"
+                            : "border border-gray-200 text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setHistoryPage((p) => Math.min(receiptHistoryPagination.totalPages, p + 1))}
+                      disabled={historyPage === receiptHistoryPagination.totalPages}
+                      className="p-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Receipt detail modal */}
+      <ReceiptDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => { setIsDetailModalOpen(false); setSelectedReceiptId(null); }}
+        receiptId={selectedReceiptId}
+      />
     </div>
   );
 };

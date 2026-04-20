@@ -234,9 +234,10 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
       formDataToSend.append("existingImagePublicIds", JSON.stringify(existingImagePublicIds));
       newImageFiles.forEach((file) => formDataToSend.append("images", file));
     } else {
-      // Description-only update (product not reset)
+      // Limited update when product already has stock in warehouse
       formDataToSend.append("short_desc", formData.short_desc || "");
       formDataToSend.append("detail_desc", formData.detail_desc || "");
+      formDataToSend.append("status", formData.status);
     }
 
     setRequestStarted(false);
@@ -294,7 +295,7 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
             {!canFullUpdate && (
               <>
                 <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">
-                  This product already has stock in warehouse (received or on-hand). You can only update <strong>Short description</strong> and <strong>Detailed description</strong>. To change price, quantity, images, etc., wait until stock is cleared and the lot is reset.
+                  This product already has stock in warehouse (received or on-hand). You can only update <strong>Short description</strong>, <strong>Detailed description</strong>, and <strong>Status (show/hide)</strong>. To change price, quantity, images, brand, category, etc., wait until stock is cleared and the lot is reset.
                 </div>
                 <p className="text-sm text-gray-600">
                   Editing: <span className="font-medium text-gray-900">{product.name}</span>
@@ -481,6 +482,19 @@ const UpdateProduct = ({ isOpen, onClose, product }) => {
               </>
             )}
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Status
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value === "true" })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              >
+                <option value={true}>Visible</option>
+                <option value={false}>Hidden</option>
+              </select>
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Short description <span className="text-red-500">*</span>
