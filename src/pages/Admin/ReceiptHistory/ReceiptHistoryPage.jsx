@@ -15,6 +15,9 @@ import { getProductsRequest } from "../../../redux/actions/productActions";
 import Loading from "../../../components/Loading/Loading";
 import ReceiptDetailModal from "./ReceiptDetailModal";
 
+const normalizeRole = (role) =>
+  String(role || "").trim().toLowerCase().replace(/_/g, "-");
+
 
 const ReceiptHistoryPage = () => {
   const dispatch = useDispatch();
@@ -22,6 +25,8 @@ const ReceiptHistoryPage = () => {
     (state) => state.inventory
   );
   const { products } = useSelector((state) => state.product);
+  const { role } = useSelector((state) => state.auth);
+  const isWarehouseStaff = normalizeRole(role) === "warehouse-staff";
 
 
   const [selectedProductId, setSelectedProductId] = useState("");
@@ -101,8 +106,14 @@ const ReceiptHistoryPage = () => {
           <ClipboardList size={24} />
         </div>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Receipt History</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Track stock receipt history by warehouse staff</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+            {isWarehouseStaff ? "Your Receipt History" : "Receipt History"}
+          </h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {isWarehouseStaff
+              ? "View stock receipts you have created"
+              : "Track stock receipt history by warehouse staff"}
+          </p>
         </div>
       </div>
 
@@ -292,9 +303,11 @@ const ReceiptHistoryPage = () => {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Harvest Batch
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Received By
-                      </th>
+                      {!isWarehouseStaff && (
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Received By
+                        </th>
+                      )}
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Note
                       </th>
@@ -365,23 +378,25 @@ const ReceiptHistoryPage = () => {
                             <span className="text-sm text-gray-400">-</span>
                           )}
                         </td>
-                        <td className="px-4 py-3">
-                          {receipt.createdBy ? (
-                            <div className="flex items-center space-x-2">
-                              <User className="text-gray-400" size={16} />
-                              <div>
-                                <p className="text-sm text-gray-900">
-                                  {receipt.createdBy.user_name || "N/A"}
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                  {receipt.createdBy.email || ""}
-                                </p>
+                        {!isWarehouseStaff && (
+                          <td className="px-4 py-3">
+                            {receipt.createdBy ? (
+                              <div className="flex items-center space-x-2">
+                                <User className="text-gray-400" size={16} />
+                                <div>
+                                  <p className="text-sm text-gray-900">
+                                    {receipt.createdBy.user_name || "N/A"}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {receipt.createdBy.email || ""}
+                                  </p>
+                                </div>
                               </div>
-                            </div>
-                          ) : (
-                            <span className="text-sm text-gray-500">N/A</span>
-                          )}
-                        </td>
+                            ) : (
+                              <span className="text-sm text-gray-500">N/A</span>
+                            )}
+                          </td>
+                        )}
                         <td className="px-4 py-3">
                           {receipt.note ? (
                             <div className="flex items-center space-x-1">

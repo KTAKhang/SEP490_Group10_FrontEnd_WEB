@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { X, Package, User, Calendar, FileText, Info } from "lucide-react";
+import { X, Package, User, FileText, Info, Lock } from "lucide-react";
 import { getReceiptByIdRequest } from "../../../redux/actions/inventoryActions";
 import Loading from "../../../components/Loading/Loading";
 
@@ -44,6 +44,7 @@ const ReceiptDetailModal = ({ isOpen, onClose, receiptId }) => {
   };
 
 
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
@@ -72,10 +73,30 @@ const ReceiptDetailModal = ({ isOpen, onClose, receiptId }) => {
               <Loading message="Loading receipt details..." />
             </div>
           ) : receiptDetailError ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <Info className="text-red-400 mb-4" size={48} />
-              <p className="text-red-600 font-medium">{receiptDetailError}</p>
-            </div>
+            (() => {
+              const isPermissionDenied =
+                receiptDetailError.toLowerCase().includes("only view receipts you created") ||
+                receiptDetailError.toLowerCase().includes("permission") ||
+                receiptDetailError.toLowerCase().includes("403");
+              return (
+                <div className="flex flex-col items-center justify-center py-12">
+                  {isPermissionDenied ? (
+                    <>
+                      <Lock className="text-orange-400 mb-4" size={48} />
+                      <p className="text-orange-600 font-semibold text-base">Access denied</p>
+                      <p className="text-gray-500 text-sm mt-1">
+                        You can only view receipts you created.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <Info className="text-red-400 mb-4" size={48} />
+                      <p className="text-red-600 font-medium">{receiptDetailError}</p>
+                    </>
+                  )}
+                </div>
+              );
+            })()
           ) : receiptDetail ? (
             <div className="space-y-6">
               {/* Product Information */}
@@ -198,19 +219,6 @@ const ReceiptDetailModal = ({ isOpen, onClose, receiptId }) => {
                             Harvest date: {receiptDetail.harvestBatch.harvestDateStr}
                           </p>
                         )}
-                        <div className="flex space-x-4 mt-2 text-sm">
-                          <span className="text-gray-600">
-                            Quantity: <span className="font-medium text-gray-900">{receiptDetail.harvestBatch.quantity || 0}</span>
-                          </span>
-                          <span className="text-gray-600">
-                            Received: <span className="font-medium text-gray-900">{receiptDetail.harvestBatch.receivedQuantity || 0}</span>
-                          </span>
-                          <span className="text-gray-600">
-                            Remaining: <span className="font-medium text-green-600">
-                              {(receiptDetail.harvestBatch.quantity || 0) - (receiptDetail.harvestBatch.receivedQuantity || 0)}
-                            </span>
-                          </span>
-                        </div>
                       </div>
                     </div>
                   )}

@@ -71,7 +71,8 @@ const CartPage = () => {
   };
 
   const handleQuantityChange = (productId, value) => {
-    setEditingQuantity((prev) => ({ ...prev, [productId]: value }));
+    const digitsOnly = value.replace(/\D/g, "");
+    setEditingQuantity((prev) => ({ ...prev, [productId]: digitsOnly }));
   };
 
   const handleQuantityBlur = (productId, currentQty) => {
@@ -257,6 +258,8 @@ const CartPage = () => {
                     const qty = item.quantity || 0;
                     const displayQty = editingQuantity[pid] !== undefined ? editingQuantity[pid] : qty;
                     const isSelected = selectedItems.includes(pid);
+                    const qtyDigits = Math.max(1, String(displayQty ?? "").length);
+                    const qtyInputWidth = `${Math.max(3, qtyDigits)}ch`;
 
                     return (
                       <div
@@ -364,17 +367,25 @@ const CartPage = () => {
                                   <Minus size={14} />
                                 </button>
                                 <input
-                                  type="number"
-                                  min="1"
+                                  type="text"
+                                  inputMode="numeric"
+                                  pattern="[0-9]*"
                                   value={displayQty}
                                   onChange={(e) => !expired && handleQuantityChange(pid, e.target.value)}
                                   onBlur={() => !expired && handleQuantityBlur(pid, qty)}
                                   onKeyPress={(e) => handleQuantityKeyPress(e, pid, qty)}
                                   disabled={expired}
                                   style={{
-                                    width: 40, textAlign: "center", border: "none", background: expired ? "#f3f4f6" : "transparent",
+                                    width: qtyInputWidth,
+                                    minWidth: 40,
+                                    textAlign: "center",
+                                    border: "none",
+                                    background: expired ? "#f3f4f6" : "transparent",
                                     fontWeight: 700, fontSize: 14, color: "#111827", outline: "none",
-                                    MozAppearance: "textfield"
+                                    fontVariantNumeric: "tabular-nums",
+                                    MozAppearance: "textfield",
+                                    WebkitAppearance: "none",
+                                    appearance: "textfield"
                                   }}
                                 />
                                 <button

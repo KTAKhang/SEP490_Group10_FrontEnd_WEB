@@ -148,23 +148,23 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
 
     const phone = formData.phone?.toString().trim() || "";
     const email = formData.email?.toString().trim() || "";
-    if (!phone && !email) {
-      toast.error("At least one phone number or email is required");
+    if (!phone) {
+      toast.error("Phone number is required");
       return;
     }
-    if (phone) {
-      const phoneCheck = validatePhone(phone);
-      if (!phoneCheck.valid) {
-        toast.error(phoneCheck.message);
-        return;
-      }
+    if (!email) {
+      toast.error("Email is required");
+      return;
     }
-    if (email) {
-      const emailCheck = validateEmail(email);
-      if (!emailCheck.valid) {
-        toast.error(emailCheck.message);
-        return;
-      }
+    const phoneCheck = validatePhone(phone);
+    if (!phoneCheck.valid) {
+      toast.error(phoneCheck.message);
+      return;
+    }
+    const emailCheck = validateEmail(email);
+    if (!emailCheck.valid) {
+      toast.error(emailCheck.message);
+      return;
     }
     const addressLine = (formData.address ?? "").toString().trim();
     const wardName = (formData.ward ?? "").toString().trim();
@@ -297,7 +297,9 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="tel"
                   value={formData.phone}
@@ -308,7 +310,9 @@ const UpdateSupplier = ({ isOpen, onClose, supplier }) => {
                 <p className="text-xs text-gray-500 mt-1">Only digits, spaces, + - ( ). Must have 10–12 digits.</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   autoComplete="email"
