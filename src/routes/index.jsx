@@ -59,6 +59,7 @@ import AdminNewsDetailPage from "../pages/Admin/News/NewsDetailPage";
 import ShopManagement from "../pages/Admin/Shop/ShopManagement";
 import HomepageAssetsManagement from "../pages/Admin/HomepageAssets/HomepageAssetsManagement";
 import AboutUsPage from "../pages/AboutUsPage";
+import FAQPage from "../pages/FAQPage";
 import OrderSuccessPage from "../pages/CustomerView/OrderSuccessPage";
 import PaymentSuccessPage from "../pages/CustomerView/PaymentSuccessPage";
 import PaymentSuccessNoStockPage from "../pages/CustomerView/PaymentSuccessNoStockPage";
@@ -120,6 +121,10 @@ export const routes = [
   {
     path: "/about",
     element: <AboutUsPage />,
+  },
+  {
+    path: "/faq",
+    element: <FAQPage />,
   },
   {
     path: "/wishlist",
