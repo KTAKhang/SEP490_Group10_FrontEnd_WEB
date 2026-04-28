@@ -25,11 +25,33 @@ const ReviewDetails = ({ isOpen, onClose, review }) => {
             <div>{review.product_id?.name || "N/A"}</div>
           </div>
           <div className="text-sm text-gray-700">
-            <div className="font-medium text-gray-900">Reviewer</div>
-            <div>{review.user_id?.user_name || "N/A"}</div>
-            {review.user_id?.email && (
-              <div className="text-xs text-gray-500">{review.user_id.email}</div>
-            )}
+            <div className="font-medium text-gray-900 mb-2">Reviewer</div>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full flex-shrink-0 overflow-hidden border border-gray-200">
+                {review.user_id?.avatar ? (
+                  <img
+                    src={review.user_id.avatar}
+                    alt={review.user_id?.user_name || "Customer"}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-sm">
+                    {(review.user_id?.user_name || "U").charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
+              <div>
+                <div className="font-semibold text-gray-900">
+                  {review.user_id?.fullName || review.user_id?.user_name || "N/A"}
+                </div>
+                {review.user_id?.fullName && review.user_id?.user_name && (
+                  <div className="text-xs text-gray-400">@{review.user_id.user_name}</div>
+                )}
+                {review.user_id?.email && (
+                  <div className="text-xs text-gray-500">{review.user_id.email}</div>
+                )}
+              </div>
+            </div>
           </div>
           <div className="text-sm text-gray-700">
             <div className="font-medium text-gray-900">Rating</div>

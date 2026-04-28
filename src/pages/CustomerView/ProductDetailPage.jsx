@@ -582,13 +582,26 @@ export default function ProductDetailPage() {
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex gap-3 min-w-0">
-                          <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 text-emerald-700 font-semibold text-sm">
-                            {(review.user_id?.user_name || 'U').charAt(0).toUpperCase()}
+                          <div className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden border border-stone-200">
+                            {review.user_id?.avatar ? (
+                              <img
+                                src={review.user_id.avatar}
+                                alt={review.user_id?.user_name || 'Customer'}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-semibold text-sm">
+                                {(review.user_id?.user_name || 'U').charAt(0).toUpperCase()}
+                              </div>
+                            )}
                           </div>
                           <div className="min-w-0">
                             <p className="font-semibold text-stone-900 truncate">
-                              {review.user_id?.user_name || 'Customer'}
+                              {review.user_id?.fullName || review.user_id?.user_name || 'Customer'}
                             </p>
+                            {review.user_id?.fullName && review.user_id?.user_name && (
+                              <p className="text-xs text-stone-400 truncate">@{review.user_id.user_name}</p>
+                            )}
                             <p className="text-xs text-stone-500 mt-0.5">
                               {review.createdAt ? new Date(review.createdAt).toLocaleString('en-US') : 'N/A'}
                             </p>

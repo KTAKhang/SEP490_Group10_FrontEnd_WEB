@@ -237,10 +237,32 @@ const ReviewManagement = () => {
                   <tr key={review._id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">{review.product_id?.name || "N/A"}</td>
                     <td className="px-4 py-3">
-                      {review.user_id?.user_name || "N/A"}
-                      {review.user_id?.email && (
-                        <div className="text-xs text-gray-500">{review.user_id.email}</div>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden border border-gray-200">
+                          {review.user_id?.avatar ? (
+                            <img
+                              src={review.user_id.avatar}
+                              alt={review.user_id?.user_name || "Customer"}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-semibold text-xs">
+                              {(review.user_id?.user_name || "U").charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-medium text-gray-900 truncate">
+                            {review.user_id?.fullName || review.user_id?.user_name || "N/A"}
+                          </div>
+                          {review.user_id?.fullName && review.user_id?.user_name && (
+                            <div className="text-xs text-gray-400">@{review.user_id.user_name}</div>
+                          )}
+                          {review.user_id?.email && (
+                            <div className="text-xs text-gray-500">{review.user_id.email}</div>
+                          )}
+                        </div>
+                      </div>
                     </td>
                     <td className="px-4 py-3">{review.rating}</td>
                     <td className="px-4 py-3 max-w-xs truncate">{review.comment || "-"}</td>
