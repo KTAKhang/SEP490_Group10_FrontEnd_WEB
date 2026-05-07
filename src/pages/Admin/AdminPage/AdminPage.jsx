@@ -12,6 +12,7 @@ import {
   RotateCcw,
   Boxes,
   CalendarDays,
+  Download,
 } from "lucide-react";
 import { orderAdminListRequest, orderAdminStatsRequest } from "../../../redux/actions/orderActions";
 import { getProductStatsRequest } from "../../../redux/actions/productActions";
@@ -38,8 +39,78 @@ const CardContent = ({ children, className = "" }) => (
 const normalizeStatus = (value) =>
   value ? value.toString().trim().toUpperCase().replace(/[_\s]+/g, "-") : "";
 
+/** Numbers/dates in the admin revenue UI use English formatting (not vi-VN). */
+const DASHBOARD_DISPLAY_LOCALE = "en-US";
+
 const formatCurrency = (value) =>
-  (value || 0).toLocaleString("vi-VN", { maximumFractionDigits: 0 });
+  (value || 0).toLocaleString(DASHBOARD_DISPLAY_LOCALE, { maximumFractionDigits: 0 });
+
+const MONTH_SHORT_NAMES = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+const MONTH_LONG_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+/** Clamp (year, month) so it is not after the current calendar month */
+const clampToCurrentCalendarMonth = (year, month) => {
+  const now = new Date();
+  const cy = now.getFullYear();
+  const cm = now.getMonth() + 1;
+  const y = Math.min(Number(year), cy);
+  let m = Number(month);
+  if (Number.isNaN(m) || m < 1) m = 1;
+  if (m > 12) m = 12;
+  if (y === cy) m = Math.min(m, cm);
+  return { year: y, month: m };
+};
+
+const formatYearMonthStr = ({ year, month }) =>
+  `${year}-${String(month).padStart(2, "0")}`;
+
+/** `YYYY-MM` string for calendar month picker state */
+const defaultMonthPickerValue = () => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`;
+};
+
+/** @returns {{ year: number, month: number } | null} month 1–12 */
+const parseMonthPickerValue = (str) => {
+  if (!str || typeof str !== "string") return null;
+  const [yS, mS] = str.split("-");
+  const year = Number(yS);
+  const month = Number(mS);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12) return null;
+  return { year, month };
+};
+
+/** Calendar month 1–12 */
+const calendarDaysInMonth = (year, month) => new Date(year, month, 0).getDate();
 
 const statusLabel = (status) => {
   const map = {
@@ -81,6 +152,94 @@ const getOrderRevenueValue = (order) =>
 
 const getOrderRevenueDate = (order) =>
   order?.updatedAt || order?.createdAt || order?.order_date || order?.date || null;
+
+const getPreOrderRevenueValue = (preOrder) =>
+  toNumber(
+    preOrder?.totalAmount ??
+      preOrder?.total_amount ??
+      preOrder?.payment?.amount ??
+      preOrder?.remainingAmount ??
+      0
+  );
+
+const getPreOrderRevenueDate = (preOrder) =>
+  preOrder?.updatedAt || preOrder?.createdAt || preOrder?.order_date || preOrder?.date || null;
+
+const orderMatchesRevenueDisplayScope = (order, period, effectiveDayCalendar, revenueScopeYear) => {
+  const rawDate = getOrderRevenueDate(order);
+  const revenue = getOrderRevenueValue(order);
+  if (!rawDate || revenue <= 0) return false;
+  const d = new Date(rawDate);
+  if (Number.isNaN(d.getTime())) return false;
+  if (period === "day" && effectiveDayCalendar) {
+    return (
+      d.getFullYear() === effectiveDayCalendar.year &&
+      d.getMonth() + 1 === effectiveDayCalendar.month
+    );
+  }
+  if ((period === "month" || period === "year") && revenueScopeYear != null) {
+    return d.getFullYear() === revenueScopeYear;
+  }
+  return false;
+};
+
+const preOrderMatchesRevenueDisplayScope = (
+  preOrder,
+  period,
+  effectiveDayCalendar,
+  revenueScopeYear
+) => {
+  const rawDate = getPreOrderRevenueDate(preOrder);
+  const revenue = getPreOrderRevenueValue(preOrder);
+  if (!rawDate || revenue <= 0) return false;
+  const d = new Date(rawDate);
+  if (Number.isNaN(d.getTime())) return false;
+  if (period === "day" && effectiveDayCalendar) {
+    return (
+      d.getFullYear() === effectiveDayCalendar.year &&
+      d.getMonth() + 1 === effectiveDayCalendar.month
+    );
+  }
+  if ((period === "month" || period === "year") && revenueScopeYear != null) {
+    return d.getFullYear() === revenueScopeYear;
+  }
+  return false;
+};
+
+const sumOrdersRevenueDisplayScope = (
+  orders,
+  period,
+  effectiveDayCalendar,
+  revenueScopeYear
+) =>
+  Array.isArray(orders)
+    ? orders.reduce((sum, order) => {
+        if (!orderMatchesRevenueDisplayScope(order, period, effectiveDayCalendar, revenueScopeYear)) {
+          return sum;
+        }
+        return sum + getOrderRevenueValue(order);
+      }, 0)
+    : 0;
+
+const sumPreOrdersRevenueDisplayScope = (
+  preOrders,
+  period,
+  effectiveDayCalendar,
+  revenueScopeYear
+) =>
+  Array.isArray(preOrders)
+    ? preOrders.reduce((sum, po) => {
+        if (
+          !preOrderMatchesRevenueDisplayScope(po, period, effectiveDayCalendar, revenueScopeYear)
+        ) {
+          return sum;
+        }
+        return sum + getPreOrderRevenueValue(po);
+      }, 0)
+    : 0;
+
+const getPreOrderStatus = (preOrder) =>
+  normalizeStatus(preOrder?.status || preOrder?.pre_order_status || preOrder?.status_name);
 
 const getOrderItems = (order) => {
   if (Array.isArray(order?.details)) return order.details;
@@ -164,9 +323,10 @@ const aggregateTopSellingProducts = (orders, limit = 5) => {
     .slice(0, limit);
 };
 
-const buildEmptyPeriodSeries = (period) => {
+const buildEmptyPeriodSeries = (period, daysInMonth = 31) => {
   if (period === "day") {
-    return Array.from({ length: 31 }, (_, i) => {
+    const n = Math.min(31, Math.max(28, Number(daysInMonth) || 31));
+    return Array.from({ length: n }, (_, i) => {
       const day = i + 1;
       return {
         label: `Day ${day}`,
@@ -180,7 +340,7 @@ const buildEmptyPeriodSeries = (period) => {
     return Array.from({ length: 12 }, (_, i) => {
       const month = i + 1;
       return {
-        label: `T${month}`,
+        label: MONTH_SHORT_NAMES[i],
         revenue: 0,
         rawKey: month,
         orderKey: month,
@@ -207,72 +367,29 @@ const sortSeriesByPeriod = (series, period) => {
   return sorted;
 };
 
-const formatPeriodLabel = (entry, period) => {
-  if (period === "day") {
-    const raw = entry?.date || entry?.day || entry?.label || entry?.period || entry?.x;
-    if (!raw) return "N/A";
-    const d = new Date(raw);
-    if (Number.isNaN(d.getTime())) return String(raw);
-    return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
-  }
-  if (period === "month") {
-    const month = entry?.month ?? entry?.label ?? entry?.period ?? entry?.x;
-    const monthNum = toNumber(month);
-    if (monthNum >= 1 && monthNum <= 12) return `T${monthNum}`;
-    return String(month || "N/A");
-  }
-  const year = entry?.year ?? entry?.label ?? entry?.period ?? entry?.x;
-  return String(year || "N/A");
-};
+/**
+ * @param opts.calendarYear / opts.calendarMonth — when period is "day", only aggregate in that calendar month (1–12)
+ * @param opts.filterYear — when period is "month" | "year", only include revenue in that calendar year (year chart = single bar)
+ * @param preOrders — completed pre-orders; revenue is merged into the same buckets as orders
+ */
+const buildRevenueSeriesFromOrders = (orders, period, opts = {}, preOrders = []) => {
+  const calY = opts.calendarYear;
+  const calM = opts.calendarMonth;
+  const filterCalendarYear = opts.filterYear;
+  const dayFilter =
+    period === "day" && calY != null && calM != null
+      ? { year: calY, month: calM }
+      : null;
+  const daysInSelectedMonth = dayFilter
+    ? calendarDaysInMonth(dayFilter.year, dayFilter.month)
+    : 31;
 
-const periodOrderKey = (entry, period) => {
-  if (period === "day") return entry?.date || entry?.day || entry?.label || entry?.period || "";
-  if (period === "month") return entry?.month ?? entry?.label ?? entry?.period ?? 0;
-  return entry?.year ?? entry?.label ?? entry?.period ?? 0;
-};
-
-const buildRevenueSeries = (adminStats, period) => {
-  if (!adminStats) return [];
-
-  const keyMap = {
-    day: ["revenueByDay", "dailyRevenue", "revenueDaily", "revenueByDate"],
-    month: ["revenueByMonth", "monthlyRevenue", "revenueMonthly"],
-    year: ["revenueByYear", "yearlyRevenue", "revenueYearly"],
-  };
-  const targetKey = keyMap[period].find((k) => adminStats[k] != null);
-  const source = targetKey ? adminStats[targetKey] : null;
-
-  let rows = [];
-  if (Array.isArray(source)) rows = source;
-  else if (source && typeof source === "object") {
-    rows = Object.entries(source).map(([key, value]) => ({
-      period: key,
-      revenue: value,
-    }));
-  }
-
-  const normalized = rows.map((item) => {
-    const revenue = toNumber(
-      item?.revenue ??
-        item?.amount ??
-        item?.totalRevenue ??
-        item?.total_amount ??
-        item?.value ??
-        item?.total
-    );
-    return {
-      label: formatPeriodLabel(item, period),
-      revenue,
-      rawKey: periodOrderKey(item, period),
-      orderKey: periodOrderKey(item, period),
-    };
-  });
-
-  return sortSeriesByPeriod(normalized, period);
-};
-
-const buildRevenueSeriesFromOrders = (orders, period) => {
-  if (!Array.isArray(orders) || orders.length === 0) {
+  const ordersArr = Array.isArray(orders) ? orders : [];
+  const preArr = Array.isArray(preOrders) ? preOrders : [];
+  if (ordersArr.length === 0 && preArr.length === 0) {
+    if (period === "day" && dayFilter) {
+      return buildEmptyPeriodSeries(period, daysInSelectedMonth);
+    }
     return buildEmptyPeriodSeries(period);
   }
 
@@ -280,24 +397,37 @@ const buildRevenueSeriesFromOrders = (orders, period) => {
   const monthMap = new Map();
   const yearMap = new Map();
 
-  orders.forEach((order) => {
-    const rawDate = getOrderRevenueDate(order);
-    const revenue = getOrderRevenueValue(order);
+  const pushRevenue = (rawDate, revenue) => {
     if (!rawDate || revenue <= 0) return;
     const d = new Date(rawDate);
     if (Number.isNaN(d.getTime())) return;
 
-    const year = d.getFullYear();
-    const month = d.getMonth() + 1;
-    const day = d.getDate();
-    const dayKey = day;
-    const monthKey = month;
-    const yearKey = `${year}`;
+    if (dayFilter) {
+      if (d.getFullYear() !== dayFilter.year || d.getMonth() + 1 !== dayFilter.month) return;
+    }
+    if (
+      (period === "month" || period === "year") &&
+      filterCalendarYear != null &&
+      d.getFullYear() !== filterCalendarYear
+    ) {
+      return;
+    }
 
-    dayMap.set(dayKey, (dayMap.get(dayKey) || 0) + revenue);
-    monthMap.set(monthKey, (monthMap.get(monthKey) || 0) + revenue);
-    yearMap.set(yearKey, (yearMap.get(yearKey) || 0) + revenue);
-  });
+    const y = d.getFullYear();
+    const monthNum = d.getMonth() + 1;
+    const dayNum = d.getDate();
+
+    dayMap.set(dayNum, (dayMap.get(dayNum) || 0) + revenue);
+    monthMap.set(monthNum, (monthMap.get(monthNum) || 0) + revenue);
+    yearMap.set(`${y}`, (yearMap.get(`${y}`) || 0) + revenue);
+  };
+
+  ordersArr.forEach((order) =>
+    pushRevenue(getOrderRevenueDate(order), getOrderRevenueValue(order))
+  );
+  preArr.forEach((po) =>
+    pushRevenue(getPreOrderRevenueDate(po), getPreOrderRevenueValue(po))
+  );
 
   const toSeries = (map, keyType) =>
     [...map.entries()].map(([key, revenue]) => {
@@ -311,7 +441,7 @@ const buildRevenueSeriesFromOrders = (orders, period) => {
       }
       if (keyType === "month") {
         return {
-          label: `T${Number(key)}`,
+          label: MONTH_SHORT_NAMES[Number(key) - 1] || String(key),
           revenue,
           rawKey: key,
           orderKey: Number(key),
@@ -328,7 +458,8 @@ const buildRevenueSeriesFromOrders = (orders, period) => {
   if (period === "day") {
     const series = toSeries(dayMap, "day");
     const valueMap = new Map(series.map((item) => [Number(item.rawKey), item.revenue]));
-    return Array.from({ length: 31 }, (_, i) => {
+    const dim = dayFilter ? daysInSelectedMonth : 31;
+    return Array.from({ length: dim }, (_, i) => {
       const day = i + 1;
       return {
         label: `Day ${day}`,
@@ -344,40 +475,83 @@ const buildRevenueSeriesFromOrders = (orders, period) => {
     return Array.from({ length: 12 }, (_, i) => {
       const month = i + 1;
       return {
-        label: `T${month}`,
+        label: MONTH_SHORT_NAMES[i],
         revenue: valueMap.get(month) || 0,
         rawKey: month,
         orderKey: month,
       };
     });
   }
-  return sortSeriesByPeriod(toSeries(yearMap, "year"), "year");
-};
-
-const getTotalRevenue = (adminStats, revenueSeries, ordersRevenueTotal = 0) => {
-  const directRevenue = toNumber(
-    adminStats?.totalRevenue ??
-      adminStats?.revenue ??
-      adminStats?.completedRevenue ??
-      adminStats?.grossRevenue
-  );
-  if (directRevenue > 0) return directRevenue;
-  if (ordersRevenueTotal > 0) return ordersRevenueTotal;
-  return revenueSeries.reduce((sum, item) => sum + toNumber(item.revenue), 0);
+  if (period === "year") {
+    if (filterCalendarYear != null) {
+      const yk = `${filterCalendarYear}`;
+      return [
+        {
+          label: yk,
+          revenue: yearMap.get(yk) || 0,
+          rawKey: yk,
+          orderKey: filterCalendarYear,
+        },
+      ];
+    }
+    return sortSeriesByPeriod(toSeries(yearMap, "year"), "year");
+  }
+  return [];
 };
 
 const AdminPage = () => {
   const [revenuePeriod, setRevenuePeriod] = useState("day");
-  const [showSpecificSelector, setShowSpecificSelector] = useState(false);
-  const [selectedPeriodKey, setSelectedPeriodKey] = useState("");
+  /** For "Day" chart: which calendar month to show (defaults to current month on first load) */
+  const [revenueDayViewMonth, setRevenueDayViewMonth] = useState(() => defaultMonthPickerValue());
   const [revenueOrders, setRevenueOrders] = useState([]);
   const [revenueOrdersLoading, setRevenueOrdersLoading] = useState(false);
+  const [completedPreOrders, setCompletedPreOrders] = useState([]);
+  const [revenuePreOrdersLoading, setRevenuePreOrdersLoading] = useState(false);
+  /** Orders / KPI for Month & Year views: filter completed revenue to this calendar year */
+  const [revenueScopeYear, setRevenueScopeYear] = useState(() => new Date().getFullYear());
+  const [exportingExcel, setExportingExcel] = useState(false);
   const dispatch = useDispatch();
   const { adminStats, adminStatsLoading, adminOrders, adminLoading } = useSelector(
     (state) => state.order || {}
   );
   const { productStats, productStatsLoading } = useSelector((state) => state.product || {});
   const { categoryStats, categoryStatsLoading } = useSelector((state) => state.category || {});
+
+  const dayViewYearMonthParsed = useMemo(() => {
+    const p = parseMonthPickerValue(revenueDayViewMonth);
+    if (p) return clampToCurrentCalendarMonth(p.year, p.month);
+    return clampToCurrentCalendarMonth(
+      new Date().getFullYear(),
+      new Date().getMonth() + 1
+    );
+  }, [revenueDayViewMonth]);
+
+  const revenueYearOptions = useMemo(() => {
+    const cy = new Date().getFullYear();
+    const list = [];
+    for (let y = cy; y >= cy - 15; y -= 1) list.push(y);
+    return list;
+  }, []);
+
+  const revenueMonthChoices = useMemo(() => {
+    const now = new Date();
+    const cy = now.getFullYear();
+    const cm = now.getMonth() + 1;
+    const maxM = dayViewYearMonthParsed.year === cy ? cm : 12;
+    return Array.from({ length: maxM }, (_, i) => i + 1);
+  }, [dayViewYearMonthParsed.year]);
+
+  const setRevenueDayViewYearMonth = (year, month) => {
+    const { year: y, month: m } = clampToCurrentCalendarMonth(year, month);
+    setRevenueDayViewMonth(formatYearMonthStr({ year: y, month: m }));
+  };
+
+  useEffect(() => {
+    const canonical = formatYearMonthStr(dayViewYearMonthParsed);
+    if (canonical !== revenueDayViewMonth) {
+      setRevenueDayViewMonth(canonical);
+    }
+  }, [revenueDayViewMonth, dayViewYearMonthParsed]);
 
   useEffect(() => {
     dispatch(orderAdminStatsRequest());
@@ -480,6 +654,52 @@ const AdminPage = () => {
     };
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchCompletedPreOrdersForRevenue = async () => {
+      setRevenuePreOrdersLoading(true);
+      try {
+        const allPreOrders = [];
+        let page = 1;
+        const limit = 100;
+        let totalPages = 1;
+
+        do {
+          const res = await apiClient.get("/admin/preorder/pre-orders", {
+            params: {
+              page,
+              limit,
+              sortBy: "createdAt",
+              sortOrder: "asc",
+            },
+          });
+
+          const payload = res?.data;
+          const rows = Array.isArray(payload?.data) ? payload.data : [];
+          allPreOrders.push(...rows);
+
+          totalPages = Number(payload?.pagination?.totalPages || 1);
+          page += 1;
+        } while (page <= totalPages && page <= 100);
+
+        const completedOnly = allPreOrders.filter(
+          (item) => getPreOrderStatus(item) === "COMPLETED"
+        );
+        if (isMounted) setCompletedPreOrders(completedOnly);
+      } catch {
+        if (isMounted) setCompletedPreOrders([]);
+      } finally {
+        if (isMounted) setRevenuePreOrdersLoading(false);
+      }
+    };
+
+    fetchCompletedPreOrdersForRevenue();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const countsByStatus = useMemo(() => {
     const map = new Map();
     (adminStats?.statusCounts || []).forEach((item) => {
@@ -498,67 +718,80 @@ const AdminPage = () => {
   const refundOrders = countsByStatus.get("REFUND") || 0;
   const cancelledOrders = countsByStatus.get("CANCELLED") || 0;
   const realRevenuePeriod = revenuePeriod || "day";
-  const revenueSeriesFromStats = useMemo(
-    () => buildRevenueSeries(adminStats, realRevenuePeriod),
-    [adminStats, realRevenuePeriod]
-  );
-  const revenueSeriesFromOrders = useMemo(
-    () => buildRevenueSeriesFromOrders(revenueOrders, realRevenuePeriod),
-    [revenueOrders, realRevenuePeriod]
-  );
-  const revenueSeries = useMemo(() => {
-    if (realRevenuePeriod === "day" || realRevenuePeriod === "month") {
-      return revenueSeriesFromOrders;
+  const effectiveDayCalendar = useMemo(() => {
+    if (realRevenuePeriod !== "day") return null;
+    return dayViewYearMonthParsed;
+  }, [realRevenuePeriod, dayViewYearMonthParsed]);
+  const revenueSeriesFromOrders = useMemo(() => {
+    let calendarOpts = {};
+    if (realRevenuePeriod === "day" && effectiveDayCalendar) {
+      calendarOpts = {
+        calendarYear: effectiveDayCalendar.year,
+        calendarMonth: effectiveDayCalendar.month,
+      };
+    } else if (realRevenuePeriod === "month" || realRevenuePeriod === "year") {
+      calendarOpts = { filterYear: revenueScopeYear };
     }
-    return revenueSeriesFromStats.length > 0 ? revenueSeriesFromStats : revenueSeriesFromOrders;
-  }, [realRevenuePeriod, revenueSeriesFromOrders, revenueSeriesFromStats]);
-  const periodOptions = useMemo(
-    () =>
-      revenueSeries.map((item) => ({
-        value: String(item.rawKey),
-        label: item.label,
-      })),
-    [revenueSeries]
-  );
-  const filteredRevenueSeries = useMemo(() => {
-    if (!selectedPeriodKey) return revenueSeries;
-    return revenueSeries.filter((item) => String(item.rawKey) === selectedPeriodKey);
-  }, [revenueSeries, selectedPeriodKey]);
-
-  useEffect(() => {
-    setSelectedPeriodKey("");
-  }, [realRevenuePeriod]);
-
-  useEffect(() => {
-    if (
-      selectedPeriodKey &&
-      !periodOptions.some((option) => option.value === selectedPeriodKey)
-    ) {
-      setSelectedPeriodKey("");
-    }
-  }, [periodOptions, selectedPeriodKey]);
-
-  const selectedOptionLabel = useMemo(() => {
-    if (!selectedPeriodKey) return "All";
-    return periodOptions.find((option) => option.value === selectedPeriodKey)?.label || "All";
-  }, [periodOptions, selectedPeriodKey]);
-
+    return buildRevenueSeriesFromOrders(
+      revenueOrders,
+      realRevenuePeriod,
+      calendarOpts,
+      completedPreOrders
+    );
+  }, [revenueOrders, completedPreOrders, realRevenuePeriod, effectiveDayCalendar, revenueScopeYear]);
+  /** Day / Month / Year charts all use orders + pre-orders so scope (e.g. Totals year) matches the chart. */
+  const revenueSeries = useMemo(() => revenueSeriesFromOrders, [revenueSeriesFromOrders]);
   const ordersRevenueTotal = useMemo(
-    () => revenueOrders.reduce((sum, order) => sum + getOrderRevenueValue(order), 0),
-    [revenueOrders]
+    () =>
+      sumOrdersRevenueDisplayScope(
+        revenueOrders,
+        realRevenuePeriod,
+        effectiveDayCalendar,
+        revenueScopeYear
+      ),
+    [revenueOrders, realRevenuePeriod, effectiveDayCalendar, revenueScopeYear]
   );
-  const totalRevenue = useMemo(
-    () => getTotalRevenue(adminStats, revenueSeries, ordersRevenueTotal),
-    [adminStats, revenueSeries, ordersRevenueTotal]
+  const preOrdersRevenueTotal = useMemo(
+    () =>
+      sumPreOrdersRevenueDisplayScope(
+        completedPreOrders,
+        realRevenuePeriod,
+        effectiveDayCalendar,
+        revenueScopeYear
+      ),
+    [completedPreOrders, realRevenuePeriod, effectiveDayCalendar, revenueScopeYear]
   );
+  const totalRevenueCombined = useMemo(
+    () => ordersRevenueTotal + preOrdersRevenueTotal,
+    [ordersRevenueTotal, preOrdersRevenueTotal]
+  );
+  const topSellingFilteredOrders = useMemo(() => {
+    if (!Array.isArray(revenueOrders)) return [];
+    return revenueOrders.filter((o) =>
+      orderMatchesRevenueDisplayScope(o, realRevenuePeriod, effectiveDayCalendar, revenueScopeYear)
+    );
+  }, [revenueOrders, realRevenuePeriod, effectiveDayCalendar, revenueScopeYear]);
   const topSellingProducts = useMemo(
-    () => aggregateTopSellingProducts(revenueOrders, 5),
-    [revenueOrders]
+    () => aggregateTopSellingProducts(topSellingFilteredOrders, 5),
+    [topSellingFilteredOrders]
   );
   const topMaxOrderCount = useMemo(
     () => Math.max(1, ...topSellingProducts.map((item) => item.orderCount || 0)),
     [topSellingProducts]
   );
+
+  const revenueDisplayScopeCaption = useMemo(() => {
+    if (realRevenuePeriod === "day" && effectiveDayCalendar) {
+      return `Amounts above: ${MONTH_LONG_NAMES[effectiveDayCalendar.month - 1]} ${effectiveDayCalendar.year} only (completed orders & pre-orders).`;
+    }
+    if (realRevenuePeriod === "month") {
+      return `Amounts above: full calendar year ${revenueScopeYear} (completed orders & pre-orders). Chart shows each month in that year.`;
+    }
+    if (realRevenuePeriod === "year") {
+      return `Amounts above: calendar year ${revenueScopeYear} only (completed orders & pre-orders). Chart shows that year.`;
+    }
+    return "";
+  }, [realRevenuePeriod, effectiveDayCalendar, revenueScopeYear]);
 
   const kpiCards = [
     {
@@ -596,7 +829,92 @@ const AdminPage = () => {
   ];
 
   const busy =
-    adminStatsLoading || productStatsLoading || categoryStatsLoading || revenueOrdersLoading;
+    adminStatsLoading ||
+    productStatsLoading ||
+    categoryStatsLoading ||
+    revenueOrdersLoading ||
+    revenuePreOrdersLoading;
+
+  const handleExportRevenueExcel = async () => {
+    setExportingExcel(true);
+    try {
+      const now = new Date();
+      const rows = [
+        ["Admin Revenue Dashboard Export"],
+        [`Generated at`, now.toLocaleString(DASHBOARD_DISPLAY_LOCALE)],
+        [],
+        ["Revenue Type", "Amount (VND)"],
+        ["Total revenue", totalRevenueCombined],
+        ["Revenue from orders", ordersRevenueTotal],
+        ["Revenue from pre-orders", preOrdersRevenueTotal],
+        [],
+        ["Selected chart period", realRevenuePeriod],
+        ...(realRevenuePeriod === "day" && effectiveDayCalendar
+          ? [
+              [
+                "Daily chart calendar month",
+                `${effectiveDayCalendar.year}-${String(effectiveDayCalendar.month).padStart(2, "0")}`,
+              ],
+            ]
+          : []),
+        ...(realRevenuePeriod === "month" || realRevenuePeriod === "year"
+          ? [["Year scope (dashboard totals)", revenueScopeYear]]
+          : []),
+        [],
+        ["Chart details"],
+        ["Label", "Revenue (VND)"],
+        ...revenueSeries.map((item) => [item.label, toNumber(item.revenue)]),
+      ];
+
+      const escapeXml = (value) =>
+        String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&apos;");
+
+      const xmlRows = rows
+        .map((cols) => {
+          const cells = cols
+            .map((col) => {
+              const isNumber = typeof col === "number";
+              return `<Cell><Data ss:Type="${isNumber ? "Number" : "String"}">${escapeXml(col)}</Data></Cell>`;
+            })
+            .join("");
+          return `<Row>${cells}</Row>`;
+        })
+        .join("");
+
+      const worksheetXml = `<?xml version="1.0"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Worksheet ss:Name="Revenue">
+  <Table>
+   ${xmlRows}
+  </Table>
+ </Worksheet>
+</Workbook>`;
+
+      const blob = new Blob([worksheetXml], {
+        type: "application/vnd.ms-excel;charset=utf-8;",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const dateStamp = now.toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `admin-revenue-${dateStamp}.xls`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExportingExcel(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -611,12 +929,17 @@ const AdminPage = () => {
       {/* Revenue chart */}
       <Card className="shadow-sm">
         <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div>
-            <CardTitle className="text-lg font-semibold text-gray-800">Revenue overview</CardTitle>
-            <p className="text-sm text-gray-500 mt-1">
-              Revenue from completed orders, grouped by day, month, year
-            </p>
-          </div>
+          <CardTitle className="text-lg font-semibold text-gray-800 shrink-0">Revenue overview</CardTitle>
+          <div className="flex flex-wrap items-center gap-2 md:flex-1 md:justify-end">
+          <button
+            type="button"
+            onClick={handleExportRevenueExcel}
+            disabled={busy || exportingExcel}
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download size={16} />
+            {exportingExcel ? "Exporting..." : "Export Excel"}
+          </button>
           <div className="inline-flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
             {[
               { key: "day", label: "Day" },
@@ -637,70 +960,131 @@ const AdminPage = () => {
               </button>
             ))}
           </div>
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setShowSpecificSelector((prev) => !prev)}
-              className="px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-700"
+          {realRevenuePeriod === "day" && (
+            <div
+              className="inline-flex flex-col sm:flex-row sm:items-center gap-2 text-sm"
+              lang="en"
             >
-              Select specific {realRevenuePeriod}
-            </button>
-            {showSpecificSelector && (
-              <div className="absolute right-0 mt-2 w-64 rounded-lg border border-gray-200 bg-white shadow-lg p-3 z-10">
-                <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">
-                  {realRevenuePeriod === "day"
-                    ? "Choose day"
-                    : realRevenuePeriod === "month"
-                    ? "Choose month"
-                    : "Choose year"}
-                </label>
+              <span className="text-gray-600 whitespace-nowrap">Calendar month</span>
+              <div className="flex flex-wrap items-center gap-2">
                 <select
-                  value={selectedPeriodKey}
-                  onChange={(e) => setSelectedPeriodKey(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  aria-label="Year for daily revenue chart"
+                  value={dayViewYearMonthParsed.year}
+                  onChange={(e) =>
+                    setRevenueDayViewYearMonth(
+                      Number(e.target.value),
+                      dayViewYearMonthParsed.month
+                    )
+                  }
+                  className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 bg-white text-gray-800 min-w-[4.75rem]"
                 >
-                  <option value="">
-                    {realRevenuePeriod === "day"
-                      ? "All days"
-                      : realRevenuePeriod === "month"
-                      ? "All months"
-                      : "All years"}
-                  </option>
-                  {periodOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
+                  {revenueYearOptions.map((y) => (
+                    <option key={y} value={y}>
+                      {y}
                     </option>
                   ))}
                 </select>
-                <div className="mt-2 text-xs text-gray-500">
-                  Showing: <span className="font-medium text-gray-700">{selectedOptionLabel}</span>
-                </div>
+                <select
+                  aria-label="Month for daily revenue chart"
+                  title="Monthly period shown in the daily revenue chart"
+                  value={String(dayViewYearMonthParsed.month).padStart(2, "0")}
+                  onChange={(e) =>
+                    setRevenueDayViewYearMonth(
+                      dayViewYearMonthParsed.year,
+                      Number(e.target.value)
+                    )
+                  }
+                  className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 bg-white text-gray-800 min-w-[9.25rem]"
+                >
+                  {revenueMonthChoices.map((m) => (
+                    <option key={m} value={String(m).padStart(2, "0")}>
+                      {MONTH_LONG_NAMES[m - 1]}
+                    </option>
+                  ))}
+                </select>
               </div>
-            )}
+            </div>
+          )}
+          {(realRevenuePeriod === "month" || realRevenuePeriod === "year") && (
+            <div className="inline-flex flex-col sm:flex-row sm:items-center gap-2 text-sm" lang="en">
+              <span className="text-gray-600 whitespace-nowrap">
+                {realRevenuePeriod === "month"
+                  ? "Chart year"
+                  : "Totals year"}
+              </span>
+              <select
+                aria-label={
+                  realRevenuePeriod === "month"
+                    ? "Calendar year for the monthly breakdown chart"
+                    : "Calendar year for dashboard totals and year chart"
+                }
+                value={revenueScopeYear}
+                onChange={(e) => setRevenueScopeYear(Number(e.target.value))}
+                className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 bg-white text-gray-800 min-w-[5rem]"
+              >
+                {revenueYearOptions.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           </div>
         </CardHeader>
         <CardContent>
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 mb-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-wider text-emerald-700">Total revenue</p>
-                <p className="text-xl font-bold text-emerald-800 mt-1">
-                  {formatCurrency(totalRevenue)} VND
-                </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-2">
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-emerald-700">Total revenue</p>
+                  <p className="text-xl font-bold text-emerald-800 mt-1">
+                    {formatCurrency(totalRevenueCombined)} VND
+                  </p>
+                </div>
+                <div className="h-10 w-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                  <TrendingUp size={20} />
+                </div>
               </div>
-              <div className="h-10 w-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                <TrendingUp size={20} />
+            </div>
+            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-blue-700">Revenue from orders</p>
+                  <p className="text-xl font-bold text-blue-800 mt-1">
+                    {formatCurrency(ordersRevenueTotal)} VND
+                  </p>
+                </div>
+                <div className="h-10 w-10 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
+                  <ShoppingCart size={20} />
+                </div>
+              </div>
+            </div>
+            <div className="rounded-xl border border-purple-200 bg-purple-50 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-purple-700">Revenue from pre-orders</p>
+                  <p className="text-xl font-bold text-purple-800 mt-1">
+                    {formatCurrency(preOrdersRevenueTotal)} VND
+                  </p>
+                </div>
+                <div className="h-10 w-10 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center">
+                  <CalendarDays size={20} />
+                </div>
               </div>
             </div>
           </div>
+          {revenueDisplayScopeCaption ? (
+            <p className="text-xs text-gray-500 mb-4 px-0.5">{revenueDisplayScopeCaption}</p>
+          ) : null}
           {busy ? (
             <div className="h-72 flex items-center justify-center text-sm text-gray-500">
               Loading revenue chart...
             </div>
-          ) : filteredRevenueSeries.length > 0 ? (
+          ) : revenueSeries.length > 0 ? (
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={filteredRevenueSeries}>
+                <BarChart data={revenueSeries}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="label" tick={{ fontSize: 12 }} />
                   <YAxis
